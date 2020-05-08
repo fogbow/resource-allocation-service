@@ -145,7 +145,7 @@ public class AzureVolumePlugin extends AzureAsync<VolumeInstance> implements Vol
     String doRequestInstance(VolumeOrder volumeOrder, Creatable<Disk> diskCreatable) {
         Observable<Indexable> observable = AzureVolumeSDK.buildCreateDiskObservable(diskCreatable);
         String instanceId = AzureGeneralUtil.defineInstanceId(diskCreatable.name());
-        Runnable finishCreationCallback = startIntanceCreation(instanceId);
+        Runnable finishCreationCallback = startInstanceCreation(instanceId);
         this.operation.subscribeCreateDisk(observable, finishCreationCallback);
         updateInstanceAllocation(volumeOrder);
         return instanceId;
@@ -165,4 +165,8 @@ public class AzureVolumePlugin extends AzureAsync<VolumeInstance> implements Vol
         this.operation = operation;
     }
 
+    @Override
+    protected VolumeInstance buildCreatingInstance(String instanceId) {
+        return new VolumeInstance(instanceId, InstanceState.CREATING.getValue(), AzureGeneralUtil.NO_INFORMATION, 0);
+    }
 }

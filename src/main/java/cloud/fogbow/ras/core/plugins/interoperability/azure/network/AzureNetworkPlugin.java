@@ -64,7 +64,7 @@ public class AzureNetworkPlugin extends AzureAsync<NetworkInstance> implements N
                 .tags(tags)
                 .checkAndBuild();
 
-        Runnable finishAsyncCreationCallback = startIntanceCreation(instanceId);
+        Runnable finishAsyncCreationCallback = startInstanceCreation(instanceId);
         doCreateInstance(azureUser, azureCreateVirtualNetworkRef, finishAsyncCreationCallback);
 
         return instanceId;
@@ -130,4 +130,8 @@ public class AzureNetworkPlugin extends AzureAsync<NetworkInstance> implements N
         this.azureVirtualNetworkOperationSDK = azureVirtualNetworkOperationSDK;
     }
 
+    @Override
+    protected NetworkInstance buildCreatingInstance(String instanceId) {
+        return new NetworkInstance(instanceId, InstanceState.CREATING.getValue());
+    }
 }

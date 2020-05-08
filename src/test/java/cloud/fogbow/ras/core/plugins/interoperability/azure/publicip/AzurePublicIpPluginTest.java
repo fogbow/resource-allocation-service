@@ -636,7 +636,7 @@ public class AzurePublicIpPluginTest {
                 Mockito.eq(networkInterface), Mockito.eq(publicIPAddressCreatable));
 
         Runnable doOnComplete = Mockito.mock(Runnable.class);
-        Mockito.doReturn(doOnComplete).when(this.plugin).startIntanceCreation(Mockito.eq(instanceId));
+        Mockito.doReturn(doOnComplete).when(this.plugin).startInstanceCreation(Mockito.eq(instanceId));
 
         Mockito.doNothing().when(this.operation).subscribeAssociatePublicIPAddress(Mockito.eq(azure),
                 Mockito.anyString(), Mockito.eq(observable), Mockito.eq(doOnComplete));

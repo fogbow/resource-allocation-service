@@ -127,7 +127,7 @@ public class AzureNetworkPluginTest {
 
         Runnable callback = Mockito.mock(Runnable.class);
         Mockito.doReturn(callback)
-                .when(this.azureNetworkPlugin).startIntanceCreation(Mockito.eq(instanceIdExpected));
+                .when(this.azureNetworkPlugin).startInstanceCreation(Mockito.eq(instanceIdExpected));
 
         // exercise
         String instanceId = this.azureNetworkPlugin.requestInstance(networkOrder, this.azureUser);
@@ -136,7 +136,7 @@ public class AzureNetworkPluginTest {
         Mockito.verify(this.azureVirtualNetworkOperation, Mockito.times(TestUtils.RUN_ONCE)).doCreateInstance(
                 Mockito.eq(azureCreateVirtualNetworkRefExpected), Mockito.eq(this.azureUser), Mockito.eq(callback));
         Mockito.verify(this.azureNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE))
-                .startIntanceCreation(Mockito.eq(instanceId));
+                .startInstanceCreation(Mockito.eq(instanceId));
         Assert.assertEquals(instanceIdExpected, instanceId);
     }
 

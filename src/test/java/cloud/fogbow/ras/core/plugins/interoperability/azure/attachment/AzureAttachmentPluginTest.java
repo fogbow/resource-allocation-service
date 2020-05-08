@@ -457,7 +457,7 @@ public class AzureAttachmentPluginTest {
 
         String instanceId = "instance-id";
         Runnable doOnComplete = Mockito.mock(Runnable.class);
-        Mockito.doReturn(doOnComplete).when(this.plugin).startIntanceCreation(Mockito.eq(instanceId));
+        Mockito.doReturn(doOnComplete).when(this.plugin).startInstanceCreation(Mockito.eq(instanceId));
 
         Mockito.doNothing().when(this.operation).subscribeAttachDiskFrom(Mockito.eq(observable), Mockito.eq(doOnComplete));
 

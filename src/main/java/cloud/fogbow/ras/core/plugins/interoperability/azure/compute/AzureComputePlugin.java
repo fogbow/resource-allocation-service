@@ -24,10 +24,7 @@ import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.resources.fluentcore.utils.SdkContext;
 import org.apache.log4j.Logger;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class AzureComputePlugin extends AzureAsync<ComputeInstance> implements ComputePlugin<AzureUser> {
 
@@ -118,7 +115,7 @@ public class AzureComputePlugin extends AzureAsync<ComputeInstance> implements C
             VirtualMachineSize virtualMachineSize) throws FogbowException {
 
         String instanceId = getInstanceId(azureCreateVirtualMachineRef);
-        Runnable finishCreationCallback = this.startIntanceCreation(instanceId);
+        Runnable finishCreationCallback = this.startInstanceCreation(instanceId);
         doCreateInstance(azureUser, azureCreateVirtualMachineRef, finishCreationCallback);
         updateInstanceAllocation(computeOrder, virtualMachineSize);
         return instanceId;
@@ -234,4 +231,9 @@ public class AzureComputePlugin extends AzureAsync<ComputeInstance> implements C
         this.azureVirtualMachineOperation = azureVirtualMachineOperation;
     }
 
+    @Override
+    protected ComputeInstance buildCreatingInstance(String instanceId) {
+        return new ComputeInstance(instanceId, InstanceState.CREATING.getValue()
+                , AzureGeneralUtil.NO_INFORMATION, new ArrayList<>());
+    }
 }

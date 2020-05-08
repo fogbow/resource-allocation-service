@@ -430,7 +430,7 @@ public class AzureVolumePluginTest {
         PowerMockito.doReturn(observable).when(AzureVolumeSDK.class, "buildCreateDiskObservable", Mockito.any(Creatable.class));
 
         Runnable doOnComplete = Mockito.mock(Runnable.class);
-        Mockito.doReturn(doOnComplete).when(this.plugin).startIntanceCreation(Mockito.eq(instanceId));
+        Mockito.doReturn(doOnComplete).when(this.plugin).startInstanceCreation(Mockito.eq(instanceId));
 
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
         Mockito.doNothing().when(this.operation).subscribeCreateDisk(Mockito.eq(observable), Mockito.eq(doOnComplete));

@@ -197,7 +197,7 @@ public class AzurePublicIpPlugin extends AzureAsync<PublicIpInstance> implements
 
         String resourceId = publicIPAddressCreatable.name();
         String instanceId = AzureGeneralUtil.defineInstanceId(resourceId);
-        Runnable finishCreationCallback = startIntanceCreation(instanceId);
+        Runnable finishCreationCallback = startInstanceCreation(instanceId);
         this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable, finishCreationCallback);
 
         return instanceId;
@@ -221,9 +221,14 @@ public class AzurePublicIpPlugin extends AzureAsync<PublicIpInstance> implements
         return resourceIdUrl;
     }
 
+
     @VisibleForTesting
     void setOperation(AzurePublicIPAddressOperationSDK operation) {
         this.operation = operation;
     }
 
+    @Override
+    protected PublicIpInstance buildCreatingInstance(String instanceId) {
+        return new PublicIpInstance(instanceId, InstanceState.CREATING.getValue(), AzureGeneralUtil.NO_INFORMATION);
+    }
 }
