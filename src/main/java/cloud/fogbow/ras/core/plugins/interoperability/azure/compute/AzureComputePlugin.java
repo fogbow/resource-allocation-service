@@ -43,7 +43,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     static final int MAXIMUM_SIZE_ALLOWED = 1;
 
     private AzureVirtualMachineOperationSDK azureVirtualMachineOperation;
-    private final DefaultLaunchCommandGenerator launchCommandGenerator;
+    private DefaultLaunchCommandGenerator launchCommandGenerator;
     private final String defaultRegionName;
     private final String defaultResourceGroupName;
     private final String defaultVirtualNetworkName;
@@ -202,6 +202,11 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     @VisibleForTesting
     void setAzureVirtualMachineOperation(AzureVirtualMachineOperationSDK azureVirtualMachineOperation) {
         this.azureVirtualMachineOperation = azureVirtualMachineOperation;
+    }
+
+    @VisibleForTesting
+    void setLaunchCommandGenerator(DefaultLaunchCommandGenerator launchCommandGenerator) {
+        this.launchCommandGenerator = launchCommandGenerator;
     }
 
 }
