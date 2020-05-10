@@ -61,18 +61,18 @@ public class AzureVirtualMachineOperationSDK {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
         String virtualNetworkName = virtualMachineRef.getVirtualNetworkName();
-        String virtualNetworkId = buildVirtualNetworkId(azure, subscriptionId, virtualNetworkName);
+        String networkId = buildNetworkId(azure, subscriptionId, virtualNetworkName);
 
-        Observable<Indexable> virtualMachineAsync = buildAzureVirtualMachineObservable(virtualMachineRef, virtualNetworkId, azure);
-        subscribeCreateVirtualMachine(virtualMachineAsync);
+        Observable<Indexable> virtualMachineObservable = buildAzureVirtualMachineObservable(azure, virtualMachineRef, networkId);
+        subscribeCreateVirtualMachine(virtualMachineObservable);
     }
 
     @VisibleForTesting
-    Observable<Indexable> buildAzureVirtualMachineObservable(
-            AzureCreateVirtualMachineRef virtualMachineRef, String virtualNetworkId,
-            Azure azure) throws FogbowException {
+    Observable<Indexable> buildAzureVirtualMachineObservable(Azure azure,
+            AzureCreateVirtualMachineRef virtualMachineRef, String virtualNetworkId) throws FogbowException {
 
-        Network network = AzureNetworkSDK.getNetwork(azure, virtualNetworkId)
+        Network network = AzureNetworkSDK
+                .getNetwork(azure, virtualNetworkId)
                 .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
         
         String subnetName = network.subnets().values().iterator().next().name();
@@ -122,7 +122,7 @@ public class AzureVirtualMachineOperationSDK {
     }
 
     @VisibleForTesting
-    String buildVirtualNetworkId(Azure azure, String subscriptionId, String virtualNetworkName) {
+    String buildNetworkId(Azure azure, String subscriptionId, String virtualNetworkName) {
         String resourceGroupName = AzureGeneralUtil
                 .selectResourceGroupName(azure, virtualNetworkName, this.defaultResourceGroupName);
 
@@ -134,10 +134,10 @@ public class AzureVirtualMachineOperationSDK {
     }
 
     public VirtualMachineSize findVirtualMachineSize(int memoryRequired, int vCpuRequired, String regionName,
-            AzureUser azureCloudUser) throws FogbowException {
+            AzureUser azureUser) throws FogbowException {
 
         LOGGER.debug(String.format(Messages.Info.SEEK_VIRTUAL_MACHINE_SIZE_NAME, memoryRequired, vCpuRequired, regionName));
-        Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
         Region region = Region.findByLabelOrName(regionName);
         
         PagedList<VirtualMachineSize> virtualMachineSizes =
@@ -157,11 +157,11 @@ public class AzureVirtualMachineOperationSDK {
         return firstVirtualMachineSize;
     }
 
-    public AzureGetVirtualMachineRef doGetInstance(AzureUser azureCloudUser,
-            String resourceName) throws FogbowException {
+    public AzureGetVirtualMachineRef doGetInstance(AzureUser azureUser, String resourceName)
+            throws FogbowException {
 
-        Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
-        String subscriptionId = azureCloudUser.getSubscriptionId();
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        String subscriptionId = azureUser.getSubscriptionId();
         String resourceId = buildResourceId(azure, subscriptionId, resourceName);
 
         VirtualMachine virtualMachine = AzureVirtualMachineSDK
@@ -220,32 +220,45 @@ public class AzureVirtualMachineOperationSDK {
     /**
      * Delete asynchronously because this operation takes a long time to finish.
      */
-    public void doDeleteInstance(AzureUser azureCloudUser, String resourceName) throws FogbowException {
-        Azure azure = AzureClientCacheManager.getAzure(azureCloudUser);
-        
+    public void doDeleteInstance(AzureUser azureUser, String resourceName) throws FogbowException {
+        Azure azure = AzureClientCacheManager.getAzure(azureUser);
         if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
-            Completable deleteVirtualMachineResourceGroup = AzureResourceGroupOperationUtil
-                    .deleteResourceGroupAsync(azure, resourceName);
-
-            setDeleteVirtualMachineBehaviour(deleteVirtualMachineResourceGroup)
-                    .subscribeOn(this.scheduler)
-                    .subscribe();
+            doDeleteResourceGroupAsync(azure, resourceName);
         } else {
-            String subscriptionId = azureCloudUser.getSubscriptionId();
-            String resourceId = buildResourceId(azure, subscriptionId,
-                    resourceName);
-
-            VirtualMachine virtualMachine = AzureVirtualMachineSDK
-                    .getVirtualMachine(azure, resourceId)
-                    .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
-
-            Completable firstDeleteVirtualMachine = buildDeleteVirtualMachineCompletable(azure, resourceId);
-            Completable secondDeleteVirtualMachineDisk = buildDeleteDiskCompletable(azure, virtualMachine);
-            Completable thirdDeleteVirtualMachineNic = buildDeleteNicCompletable(azure, virtualMachine);
-            Completable.concat(firstDeleteVirtualMachine, secondDeleteVirtualMachineDisk, thirdDeleteVirtualMachineNic)
-                    .subscribeOn(this.scheduler)
-                    .subscribe();
+            String subscriptionId = azureUser.getSubscriptionId();
+            String resourceId = buildResourceId(azure, subscriptionId, resourceName);
+            doDeleteVirtualMachineAndResourcesAsync(azure, resourceId);
         }
+    }
+
+    @VisibleForTesting
+    void doDeleteVirtualMachineAndResourcesAsync(Azure azure, String resourceId) throws FogbowException {
+        VirtualMachine virtualMachine = AzureVirtualMachineSDK
+                .getVirtualMachine(azure, resourceId)
+                .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
+
+        Completable deleteVirtualMachine = buildDeleteVirtualMachineCompletable(azure, resourceId);
+        Completable deleteVirtualMachineDisk = buildDeleteDiskCompletable(azure, virtualMachine);
+        Completable deleteVirtualMachineNic = buildDeleteNicCompletable(azure, virtualMachine);
+
+        Completable.concat(deleteVirtualMachine, deleteVirtualMachineDisk, deleteVirtualMachineNic)
+                .subscribeOn(this.scheduler)
+                .subscribe();
+    }
+
+    @VisibleForTesting
+    void doDeleteResourceGroupAsync(Azure azure, String resourceName) {
+        Completable completable = AzureResourceGroupOperationUtil
+                .deleteResourceGroupAsync(azure, resourceName);
+
+        subscribeDeleteVirtualMachine(completable);
+    }
+
+    @VisibleForTesting
+    void subscribeDeleteVirtualMachine(Completable completable) {
+        setDeleteVirtualMachineBehaviour(completable)
+                .subscribeOn(this.scheduler)
+                .subscribe();
     }
 
     @VisibleForTesting
@@ -267,9 +280,9 @@ public class AzureVirtualMachineOperationSDK {
     }
 
     @VisibleForTesting
-    Completable buildDeleteVirtualMachineCompletable(Azure azure, String azureInstanceId) {
+    Completable buildDeleteVirtualMachineCompletable(Azure azure, String resourceId) {
         Completable deleteVirtualMachine = AzureVirtualMachineSDK
-                .buildDeleteVirtualMachineCompletable(azure, azureInstanceId);
+                .buildDeleteVirtualMachineCompletable(azure, resourceId);
         
         return setDeleteVirtualMachineBehaviour(deleteVirtualMachine);
     }
@@ -294,7 +307,8 @@ public class AzureVirtualMachineOperationSDK {
                 });
     }
 
-    private Completable setDeleteVirtualMachineBehaviour(Completable deleteVirtualMachineCompletable) {
+    @VisibleForTesting
+    Completable setDeleteVirtualMachineBehaviour(Completable deleteVirtualMachineCompletable) {
         return deleteVirtualMachineCompletable
                 .doOnError((error -> {
                     LOGGER.error(Messages.Error.ERROR_DELETE_VM_ASYNC_BEHAVIOUR, error);
