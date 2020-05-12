@@ -701,4 +701,36 @@ public class AzureVirtualNetworkOperationSDKTest {
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
     }
 
+    // test case: When calling the doCreateInstance method, it must verify that is
+    // call was successful.
+    @Test
+    public void testDoCreateInstanceSuccessfully() throws Exception {
+        // set up
+        AzureCreateVirtualNetworkRef virtualNetworkRef = Mockito.mock(AzureCreateVirtualNetworkRef.class);
+        Runnable instanceCallback = Mockito.mock(Runnable.class);
+
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(this.azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
+
+        Observable observable = AzureTestUtils.createSimpleObservableSuccess();
+        Mockito.doReturn(observable).when(this.azureVirtualNetworkOperationSDK)
+                .buildVirtualNetworkCreationObservable(Mockito.eq(virtualNetworkRef),
+                Mockito.any(Azure.class), Mockito.eq(instanceCallback));
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doCreateInstance(virtualNetworkRef , this.azureUser, instanceCallback);
+
+        // verify
+        PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
+
+        Mockito.verify(this.azureVirtualNetworkOperationSDK, Mockito.times(TestUtils.RUN_ONCE))
+                .buildVirtualNetworkCreationObservable(Mockito.eq(virtualNetworkRef),
+                Mockito.any(Azure.class), Mockito.eq(instanceCallback));
+
+        Mockito.verify(this.azureVirtualNetworkOperationSDK, Mockito.times(TestUtils.RUN_ONCE))
+                .subscribeVirtualNetworkCreation(Mockito.eq(observable));
+    }
+
 }
