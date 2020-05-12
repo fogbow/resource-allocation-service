@@ -36,8 +36,10 @@ public class AzureVolumeOperationSDKTest {
         // set up
         Observable<Indexable> observable = AzureTestUtils.createSimpleObservableSuccess();
 
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+
         // exercise
-        this.operation.subscribeCreateDisk(observable);
+        this.operation.subscribeCreateDisk(observable, doOnComplete);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_DISK_ASYNC_BEHAVIOUR);
@@ -51,8 +53,10 @@ public class AzureVolumeOperationSDKTest {
         // set up
         Observable observable = AzureTestUtils.createSimpleObservableFail();
 
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+
         // exercise
-        this.operation.subscribeCreateDisk(observable);
+        this.operation.subscribeCreateDisk(observable, doOnComplete);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR);

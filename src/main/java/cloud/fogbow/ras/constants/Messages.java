@@ -157,6 +157,8 @@ public class Messages {
                 = "Second step on virtual network creation: Network created.";
         public static final String END_DELETE_VNET_ASYNC_BEHAVIOUR = "End asynchronous delete virtual network.";
         public static final String END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR = "End asynchronous delete security group.";
+        public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
+        public static final String END_ASYNC_INSTANCE_CREATION_S = "End instance (%s) creation.";
     }
 
     public static class Error {

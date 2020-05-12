@@ -36,16 +36,16 @@ public class AzurePublicIPAddressOperationSDK {
     }
 
     public void subscribeAssociatePublicIPAddress(Azure azure, String instanceId,
-            Observable<NetworkInterface> observable) {
+            Observable<NetworkInterface> observable, Runnable doOnComplete) {
         
-        setAssociatePublicIPAddressBehaviour(azure, instanceId, observable)
+        setAssociatePublicIPAddressBehaviour(azure, instanceId, observable, doOnComplete)
             .subscribeOn(this.scheduler)
             .subscribe();
     }
 
     @VisibleForTesting
     Observable<NetworkInterface> setAssociatePublicIPAddressBehaviour(Azure azure, String instanceId,
-            Observable<NetworkInterface> observable) {
+            Observable<NetworkInterface> observable, Runnable doOnComplete) {
 
         return observable.doOnNext(nic -> {
             LOGGER.info(Messages.Info.FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
@@ -55,6 +55,7 @@ public class AzurePublicIPAddressOperationSDK {
             LOGGER.error(Messages.Error.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
             return null;
         }).doOnCompleted(() -> {
+            doOnComplete.run();
             LOGGER.info(Messages.Info.END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
         });
     }
