@@ -2,8 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule;
 
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -16,7 +14,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.mod
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.util.List;
