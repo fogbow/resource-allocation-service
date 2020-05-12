@@ -12,13 +12,17 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
+
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.implementation.VirtualNetworkInner;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
@@ -32,6 +36,7 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
 import rx.Completable;
 import rx.Observable;
 import rx.schedulers.Schedulers;
@@ -39,7 +44,7 @@ import rx.schedulers.Schedulers;
 import java.util.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AzureNetworkSDK.class, AzureClientCacheManager.class})
+@PrepareForTest({ AzureNetworkSDK.class, AzureClientCacheManager.class, AzureGeneralUtil.class, AzureResourceGroupOperationUtil.class })
 public class AzureVirtualNetworkOperationSDKTest {
 
     private static final Logger LOGGER_CLASS_MOCK = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
@@ -193,7 +198,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     // test case: When calling the doNetworkCreationStepTwoSync method and the observables execute
     // without any error, it must verify if It execute the right method.
     @Test
-    public void testDoNetworkCreationStepTwoSyncSuccessfully() {
+    public void testDoNetworkCreationStepTwoSyncSuccessfully() throws Exception {
         // set up
         String resourceNameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
@@ -209,6 +214,11 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         NetworkSecurityGroup indexableExpected = Mockito.mock(NetworkSecurityGroup.class);
 
+        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.any(Azure.class), Mockito.anyString(), Mockito.anyString());
+
         // exercise
         this.azureVirtualNetworkOperationSDK.doNetworkCreationStepTwoSync(indexableExpected, azureCreateVirtualNetworkRef, this.azure);
 
@@ -222,7 +232,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     // test case: When calling the doNetworkCreationStepTwoSync method and the observables execute
     // with an error, it must verify if It rethrows the same exception.
     @Test
-    public void testDoNetworkCreationStepTwoSyncFail() {
+    public void testDoNetworkCreationStepTwoSyncFail() throws Exception {
         // set up
         String resourceNameExpected = TestUtils.ANY_VALUE;
         String cidrExpected = TestUtils.ANY_VALUE;
@@ -240,6 +250,11 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .thenThrow(exceptionExpected);
 
         NetworkSecurityGroup indexableExpected = Mockito.mock(NetworkSecurityGroup.class);
+
+        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.any(Azure.class), Mockito.anyString(), Mockito.anyString());
 
         // verify
         this.expectedException.expect(exceptionExpected.getClass());
@@ -492,7 +507,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     // test case: When calling the getNetwork method with mocked methods
     // , it must verify if It returns the right Network.
     @Test
-    public void getNetworkSuccessfully() throws FogbowException {
+    public void getNetworkSuccessfully() throws Exception {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
         String resourceName = AzureTestUtils.RESOURCE_NAME;
@@ -509,6 +524,11 @@ public class AzureVirtualNetworkOperationSDKTest {
         PowerMockito.when(AzureNetworkSDK.getNetwork(Mockito.eq(this.azure), Mockito.eq(azureVirtualNetworkIdExpected)))
                 .thenReturn(optionalExpected);
 
+        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.any(Azure.class), Mockito.anyString(), Mockito.anyString());
+
         // exercise
         Network network = this.azureVirtualNetworkOperationSDK.getNetwork(resourceName, this.azureUser);
 
@@ -519,7 +539,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     // test case: When calling the getNetwork method with mocked methods and network is not found
     // , it must verify if It returns an exception.
     @Test
-    public void testGetNetworkFail() throws FogbowException {
+    public void testGetNetworkFail() throws Exception {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
         String resourceName = AzureTestUtils.RESOURCE_NAME;
@@ -535,6 +555,11 @@ public class AzureVirtualNetworkOperationSDKTest {
         PowerMockito.when(AzureNetworkSDK.getNetwork(Mockito.eq(this.azure), Mockito.eq(azureVirtualNetworkIdExpected)))
                 .thenReturn(optionalNetwork);
 
+        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.any(Azure.class), Mockito.anyString(), Mockito.anyString());
+
         // verify
         this.expectedException.expect(InstanceNotFoundException.class);
 
@@ -545,7 +570,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     // test case: When calling the doDeleteInstance method with mocked methods
     // , it must verify if It shows the right log.
     @Test
-    public void testDoDeleteInstanceSuccessfully() throws FogbowException {
+    public void testDoDeleteInstanceSuccessfully() throws Exception {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
         String resourceName = AzureTestUtils.RESOURCE_NAME;
@@ -570,6 +595,10 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .buildDeleteVirtualNetworkCompletable(Mockito.eq(this.azure), Mockito.eq(azureVirtualNetworkIdExpected));
         Mockito.doReturn(completableTwo).when(this.azureVirtualNetworkOperationSDK)
                 .buildDeleteSecurityGroupCompletable(Mockito.eq(this.azure), Mockito.eq(azureSecurityGroupIdExpected));
+
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(false).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup",
+                Mockito.any(Azure.class), Mockito.anyString());
 
         // exercise
         this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, this.azureUser);
@@ -600,6 +629,76 @@ public class AzureVirtualNetworkOperationSDKTest {
     private void makeTheObservablesSynchronous() {
         // The scheduler trampolime makes the subscriptions execute in the current thread
         this.azureVirtualNetworkOperationSDK.setScheduler(Schedulers.trampoline());
+    }
+
+    // test case: When calling the doDeleteInstance method whose existing
+    // resource group has the same name as the resource, and the completable
+    // executes without any error, it must verify than returns the right logs.
+    @Test
+    public void testDoDeleteInstanceThanExistsResourceGroupWithSameResourceNameSuccessfully() throws Exception {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(this.azure).when(AzureClientCacheManager.class, "getAzure", Mockito.eq(this.azureUser));
+
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(true).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup",
+                Mockito.any(Azure.class), Mockito.eq(resourceName));
+
+        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
+        PowerMockito.doReturn(completable).when(AzureResourceGroupOperationUtil.class, "deleteResourceGroupAsync",
+                Mockito.eq(this.azure), Mockito.eq(resourceName));
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, this.azureUser);
+
+        // verify
+        PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
+
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(this.azure), Mockito.eq(resourceName));
+
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.deleteResourceGroupAsync(Mockito.eq(this.azure), Mockito.eq(resourceName));
+
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VNET_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the doDeleteInstance method whose existing
+    // resource group has the same name as the resource, and the completable
+    // executes with an error, it must verify if It returns the right logs.
+    @Test
+    public void testDoDeleteInstanceThanExistsResourceGroupWithSameResourceNameFail() throws Exception {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(this.azure).when(AzureClientCacheManager.class, "getAzure", Mockito.eq(this.azureUser));
+
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(true).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup",
+                Mockito.any(Azure.class), Mockito.eq(resourceName));
+
+        Completable completable = AzureTestUtils.createSimpleCompletableFail();
+        PowerMockito.doReturn(completable).when(AzureResourceGroupOperationUtil.class, "deleteResourceGroupAsync",
+                Mockito.eq(this.azure), Mockito.eq(resourceName));
+
+        // exercise
+        this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, this.azureUser);
+
+        // verify
+        PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
+
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(this.azure), Mockito.eq(resourceName));
+
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.deleteResourceGroupAsync(Mockito.eq(this.azure), Mockito.eq(resourceName));
+
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
     }
 
 }
