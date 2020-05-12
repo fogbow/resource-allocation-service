@@ -85,7 +85,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
     public void deleteSecurityRule(String securityRuleId, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
 
-        SecurityRuleIdContext securityRuleIdContext = new SecurityRuleIdContext(securityRuleId);
+        SecurityRuleIdContext securityRuleIdContext = this.getSecurityRuleIdContext(securityRuleId);
 
         String networkSecurityGroupName = securityRuleIdContext.getNetworkSecurityGroupName();
         String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
@@ -96,5 +96,15 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
         String securityRuleName = securityRuleIdContext.getSecurityRuleName();
         this.azureNetworkSecurityGroupOperationSDK.deleteNetworkSecurityRule(networkSecurityGroupId, securityRuleName, azureUser);
+    }
+
+    @VisibleForTesting
+    SecurityRuleIdContext getSecurityRuleIdContext(String securityRuleId) {
+        return new SecurityRuleIdContext(securityRuleId);
+    }
+
+    @VisibleForTesting
+    void setAzureNetworkSecurityGroupOperationSDK(AzureNetworkSecurityGroupOperationSDK operation) {
+        this.azureNetworkSecurityGroupOperationSDK = operation;
     }
 }

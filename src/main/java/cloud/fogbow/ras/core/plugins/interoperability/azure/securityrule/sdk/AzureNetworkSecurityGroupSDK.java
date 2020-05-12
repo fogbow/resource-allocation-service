@@ -14,7 +14,6 @@ import static com.microsoft.azure.management.network.NetworkSecurityRule.UpdateD
 
 public class AzureNetworkSecurityGroupSDK {
 
-    // TODO (chico) - Implement tests
     public static Optional<NetworkSecurityGroup> getNetworkSecurityGroup(Azure azure, String networkSecurityGroupId)
             throws UnexpectedException {
 
@@ -27,7 +26,6 @@ public class AzureNetworkSecurityGroupSDK {
         }
     }
 
-    // TODO (chico) - Finish implementation; Implement tests
     public static void updateNetworkSecurityGroup(NetworkSecurityGroup networkSecurityGroup, String cidr,
                                                   int portFrom, int portTo, String ruleName,
                                                   SecurityRuleProtocol securityRuleProtocol,
@@ -57,7 +55,6 @@ public class AzureNetworkSecurityGroupSDK {
         return azure.networkSecurityGroups();
     }
 
-    // TODO (chico) - Implement tests
     public static void deleteNetworkSecurityRule(NetworkSecurityGroup networkSecurityGroup, String securityRuleName)
             throws UnexpectedException {
 

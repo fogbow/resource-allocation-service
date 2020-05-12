@@ -3,13 +3,13 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.common.util.AzureClientCacheManager;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.AzureSecurityRuleUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
 public class AzureNetworkSecurityGroupOperationSDK {
 
     private final int FIRST_PRIORITY_VALUE = 100;
-    private static final int UNKNOWN_PRIORITY_VALUE = -1;
+    @VisibleForTesting
+    static final int UNKNOWN_PRIORITY_VALUE = -1;
     private static int currentPriority = UNKNOWN_PRIORITY_VALUE;
 
     public void doCreateInstance(AzureUpdateNetworkSecurityGroupRef azureUpdateNetworkSecurityRef, AzureUser azureUser)
@@ -40,8 +41,8 @@ public class AzureNetworkSecurityGroupOperationSDK {
         int portFrom = azureUpdateNetworkSecurityRef.getPortFrom();
         int portTo = azureUpdateNetworkSecurityRef.getPortTo();
         String ruleName = azureUpdateNetworkSecurityRef.getRuleResourceName();
-        SecurityRuleProtocol securityRuleProtocol = AzureSecurityRuleUtil.getProtocol(azureUpdateNetworkSecurityRef.getProtocol());
-        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getDirection(azureUpdateNetworkSecurityRef.getDirection());
+        SecurityRuleProtocol securityRuleProtocol = AzureSecurityRuleUtil.getFogbowProtocol(azureUpdateNetworkSecurityRef.getProtocol());
+        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(azureUpdateNetworkSecurityRef.getDirection());
         int priority = getPriority(networkSecurityGroup);
 
         AzureNetworkSecurityGroupSDK.updateNetworkSecurityGroup(networkSecurityGroup, cidr, portFrom,
@@ -50,11 +51,16 @@ public class AzureNetworkSecurityGroupOperationSDK {
 
     @VisibleForTesting
     int getPriority(NetworkSecurityGroup networkSecurityGroup) {
-        int priority = currentPriority;
+        int priority = getCurrentPriority();
         if (priority == UNKNOWN_PRIORITY_VALUE) {
             priority = getLastPriority(networkSecurityGroup);
         }
         return priority + 1;
+    }
+
+    @VisibleForTesting
+    int getCurrentPriority() {
+        return currentPriority;
     }
 
     public List<SecurityRuleInstance> getNetworkSecurityRules(String networkSecurityGroupId, String networkSecurityGroupName, AzureUser azureUser) throws FogbowException {
@@ -73,7 +79,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
     SecurityRuleInstance buildSecurityRuleInstance(NetworkSecurityRule networkSecurityRule, String networkSecurityGroupName) {
         String cidr = networkSecurityRule.sourceAddressPrefix();
         SecurityRuleDirection securityRuleDirection = networkSecurityRule.direction();
-        SecurityRule.Direction direction = AzureSecurityRuleUtil.getDirection(securityRuleDirection);
+        SecurityRule.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(securityRuleDirection);
         String portRange = networkSecurityRule.destinationPortRange();
         AzureSecurityRuleUtil.Ports ports = AzureSecurityRuleUtil.getPorts(portRange);
         int portFrom = ports.getFrom();
@@ -81,7 +87,7 @@ public class AzureNetworkSecurityGroupOperationSDK {
         String ipAddress = AzureSecurityRuleUtil.getIpAddress(cidr);
         SecurityRule.EtherType etherType = AzureSecurityRuleUtil.inferEtherType(ipAddress);
         SecurityRuleProtocol securityRuleProtocol = networkSecurityRule.protocol();
-        SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getProtocol(securityRuleProtocol);
+        SecurityRule.Protocol protocol = AzureSecurityRuleUtil.getFogbowProtocol(securityRuleProtocol.toString());
         String ruleName = networkSecurityRule.name();
         String instanceId = SecurityRuleIdContext.buildInstanceId(networkSecurityGroupName, ruleName);
         return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
@@ -99,7 +105,8 @@ public class AzureNetworkSecurityGroupOperationSDK {
         AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(networkSecurityGroup, securityRuleName);
     }
 
-    private int getLastPriority(NetworkSecurityGroup networkSecurityGroup) {
+    @VisibleForTesting
+    int getLastPriority(NetworkSecurityGroup networkSecurityGroup) {
         try {
             return networkSecurityGroup.securityRules().values().stream()
                     .filter(networkSecurityRule -> networkSecurityRule.name().startsWith(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX))
