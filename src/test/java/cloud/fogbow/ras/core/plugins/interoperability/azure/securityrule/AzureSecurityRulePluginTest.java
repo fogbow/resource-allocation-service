@@ -39,7 +39,6 @@ public class AzureSecurityRulePluginTest extends TestUtils {
     private static final int DEFAULT_PORT_FROM = 22;
     private static final int DEFAULT_PORT_TO = 22;
     private AzureSecurityRulePlugin plugin;
-    private Azure azure;
     private AzureUser azureUser;
     private AzureNetworkSecurityGroupOperationSDK operation;
 
@@ -56,7 +55,6 @@ public class AzureSecurityRulePluginTest extends TestUtils {
         this.operation = Mockito.mock(AzureNetworkSecurityGroupOperationSDK.class);
         this.plugin.setAzureNetworkSecurityGroupOperationSDK(operation);
         this.azureUser = AzureTestUtils.createAzureUser();
-        this.azure = null;
     }
 
     // test case: When calling the requestSecurityRule method with mocked methods,
