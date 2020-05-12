@@ -4,6 +4,7 @@ import cloud.fogbow.ras.constants.Messages;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /*
@@ -18,7 +19,7 @@ public class AsyncInstanceCreationManager {
 
     private static final Logger LOGGER = Logger.getLogger(AsyncInstanceCreationManager.class);
 
-    private final static List<String> creating = new ArrayList<>();
+    private final static List<String> creating =  Collections.synchronizedList(new ArrayList<>());
 
     /*
     It must be used soon before the plugin makes asynchronous creation operation in the cloud.
