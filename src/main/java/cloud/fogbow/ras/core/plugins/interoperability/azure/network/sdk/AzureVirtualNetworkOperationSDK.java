@@ -117,7 +117,8 @@ public class AzureVirtualNetworkOperationSDK {
                 azure, resourceName, region, resourceGroupName, cidr, networkSecurityGroup, tags);
     }
 
-    private void subscribeVirtualNetworkCreation(Observable<Indexable> virtualNetworkObservable) {
+    @VisibleForTesting
+    void subscribeVirtualNetworkCreation(Observable<Indexable> virtualNetworkObservable) {
         virtualNetworkObservable
                 .subscribeOn(this.scheduler)
                 .subscribe();
