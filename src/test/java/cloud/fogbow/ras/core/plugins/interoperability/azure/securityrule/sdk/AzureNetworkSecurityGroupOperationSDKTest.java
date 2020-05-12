@@ -18,7 +18,6 @@ import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.NetworkSecurityRule;
 import com.microsoft.azure.management.network.SecurityRuleDirection;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
-import com.microsoft.azure.management.network.implementation.SecurityRuleInner;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

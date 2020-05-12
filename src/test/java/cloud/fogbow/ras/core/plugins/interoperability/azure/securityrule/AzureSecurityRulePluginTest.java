@@ -15,7 +15,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.mod
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
-import com.microsoft.azure.management.Azure;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
