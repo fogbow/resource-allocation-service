@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 
 public class AzureUpdateNetworkSecurityGroupRef {
 
-    private String networkSecurityGroupId;
+    private String securityGroupResourceName;
     private String ruleResourceName;
     private String cidr;
     private int portFrom;
@@ -20,8 +20,8 @@ public class AzureUpdateNetworkSecurityGroupRef {
         return new AzureUpdateNetworkSecurityGroupRef.Builder(AzureUpdateNetworkSecurityGroupRef::new);
     }
 
-    public String getNetworkSecurityGroupId() {
-        return networkSecurityGroupId;
+    public String getSecurityGroupResourceName() {
+        return securityGroupResourceName;
     }
 
     public String getRuleResourceName() {
@@ -32,8 +32,8 @@ public class AzureUpdateNetworkSecurityGroupRef {
         this.ruleResourceName = ruleResourceName;
     }
 
-    public void setNetworkSecurityGroupId(String networkSecurityGroupId) {
-        this.networkSecurityGroupId = networkSecurityGroupId;
+    public void setSecurityGroupResourceName(String securityGroupResourceName) {
+        this.securityGroupResourceName = securityGroupResourceName;
     }
 
     public String getCidr() {
@@ -83,7 +83,7 @@ public class AzureUpdateNetworkSecurityGroupRef {
         AzureUpdateNetworkSecurityGroupRef that = (AzureUpdateNetworkSecurityGroupRef) o;
         return portFrom == that.portFrom &&
                 portTo == that.portTo &&
-                Objects.equals(networkSecurityGroupId, that.networkSecurityGroupId) &&
+                Objects.equals(securityGroupResourceName, that.securityGroupResourceName) &&
                 Objects.equals(cidr, that.cidr) &&
                 direction == that.direction &&
                 protocol == that.protocol;
@@ -91,7 +91,7 @@ public class AzureUpdateNetworkSecurityGroupRef {
 
     @Override
     public int hashCode() {
-        return Objects.hash(networkSecurityGroupId, cidr, portFrom, portTo, direction, protocol);
+        return Objects.hash(securityGroupResourceName, cidr, portFrom, portTo, direction, protocol);
     }
 
     public static class Builder extends GenericBuilder<AzureUpdateNetworkSecurityGroupRef> {
@@ -125,8 +125,8 @@ public class AzureUpdateNetworkSecurityGroupRef {
             return this;
         }
 
-        public AzureUpdateNetworkSecurityGroupRef.Builder networkSecurityGroupId(String networkSecurityGroupId) {
-            with(AzureUpdateNetworkSecurityGroupRef::setNetworkSecurityGroupId, networkSecurityGroupId);
+        public AzureUpdateNetworkSecurityGroupRef.Builder securityGroupResourceName(String securityGroupResourceName) {
+            with(AzureUpdateNetworkSecurityGroupRef::setSecurityGroupResourceName, securityGroupResourceName);
             return this;
         }
 
