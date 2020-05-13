@@ -180,9 +180,12 @@ public class AzureComputePluginTest {
         int disk = 1;
         Mockito.when(AzureGeneralPolicy.getDisk(Mockito.eq(computeOrder))).thenReturn(disk);
 
-        AzureGetImageRef azureGetImageRef = new AzureGetImageRef("", "", "");
         PowerMockito.mockStatic(AzureImageOperationUtil.class);
-        Mockito.when(AzureImageOperationUtil.buildAzureVirtualMachineImageBy(Mockito.eq(imageId)))
+        String decodedImageId = "decoded-image-id";
+        Mockito.when(AzureImageOperationUtil.decodeImageId(Mockito.eq(imageId))).thenReturn(decodedImageId);
+
+        AzureGetImageRef azureGetImageRef = new AzureGetImageRef("", "", "");
+        Mockito.when(AzureImageOperationUtil.buildAzureVirtualMachineImageBy(Mockito.eq(decodedImageId)))
                 .thenReturn(azureGetImageRef);
 
         String resourceName = AzureTestUtils.RESOURCE_NAME;
