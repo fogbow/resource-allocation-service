@@ -77,7 +77,6 @@ public interface AzureSecurityRuleUtil {
         }
     }
 
-    // TODO(chico) - review this method
     static SecurityRule.Protocol getFogbowProtocol(String securityRuleProtocol) {
         switch (securityRuleProtocol) {
             case TCP_VALUE:
