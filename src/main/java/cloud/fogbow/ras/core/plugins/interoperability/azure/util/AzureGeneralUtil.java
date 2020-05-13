@@ -1,9 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
 import cloud.fogbow.common.constants.AzureConstants;
+import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.SystemConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.resources.fluentcore.utils.SdkContext;
+
+import javax.annotation.Nullable;
 
 public interface AzureGeneralUtil {
 
