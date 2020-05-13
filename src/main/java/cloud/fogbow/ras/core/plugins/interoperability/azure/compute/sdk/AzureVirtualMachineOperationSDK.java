@@ -1,22 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-
-import org.apache.log4j.Logger;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.microsoft.azure.PagedList;
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.compute.VirtualMachine;
-import com.microsoft.azure.management.compute.VirtualMachineSize;
-import com.microsoft.azure.management.network.Network;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
-
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
@@ -29,10 +12,25 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureNet
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
+import com.google.common.annotations.VisibleForTesting;
+import com.microsoft.azure.PagedList;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.compute.VirtualMachine;
+import com.microsoft.azure.management.compute.VirtualMachineSize;
+import com.microsoft.azure.management.network.Network;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import org.apache.log4j.Logger;
 import rx.Completable;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 public class AzureVirtualMachineOperationSDK {
 
@@ -50,12 +48,12 @@ public class AzureVirtualMachineOperationSDK {
     /**
      * Create asynchronously because this operation takes a long time to finish.
      */
-    public void doCreateInstance(AzureCreateVirtualMachineRef virtualMachineRef, AzureUser azureUser)
+    public void doCreateInstance(AzureCreateVirtualMachineRef virtualMachineRef, AzureUser azureUser, Runnable doOnComplete)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         Observable<Indexable> virtualMachineAsync = buildAzureVirtualMachineObservable(virtualMachineRef, azure);
-        subscribeCreateVirtualMachine(virtualMachineAsync);
+        subscribeCreateVirtualMachine(virtualMachineAsync, doOnComplete);
     }
 
     @VisibleForTesting
@@ -94,19 +92,22 @@ public class AzureVirtualMachineOperationSDK {
      * Execute create Virtual Machine observable and set its behaviour.
      */
     @VisibleForTesting
-    void subscribeCreateVirtualMachine(Observable<Indexable> virtualMachineObservable) {
-        setCreateVirtualMachineBehaviour(virtualMachineObservable)
+    void subscribeCreateVirtualMachine(Observable<Indexable> virtualMachineObservable, Runnable doOnComplete) {
+        setCreateVirtualMachineBehaviour(virtualMachineObservable, doOnComplete)
                 .subscribeOn(this.scheduler)
                 .subscribe();
     }
 
-    private Observable<Indexable> setCreateVirtualMachineBehaviour(Observable<Indexable> virtualMachineObservable) {
+    private Observable<Indexable> setCreateVirtualMachineBehaviour(Observable<Indexable> virtualMachineObservable,
+                                                                   Runnable doOnComplete) {
+
         return virtualMachineObservable
                 .onErrorReturn((error -> {
                     LOGGER.error(Messages.Error.ERROR_CREATE_VM_ASYNC_BEHAVIOUR, error);
                     return null;
                 }))
                 .doOnCompleted(() -> {
+                    doOnComplete.run();
                     LOGGER.info(Messages.Info.END_CREATE_VM_ASYNC_BEHAVIOUR);
                 });
     }

@@ -1,18 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip;
 
-import java.util.Properties;
-
-import org.apache.log4j.Logger;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.compute.VirtualMachine;
-import com.microsoft.azure.management.network.NetworkInterface;
-import com.microsoft.azure.management.network.NetworkSecurityGroup;
-import com.microsoft.azure.management.network.PublicIPAddress;
-import com.microsoft.azure.management.network.implementation.PublicIPAddressInner;
-import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
-
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -25,16 +12,28 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
+import com.google.common.annotations.VisibleForTesting;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.compute.VirtualMachine;
+import com.microsoft.azure.management.network.NetworkInterface;
+import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.network.PublicIPAddress;
+import com.microsoft.azure.management.network.implementation.PublicIPAddressInner;
+import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
+import org.apache.log4j.Logger;
 import rx.Completable;
 import rx.Observable;
 
-public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
+import java.util.Properties;
+
+public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsync<PublicIpInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(AzurePublicIpPlugin.class);
 
@@ -79,10 +78,17 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
 
     @Override
     public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, publicIpOrder.getInstanceId()));
+        String instanceId = publicIpOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, instanceId));
+
+        PublicIpInstance creatingInstance = this.getCreatingInstance(instanceId);
+        if (creatingInstance != null) {
+            return creatingInstance;
+        }
+
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, publicIpOrder.getInstanceId());
+        String resourceId = buildResourceId(subscriptionId, instanceId);
         
         return doGetInstance(azure, resourceId);
     }
@@ -191,7 +197,8 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
 
         String resourceId = publicIPAddressCreatable.name();
         String instanceId = AzureGeneralUtil.defineInstanceId(resourceId);
-        this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable);
+        Runnable finishCreationCallback = startInstanceCreation(instanceId);
+        this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable, finishCreationCallback);
 
         return instanceId;
     }
@@ -214,9 +221,14 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser> {
         return resourceIdUrl;
     }
 
+
     @VisibleForTesting
     void setOperation(AzurePublicIPAddressOperationSDK operation) {
         this.operation = operation;
     }
 
+    @Override
+    public PublicIpInstance buildCreatingInstance(String instanceId) {
+        return new PublicIpInstance(instanceId, InstanceState.CREATING.getValue(), AzureGeneralUtil.NO_INFORMATION);
+    }
 }
