@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.image;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
@@ -33,7 +34,7 @@ public class AzureImageOperationTest extends AzureTestUtils {
     // test case: When calling getImages method with all secondary method
     // mocked, it must return the right map of ImageSummary
     @Test
-    public void testGetImagesSuccessfully() {
+    public void testGetImagesSuccessfully() throws UnexpectedException {
         // set up
         VirtualMachinePublisher publisher = createPublisher(AZURE_SELECTED_PUBLISHER);
         PagedList<VirtualMachinePublisher> publishers = (PagedList<VirtualMachinePublisher>) Mockito.mock(PagedList.class);

@@ -1,8 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class AzureImageOperationUtil {
 
@@ -52,4 +59,22 @@ public class AzureImageOperationUtil {
         return StringUtils.join(list, IMAGE_SUMMARY_NAME_SEPARATOR);
     }
 
+    public static String encodeImageId(String id) throws UnexpectedException {
+        String encodedId = Base64.getEncoder().encodeToString(id.getBytes());
+
+        try {
+            return URLEncoder.encode(encodedId, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException ex) {
+            throw new UnexpectedException(ex.getMessage());
+        }
+    }
+
+    public static String decodeImageId(String encodedId) throws UnexpectedException {
+        try {
+            String decodedId = URLDecoder.decode(encodedId, StandardCharsets.UTF_8.toString());
+            return new String(Base64.getDecoder().decode(decodedId));
+        } catch (UnsupportedEncodingException ex) {
+            throw new UnexpectedException(ex.getMessage());
+        }
+    }
 }
