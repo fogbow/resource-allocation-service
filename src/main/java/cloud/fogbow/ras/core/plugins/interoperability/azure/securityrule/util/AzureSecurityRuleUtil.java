@@ -24,9 +24,6 @@ public interface AzureSecurityRuleUtil {
     int TO_PORT_ARRAY_POSITION = 1;
     int SINGLE_PORT_SIZE = 1;
 
-    String ASTERISK_IP_ADDRESS = "*";
-    String ANY_IP_ADDRESS = "0.0.0.0";
-
     static SecurityRule.Direction getFogbowDirection(SecurityRuleDirection direction) {
         if (direction.toString().equals(DIRECTION_INBOUND)) {
             return SecurityRule.Direction.IN;
@@ -57,9 +54,6 @@ public interface AzureSecurityRuleUtil {
     static String getIpAddress(String cird) {
         String[] cirdChunks = cird.split(CIRD_SEPARATOR);
         String ip = cirdChunks[IP_CIRD_ARRAY_POSITION];
-        if (ip.equals(ASTERISK_IP_ADDRESS)) {
-            ip = ANY_IP_ADDRESS;
-        }
         return CidrUtils.isIpv4(ip) || CidrUtils.isIpv6(ip) ? ip : null;
     }
 

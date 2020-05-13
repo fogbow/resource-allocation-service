@@ -10,6 +10,7 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.AzureSecurityRuleUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
@@ -27,6 +28,8 @@ public class AzureNetworkSecurityGroupOperationSDK {
     @VisibleForTesting
     static final int UNKNOWN_PRIORITY_VALUE = -1;
     private static int currentPriority = UNKNOWN_PRIORITY_VALUE;
+    private static final String DEFAULT_SOURCE_ADDRESS = "0.0.0.0/0";
+    private static final String ANY_CIDR = "*";
 
     public void doCreateInstance(AzureUpdateNetworkSecurityGroupRef azureUpdateNetworkSecurityRef, AzureUser azureUser)
             throws FogbowException {
@@ -77,7 +80,8 @@ public class AzureNetworkSecurityGroupOperationSDK {
 
     @VisibleForTesting
     SecurityRuleInstance buildSecurityRuleInstance(NetworkSecurityRule networkSecurityRule, String networkSecurityGroupName) {
-        String cidr = networkSecurityRule.sourceAddressPrefix();
+        String address = networkSecurityRule.sourceAddressPrefix();
+        String cidr = address.equals(ANY_CIDR) ? DEFAULT_SOURCE_ADDRESS : address;
         SecurityRuleDirection securityRuleDirection = networkSecurityRule.direction();
         SecurityRule.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(securityRuleDirection);
         String portRange = networkSecurityRule.destinationPortRange();
