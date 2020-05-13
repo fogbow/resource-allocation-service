@@ -92,7 +92,7 @@ public class AzureImageOperationUtilTest {
         Assert.assertEquals(skuExpected, azureVirtualMachineImage.getSku());
     }
 
-    // test case: When calling decodeImageId method with mocked methods,
+    // test case: When calling encodeImageId method with mocked methods,
     // it must verify if it returns the a new encoded id
     @Test
     public void testEncodeImageIdSuccessfully() throws UnexpectedException {
@@ -144,7 +144,7 @@ public class AzureImageOperationUtilTest {
         Assert.assertEquals(expectedId, decoded);
     }
 
-    // test case: When calling encodeImageId method and a UnsupportedEncodingException
+    // test case: When calling decodeImageId method and a UnsupportedEncodingException
     // occurs, it must verify if it rethrow a UnexpectedException
     @Test
     public void testDecodeImageIdFail() throws UnsupportedEncodingException, UnexpectedException {
