@@ -2,13 +2,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.image;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachineOffer;
 import com.microsoft.azure.management.compute.VirtualMachinePublisher;
 import com.microsoft.azure.management.compute.VirtualMachineSku;
-import java.util.Base64;
+import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.Map;
 
 public class AzureImageOperation {
     private final String region;
+    private static final Logger LOGGER = Logger.getLogger(AzureImageOperation.class);
 
     public AzureImageOperation(String region) {
         this.region = region;
@@ -44,7 +46,15 @@ public class AzureImageOperation {
                         String offerName = offer.name();
                         String skuName = sku.name();
                         ImageSummary imageSummary = AzureImageOperationUtil.buildImageSummaryBy(publisherName, offerName, skuName);
-                        String id = AzureImageOperationUtil.encodeImageId(imageSummary.getId());
+                        String id;
+
+                        try {
+                            id = AzureImageOperationUtil.encode(imageSummary.getId());
+                        } catch (UnexpectedException ex) {
+                            LOGGER.debug(String.format(Messages.Error.ERROR_WHILE_LOADING_IMAGE_S, imageSummary.getName()));
+                            continue;
+                        }
+
                         images.put(id, imageSummary);
                     }
                 }
