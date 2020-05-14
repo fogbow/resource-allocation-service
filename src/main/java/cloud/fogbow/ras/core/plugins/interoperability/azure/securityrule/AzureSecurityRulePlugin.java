@@ -13,7 +13,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.Azu
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -26,13 +25,13 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
     private final String defaultRegioName;
     private final String defaultResourceGroupName;
-    private AzureNetworkSecurityGroupOperationSDK azureNetworkSecurityGroupOperationSDK;
+    private AzureNetworkSecurityGroupOperationSDK operation;
 
     public AzureSecurityRulePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultRegioName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
-        this.azureNetworkSecurityGroupOperationSDK = new AzureNetworkSecurityGroupOperationSDK(this.defaultRegioName,
+        this.operation = new AzureNetworkSecurityGroupOperationSDK(this.defaultRegioName,
                 this.defaultResourceGroupName);
     }
 
@@ -59,24 +58,25 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
                 .portTo(portTo)
                 .checkAndBuild();
 
-        this.azureNetworkSecurityGroupOperationSDK.doCreateInstance(networkSecurityGroupRef, azureUser);
+        this.operation.doCreateInstance(networkSecurityGroupRef, azureUser);
         return SecurityRuleIdContext.buildInstanceId(networkSecurityGroupName, ruleResourceName);
     }
 
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
-        String securityGroupResourceName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
-        return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(securityGroupResourceName, azureUser);
+        String instanceId = majorOrder.getInstanceId();
+        String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(instanceId);
+        return this.operation.getNetworkSecurityRules(networkSecurityGroupName, azureUser);
     }
 
     @Override
     public void deleteSecurityRule(String securityRuleId, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
-        SecurityRuleIdContext securityRuleIdContext = this.getSecurityRuleIdContext(securityRuleId);
+        SecurityRuleIdContext securityRuleIdContext = getSecurityRuleIdContext(securityRuleId);
         String networkSecurityGroupName = securityRuleIdContext.getNetworkSecurityGroupName();
         String securityRuleName = securityRuleIdContext.getSecurityRuleName();
-        this.azureNetworkSecurityGroupOperationSDK.deleteNetworkSecurityRule(networkSecurityGroupName, securityRuleName, azureUser);
+        this.operation.deleteNetworkSecurityRule(networkSecurityGroupName, securityRuleName, azureUser);
     }
 
     @VisibleForTesting
@@ -86,6 +86,6 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
     @VisibleForTesting
     void setAzureNetworkSecurityGroupOperationSDK(AzureNetworkSecurityGroupOperationSDK operation) {
-        this.azureNetworkSecurityGroupOperationSDK = operation;
+        this.operation = operation;
     }
 }
