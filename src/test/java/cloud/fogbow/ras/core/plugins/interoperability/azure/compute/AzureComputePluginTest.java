@@ -182,7 +182,7 @@ public class AzureComputePluginTest {
 
         PowerMockito.mockStatic(AzureImageOperationUtil.class);
         String decodedImageId = "decoded-image-id";
-        Mockito.when(AzureImageOperationUtil.decodeImageId(Mockito.eq(imageId))).thenReturn(decodedImageId);
+        Mockito.when(AzureImageOperationUtil.decode(Mockito.eq(imageId))).thenReturn(decodedImageId);
 
         AzureGetImageRef azureGetImageRef = new AzureGetImageRef("", "", "");
         Mockito.when(AzureImageOperationUtil.buildAzureVirtualMachineImageBy(Mockito.eq(decodedImageId)))

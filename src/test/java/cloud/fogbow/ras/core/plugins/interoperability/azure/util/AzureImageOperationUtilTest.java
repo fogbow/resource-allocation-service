@@ -100,7 +100,7 @@ public class AzureImageOperationUtilTest {
         String id = "publisher@#offer@#sku";
 
         // exercise
-        String encodedId = AzureImageOperationUtil.encodeImageId(id);
+        String encodedId = AzureImageOperationUtil.encode(id);
 
         // verify
         Assert.assertNotEquals(encodedId, id);
@@ -112,7 +112,8 @@ public class AzureImageOperationUtilTest {
     public void testEncodeImageIdFail() throws UnsupportedEncodingException, UnexpectedException {
         // set up
         PowerMockito.mockStatic(URLEncoder.class);
-        String id = "publisher@#offer@#sku";
+        String separator = AzureImageOperationUtil.IMAGE_SUMMARY_ID_SEPARATOR;
+        String id = "publisher" + separator + "offer" + separator + "sku";
 
         String encodedId = Base64.getEncoder().encodeToString(id.getBytes());
 
@@ -125,7 +126,7 @@ public class AzureImageOperationUtilTest {
         this.expectedException.expectMessage(message);
 
         // exercise
-        AzureImageOperationUtil.encodeImageId(id);
+        AzureImageOperationUtil.encode(id);
     }
 
     // test case: When calling decodeImageId method with mocked methods,
@@ -133,12 +134,14 @@ public class AzureImageOperationUtilTest {
     @Test
     public void testDecodeImageIdSuccessfully() throws UnexpectedException, UnsupportedEncodingException {
         // set up
-        String expectedId = "publisher@#offer@#sku";
+        String separator = AzureImageOperationUtil.IMAGE_SUMMARY_ID_SEPARATOR;
+        String expectedId = "publisher" + separator + "offer" + separator + "sku";
+
         String encodedId = Base64.getEncoder().encodeToString(expectedId.getBytes());
         String urlEncodedId = URLEncoder.encode(encodedId, StandardCharsets.UTF_8.toString());
 
         // exercise
-        String decoded = AzureImageOperationUtil.decodeImageId(urlEncodedId);
+        String decoded = AzureImageOperationUtil.decode(urlEncodedId);
 
         // verify
         Assert.assertEquals(expectedId, decoded);
@@ -161,7 +164,23 @@ public class AzureImageOperationUtilTest {
         this.expectedException.expectMessage(message);
 
         // exercise
-        AzureImageOperationUtil.decodeImageId(id);
+        AzureImageOperationUtil.decode(id);
     }
 
+    // test case: When encoding a value, if this value is decoded
+    // the initial value should be return
+    @Test
+    public void testEncodeDecodeSuccessfully() throws UnexpectedException {
+        // set up
+        String separator = AzureImageOperationUtil.IMAGE_SUMMARY_ID_SEPARATOR;
+        String expectedId = "publisher" + separator + "offer" + separator + "sku";
+
+        // exercise
+        String encoded = AzureImageOperationUtil.encode(expectedId);
+        String decoded = AzureImageOperationUtil.decode(encoded);
+
+        // verify
+        Assert.assertNotEquals(expectedId, encoded);
+        Assert.assertEquals(expectedId, decoded);
+    }
 }
