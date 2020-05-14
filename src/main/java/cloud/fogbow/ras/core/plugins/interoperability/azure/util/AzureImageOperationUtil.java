@@ -59,7 +59,7 @@ public class AzureImageOperationUtil {
         return StringUtils.join(list, IMAGE_SUMMARY_NAME_SEPARATOR);
     }
 
-    public static String encodeImageId(String id) throws UnexpectedException {
+    public static String encode(String id) throws UnexpectedException {
         String encodedId = Base64.getEncoder().encodeToString(id.getBytes());
 
         try {
@@ -69,7 +69,7 @@ public class AzureImageOperationUtil {
         }
     }
 
-    public static String decodeImageId(String encodedId) throws UnexpectedException {
+    public static String decode(String encodedId) throws UnexpectedException {
         try {
             String decodedId = URLDecoder.decode(encodedId, StandardCharsets.UTF_8.toString());
             return new String(Base64.getDecoder().decode(decodedId));
