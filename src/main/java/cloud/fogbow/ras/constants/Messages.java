@@ -63,7 +63,7 @@ public class Messages {
         public static final String UNABLE_TO_CREATE_NETWORK_RESERVE = "Unable to create network reserve with CIDR: <%s>." +
                 " This address range is likely in use.";
         public static final String INVALID_REGION_NAME = "The region name '%s' is invalid.";
-        public static final String NO_IMAGES_PUBLISHER = "No virtual machine images publishers specified in azure cloud.conf";
+        public static final String NO_IMAGES_PUBLISHER = "No virtual machine images publishers specified in azure cloud.conf.";
     }
 
     public static class Fatal {
