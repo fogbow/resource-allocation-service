@@ -33,11 +33,9 @@ public class AzureNetworkSecurityGroupOperationSDK {
     private static final String DEFAULT_SOURCE_ADDRESS = "0.0.0.0/0";
     private static final String ANY_CIDR = "*";
 
-    private String defaultRegionName;
     private String defaultResourceGroupName;
 
-    public AzureNetworkSecurityGroupOperationSDK(String defaultRegionName, String defaultResourceGroupName) {
-        this.defaultRegionName = defaultRegionName;
+    public AzureNetworkSecurityGroupOperationSDK(String defaultResourceGroupName) {
         this.defaultResourceGroupName = defaultResourceGroupName;
     }
 
@@ -46,14 +44,8 @@ public class AzureNetworkSecurityGroupOperationSDK {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String networkSecurityGroupName = networkSecurityGroupRef.getSecurityGroupResourceName();
-        String resourceGroupName = AzureGeneralUtil
-                .defineResourceGroupName(azure, this.defaultRegionName, networkSecurityGroupName, this.defaultResourceGroupName);
-
-        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                .withSubscriptionId(azureUser.getSubscriptionId())
-                .withResourceGroupName(resourceGroupName)
-                .withResourceName(networkSecurityGroupName)
-                .build();
+        String subscriptionId = azureUser.getSubscriptionId();
+        String networkSecurityGroupId = buildNetworkSecurityGroupId(azure, subscriptionId, networkSecurityGroupName);
 
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
                 .getNetworkSecurityGroup(azure, networkSecurityGroupId)
@@ -90,18 +82,24 @@ public class AzureNetworkSecurityGroupOperationSDK {
         return currentPriority;
     }
 
+    @VisibleForTesting
+    String buildNetworkSecurityGroupId(Azure azure, String subscriptionId, String networkSecurityGroupName) {
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, networkSecurityGroupName, this.defaultResourceGroupName);
+
+        return AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(resourceGroupName)
+                .withResourceName(networkSecurityGroupName)
+                .build();
+    }
+
     public List<SecurityRuleInstance> getNetworkSecurityRules(String networkSecurityGroupName, AzureUser azureUser)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        String resourceGroupName = AzureGeneralUtil
-                .selectResourceGroupName(azure, networkSecurityGroupName, this.defaultResourceGroupName);
-
-        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                .withSubscriptionId(azureUser.getSubscriptionId())
-                .withResourceGroupName(resourceGroupName)
-                .withResourceName(networkSecurityGroupName)
-                .build();
+        String subscriptionId = azureUser.getSubscriptionId();
+        String networkSecurityGroupId = buildNetworkSecurityGroupId(azure, subscriptionId, networkSecurityGroupName);
 
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
                 .getNetworkSecurityGroup(azure, networkSecurityGroupId)
@@ -136,14 +134,8 @@ public class AzureNetworkSecurityGroupOperationSDK {
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        String resourceGroupName = AzureGeneralUtil
-                .selectResourceGroupName(azure, networkSecurityGroupName, this.defaultResourceGroupName);
-
-        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                .withSubscriptionId(azureUser.getSubscriptionId())
-                .withResourceGroupName(resourceGroupName)
-                .withResourceName(networkSecurityGroupName)
-                .build();
+        String subscriptionId = azureUser.getSubscriptionId();
+        String networkSecurityGroupId = buildNetworkSecurityGroupId(azure, subscriptionId, networkSecurityGroupName);
 
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
                 .getNetworkSecurityGroup(azure, networkSecurityGroupId)
