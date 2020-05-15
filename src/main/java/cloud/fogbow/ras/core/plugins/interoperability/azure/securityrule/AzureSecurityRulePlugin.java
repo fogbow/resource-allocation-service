@@ -23,16 +23,13 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureSecurityRulePlugin.class);
 
-    private final String defaultRegioName;
     private final String defaultResourceGroupName;
     private AzureNetworkSecurityGroupOperationSDK operation;
 
     public AzureSecurityRulePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.defaultRegioName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
-        this.operation = new AzureNetworkSecurityGroupOperationSDK(this.defaultRegioName,
-                this.defaultResourceGroupName);
+        this.operation = new AzureNetworkSecurityGroupOperationSDK(this.defaultResourceGroupName);
     }
 
     @Override
