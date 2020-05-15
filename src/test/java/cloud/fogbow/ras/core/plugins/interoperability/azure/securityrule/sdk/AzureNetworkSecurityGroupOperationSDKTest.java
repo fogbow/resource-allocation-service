@@ -12,7 +12,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.mod
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.AzureSecurityRuleUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
@@ -53,7 +52,6 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
 
     private AzureUser azureUser;
     private AzureNetworkSecurityGroupOperationSDK operation;
-    private String defaultRegionName;
     private String defaultResourceGroupName;
 
     @Rule
@@ -62,10 +60,8 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
     @Before
     public void setUp() {
         this.azureUser = AzureTestUtils.createAzureUser();
-        this.defaultRegionName = AzureTestUtils.DEFAULT_REGION_NAME;
         this.defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
-        this.operation = Mockito.spy(new AzureNetworkSecurityGroupOperationSDK(this.defaultRegionName,
-                this.defaultResourceGroupName));
+        this.operation = Mockito.spy(new AzureNetworkSecurityGroupOperationSDK(this.defaultResourceGroupName));
     }
 
     // test case: When calling the doCreateInstance method with mocked methods,
@@ -82,11 +78,9 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         AzureUpdateNetworkSecurityGroupRef networkSecurityGroupRef = Mockito.mock(AzureUpdateNetworkSecurityGroupRef.class);
         Mockito.when(networkSecurityGroupRef.getSecurityGroupResourceName()).thenReturn(networkSecurityGroupName);
 
-        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
-        PowerMockito.mockStatic(AzureGeneralUtil.class);
-        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "defineResourceGroupName",
-                Mockito.eq(azure), Mockito.eq(this.defaultRegionName), Mockito.eq(networkSecurityGroupName),
-                Mockito.eq(this.defaultResourceGroupName));
+        String networkSecurityGroupId = createNetworkSecurityGroupId();
+        Mockito.doReturn(networkSecurityGroupId).when(this.operation).buildNetworkSecurityGroupId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(networkSecurityGroupName));
 
         NetworkSecurityGroup networkSecurityGroup = Mockito.mock(NetworkSecurityGroup.class);
         Optional<NetworkSecurityGroup> nsgOptional = Optional.ofNullable(networkSecurityGroup);
@@ -118,9 +112,8 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
 
-        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureGeneralUtil.defineResourceGroupName(Mockito.eq(azure), Mockito.eq(defaultRegionName),
-                Mockito.eq(networkSecurityGroupName), Mockito.eq(this.defaultResourceGroupName));
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkSecurityGroupId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(networkSecurityGroupName));
 
         PowerMockito.verifyStatic(AzureNetworkSecurityGroupSDK.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureNetworkSecurityGroupSDK.getNetworkSecurityGroup(Mockito.eq(azure), Mockito.anyString());
@@ -154,11 +147,9 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         AzureUpdateNetworkSecurityGroupRef networkSecurityGroupRef = Mockito.mock(AzureUpdateNetworkSecurityGroupRef.class);
         Mockito.when(networkSecurityGroupRef.getSecurityGroupResourceName()).thenReturn(networkSecurityGroupName);
 
-        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
-        PowerMockito.mockStatic(AzureGeneralUtil.class);
-        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "defineResourceGroupName",
-                Mockito.eq(azure), Mockito.eq(this.defaultRegionName), Mockito.eq(networkSecurityGroupName),
-                Mockito.eq(this.defaultResourceGroupName));
+        String networkSecurityGroupId = createNetworkSecurityGroupId();
+        Mockito.doReturn(networkSecurityGroupId).when(this.operation).buildNetworkSecurityGroupId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(networkSecurityGroupName));
 
         NetworkSecurityGroup networkSecurityGroup = null;
         Optional<NetworkSecurityGroup> nsgOptional = Optional.ofNullable(networkSecurityGroup);
@@ -276,10 +267,9 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
                 .thenReturn(azure);
 
         String networkSecurityGroupName = AzureTestUtils.RESOURCE_NAME;
-        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
-        PowerMockito.mockStatic(AzureGeneralUtil.class);
-        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
-                Mockito.eq(azure), Mockito.eq(networkSecurityGroupName), Mockito.eq(this.defaultResourceGroupName));
+        String networkSecurityGroupId = createNetworkSecurityGroupId();
+        Mockito.doReturn(networkSecurityGroupId).when(this.operation).buildNetworkSecurityGroupId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(networkSecurityGroupName));
 
         NetworkSecurityGroup networkSecurityGroup = Mockito.mock(NetworkSecurityGroup.class);
         Optional<NetworkSecurityGroup> nsgOptional = Optional.ofNullable(networkSecurityGroup);
@@ -298,9 +288,8 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
 
-        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureGeneralUtil.selectResourceGroupName(Mockito.eq(azure), Mockito.eq(networkSecurityGroupName),
-                Mockito.eq(this.defaultResourceGroupName));
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkSecurityGroupId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(networkSecurityGroupName));
 
         PowerMockito.verifyStatic(AzureNetworkSecurityGroupSDK.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureNetworkSecurityGroupSDK.getNetworkSecurityGroup(Mockito.eq(azure), Mockito.anyString());
@@ -320,11 +309,9 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         PowerMockito.when(AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser)))
                 .thenReturn(azure);
 
-        String networkSecurityGroupName = AzureTestUtils.RESOURCE_NAME;
-        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
-        PowerMockito.mockStatic(AzureGeneralUtil.class);
-        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
-                Mockito.eq(azure), Mockito.eq(networkSecurityGroupName), Mockito.eq(this.defaultResourceGroupName));
+        String networkSecurityGroupId = createNetworkSecurityGroupId();
+        Mockito.doReturn(networkSecurityGroupId).when(this.operation).buildNetworkSecurityGroupId(Mockito.any(Azure.class),
+                Mockito.anyString(), Mockito.anyString());
 
         NetworkSecurityGroup networkSecurityGroup = null;
         Optional<NetworkSecurityGroup> nsgOptional = Optional.ofNullable(networkSecurityGroup);
@@ -332,7 +319,6 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         PowerMockito.doReturn(nsgOptional).when(AzureNetworkSecurityGroupSDK.class, "getNetworkSecurityGroup",
                 Mockito.eq(azure), Mockito.anyString());
 
-        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId().build();
         String securityRuleName = AzureTestUtils.RESOURCE_NAME;
 
         // verify
@@ -408,10 +394,9 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
                 .thenReturn(azure);
 
         String networkSecurityGroupName = AzureTestUtils.RESOURCE_NAME;
-        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
-        PowerMockito.mockStatic(AzureGeneralUtil.class);
-        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
-                Mockito.eq(azure), Mockito.eq(networkSecurityGroupName), Mockito.eq(this.defaultResourceGroupName));
+        String networkSecurityGroupId = createNetworkSecurityGroupId();
+        Mockito.doReturn(networkSecurityGroupId).when(this.operation).buildNetworkSecurityGroupId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(networkSecurityGroupName));
 
         NetworkSecurityGroup networkSecurityGroup = Mockito.mock(NetworkSecurityGroup.class);
         Optional<NetworkSecurityGroup> nsgOptional = Optional.ofNullable(networkSecurityGroup);
@@ -427,12 +412,6 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         Map<String, NetworkSecurityRule> instanceList = new HashMap<>();
         instanceList.put(securityRuleName, networkSecurityRule);
         Mockito.when(networkSecurityGroup.securityRules()).thenReturn(instanceList);
-
-        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                .withSubscriptionId(this.azureUser.getSubscriptionId())
-                .withResourceGroupName(resourceGroupName)
-                .withResourceName(networkSecurityGroupName)
-                .build();
 
         Optional<NetworkSecurityGroup> optNetworkSecurityGroup = Optional.ofNullable(networkSecurityGroup);
         Mockito.when(AzureNetworkSecurityGroupSDK.getNetworkSecurityGroup(Mockito.eq(azure),
@@ -450,14 +429,40 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
 
-        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureGeneralUtil.selectResourceGroupName(Mockito.eq(azure), Mockito.eq(networkSecurityGroupName),
-                Mockito.eq(this.defaultResourceGroupName));
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkSecurityGroupId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(networkSecurityGroupName));
 
         PowerMockito.verifyStatic(AzureNetworkSecurityGroupSDK.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureNetworkSecurityGroupSDK.getNetworkSecurityGroup(Mockito.eq(azure), Mockito.anyString());
 
         Assert.assertTrue(networkSecurityRules.contains(securityRuleInstance));
+    }
+
+    // test case: When calling the buildNetworkSecurityGroupId method, it must
+    // verify that the resource ID was assembled correctly.
+    @Test
+    public void testBuildNetworkSecurityGroupIdSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String networkSecurityGroupName = AzureTestUtils.RESOURCE_NAME;
+
+        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.eq(azure), Mockito.eq(networkSecurityGroupName), Mockito.eq(this.defaultResourceGroupName));
+
+        String expected = createNetworkSecurityGroupId();
+
+        // exercise
+        String resourceId = this.operation.buildNetworkSecurityGroupId(azure, subscriptionId, networkSecurityGroupName);
+
+        // verify
+        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureGeneralUtil.selectResourceGroupName(Mockito.eq(azure), Mockito.eq(networkSecurityGroupName),
+                Mockito.eq(this.defaultResourceGroupName));
+
+        Assert.assertEquals(expected, resourceId);
     }
 
     private SecurityRuleInstance createSecurityRuleInstance(String networkSecurityGroupName, String securityRuleName) {
@@ -476,6 +481,13 @@ public class AzureNetworkSecurityGroupOperationSDKTest extends TestUtils {
         Mockito.when(networkSecurityRule.priority()).thenReturn(priority);
         Mockito.when(networkSecurityRule.name()).thenReturn(name);
         return networkSecurityRule;
+    }
+
+    private String createNetworkSecurityGroupId() {
+        String networkSecurityGroupIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkSecurityGroups/%s";
+        return String.format(networkSecurityGroupIdFormat,
+                AzureTestUtils.DEFAULT_SUBSCRIPTION_ID, this.defaultResourceGroupName,
+                AzureTestUtils.RESOURCE_NAME);
     }
 
 }
