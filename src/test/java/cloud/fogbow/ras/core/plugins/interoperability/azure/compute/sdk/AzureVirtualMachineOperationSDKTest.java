@@ -6,6 +6,7 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.common.util.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
@@ -14,7 +15,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.Az
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureNetworkSDK;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
 import com.microsoft.azure.Page;
 import com.microsoft.azure.PagedList;

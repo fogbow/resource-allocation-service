@@ -1,5 +1,18 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
+import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.LoggerAssert;
+import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.network.NetworkInterface;
+import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.network.PublicIPAddress;
+import com.microsoft.azure.management.network.PublicIPAddresses;
+import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 import org.apache.log4j.Level;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,21 +21,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.network.NetworkInterface;
-import com.microsoft.azure.management.network.NetworkSecurityGroup;
-import com.microsoft.azure.management.network.PublicIPAddress;
-import com.microsoft.azure.management.network.PublicIPAddresses;
-import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
-
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.LoggerAssert;
-import cloud.fogbow.ras.core.TestUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import rx.Completable;
 import rx.Observable;
 import rx.Scheduler;
