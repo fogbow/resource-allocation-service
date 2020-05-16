@@ -2,8 +2,6 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -16,23 +14,24 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
 /**
- * Process orders in FULFILLED state. It monitors the resources that have been successfully
- * initiated, to check for failures that may affect them.
+ * Process orders in DELETING state. It keeps checking if the instance is still present
+ * in the cloud by calling getInstance(). When getInstance() raises an InstanceNotFound
+ * exception, then the processor infers that the instance has already been deleted.
  */
-public class FulfilledProcessor implements Runnable {
-    private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
+public class DeletingProcessor implements Runnable {
+    private static final Logger LOGGER = Logger.getLogger(DeletingProcessor.class);
 
     private String localProviderId;
-    private ChainedList<Order> fulfilledOrdersList;
+    private ChainedList<Order> deletingOrdersList;
     /**
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
     private Long sleepTime;
 
-    public FulfilledProcessor(String localProviderId, String sleepTimeStr) {
+    public DeletingProcessor(String localProviderId, String sleepTimeStr) {
         this.localProviderId = localProviderId;
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
+        this.deletingOrdersList = sharedOrderHolders.getDeletingOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -46,18 +45,18 @@ public class FulfilledProcessor implements Runnable {
 
         while (isActive) {
             try {
-                Order order = this.fulfilledOrdersList.getNext();
+                Order order = this.deletingOrdersList.getNext();
 
                 if (order != null) {
-                    processFulfilledOrder(order);
+                    processDeletingOrder(order);
                 } else {
-                    this.fulfilledOrdersList.resetPointer();
+                    this.deletingOrdersList.resetPointer();
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
                 isActive = false;
                 LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (UnexpectedException e) {
+            } catch (FogbowException e) {
                 LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
                 LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
@@ -66,23 +65,20 @@ public class FulfilledProcessor implements Runnable {
     }
 
     /**
-     * Gets an instance for a fulfilled order. If that instance is not reachable the order state is
-     * set to UNABLE_TO_CHECK_STATUS. Otherwise, if the instance has failed, then the order state is
-     * set to FAILED_AFTER_SUCCESSFUL_REQUEST.
+     * Checks whether an instance has completed its deletion. If performs a getInstance() call and an
+     * InstanceNotFound exception is thrown, then it transitions the order state to CLOSED.
      *
      * @param order {@link Order}
      */
-    protected void processFulfilledOrder(Order order) throws FogbowException {
+    protected void processDeletingOrder(Order order) throws FogbowException {
         OrderInstance instance = null;
 
         // The order object synchronization is needed to prevent a race
-        // condition on order access. For example: a user can delete a fulfilled
-        // order while this method is trying to check the status of an instance
-        // that was allocated to an order.
+        // condition on order access.
         synchronized (order) {
-            // Check if the order is still in the FULFILLED state (it could have been changed by another thread)
+            // Check if the order is still in the DELETING state (it could have been changed by another thread)
             OrderState orderState = order.getOrderState();
-            if (!orderState.equals(OrderState.FULFILLED)) {
+            if (!orderState.equals(OrderState.DELETING)) {
                 return;
             }
             // Only local orders need to be monitored. Remote orders are monitored by the remote provider
@@ -98,16 +94,9 @@ public class FulfilledProcessor implements Runnable {
                 localCloudConnector.switchOffAuditing();
 
                 instance = localCloudConnector.getInstance(order);
-                if (instance.hasFailed()) {
-                    LOGGER.info(String.format(Messages.Info.INSTANCE_HAS_FAILED, order.getId()));
-                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
-                }
-            } catch (UnavailableProviderException e1) {
-                OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
-                throw e1;
-            } catch (InstanceNotFoundException e2) {
+            } catch (InstanceNotFoundException e) {
                 LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
-                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                OrderStateTransitioner.transition(order, OrderState.CLOSED);
             }
         }
     }

@@ -72,6 +72,14 @@ public class OpenProcessor implements Runnable {
                 return;
             }
             try {
+                // The SELECTED state exists simply to implement an "at-most-once" semantics for the requestInstance()
+                // call. This transition removes the order from the OPEN list. Thus, once the order is selected by the
+                // OpenProcessor, if RAS fails before advancing the state to either FAILED_ON_REQUEST, PENDING or
+                // SPAWNING, when RAS recovers, this order will remain in the SELECTED state and will not be retried.
+                // This is because RAS can't know whether the failure occurred before or after the requestInstance()
+                // call. All other order processors call either getInstance() or deactivateOrder(), and need not to
+                // bother with the effects of failures, because both functions are idempotent.
+                OrderStateTransitioner.transition(order, OrderState.SELECTED);
                 CloudConnector cloudConnector = CloudConnectorFactory.getInstance().
                         getCloudConnector(order.getProvider(), order.getCloudName());
                 String instanceId = cloudConnector.requestInstance(order);

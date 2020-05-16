@@ -2,12 +2,14 @@ package cloud.fogbow.ras.core.models.orders;
 
 public enum OrderState {
     OPEN("OPEN"),
+    SELECTED("SELECTED"),
     PENDING("PENDING"),
     SPAWNING("SPAWNING"),
     FULFILLED("FULFILLED"),
     FAILED_AFTER_SUCCESSFUL_REQUEST("FAILED_AFTER_SUCCESSFUL_REQUEST"),
     FAILED_ON_REQUEST("FAILED_ON_REQUEST"),
     UNABLE_TO_CHECK_STATUS("UNABLE_TO_CHECK_STATUS"),
+    DELETING("DELETING"),
     CLOSED("CLOSED"),
     DEACTIVATED("DEACTIVATED");
     // an order that has been closed is stored twice in stable storage:

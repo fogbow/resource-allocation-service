@@ -5,6 +5,7 @@ import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
@@ -18,12 +19,14 @@ public class ClosedProcessor implements Runnable {
      */
     private Long sleepTime;
     private OrderController orderController;
+    private String localProviderId;
 
-    public ClosedProcessor(OrderController orderController, String sleepTimeStr) {
+    public ClosedProcessor(OrderController orderController, String localProviderId, String sleepTimeStr) {
         SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
         this.closedOrders = sharedOrdersHolder.getClosedOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.orderController = orderController;
+        this.localProviderId = localProviderId;
     }
 
     /**
@@ -59,6 +62,12 @@ public class ClosedProcessor implements Runnable {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
                 return;
+            }
+            // Remove any references that related dependencies of other orders with the order that has
+            // just been deleted. Only the provider that is receiving the delete request through its
+            // REST API needs to update order dependencies.
+            if (order.isRequesterLocal(this.localProviderId)) {
+                this.orderController.updateOrderDependencies(order, Operation.DELETE);
             }
             this.orderController.deactivateOrder(order);
         }

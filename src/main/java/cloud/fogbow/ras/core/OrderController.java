@@ -101,48 +101,84 @@ public class OrderController {
             throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
 
         // This code may be executed by two different providers for the same logical order. This is the case when the
-        // provider provider is remote. In this case, some parts of the code should be executed only at the provider that
+        // provider is remote. In this case, some parts of the code should be executed only at the provider that
         // receives the request through its REST API, while other parts should be executed only by the provider that
-        // is providing resources to the order.
+        // is providing resources to the order. Note that each provider operates on its own copy of the order.
         synchronized (order) {
             OrderState orderState = order.getOrderState();
+            // Orders that are closed or deactivated have already been deleted.
             if (!(orderState.equals(OrderState.CLOSED) || order.equals(OrderState.DEACTIVATED))) {
                 // Sometimes an order depends on other orders (ex. an attachment depends on a volume and a compute).
                 // We need to verify whether another order depends on this order, and if this is the case, throw a
                 // DependencyDetectedException. Only the provider that is receiving the delete request through its
                 // REST API needs to check order dependencies.
                 if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
-                    throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED, order.getId(),
-                            this.orderDependencies.get(order.getId())));
+                    throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED,
+                            order.getId(), this.orderDependencies.get(order.getId())));
                 }
                 try {
-                    // A local order that doesn't have an instance associated to it, need not be deleted in the cloud.
-                    // Also, a remote order that is still open has never been sent to the remote provider, therefore,
-                    // should not have the delete request forwarded.
-                    if ((order.getInstanceId() != null) ||
-                           (order.isProviderRemote(this.localProviderId) && (order.getOrderState() != OrderState.OPEN))) {
-                       CloudConnector cloudConnector = getCloudConnector(order);
-                       cloudConnector.deleteInstance(order);
-                       order.setInstanceId(null);
+                    switch (order.getOrderState()) {
+                        case OPEN:
+                            // When an order is OPEN there is nothing to be deleted in the cloud. Thus, the provider
+                            // should simply transition the order to CLOSED. If the provider is remote, then it will
+                            // send a notification to requester that will transition the order hold by the requester
+                            // from PENDING to CLOSED.
+                            OrderStateTransitioner.transition(order, OrderState.CLOSED);
+                            break;
+                        case SELECTED:
+                            // Orders in state SELECTED cannot be deleted. This state is used to implement an
+                            // "at-most-once" semantic for the requestInstance() call. See OpenProcessor.
+                            throw new OnGoingOperationException(cloud.fogbow.common.constants.Messages.Exception.CANNOT_DELETE_INSTANCE_WHILE_IT_IS_BEING_CREATED);
+                        case FAILED_ON_REQUEST:
+                            if (order.isProviderRemote(this.localProviderId)) {
+                                // In this case it is guaranteed that the remote provider is also in the
+                                // FAILED_ON_REQUEST state, since it was the transition from SELECTED to
+                                // FAILED_ON_REQUEST that sent a notification to transition the state of
+                                // the local order to FAILED_ON_REQUEST. Thus, the request should simply
+                                // be forwarded to the remote provider that will transition the remote order
+                                // from FAILED_ON_REQUEST to CLOSED and notify the requester to do the same.
+                                doDeleteOrder(order);
+                            } else {
+                                // There is nothing to be deleted in the cloud, and the provider should simply
+                                // transition the order to CLOSED.
+                                OrderStateTransitioner.transition(order, OrderState.CLOSED);
+                            }
+                            break;
+                        case PENDING:
+                            // In this case the provider is remote, and the request needs to be forwarded. The state
+                            // of the local order will only transition to CLOSED when the notification sent by the
+                            // remote provider is received. Note that if the remote provider is still in the SELECTED
+                            // state, then it will throw an exception. The exception will be received by the local
+                            // provider, and mapped to an error in the REST API.
+                            doDeleteOrder(order);
+                            break;
+                        default:
+                            // All other cases should transition call doDeleteOrder() to delete the instance associated
+                            // with the order in the cloud (either locally or remotely). Only the provider that deletes
+                            // the instance from the cloud transitions the order's state to DELETING. If there is a
+                            // remote requester, then it will transition the order to DELETING when notified by the
+                            // provider.
+                            doDeleteOrder(order);
+                            if (order.isProviderLocal(this.localProviderId)) {
+                                OrderStateTransitioner.transition(order, OrderState.DELETING);
+                            }
+                            break;
                     }
                 } catch (FogbowException e) {
                     LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, order.getId()), e);
                     throw e;
                 }
-                // When the provider is remote, both local and remote providers call this code and move their
-                // respective orders to CLOSED.
-                OrderStateTransitioner.transition(order, OrderState.CLOSED);
-                // Remove any references that related dependencies of other orders with the order that has
-                // just been deleted. Only the provider that is receiving the delete request through its
-                // REST API needs to update order dependencies.
-                if (order.isRequesterLocal(this.localProviderId)) {
-                    updateOrderDependencies(order, Operation.DELETE);
-                }
             } else {
-                String message = String.format(Messages.Error.REQUEST_ALREADY_CLOSED, order.getId());
+                String message = String.format(Messages.Error.REQUEST_S_ALREADY_DELETED, order.getId());
                 throw new InstanceNotFoundException(message);
             }
         }
+    }
+
+    private void doDeleteOrder(Order order) throws FogbowException {
+        CloudConnector cloudConnector = getCloudConnector(order);
+        cloudConnector.deleteInstance(order);
+        order.setInstanceId(null);
     }
 
     public Instance getResourceInstance(Order order) throws FogbowException {
@@ -312,7 +348,7 @@ public class OrderController {
 		return requestedOrders;
 	}
 
-	private void updateOrderDependencies(Order order, Operation operation) throws FogbowException {
+	public void updateOrderDependencies(Order order, Operation operation) throws UnexpectedException {
         synchronized (order) {
             List<String> dependentOrderIds = new LinkedList<>();
 
@@ -390,8 +426,8 @@ public class OrderController {
         instance.setPublicKey(publicKey);
         instance.setUserData(userData);
 
-        // NOTE(pauloewerton): in order to prevent extra plugin requests to retrieve the specified instance resources allocation,
-        // we get those from the order allocation
+        // NOTE(pauloewerton): in order to prevent extra plugin requests to retrieve the specified instance
+        // resources allocation, we get those from the order allocation
         ComputeAllocation allocation = order.getActualAllocation();
         instance.setvCPU(allocation.getvCPU());
         instance.setRam(allocation.getRam());

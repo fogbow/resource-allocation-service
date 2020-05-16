@@ -207,7 +207,7 @@ public class Messages {
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE = "Invalid list security rule type. Order irregular: %s.";
         public static final String NO_PACKET_SENDER = "PacketSender was not initialized. Trying again.";
-        public static final String REQUEST_ALREADY_CLOSED = "Request %s is already in the closed state.";
+        public static final String REQUEST_S_ALREADY_DELETED = "Request %s has already been deleted.";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
         public static final String UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK = "Unable to complete request; template ID is required parameter.";
         public static final String UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK = "Service Offering no available.";

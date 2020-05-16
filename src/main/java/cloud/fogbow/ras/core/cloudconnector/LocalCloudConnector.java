@@ -51,7 +51,6 @@ public class LocalCloudConnector implements CloudConnector {
 
     private static final String DELETE_INSTANCE_OPERATION = "deleteInstance";
     private static final String DELETE_SECURITY_RULE_OPERATION = "deleteSecurityRule";
-    private static final String GENERIC_REQUEST_OPERATION = "genericRequest";
     private static final String GET_ALL_IMAGES_OPERATION = "getAllImages";
     private static final String GET_ALL_SECURITY_RULES_OPERATION = "getAllSecurityRules";
     private static final String GET_IMAGE_OPERATION = "getImage";
@@ -431,5 +430,4 @@ public class LocalCloudConnector implements CloudConnector {
             DatabaseManager.getInstance().auditRequest(auditableRequest);
         }
     }
-    
 }

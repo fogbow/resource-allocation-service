@@ -238,6 +238,7 @@ public class TestUtils {
     public void mockReadOrdersFromDataBase() throws UnexpectedException {
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
         Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SELECTED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList<>());
@@ -245,6 +246,7 @@ public class TestUtils {
         Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.DELETING)).thenReturn(new SynchronizedDoublyLinkedList<>());
 
         Mockito.doNothing().when(databaseManager).add(Matchers.any(Order.class));
         Mockito.doNothing().when(databaseManager).update(Matchers.any(Order.class));

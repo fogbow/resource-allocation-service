@@ -64,6 +64,7 @@ public class InstanceStatus {
     public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws InstanceNotFoundException {
         switch(orderState) {
             case OPEN:
+            case SELECTED:
             case PENDING:
                 return InstanceState.DISPATCHED;
             case SPAWNING:
@@ -76,6 +77,8 @@ public class InstanceStatus {
                 return InstanceState.FAILED;
             case UNABLE_TO_CHECK_STATUS:
                 return InstanceState.UNKNOWN;
+            case DELETING:
+                return InstanceState.DELETING;
             case CLOSED:
             case DEACTIVATED:
             default:

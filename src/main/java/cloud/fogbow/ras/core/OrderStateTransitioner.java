@@ -16,20 +16,26 @@ public class OrderStateTransitioner {
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
         String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         synchronized (order) {
-            if (order.isRequesterRemote(localProviderId) && !newState.equals(OrderState.CLOSED)) {
+            if (order.isRequesterRemote(localProviderId) && !newState.equals(OrderState.SELECTED)) {
+                // We need to inform the remote requesting provider about changes on the local order states.
+                // However, the transition to the SELECTED state is only used to implement an at-most-once
+                // semantic at the local provider that makes the requestInstance() call, thus, does not need
+                // to be notified to the remote requesting provider.
                 try {
-                    // The delete request issued by the remote requesting provider that sent the local order to CLOSE
-                    // is a synchronous event, thus it does not require an asynchronous notification to be sent to
-                    // the remote requesting provider.
                     notifyRequester(order, newState);
                 } catch (Exception e) {
+                    // ToDO: Add orders that failed to be notified to a list of orders missing notification.
+                    //  A new thread (MissedNotificationProcessor) will periodically retry these notifications.
+                    // This list does not need to be in stable storage. Upon recovery (see the constructor of
+                    // SharedOrdersHolder), all active orders (those not deactivated) whose requesters are remote
+                    // should be added in the list of orders missing notification and be notified again (just in case).
+                    // ClosedProcessor should inspect this list before deactivating an order whose requester is
+                    // remote. Only orders that are not present in the list should be deactivated. Those that are
+                    // present in the list should be kept in the CLOSED state, until they are successfully notified.
+                    // Eventual garbage that remains due to a remote requester that never recovers (and cannot be
+                    // notified) will be dealt with by the admin tool to be developed.
                     String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
                     LOGGER.warn(message, e);
-                    // Do not transition order to keep trying to notify until the site is up again.
-                    // The site admin might want to monitor the warn log in case a site never
-                    // recovers. In this case the site admin may delete the order using an
-                    // appropriate tool.
-                    return;
                 }
             }
             doTransition(order, newState);

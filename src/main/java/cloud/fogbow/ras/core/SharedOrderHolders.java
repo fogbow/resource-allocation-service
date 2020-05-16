@@ -18,12 +18,14 @@ public class SharedOrderHolders {
 
     private Map<String, Order> activeOrdersMap;
     private SynchronizedDoublyLinkedList<Order> openOrders;
+    private SynchronizedDoublyLinkedList<Order> selectedOrders;
     private SynchronizedDoublyLinkedList<Order> spawningOrders;
     private SynchronizedDoublyLinkedList<Order> failedAfterSuccessfulRequestOrders;
     private SynchronizedDoublyLinkedList<Order> failedOnRequestOrders;
     private SynchronizedDoublyLinkedList<Order> fulfilledOrders;
     private SynchronizedDoublyLinkedList<Order> unableToCheckStatus;
     private SynchronizedDoublyLinkedList<Order> pendingOrders;
+    private SynchronizedDoublyLinkedList<Order> deletingOrders;
     private SynchronizedDoublyLinkedList<Order> closedOrders;
 
     public SharedOrderHolders() {
@@ -34,6 +36,9 @@ public class SharedOrderHolders {
             this.openOrders = databaseManager.readActiveOrders(OrderState.OPEN);
             addOrdersToMap(this.openOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.OPEN, this.activeOrdersMap.size()));
+            this.selectedOrders = databaseManager.readActiveOrders(OrderState.SELECTED);
+            addOrdersToMap(this.selectedOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.SELECTED, this.activeOrdersMap.size()));
             this.spawningOrders = databaseManager.readActiveOrders(OrderState.SPAWNING);
             addOrdersToMap(this.spawningOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.SPAWNING, this.activeOrdersMap.size()));
@@ -52,6 +57,9 @@ public class SharedOrderHolders {
             this.pendingOrders = databaseManager.readActiveOrders(OrderState.PENDING);
             addOrdersToMap(this.pendingOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.PENDING, this.activeOrdersMap.size()));
+            this.deletingOrders = databaseManager.readActiveOrders(OrderState.DELETING);
+            addOrdersToMap(this.deletingOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.DELETING, this.activeOrdersMap.size()));
             this.closedOrders = databaseManager.readActiveOrders(OrderState.CLOSED);
             addOrdersToMap(this.closedOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.CLOSED, this.activeOrdersMap.size()));
@@ -86,6 +94,10 @@ public class SharedOrderHolders {
         return openOrders;
     }
 
+    public SynchronizedDoublyLinkedList<Order> getSelectedOrdersList() {
+        return openOrders;
+    }
+
     public SynchronizedDoublyLinkedList<Order> getSpawningOrdersList() {
         return spawningOrders;
     }
@@ -110,6 +122,10 @@ public class SharedOrderHolders {
         return pendingOrders;
     }
 
+    public SynchronizedDoublyLinkedList<Order> getDeletingOrdersList() {
+        return deletingOrders;
+    }
+
     public SynchronizedDoublyLinkedList<Order> getClosedOrdersList() {
         return closedOrders;
     }
@@ -120,11 +136,17 @@ public class SharedOrderHolders {
             case OPEN:
                 list = SharedOrderHolders.getInstance().getOpenOrdersList();
                 break;
+            case SELECTED:
+                list = SharedOrderHolders.getInstance().getSelectedOrdersList();
+                break;
             case SPAWNING:
                 list = SharedOrderHolders.getInstance().getSpawningOrdersList();
                 break;
             case PENDING:
                 list = SharedOrderHolders.getInstance().getPendingOrdersList();
+                break;
+            case DELETING:
+                list = SharedOrderHolders.getInstance().getDeletingOrdersList();
                 break;
             case FULFILLED:
                 list = SharedOrderHolders.getInstance().getFulfilledOrdersList();

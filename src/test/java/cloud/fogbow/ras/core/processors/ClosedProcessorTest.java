@@ -1,7 +1,10 @@
 package cloud.fogbow.ras.core.processors;
 
 import java.util.Map;
+import java.util.Properties;
 
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.core.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,11 +14,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
-import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.OrderController;
-import cloud.fogbow.ras.core.OrderStateTransitioner;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -25,6 +23,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
     private Map<String, Order> activeOrdersMap;
     private ChainedList<Order> closedOrderList;
+    private Properties properties;
     private ClosedProcessor processor;
     private OrderController orderController;
     private Thread thread;
@@ -33,9 +32,13 @@ public class ClosedProcessorTest extends BaseUnitTests {
     public void setUp() throws UnexpectedException {
         this.testUtils.mockReadOrdersFromDataBase();
 
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        this.properties = propertiesHolder.getProperties();
+        this.properties.put(ConfigurationPropertyKeys.PROVIDER_ID_KEY, TestUtils.LOCAL_MEMBER_ID);
+
         this.orderController = Mockito.spy(new OrderController());
         this.processor = Mockito.spy(new ClosedProcessor(this.orderController,
-                ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME));
+                TestUtils.LOCAL_MEMBER_ID, ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME));
         
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();

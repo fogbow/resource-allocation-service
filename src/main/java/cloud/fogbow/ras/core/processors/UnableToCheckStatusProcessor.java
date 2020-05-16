@@ -58,8 +58,6 @@ public class UnableToCheckStatusProcessor implements Runnable {
             } catch (InterruptedException e) {
                 isActive = false;
                 LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (UnexpectedException e) {
-                LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
                 LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
             }
@@ -105,7 +103,7 @@ public class UnableToCheckStatusProcessor implements Runnable {
                 }
             } catch (UnavailableProviderException e1) {
                 LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e1);
-                throw e1;
+                return;
             } catch (InstanceNotFoundException e2) {
                 LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
