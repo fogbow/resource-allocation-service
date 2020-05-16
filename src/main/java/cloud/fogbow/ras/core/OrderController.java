@@ -187,7 +187,8 @@ public class OrderController {
         }
 
         synchronized (order) {
-            if ((!this.localProviderId.equals(order.getProvider())) && order.getOrderState().equals(OrderState.OPEN)) {
+            if ((!this.localProviderId.equals(order.getProvider())) && (order.getOrderState().equals(OrderState.OPEN)
+                            || order.getOrderState().equals(OrderState.SELECTED))) {
                 // This is an order for a remote provider that has never been received by that provider.
                 throw new RequestStillBeingDispatchedException(String.format(cloud.fogbow.common.constants.Messages.Exception.REQUEST_S_STILL_OPEN, order.getId()));
             }
