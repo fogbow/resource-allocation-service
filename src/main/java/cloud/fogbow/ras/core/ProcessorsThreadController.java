@@ -78,5 +78,6 @@ public class ProcessorsThreadController {
         this.fulfilledProcessorThread.start();
         this.closedProcessorThread.start();
         this.failedProcessorThread.start();
+        this.deletingProcessorThread.start();
     }
 }

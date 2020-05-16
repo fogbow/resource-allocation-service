@@ -77,6 +77,7 @@ public class DeletingProcessor implements Runnable {
         // condition on order access.
         synchronized (order) {
             // Check if the order is still in the DELETING state (it could have been changed by another thread)
+            LOGGER.info(String.format("Checking if instance has been deleted"));
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.DELETING)) {
                 return;
@@ -94,6 +95,7 @@ public class DeletingProcessor implements Runnable {
                 localCloudConnector.switchOffAuditing();
 
                 instance = localCloudConnector.getInstance(order);
+                LOGGER.info(String.format("Got instance"));
             } catch (InstanceNotFoundException e) {
                 LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
