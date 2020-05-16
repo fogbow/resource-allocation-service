@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.cloudconnector;
 import java.sql.Timestamp;
 import java.util.List;
 
+import cloud.fogbow.ras.core.models.orders.*;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -28,12 +29,6 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
@@ -310,9 +305,16 @@ public class LocalCloudConnector implements CloudConnector {
         String instanceId = order.getInstanceId();
         if (instanceId != null) {
             return getResourceInstance(order, order.getType(), cloudUser);
-        } 
-        // When there is no instance, an empty one is created with the appropriate state
-        return createEmptyInstance(order);
+        } else if (order.getOrderState().equals(OrderState.DELETING)) {
+            // The instance has been deleted.
+            LOGGER.info("Instance deleted");
+            throw new InstanceNotFoundException();
+        } else {
+            // When there is no instance and the instance was not deleted, an empty one is created
+            // with the appropriate state.
+            LOGGER.info("Creating empty instance");
+            return createEmptyInstance(order);
+        }
     }
 
     protected OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
