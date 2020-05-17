@@ -71,7 +71,7 @@ public class OrderStateTransitioner {
         }
     }
 
-    protected static void notifyRequester(Order order, OrderState newState) throws RemoteCommunicationException {
+    public static void notifyRequester(Order order, OrderState newState) throws RemoteCommunicationException {
         try {
             RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, newState);
             remoteNotifyEventRequest.send();

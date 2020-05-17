@@ -75,15 +75,15 @@ public class AssignedForDeletionProcessor implements Runnable {
         // The order object synchronization is needed to prevent a race
         // condition on order access.
         synchronized (order) {
-            // Check if the order is still in the DELETING state (it could have been changed by another thread)
-            LOGGER.info(String.format("Checking if instance has been deleted"));
+            // Check if the order is still in the ASSIGNED_FOR_DELETION state (it could have been changed
+            // by another thread)
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.ASSIGNED_FOR_DELETION)) {
                 return;
             }
             try {
                 // When the provider is local and instanceId is null, there is nothing to be deleted in the cloud.
-                // Thus, the provider should simply transition the order to CLOSED.
+                // Thus, the provider should not call deleteInstance().
                 if (order.isProviderRemote(this.localProviderId) || (order.getInstanceId() != null)) {
                     CloudConnector cloudConnector = getCloudConnector(order);
                     cloudConnector.deleteInstance(order);

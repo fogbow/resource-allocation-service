@@ -62,7 +62,7 @@ public class CheckingDeletionProcessor implements Runnable {
 
     protected void processClosedOrder(Order order) throws UnexpectedException {
         synchronized (order) {
-            // Check if the order is still in the CLOSED state (it could have been changed by another thread)
+            // Check if the order is still in the CHECKING_DELETION state (it could have been changed by another thread)
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CHECKING_DELETION)) {
                 return;
@@ -83,7 +83,7 @@ public class CheckingDeletionProcessor implements Runnable {
             } catch (InstanceNotFoundException e) {
                 LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
                 // Remove any references that related dependencies of other orders with the order that has
-                // just been deleted. Only the provider that is receiving the delete request through its
+                // just been deleted. Only the provider that has receiving the delete request through its
                 // REST API needs to update order dependencies.
                 if (order.isRequesterLocal(this.localProviderId)) {
                     this.orderController.updateOrderDependencies(order, Operation.DELETE);
