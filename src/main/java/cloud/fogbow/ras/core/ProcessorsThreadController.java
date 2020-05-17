@@ -43,7 +43,7 @@ public class ProcessorsThreadController {
 
         String checkingDeletionOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.CHECKING_DELETION_ORDERS_SLEEP_TIME_KEY,
-                        ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME);
+                        ConfigurationPropertyDefaults.CHECKING_DELETION_ORDERS_SLEEP_TIME);
 
         CheckingDeletionProcessor checkingDeletionProcessor = new CheckingDeletionProcessor(orderController, localProviderId, checkingDeletionOrdersProcSleepTimeStr);
         
@@ -55,7 +55,7 @@ public class ProcessorsThreadController {
 
         String assignedForDeletionOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.ASSIGNED_FOR_DELETION_ORDERS_SLEEP_TIME_KEY,
-                        ConfigurationPropertyDefaults.DELETING_ORDERS_SLEEP_TIME);
+                        ConfigurationPropertyDefaults.ASSIGNED_FOR_DELETION_ORDERS_SLEEP_TIME);
 
         AssignedForDeletionProcessor assignedForDeletionProcessor = new AssignedForDeletionProcessor(localProviderId, assignedForDeletionOrdersProcSleepTimeStr);
 

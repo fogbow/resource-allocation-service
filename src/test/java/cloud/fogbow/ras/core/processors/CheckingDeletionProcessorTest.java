@@ -41,7 +41,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
 
         this.orderController = Mockito.spy(new OrderController());
         this.processor = Mockito.spy(new CheckingDeletionProcessor(this.orderController,
-                TestUtils.LOCAL_MEMBER_ID, ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME));
+                TestUtils.LOCAL_MEMBER_ID, ConfigurationPropertyDefaults.CHECKING_DELETION_ORDERS_SLEEP_TIME));
         
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
@@ -80,21 +80,21 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.orderController, Mockito.times(1)).deactivateOrder(Mockito.eq(order));
+        Mockito.verify(this.orderController, Mockito.times(1)).closeOrder(Mockito.eq(order));
         Assert.assertNull(checkingDeletionOrderList.getNext());
         Assert.assertNull(activeOrdersMap.get(order.getId()));
-        Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());
+        Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
     
     // test case: Check the throw of UnexpectedException when running the thread in
-    // the closed processor, while running a local order.
+    // the checkingDeletion processor, while running a local order.
     @Test
     public void testRunProcessLocalOrderThrowsUnexpectedException() throws InterruptedException, UnexpectedException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         this.checkingDeletionOrderList.addItem(order);
 
-        Mockito.doThrow(new UnexpectedException()).when(this.processor).processClosedOrder(Mockito.eq(order));
+        Mockito.doThrow(new UnexpectedException()).when(this.processor).processCheckingDeletionOrder(Mockito.eq(order));
 
         // exercise
         this.thread = new Thread(this.processor);
@@ -102,11 +102,11 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.processor, Mockito.times(1)).processClosedOrder(Mockito.eq(order));
+        Mockito.verify(this.processor, Mockito.times(1)).processCheckingDeletionOrder(Mockito.eq(order));
     }
     
-    // test case: During a thread running in closed processor, if any
-    // errors occur, the processClosedOrder method will catch an exception.
+    // test case: During a thread running in checkingDeletion processor, if any
+    // errors occur, the processCheckingDeletionOrder method will catch an exception.
     @Test
     public void testRunProcessLocalOrderToCatchException() throws InterruptedException, UnexpectedException {
 
@@ -114,7 +114,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         this.checkingDeletionOrderList.addItem(order);
 
-        Mockito.doThrow(new RuntimeException()).when(this.processor).processClosedOrder(Mockito.eq(order));
+        Mockito.doThrow(new RuntimeException()).when(this.processor).processCheckingDeletionOrder(Mockito.eq(order));
 
         // exercise
         this.thread = new Thread(this.processor);
@@ -122,7 +122,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.processor, Mockito.times(1)).processClosedOrder(Mockito.eq(order));
+        Mockito.verify(this.processor, Mockito.times(1)).processCheckingDeletionOrder(Mockito.eq(order));
     }
     
 }

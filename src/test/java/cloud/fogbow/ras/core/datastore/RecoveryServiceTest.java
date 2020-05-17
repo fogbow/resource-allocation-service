@@ -178,11 +178,11 @@ public class RecoveryServiceTest extends BaseUnitTests {
         // exercise
         recoveryService.save(computeOrder);
         List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-        List<Order> closedOrders = recoveryService.readActiveOrders(OrderState.PENDING);
+        List<Order> pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
 
         // verify
         Assert.assertEquals(1, openOrders.size());
-        Assert.assertTrue(closedOrders.isEmpty());
+        Assert.assertTrue(pendingOrders.isEmpty());
         Assert.assertEquals(computeOrder, openOrders.get(0));
 
         // set up
@@ -191,12 +191,12 @@ public class RecoveryServiceTest extends BaseUnitTests {
         // exercise
         recoveryService.update(computeOrder);
         openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-        closedOrders = recoveryService.readActiveOrders(OrderState.PENDING);
+        pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
 
         // verify
         Assert.assertTrue(openOrders.isEmpty());
-        Assert.assertEquals(1, closedOrders.size());
-        Assert.assertEquals(computeOrder, closedOrders.get(0));
+        Assert.assertEquals(1, pendingOrders.size());
+        Assert.assertEquals(computeOrder, pendingOrders.get(0));
     }
 
     //// test case: Adding orders of all types and checking the method readOrders

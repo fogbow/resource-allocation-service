@@ -1,28 +1,23 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-/**
- * Process orders in DELETING state. It keeps checking if the instance is still present
- * in the cloud by calling getInstance(). When getInstance() raises an InstanceNotFound
- * exception, then the processor infers that the instance has already been deleted.
- */
 public class AssignedForDeletionProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(AssignedForDeletionProcessor.class);
 
     private String localProviderId;
-    private ChainedList<Order> deletingOrdersList;
+    private ChainedList<Order> assignedForDeletionOrdersList;
     /**
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
@@ -31,12 +26,12 @@ public class AssignedForDeletionProcessor implements Runnable {
     public AssignedForDeletionProcessor(String localProviderId, String sleepTimeStr) {
         this.localProviderId = localProviderId;
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.deletingOrdersList = sharedOrderHolders.getAssignedForDeletionOrdersList();
+        this.assignedForDeletionOrdersList = sharedOrderHolders.getAssignedForDeletionOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
     /**
-     * Iterates over the fulfilled orders list and tries to process one order at a time. When the order
+     * Iterates over the assignedForDeletion orders list and tries to process one order at a time. When the order
      * is null, it indicates that the iteration ended. A new iteration is started after some time.
      */
     @Override
@@ -45,12 +40,12 @@ public class AssignedForDeletionProcessor implements Runnable {
 
         while (isActive) {
             try {
-                Order order = this.deletingOrdersList.getNext();
+                Order order = this.assignedForDeletionOrdersList.getNext();
 
                 if (order != null) {
-                    processDeletingOrder(order);
+                    processAssignedForDeletionOrder(order);
                 } else {
-                    this.deletingOrdersList.resetPointer();
+                    this.assignedForDeletionOrdersList.resetPointer();
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
@@ -65,21 +60,25 @@ public class AssignedForDeletionProcessor implements Runnable {
     }
 
     /**
-     * Checks whether an instance has completed its deletion. If performs a getInstance() call and an
-     * InstanceNotFound exception is thrown, then it transitions the order state to CLOSED.
+     * Starts the deletion procedure in the cloud. Some plugins do this synchronously, others do asynchronously.
+     * Thus, we always assume an asynchronous semantic. This threads issues the delete in the cloud, and transitions
+     * the order to the CHECKING_DELETION state. The CheckingDeletion processor monitors when the operation has
+     * finished. Essentially it keeps repeating getInstance() calls until an InstanceNotFound exception is raised.
      *
      * @param order {@link Order}
      */
-    protected void processDeletingOrder(Order order) throws FogbowException {
+    protected void processAssignedForDeletionOrder(Order order) throws FogbowException {
         OrderInstance instance = null;
 
         // The order object synchronization is needed to prevent a race
         // condition on order access.
         synchronized (order) {
-            // Check if the order is still in the ASSIGNED_FOR_DELETION state (it could have been changed
-            // by another thread)
+            // Check if the order is still in the ASSIGNED_FOR_DELETION state (for this particular state, this should
+            // always happen, since once the order gets to this state, only this thread can operate on it. However,
+            // the cost of safe programming is low).
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.ASSIGNED_FOR_DELETION)) {
+                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;
             }
             // Only local orders need to be monitored. Remote orders are monitored by the remote provider
@@ -96,14 +95,17 @@ public class AssignedForDeletionProcessor implements Runnable {
                     localCloudConnector.deleteInstance(order);
                 }
                 OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
+            } catch (InstanceNotFoundException e) {
+                // If the provider crashes after calling deleteInstance() and before setting the order's state to
+                // CHECKING_DELETION, then the deleteInstance() method will be called again, after recovery. The
+                // order needs simply to be advanced to the CHECKING_DELETION state, to later be closed by the
+                // CheckingDeletion processor.
+                LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND+" "+String.format(Messages.Info.DELETING_INSTANCE_S, order.getId()));
+                OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
             } catch (FogbowException e) {
                 LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, order.getId()), e);
                 throw e;
             }
         }
-    }
-
-    protected CloudConnector getCloudConnector(Order order) {
-        return CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
     }
 }

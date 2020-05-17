@@ -9,6 +9,8 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
+import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
@@ -27,10 +29,12 @@ public class OrderController {
     private Map<String, List<String>> orderDependencies;
     private String localProviderId;
 
-    public OrderController() {
+    public OrderController() throws UnexpectedException {
         this.orderHolders = SharedOrderHolders.getInstance();
         this.orderDependencies = new ConcurrentHashMap<>();
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
+        // We need to repopulate ordersDependencies after a restart of the service
+        updateAllOrdersDependencies();
     }
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {
@@ -78,7 +82,7 @@ public class OrderController {
         }
     }
 
-    public void deactivateOrder(Order order) throws UnexpectedException {
+    public void closeOrder(Order order) throws UnexpectedException {
         synchronized (order) {
             SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
             Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
@@ -95,17 +99,16 @@ public class OrderController {
             order.setOrderState(OrderState.CLOSED);
             if (order.isRequesterRemote(this.localProviderId)) {
                 try {
-                    LOGGER.info("Notifying remote requester that the order is CLOSED");
                     OrderStateTransitioner.notifyRequester(order, OrderState.CLOSED);
                 } catch (Exception e) {
                     // ToDO: Add orders that failed to be notified to a list of orders missing notification.
                     //  A new thread (MissedNotificationProcessor) will periodically retry these notifications.
                     // This list does not need to be in stable storage. Upon recovery (see the constructor of
-                    // SharedOrdersHolder), all active orders (those not deactivated) whose requesters are remote
+                    // SharedOrdersHolder), all active orders (those not closed) whose requesters are remote
                     // should be added in the list of orders missing notification and be notified again (just in case).
-                    // ClosedProcessor should inspect this list before deactivating an order whose requester is
-                    // remote. Only orders that are not present in the list should be deactivated. Those that are
-                    // present in the list should be kept in the CLOSED state, until they are successfully notified.
+                    // CheckingDeletionProcessor should inspect this list before deactivating an order whose requester is
+                    // remote. Only orders that are not present in the list should be closed. Those that are
+                    // present in the list should be kept in the CheckingDeletion state, until they are successfully notified.
                     // Eventual garbage that remains due to a remote requester that never recovers (and cannot be
                     // notified) will be dealt with by the admin tool to be developed.
                     String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
@@ -135,12 +138,19 @@ public class OrderController {
                 // "at-most-once" semantic for the requestInstance() call. See OpenProcessor.
                 throw new OnGoingOperationException(cloud.fogbow.common.constants.Messages.Exception.CANNOT_DELETE_INSTANCE_WHILE_IT_IS_BEING_CREATED);
             }
+            // The code below is more verbose than needed, but this makes it simpler to understand.
             if (order.isProviderLocal(this.localProviderId)) {
                 OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
             } else {
-                CloudConnector cloudConnector = getCloudConnector(order);
-                cloudConnector.deleteInstance(order);
-                order.setInstanceId(null);
+                // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
+                RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
+                        CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
+                remoteCloudConnector.deleteInstance(order);
+                // Since deleteInstance() is a synchronous call (RPC), the remote provider cannot notify the state
+                // change (the execution of RPC to do so at the remote provider would raise an UnavailableProviderException
+                // due to the ongoing RPC of the deleteInstance() call). Also, if an error occur in the above call, an
+                // exception will be raised and the order will remain in whatever state it is.
+                OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
             }
         }
     }
@@ -335,6 +345,18 @@ public class OrderController {
                     break;
                 default:
                     throw new UnexpectedException(String.format(Messages.Exception.UNEXPECTED_OPERATION_S, operation));
+            }
+        }
+    }
+
+    private void updateAllOrdersDependencies() throws UnexpectedException {
+        Collection<Order> allOrders = this.orderHolders.getActiveOrdersMap().values();
+
+        for (Order order : allOrders) {
+            synchronized (order) {
+                if (order.isRequesterLocal(this.localProviderId)) {
+                    this.updateOrderDependencies(order, Operation.CREATE);
+                }
             }
         }
     }

@@ -59,7 +59,14 @@ public class OpenProcessor implements Runnable {
     /**
      * Get an instance for an order in the OPEN state. If the method fails to get the instance, then the order is
      * set to FAILED_ON_REQUEST state, else, it is set to the SPAWNING state if the order is local, or the PENDING
-     * state if the order is remote.
+     * state if the order is remote. The SELECTED state exists simply to implement an "at-most-once" semantics
+     * for the requestInstance() call. This transition removes the order from the OPEN list. Thus, once the order
+     * is selected by the OpenProcessor, if the provider fails before advancing the state to either FAILED_ON_REQUEST,
+     * PENDING or SPAWNING, when the provider recovers, this order will remain in the SELECTED state and will not
+     * be retried. This is needed because the provider can't know whether the failure occurred before or after the
+     * requestInstance() call. All other order processors call either getInstance() or deleteInstance(), and do not
+     * need to bother with the effects of failures. This is because both getInstace() and deleteInstance() cause no
+     * undesired collateral effects if invoked more than once.
      */
     protected void processOpenOrder(Order order) throws FogbowException {
         // The order object synchronization is needed to prevent a race
@@ -67,18 +74,11 @@ public class OpenProcessor implements Runnable {
         // order while this method is trying to get an Instance for this order.
         synchronized (order) {
             OrderState orderState = order.getOrderState();
-            // Check if the order is still in the Open state (it could have been changed by another thread)
+            // Check if the order is still in the OPEN state (it could have been changed by another thread)
             if (!orderState.equals(OrderState.OPEN)) {
                 return;
             }
             try {
-                // The SELECTED state exists simply to implement an "at-most-once" semantics for the requestInstance()
-                // call. This transition removes the order from the OPEN list. Thus, once the order is selected by the
-                // OpenProcessor, if the provider fails before advancing the state to either FAILED_ON_REQUEST, PENDING
-                // or SPAWNING, when the provider recovers, this order will remain in the SELECTED state and will not
-                // be retried. This is because RAS can't know whether the failure occurred before or after the
-                // requestInstance() call. All other order processors call either getInstance() or deactivateOrder(),
-                // and need not to bother with the effects of failures, because both functions are idempotent.
                 OrderStateTransitioner.transition(order, OrderState.SELECTED);
                 CloudConnector cloudConnector = CloudConnectorFactory.getInstance().
                         getCloudConnector(order.getProvider(), order.getCloudName());

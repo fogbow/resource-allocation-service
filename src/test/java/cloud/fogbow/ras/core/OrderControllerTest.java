@@ -75,9 +75,9 @@ public class OrderControllerTest extends BaseUnitTests {
         this.localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
     }
 
-    // test case: when try to delete an Order checking deletion, it must raise an OnGoingOperationException.
+    // test case: when try to delete an order in state checking_deletion, it must raise an OnGoingOperationException.
     @Test(expected = OnGoingOperationException.class) // verify
-    public void testDeleteClosedOrderThrowsInstanceNotFoundException()
+    public void testDeleteCheckingDeletionOrderThrowsInstanceNotFoundException()
             throws Exception {
 
         // set up
@@ -186,10 +186,10 @@ public class OrderControllerTest extends BaseUnitTests {
         }
     }
 
-    // test case: Attempt to deactivate the same order more than
+    // test case: Attempt to close the same order more than
     // once must throw UnexpectedException
     @Test
-    public void testDeactivateOrderTwice() throws FogbowException {
+    public void testCloseOrderTwice() throws FogbowException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         String expected = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
@@ -197,9 +197,9 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.activateOrder(order);
         
         // exercise
-        this.ordersController.deactivateOrder(order);
+        this.ordersController.closeOrder(order);
         try {
-            this.ordersController.deactivateOrder(order);
+            this.ordersController.closeOrder(order);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
@@ -207,9 +207,9 @@ public class OrderControllerTest extends BaseUnitTests {
         }
     }
 
-    // test case: Checks if deactivateOrder changes it's state to DEACTIVATED
+    // test case: Checks if closeOrder changes the order state to CLOSED
     @Test
-    public void testDeactivateOrderSuccess() throws FogbowException {
+    public void testCloseOrderSuccess() throws FogbowException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
@@ -217,7 +217,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.OPEN, order.getOrderState());
         
         // exercise
-        this.ordersController.deactivateOrder(order);
+        this.ordersController.closeOrder(order);
 
         // verify
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());

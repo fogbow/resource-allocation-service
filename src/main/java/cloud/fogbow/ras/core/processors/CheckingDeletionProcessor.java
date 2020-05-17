@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 public class CheckingDeletionProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(CheckingDeletionProcessor.class);
 
-    private ChainedList<Order> closedOrders;
+    private ChainedList<Order> checkingDeletionOrders;
     /**
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
@@ -27,14 +27,14 @@ public class CheckingDeletionProcessor implements Runnable {
 
     public CheckingDeletionProcessor(OrderController orderController, String localProviderId, String sleepTimeStr) {
         SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
-        this.closedOrders = sharedOrdersHolder.getCheckingDeletionOrdersList();
+        this.checkingDeletionOrders = sharedOrdersHolder.getCheckingDeletionOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.orderController = orderController;
         this.localProviderId = localProviderId;
     }
 
     /**
-     * Iterates over the closed orders list and tries to process one order at a time. When the order
+     * Iterates over the checkingDeletion orders list and tries to process one order at a time. When the order
      * is null, it indicates that the iteration ended. A new iteration is started after some time.
      */
     @Override
@@ -42,11 +42,11 @@ public class CheckingDeletionProcessor implements Runnable {
         boolean isActive = true;
         while (isActive) {
             try {
-                Order order = this.closedOrders.getNext();
+                Order order = this.checkingDeletionOrders.getNext();
                 if (order != null) {
-                    processClosedOrder(order);
+                    processCheckingDeletionOrder(order);
                 } else {
-                    this.closedOrders.resetPointer();
+                    this.checkingDeletionOrders.resetPointer();
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
@@ -60,11 +60,23 @@ public class CheckingDeletionProcessor implements Runnable {
         }
     }
 
-    protected void processClosedOrder(Order order) throws UnexpectedException {
+    /**
+     * The CheckingDeletion processor monitors when the delete operation issued by the AssignedForDeletion processor
+     * has finished. Essentially it keeps repeating getInstance() calls until an InstanceNotFound exception is raised.
+     * When the plugin used by the AssignedForDeletion processor does deletion synchronously, then the exception will
+     * be raised on the first time the order is processed. Otherwise, it might take a few interactions until the
+     * instance is finally deleted, and getInstance() raises the exception.
+     *
+     * @param order {@link Order}
+     */
+    protected void processCheckingDeletionOrder(Order order) throws UnexpectedException {
         synchronized (order) {
-            // Check if the order is still in the CHECKING_DELETION state (it could have been changed by another thread)
+            // Check if the order is still in the CHECKING_DELETION state (for this particular state, this should
+            // always happen, since once the order gets to this state, only this thread can operate on it. However,
+            // the cost of safe programming is low).
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CHECKING_DELETION)) {
+                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;
             }
             // Only local orders need to be monitored. Remote orders are monitored by the remote provider
@@ -76,7 +88,7 @@ public class CheckingDeletionProcessor implements Runnable {
                 // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
                 LocalCloudConnector localCloudConnector = (LocalCloudConnector)
                         CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
-                // we won't audit requests we make
+                // We don't audit requests we make
                 localCloudConnector.switchOffAuditing();
 
                 localCloudConnector.getInstance(order);
@@ -88,7 +100,7 @@ public class CheckingDeletionProcessor implements Runnable {
                 if (order.isRequesterLocal(this.localProviderId)) {
                     this.orderController.updateOrderDependencies(order, Operation.DELETE);
                 }
-                this.orderController.deactivateOrder(order);
+                this.orderController.closeOrder(order);
             } catch (FogbowException e) {
                 LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
             }

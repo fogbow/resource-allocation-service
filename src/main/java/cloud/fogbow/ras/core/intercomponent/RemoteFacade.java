@@ -140,7 +140,7 @@ public class RemoteFacade {
                 }
                 localOrder.updateFromRemote(remoteOrder);
                 if (newState.equals(OrderState.CLOSED)) {
-                    this.orderController.deactivateOrder(localOrder);
+                    this.orderController.closeOrder(localOrder);
                 } else {
                     OrderStateTransitioner.transition(localOrder, newState);
                 }

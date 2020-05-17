@@ -15,10 +15,6 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-/**
- * Process orders in FULFILLED state. It monitors the resources that have been successfully
- * initiated, to check for failures that may affect them.
- */
 public class FulfilledProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
 
@@ -94,7 +90,7 @@ public class FulfilledProcessor implements Runnable {
                 // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
                 LocalCloudConnector localCloudConnector = (LocalCloudConnector)
                         CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
-                // we won't audit requests we make
+                // We don't audit requests we make
                 localCloudConnector.switchOffAuditing();
 
                 instance = localCloudConnector.getInstance(order);

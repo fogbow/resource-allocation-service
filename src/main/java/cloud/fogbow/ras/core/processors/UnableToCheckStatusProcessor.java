@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.processors;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -15,10 +14,6 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-/**
- * Process orders in the state UNABLE_TO_CHECK_STATUS. It monitors resources whose status could not be retrieved
- * from the cloud, to check whether they should return to the fulfilled or to the failed states.
- */
 public class UnableToCheckStatusProcessor implements Runnable {
 
 	private static final Logger LOGGER = Logger.getLogger(UnableToCheckStatusProcessor.class);
@@ -83,7 +78,7 @@ public class UnableToCheckStatusProcessor implements Runnable {
             if (!orderState.equals(OrderState.UNABLE_TO_CHECK_STATUS)) {
                 return;
             }
-            // Only local orders need to be monitored. Remoted orders are monitored by the remote provider
+            // Only local orders need to be monitored. Remote orders are monitored by the remote provider
             // and change state when that provider notifies state changes.
             if (order.isProviderRemote(this.localProviderId)) {
                 return;
@@ -92,7 +87,7 @@ public class UnableToCheckStatusProcessor implements Runnable {
                 // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
                 LocalCloudConnector localCloudConnector = (LocalCloudConnector)
                         CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
-                // we won't audit requests we make
+                // We don't audit requests we make
                 localCloudConnector.switchOffAuditing();
 
                 instance = localCloudConnector.getInstance(order);

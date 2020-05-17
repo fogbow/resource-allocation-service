@@ -62,7 +62,7 @@ public class SpawningProcessor implements Runnable {
 
     protected void processSpawningOrder(Order order) throws FogbowException {
         // The order object synchronization is needed to prevent a race
-        // condition on order access. For example: a user can delete an open
+        // condition on order access. For example: a user can delete an spawning
         // order while this method is trying to check the status of an instance
         // that has been requested in the cloud.
         synchronized (order) {
@@ -79,7 +79,7 @@ public class SpawningProcessor implements Runnable {
             // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
             LocalCloudConnector localCloudConnector = (LocalCloudConnector)
                     CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
-            // we won't audit requests we make
+            // We don't audit requests we make
             localCloudConnector.switchOffAuditing();
 
             try {
