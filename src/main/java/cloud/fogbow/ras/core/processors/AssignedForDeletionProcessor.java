@@ -8,6 +8,7 @@ import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
@@ -81,13 +82,18 @@ public class AssignedForDeletionProcessor implements Runnable {
             if (!orderState.equals(OrderState.ASSIGNED_FOR_DELETION)) {
                 return;
             }
+            // Only local orders need to be monitored. Remote orders are monitored by the remote provider
+            // and change state when that provider notifies state changes.
+            if (order.isProviderRemote(this.localProviderId)) {
+                return;
+            }
             try {
-                // When the provider is local and instanceId is null, there is nothing to be deleted in the cloud.
-                // Thus, the provider should not call deleteInstance().
-                if (order.isProviderRemote(this.localProviderId) || (order.getInstanceId() != null)) {
-                    CloudConnector cloudConnector = getCloudConnector(order);
-                    cloudConnector.deleteInstance(order);
-                    order.setInstanceId(null);
+                // When the instanceId is null, there is nothing to be deleted in the cloud.
+                if (order.getInstanceId() != null) {
+                    // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
+                    LocalCloudConnector localCloudConnector = (LocalCloudConnector)
+                            CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
+                    localCloudConnector.deleteInstance(order);
                 }
                 OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
             } catch (FogbowException e) {

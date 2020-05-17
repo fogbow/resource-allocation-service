@@ -61,7 +61,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
 
     // test case: When running the thread in CheckingDeletionProcessor, orders will be removed
     // from the checkingDeletion list and active order map, and marked as CLOSED.
-    @PrepareForTest(CloudConnectorFactory.class)
+    @PrepareForTest({CloudConnectorFactory.class,DatabaseManager.class,LocalCloudConnector.class})
     @Test
     public void testProcessCheckingDeletionLocalOrder() throws Exception {
         // set up

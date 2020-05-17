@@ -139,7 +139,11 @@ public class RemoteFacade {
                             signallingProvider, localOrder.getProvider()));
                 }
                 localOrder.updateFromRemote(remoteOrder);
-                OrderStateTransitioner.transition(localOrder, newState);
+                if (newState.equals(OrderState.CLOSED)) {
+                    this.orderController.deactivateOrder(localOrder);
+                } else {
+                    OrderStateTransitioner.transition(localOrder, newState);
+                }
             }
         } else {
             // The order no longer exists locally. This should never happen.

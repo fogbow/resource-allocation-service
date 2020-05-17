@@ -93,22 +93,24 @@ public class OrderController {
             checkingDeletionOrders.removeItem(order);
             order.setInstanceId(null);
             order.setOrderState(OrderState.CLOSED);
-            try {
-                LOGGER.info("Notifying remote requester that the order is CLOSED");
-                OrderStateTransitioner.notifyRequester(order, OrderState.CLOSED);
-            } catch (Exception e) {
-                // ToDO: Add orders that failed to be notified to a list of orders missing notification.
-                //  A new thread (MissedNotificationProcessor) will periodically retry these notifications.
-                // This list does not need to be in stable storage. Upon recovery (see the constructor of
-                // SharedOrdersHolder), all active orders (those not deactivated) whose requesters are remote
-                // should be added in the list of orders missing notification and be notified again (just in case).
-                // ClosedProcessor should inspect this list before deactivating an order whose requester is
-                // remote. Only orders that are not present in the list should be deactivated. Those that are
-                // present in the list should be kept in the CLOSED state, until they are successfully notified.
-                // Eventual garbage that remains due to a remote requester that never recovers (and cannot be
-                // notified) will be dealt with by the admin tool to be developed.
-                String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
-                LOGGER.warn(message, e);
+            if (order.isRequesterRemote(this.localProviderId)) {
+                try {
+                    LOGGER.info("Notifying remote requester that the order is CLOSED");
+                    OrderStateTransitioner.notifyRequester(order, OrderState.CLOSED);
+                } catch (Exception e) {
+                    // ToDO: Add orders that failed to be notified to a list of orders missing notification.
+                    //  A new thread (MissedNotificationProcessor) will periodically retry these notifications.
+                    // This list does not need to be in stable storage. Upon recovery (see the constructor of
+                    // SharedOrdersHolder), all active orders (those not deactivated) whose requesters are remote
+                    // should be added in the list of orders missing notification and be notified again (just in case).
+                    // ClosedProcessor should inspect this list before deactivating an order whose requester is
+                    // remote. Only orders that are not present in the list should be deactivated. Those that are
+                    // present in the list should be kept in the CLOSED state, until they are successfully notified.
+                    // Eventual garbage that remains due to a remote requester that never recovers (and cannot be
+                    // notified) will be dealt with by the admin tool to be developed.
+                    String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
+                    LOGGER.warn(message, e);
+                }
             }
         }
     }
@@ -133,7 +135,13 @@ public class OrderController {
                 // "at-most-once" semantic for the requestInstance() call. See OpenProcessor.
                 throw new OnGoingOperationException(cloud.fogbow.common.constants.Messages.Exception.CANNOT_DELETE_INSTANCE_WHILE_IT_IS_BEING_CREATED);
             }
-            OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
+            if (order.isProviderLocal(this.localProviderId)) {
+                OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
+            } else {
+                CloudConnector cloudConnector = getCloudConnector(order);
+                cloudConnector.deleteInstance(order);
+                order.setInstanceId(null);
+            }
         }
     }
 
