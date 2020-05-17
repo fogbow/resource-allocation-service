@@ -146,7 +146,9 @@ public class RemoteFacade {
                 }
             }
         } else {
-            // The order no longer exists locally. This should never happen.
+            // The order no longer exists locally. This may only happen in rare corner cases when the remote provider
+            // previously signalled that the order was closed, but failed before could save its order in stable storage.
+            // When it recovers, it tries to signal again.
             LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_LOCATE_ORDER_S_S, remoteOrder.getId(), signallingProvider));
             return;
         }

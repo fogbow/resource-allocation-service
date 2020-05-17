@@ -86,7 +86,15 @@ public class OpenProcessor implements Runnable {
                 order.setInstanceId(instanceId);
                 if (order.isProviderLocal(this.localProviderId)) {
                     if (instanceId != null) {
-                        OrderStateTransitioner.transition(order, OrderState.SPAWNING);
+                        // Signalling is only important for the business logic when it concerns the states
+                        // CHECKING_DELETION and CLOSED. In this case, transitionOnlyOnSuccessfulSignalIfNeeded()
+                        // must be called, when transitioning the state of an order. For the other states,
+                        // the only effect is that the states of the instances that are returned in the
+                        // OrderController getInstancesStatus() call may be stale. This is documented in the
+                        // API. A client can always refresh the state of a particular instance by calling
+                        // getInstance(). In these cases, the best effort transitionAndTryToSignalRequesterIfNeeded(),
+                        // should be called.
+                        OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.SPAWNING);
                     } else {
                         throw new UnexpectedException(String.format(Messages.Exception.REQUEST_INSTANCE_NULL, order.getId()));
                     }
@@ -95,7 +103,7 @@ public class OpenProcessor implements Runnable {
                 }
             } catch (Exception e) {
                 order.setInstanceId(null);
-                OrderStateTransitioner.transition(order, OrderState.FAILED_ON_REQUEST);
+                OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_ON_REQUEST);
                 throw e;
             }
         }

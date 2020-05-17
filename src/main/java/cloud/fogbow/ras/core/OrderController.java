@@ -9,7 +9,6 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -84,6 +83,19 @@ public class OrderController {
 
     public void closeOrder(Order order) throws UnexpectedException {
         synchronized (order) {
+            if (order.isRequesterRemote(this.localProviderId)) {
+                try {
+                    OrderStateTransitioner.notifyRequester(order, OrderState.CLOSED);
+                } catch (Exception e) {
+                    String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
+                    LOGGER.warn(message, e);
+                    return;
+                }
+            }
+            // Will only get here if successfully signaled remote requester (if needed). If the signalling fails, it
+            // keeps retrying. If it succeeds, but the provider fails before updating the local order to CLOSED and
+            // save it in stable storage, then, upon recovery, it will try to signal again. The remote requester will
+            // simply drop this redundant signal (see handleRemoteEvent() in RemoteFacade class).
             SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
             Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
             ChainedList<Order> checkingDeletionOrders = sharedOrderHolders.getCheckingDeletionOrdersList();
@@ -94,27 +106,10 @@ public class OrderController {
                 String message = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
                 throw new UnexpectedException(message);
             }
+
             checkingDeletionOrders.removeItem(order);
             order.setInstanceId(null);
             order.setOrderState(OrderState.CLOSED);
-            if (order.isRequesterRemote(this.localProviderId)) {
-                try {
-                    OrderStateTransitioner.notifyRequester(order, OrderState.CLOSED);
-                } catch (Exception e) {
-                    // ToDO: Add orders that failed to be notified to a list of orders missing notification.
-                    //  A new thread (MissedNotificationProcessor) will periodically retry these notifications.
-                    // This list does not need to be in stable storage. Upon recovery (see the constructor of
-                    // SharedOrdersHolder), all active orders (those not closed) whose requesters are remote
-                    // should be added in the list of orders missing notification and be notified again (just in case).
-                    // CheckingDeletionProcessor should inspect this list before deactivating an order whose requester is
-                    // remote. Only orders that are not present in the list should be closed. Those that are
-                    // present in the list should be kept in the CheckingDeletion state, until they are successfully notified.
-                    // Eventual garbage that remains due to a remote requester that never recovers (and cannot be
-                    // notified) will be dealt with by the admin tool to be developed.
-                    String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
-                    LOGGER.warn(message, e);
-                }
-            }
         }
     }
 
@@ -144,7 +139,7 @@ public class OrderController {
             } else {
                 // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
                 RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
-                        CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
+                        CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
                 remoteCloudConnector.deleteInstance(order);
                 // Since deleteInstance() is a synchronous call (RPC), the remote provider cannot notify the state
                 // change (the execution of RPC to do so at the remote provider would raise an UnavailableProviderException

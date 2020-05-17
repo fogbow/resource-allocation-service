@@ -14,33 +14,38 @@ public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
-        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         synchronized (order) {
-            if (order.isRequesterRemote(localProviderId) && !newState.equals(OrderState.SELECTED) &&
-                    !newState.equals(OrderState.ASSIGNED_FOR_DELETION)) {
-                // We need to inform the remote requesting provider about changes on the local order states.
-                // However, the transition to the SELECTED state is only used to implement an at-most-once
-                // semantic at the local provider that makes the requestInstance() call, thus, does not need
-                // to be notified to the remote requesting provider.
-                // The order transitions to ASSIGNED_FOR_DELETION when a synchronous call to deleteOrder is
-                // made. The state change at the remote requester has already been performed. Thus, there is
-                // no need to notify. Actually, since an RPC is ongoing, such a notification would cause an
-                // UnavailableProviderException to be raised.
-                try {
-                    notifyRequester(order, newState);
-                } catch (Exception e) {
-                    // ToDO: Add orders that failed to be notified to a list of orders missing notification.
-                    //  A new thread (MissedNotificationProcessor) will periodically retry these notifications.
-                    // This list does not need to be in stable storage. Upon recovery (see the constructor of
-                    // SharedOrdersHolder), all active orders (those not closed) whose requesters are remote
-                    // should be added in the list of orders missing notification and be notified again (just in case).
-                    // CheckingDeletionProcessor should inspect this list before deactivating an order whose requester is
-                    // remote. Only orders that are not present in the list should be closed. Those that are
-                    // present in the list should be kept in the CheckingDeletion state, until they are successfully notified.
-                    // Eventual garbage that remains due to a remote requester that never recovers (and cannot be
-                    // notified) will be dealt with by the admin tool to be developed.
-                    String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
-                    LOGGER.warn(message, e);
+            doTransition(order, newState);
+        }
+    }
+
+    public static void transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(Order order, OrderState newState)
+            throws UnexpectedException {
+        transitionAndPossiblySignal(order, newState, true, true);
+    }
+
+    public static void transitionAndTryToSignalRequesterIfNeeded(Order order, OrderState newState)
+            throws UnexpectedException {
+        transitionAndPossiblySignal(order, newState, true,false);
+    }
+
+    public static void transitionAndPossiblySignal(Order order, OrderState newState, boolean signal, boolean allOrNothing)
+            throws UnexpectedException {
+        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
+
+        synchronized (order) {
+            try {
+                if (signal) {
+                    if (order.isRequesterRemote(localProviderId)) {
+                        notifyRequester(order, newState);
+                    }
+                }
+            } catch (Exception e) {
+                String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER,
+                        order.getRequester(), order.getId());
+                LOGGER.warn(message, e);
+                if (allOrNothing) {
+                    return;
                 }
             }
             doTransition(order, newState);

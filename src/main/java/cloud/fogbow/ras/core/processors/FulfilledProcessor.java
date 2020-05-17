@@ -96,14 +96,22 @@ public class FulfilledProcessor implements Runnable {
                 instance = localCloudConnector.getInstance(order);
                 if (instance.hasFailed()) {
                     LOGGER.info(String.format(Messages.Info.INSTANCE_HAS_FAILED, order.getId()));
-                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                    // Signalling is only important for the business logic when it concerns the states
+                    // CHECKING_DELETION and CLOSED. In this case, transitionOnSuccessfulSignalIfNeeded()
+                    // must be called, when transitioning the state of an order. For the other states,
+                    // the only effect is that the states of the instances that are returned in the
+                    // OrderController getInstancesStatus() call may be stale. This is documented in the
+                    // API. A client can always refresh the state of a particular instance by calling
+                    // getInstance(). In these cases, the best effort transitionAndTryToSignalRequesterIfNeeded(),
+                    // should be called.
+                    OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
                 }
             } catch (UnavailableProviderException e1) {
-                OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
+                OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.UNABLE_TO_CHECK_STATUS);
                 throw e1;
             } catch (InstanceNotFoundException e2) {
                 LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
-                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }
         }
     }

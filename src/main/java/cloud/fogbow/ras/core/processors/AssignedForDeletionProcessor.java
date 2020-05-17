@@ -94,14 +94,19 @@ public class AssignedForDeletionProcessor implements Runnable {
                             CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
                     localCloudConnector.deleteInstance(order);
                 }
-                OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
+                // Signalling is only important for the business logic when it concerns the states
+                // CHECKING_DELETION and CLOSED. In this case, transitionOnSuccessfulSignalIfNeeded()
+                // must be called, when transitioning the state of an order.
+                OrderStateTransitioner.transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(order, OrderState.CHECKING_DELETION);
             } catch (InstanceNotFoundException e) {
                 // If the provider crashes after calling deleteInstance() and before setting the order's state to
-                // CHECKING_DELETION, then the deleteInstance() method will be called again, after recovery. The
+                // CHECKING_DELETION, or if signalling is needed but was not successful, then the deleteInstance()
+                // method will be called again, after recovery or after the order is processed again. This is not a
+                // problem, because calling deleteInstance() multiple times has no undesired collateral effect. The
                 // order needs simply to be advanced to the CHECKING_DELETION state, to later be closed by the
                 // CheckingDeletion processor.
                 LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND+" "+String.format(Messages.Info.DELETING_INSTANCE_S, order.getId()));
-                OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
+                OrderStateTransitioner.transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(order, OrderState.CHECKING_DELETION);
             } catch (FogbowException e) {
                 LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, order.getId()), e);
                 throw e;

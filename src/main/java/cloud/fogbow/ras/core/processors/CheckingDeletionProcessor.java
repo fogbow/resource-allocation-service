@@ -72,7 +72,7 @@ public class CheckingDeletionProcessor implements Runnable {
     protected void processCheckingDeletionOrder(Order order) throws UnexpectedException {
         synchronized (order) {
             // Check if the order is still in the CHECKING_DELETION state (for this particular state, this should
-            // always happen, since once the order gets to this state, only this thread can operate on it. However,
+            // always happen, since once the order gets in this state, only this thread can operate on it. However,
             // the cost of safe programming is low).
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CHECKING_DELETION)) {
