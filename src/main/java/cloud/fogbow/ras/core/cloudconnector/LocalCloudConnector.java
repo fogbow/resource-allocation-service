@@ -305,7 +305,7 @@ public class LocalCloudConnector implements CloudConnector {
         String instanceId = order.getInstanceId();
         if (instanceId != null) {
             return getResourceInstance(order, order.getType(), cloudUser);
-        } else if (order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION)) {
+        } else if (order.getOrderState().equals(OrderState.CHECKING_DELETION)) {
             // The instance has been deleted.
             throw new InstanceNotFoundException();
         } else {
