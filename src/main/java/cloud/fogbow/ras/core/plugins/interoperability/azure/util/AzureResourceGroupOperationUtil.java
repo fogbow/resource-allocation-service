@@ -5,14 +5,13 @@ import org.apache.log4j.Logger;
 import rx.Completable;
 import cloud.fogbow.common.exceptions.QuotaExceededException;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.AzureVolumePlugin;
 
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.resources.ResourceGroup;
 
 public class AzureResourceGroupOperationUtil {
 
-    private static final Logger LOGGER = Logger.getLogger(AzureVolumePlugin.class);
+    private static final Logger LOGGER = Logger.getLogger(AzureResourceGroupOperationUtil.class);
 
     public static String createResourceGroup(Azure azure, String regionName, String resourceGroupName)
             throws QuotaExceededException {
