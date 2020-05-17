@@ -3,8 +3,11 @@ package cloud.fogbow.ras.core.processors;
 import java.util.Map;
 import java.util.Properties;
 
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.*;
+import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,12 +22,12 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
 @PrepareForTest({ DatabaseManager.class })
-public class ClosedProcessorTest extends BaseUnitTests {
+public class CheckingDeletionProcessorTest extends BaseUnitTests {
 
     private Map<String, Order> activeOrdersMap;
-    private ChainedList<Order> closedOrderList;
+    private ChainedList<Order> checkingDeletionOrderList;
     private Properties properties;
-    private ClosedProcessor processor;
+    private CheckingDeletionProcessor processor;
     private OrderController orderController;
     private Thread thread;
 
@@ -37,12 +40,12 @@ public class ClosedProcessorTest extends BaseUnitTests {
         this.properties.put(ConfigurationPropertyKeys.PROVIDER_ID_KEY, TestUtils.LOCAL_MEMBER_ID);
 
         this.orderController = Mockito.spy(new OrderController());
-        this.processor = Mockito.spy(new ClosedProcessor(this.orderController,
+        this.processor = Mockito.spy(new CheckingDeletionProcessor(this.orderController,
                 TestUtils.LOCAL_MEMBER_ID, ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME));
         
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-        this.closedOrderList = sharedOrderHolders.getClosedOrdersList();
+        this.checkingDeletionOrderList = sharedOrderHolders.getCheckingDeletionOrdersList();
         
         this.thread = null;
     }
@@ -56,16 +59,20 @@ public class ClosedProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
 
-    // test case: When running the thread in ClosedProcessor, orders will be removed
-    // from the closed list and active order map, and marked as DEACTIVATED.
+    // test case: When running the thread in CheckingDeletionProcessor, orders will be removed
+    // from the checkingDeletion list and active order map, and marked as CLOSED.
+    @PrepareForTest(CloudConnectorFactory.class)
     @Test
-    public void testProcessClosedLocalOrder() throws Exception {
+    public void testProcessCheckingDeletionLocalOrder() throws Exception {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
+        Mockito.spy(localCloudConnector);
+        Mockito.doThrow(new InstanceNotFoundException()).when(localCloudConnector).getInstance(Mockito.eq(order));
 
         this.orderController.activateOrder(order);
-        OrderStateTransitioner.transition(order, OrderState.CLOSED);
+        OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
 
         // exercise
         this.thread = new Thread(this.processor);
@@ -74,9 +81,9 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.orderController, Mockito.times(1)).deactivateOrder(Mockito.eq(order));
-        Assert.assertNull(closedOrderList.getNext());
+        Assert.assertNull(checkingDeletionOrderList.getNext());
         Assert.assertNull(activeOrdersMap.get(order.getId()));
-        Assert.assertEquals(OrderState.DEACTIVATED, order.getOrderState());
+        Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());
     }
     
     // test case: Check the throw of UnexpectedException when running the thread in
@@ -85,7 +92,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
     public void testRunProcessLocalOrderThrowsUnexpectedException() throws InterruptedException, UnexpectedException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
-        this.closedOrderList.addItem(order);
+        this.checkingDeletionOrderList.addItem(order);
 
         Mockito.doThrow(new UnexpectedException()).when(this.processor).processClosedOrder(Mockito.eq(order));
 
@@ -105,7 +112,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
-        this.closedOrderList.addItem(order);
+        this.checkingDeletionOrderList.addItem(order);
 
         Mockito.doThrow(new RuntimeException()).when(this.processor).processClosedOrder(Mockito.eq(order));
 

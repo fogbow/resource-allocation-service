@@ -204,8 +204,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.deleteOrder(FAKE_REQUESTER_ID, order.getId(), systemUser, order.getType());
 	}
 
-	// test case: When calling the deleteOrder method with an Order passed per
-	// parameter, it must return its OrderState to Closed.
+	// test case: When calling the deleteOrder method with an Order passed as
+	// parameter, it must return its OrderState as ASSIGNED_FOR_DELETION.
 	@Test
 	public void testRemoteDeleteOrderSuccessfully() throws Exception {
 		// set up
@@ -228,7 +228,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		// checking that the order has a state and is not null
 		Assert.assertNotNull(order.getOrderState());
-		OrderState expectedOrderState = OrderState.CLOSED;
+		OrderState expectedOrderState = OrderState.ASSIGNED_FOR_DELETION;
 
 		// exercise
 		this.facade.deleteOrder(localMemberId, order.getId(), systemUser, order.getType());

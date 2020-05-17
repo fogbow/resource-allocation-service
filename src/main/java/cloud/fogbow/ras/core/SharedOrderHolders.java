@@ -25,8 +25,8 @@ public class SharedOrderHolders {
     private SynchronizedDoublyLinkedList<Order> fulfilledOrders;
     private SynchronizedDoublyLinkedList<Order> unableToCheckStatus;
     private SynchronizedDoublyLinkedList<Order> pendingOrders;
-    private SynchronizedDoublyLinkedList<Order> deletingOrders;
-    private SynchronizedDoublyLinkedList<Order> closedOrders;
+    private SynchronizedDoublyLinkedList<Order> assignedForDeletionOrders;
+    private SynchronizedDoublyLinkedList<Order> checkingDeletionOrders;
 
     public SharedOrderHolders() {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
@@ -57,12 +57,12 @@ public class SharedOrderHolders {
             this.pendingOrders = databaseManager.readActiveOrders(OrderState.PENDING);
             addOrdersToMap(this.pendingOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.PENDING, this.activeOrdersMap.size()));
-            this.deletingOrders = databaseManager.readActiveOrders(OrderState.DELETING);
-            addOrdersToMap(this.deletingOrders, this.activeOrdersMap);
-            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.DELETING, this.activeOrdersMap.size()));
-            this.closedOrders = databaseManager.readActiveOrders(OrderState.CLOSED);
-            addOrdersToMap(this.closedOrders, this.activeOrdersMap);
-            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.CLOSED, this.activeOrdersMap.size()));
+            this.assignedForDeletionOrders = databaseManager.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION);
+            addOrdersToMap(this.assignedForDeletionOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.ASSIGNED_FOR_DELETION, this.activeOrdersMap.size()));
+            this.checkingDeletionOrders = databaseManager.readActiveOrders(OrderState.CHECKING_DELETION);
+            addOrdersToMap(this.checkingDeletionOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.CHECKING_DELETION, this.activeOrdersMap.size()));
         } catch (Exception e) {
             throw new FatalErrorException(e.getMessage(), e);
         }
@@ -122,12 +122,12 @@ public class SharedOrderHolders {
         return pendingOrders;
     }
 
-    public SynchronizedDoublyLinkedList<Order> getDeletingOrdersList() {
-        return deletingOrders;
+    public SynchronizedDoublyLinkedList<Order> getAssignedForDeletionOrdersList() {
+        return assignedForDeletionOrders;
     }
 
-    public SynchronizedDoublyLinkedList<Order> getClosedOrdersList() {
-        return closedOrders;
+    public SynchronizedDoublyLinkedList<Order> getCheckingDeletionOrdersList() {
+        return checkingDeletionOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getOrdersList(OrderState orderState) {
@@ -145,14 +145,8 @@ public class SharedOrderHolders {
             case PENDING:
                 list = SharedOrderHolders.getInstance().getPendingOrdersList();
                 break;
-            case DELETING:
-                list = SharedOrderHolders.getInstance().getDeletingOrdersList();
-                break;
             case FULFILLED:
                 list = SharedOrderHolders.getInstance().getFulfilledOrdersList();
-                break;
-            case CLOSED:
-                list = SharedOrderHolders.getInstance().getClosedOrdersList();
                 break;
             case FAILED_AFTER_SUCCESSFUL_REQUEST:
                 list = SharedOrderHolders.getInstance().getFailedAfterSuccessfulRequestOrdersList();
@@ -162,6 +156,12 @@ public class SharedOrderHolders {
                 break;
             case UNABLE_TO_CHECK_STATUS:
                 list = SharedOrderHolders.getInstance().getUnableToCheckStatusOrdersList();
+                break;
+            case ASSIGNED_FOR_DELETION:
+                list = SharedOrderHolders.getInstance().getAssignedForDeletionOrdersList();
+                break;
+            case CHECKING_DELETION:
+                list = SharedOrderHolders.getInstance().getCheckingDeletionOrdersList();
                 break;
             default:
                 break;

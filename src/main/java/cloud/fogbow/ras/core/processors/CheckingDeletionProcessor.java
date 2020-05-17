@@ -2,61 +2,57 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
-import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.OrderStateTransitioner;
+import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
+import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-/**
- * Process orders in DELETING state. It keeps checking if the instance is still present
- * in the cloud by calling getInstance(). When getInstance() raises an InstanceNotFound
- * exception, then the processor infers that the instance has already been deleted.
- */
-public class DeletingProcessor implements Runnable {
-    private static final Logger LOGGER = Logger.getLogger(DeletingProcessor.class);
+public class CheckingDeletionProcessor implements Runnable {
+    private static final Logger LOGGER = Logger.getLogger(CheckingDeletionProcessor.class);
 
-    private String localProviderId;
-    private ChainedList<Order> deletingOrdersList;
+    private ChainedList<Order> closedOrders;
     /**
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
     private Long sleepTime;
+    private OrderController orderController;
+    private String localProviderId;
 
-    public DeletingProcessor(String localProviderId, String sleepTimeStr) {
-        this.localProviderId = localProviderId;
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.deletingOrdersList = sharedOrderHolders.getDeletingOrdersList();
+    public CheckingDeletionProcessor(OrderController orderController, String localProviderId, String sleepTimeStr) {
+        SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
+        this.closedOrders = sharedOrdersHolder.getCheckingDeletionOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
+        this.orderController = orderController;
+        this.localProviderId = localProviderId;
     }
 
     /**
-     * Iterates over the fulfilled orders list and tries to process one order at a time. When the order
+     * Iterates over the closed orders list and tries to process one order at a time. When the order
      * is null, it indicates that the iteration ended. A new iteration is started after some time.
      */
     @Override
     public void run() {
         boolean isActive = true;
-
         while (isActive) {
             try {
-                Order order = this.deletingOrdersList.getNext();
-
+                Order order = this.closedOrders.getNext();
                 if (order != null) {
-                    processDeletingOrder(order);
+                    processClosedOrder(order);
                 } else {
-                    this.deletingOrdersList.resetPointer();
+                    this.closedOrders.resetPointer();
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
                 isActive = false;
                 LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (FogbowException e) {
+            } catch (UnexpectedException e) {
                 LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
                 LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
@@ -64,22 +60,11 @@ public class DeletingProcessor implements Runnable {
         }
     }
 
-    /**
-     * Checks whether an instance has completed its deletion. If performs a getInstance() call and an
-     * InstanceNotFound exception is thrown, then it transitions the order state to CLOSED.
-     *
-     * @param order {@link Order}
-     */
-    protected void processDeletingOrder(Order order) throws FogbowException {
-        OrderInstance instance = null;
-
-        // The order object synchronization is needed to prevent a race
-        // condition on order access.
+    protected void processClosedOrder(Order order) throws UnexpectedException {
         synchronized (order) {
-            // Check if the order is still in the DELETING state (it could have been changed by another thread)
-            LOGGER.info(String.format("Checking if instance has been deleted"));
+            // Check if the order is still in the CLOSED state (it could have been changed by another thread)
             OrderState orderState = order.getOrderState();
-            if (!orderState.equals(OrderState.DELETING)) {
+            if (!orderState.equals(OrderState.CHECKING_DELETION)) {
                 return;
             }
             // Only local orders need to be monitored. Remote orders are monitored by the remote provider
@@ -94,11 +79,18 @@ public class DeletingProcessor implements Runnable {
                 // we won't audit requests we make
                 localCloudConnector.switchOffAuditing();
 
-                instance = localCloudConnector.getInstance(order);
-                LOGGER.info(String.format("Got instance"));
+                localCloudConnector.getInstance(order);
             } catch (InstanceNotFoundException e) {
                 LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
-                OrderStateTransitioner.transition(order, OrderState.CLOSED);
+                // Remove any references that related dependencies of other orders with the order that has
+                // just been deleted. Only the provider that is receiving the delete request through its
+                // REST API needs to update order dependencies.
+                if (order.isRequesterLocal(this.localProviderId)) {
+                    this.orderController.updateOrderDependencies(order, Operation.DELETE);
+                }
+                this.orderController.deactivateOrder(order);
+            } catch (FogbowException e) {
+                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
             }
         }
     }

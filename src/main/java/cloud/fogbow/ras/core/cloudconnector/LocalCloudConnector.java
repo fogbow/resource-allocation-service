@@ -305,14 +305,12 @@ public class LocalCloudConnector implements CloudConnector {
         String instanceId = order.getInstanceId();
         if (instanceId != null) {
             return getResourceInstance(order, order.getType(), cloudUser);
-        } else if (order.getOrderState().equals(OrderState.DELETING)) {
+        } else if (order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION)) {
             // The instance has been deleted.
-            LOGGER.info("Instance deleted");
             throw new InstanceNotFoundException();
         } else {
             // When there is no instance and the instance was not deleted, an empty one is created
             // with the appropriate state.
-            LOGGER.info("Creating empty instance");
             return createEmptyInstance(order);
         }
     }
