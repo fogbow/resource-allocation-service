@@ -15,10 +15,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.log4j.Logger;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -94,7 +92,6 @@ public class Compute {
 
     @ApiOperation(value = ApiDocumentation.Compute.DELETE_OPERATION)
     @RequestMapping(value = "/{computeId}", method = RequestMethod.DELETE)
-    @Transactional(timeout = 120)
     public ResponseEntity<Boolean> deleteCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
