@@ -109,6 +109,7 @@ public class Messages {
         public static final String MAPPED_USER = "User mapped to: %s.";
         public static final String MAPPING_USER_OP = "Mapping user for operation %s on order/systemUser %s.";
         public static final String NO_REMOTE_COMMUNICATION_CONFIGURED = "No remote communication configured.";
+        public static final String NOTIFYING_REQUESTER_S_S = "Notifying requester: [%s]->[%s].";
         public static final String PACKET_SENDER_INITIALIZED = "XMPP packet sender initialized.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for provider %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";

@@ -37,6 +37,7 @@ public class OrderStateTransitioner {
             try {
                 if (signal) {
                     if (order.isRequesterRemote(localProviderId)) {
+                        LOGGER.info(String.format(Messages.Info.NOTIFYING_REQUESTER_S_S, order.getOrderState(), newState));
                         notifyRequester(order, newState);
                     }
                 }

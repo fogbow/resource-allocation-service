@@ -95,8 +95,9 @@ public class AssignedForDeletionProcessor implements Runnable {
                     localCloudConnector.deleteInstance(order);
                 }
                 // Signalling is only important for the business logic when it concerns the states
-                // CHECKING_DELETION and CLOSED. In this case, transitionOnSuccessfulSignalIfNeeded()
+                // CHECKING_DELETION and CLOSED. In this case, transitionOnlyOnSuccessfulSignalIfNeeded()
                 // must be called, when transitioning the state of an order.
+                LOGGER.info("Set state to CHECKING_DELETION and signal");
                 OrderStateTransitioner.transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(order, OrderState.CHECKING_DELETION);
             } catch (InstanceNotFoundException e) {
                 // If the provider crashes after calling deleteInstance() and before setting the order's state to
