@@ -51,12 +51,12 @@ public class AzureVirtualNetworkOperationSDK {
     }
 
     public void doCreateInstance(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
-                                 AzureUser azureUser, Runnable defineAsCreatedInstanceCallback)
+                                 AzureUser azureUser, Runnable doOnComplete)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         Observable<Indexable> virtualNetworkCreationObservable = buildVirtualNetworkCreationObservable(
-                azureCreateVirtualNetworkRef, azure, defineAsCreatedInstanceCallback);
+                azureCreateVirtualNetworkRef, azure, doOnComplete);
         subscribeVirtualNetworkCreation(virtualNetworkCreationObservable);
     }
 
@@ -67,7 +67,7 @@ public class AzureVirtualNetworkOperationSDK {
      */
     @VisibleForTesting
     Observable<Indexable> buildVirtualNetworkCreationObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
-                                                                Azure azure, Runnable defineAsCreatedInstanceCallback) {
+                                                                Azure azure, Runnable doOnComplete) {
         Observable<Indexable> securityGroupObservable = buildCreateSecurityGroupObservable(azureCreateVirtualNetworkRef, azure);
         return securityGroupObservable
                 .doOnNext(indexableSecurityGroup -> {
@@ -80,7 +80,7 @@ public class AzureVirtualNetworkOperationSDK {
                     return null;
                 })
                 .doOnCompleted(() -> {
-                    defineAsCreatedInstanceCallback.run();
+                    doOnComplete.run();
                     LOGGER.info(Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
                 });
     }

@@ -25,18 +25,19 @@ public class AzureVolumeOperationSDK {
         this.scheduler = Schedulers.from(executor);
     }
     
-    public void subscribeCreateDisk(Observable<Indexable> observable) {
-        setCreateDiskBehaviour(observable)
+    public void subscribeCreateDisk(Observable<Indexable> observable, Runnable doOnComplete) {
+        setCreateDiskBehaviour(observable, doOnComplete)
         .subscribeOn(this.scheduler)
         .subscribe();
     }
 
     @VisibleForTesting
-    Observable<Indexable> setCreateDiskBehaviour(Observable<Indexable> observable) {
+    Observable<Indexable> setCreateDiskBehaviour(Observable<Indexable> observable, Runnable doOnComplete) {
         return observable.onErrorReturn((error -> {
             LOGGER.error(Messages.Error.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR, error);
             return null;
         })).doOnCompleted(() -> {
+            doOnComplete.run();
             LOGGER.info(Messages.Info.END_CREATE_DISK_ASYNC_BEHAVIOUR);
         });
     }

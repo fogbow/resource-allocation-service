@@ -1,27 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.attachment;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.compute.Disk;
-import com.microsoft.azure.management.compute.VirtualMachine;
-import com.microsoft.azure.management.compute.VirtualMachineDataDisk;
-import com.microsoft.azure.management.compute.implementation.DiskInner;
-
 import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
@@ -38,7 +16,27 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVir
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.compute.Disk;
+import com.microsoft.azure.management.compute.VirtualMachine;
+import com.microsoft.azure.management.compute.VirtualMachineDataDisk;
+import com.microsoft.azure.management.compute.implementation.DiskInner;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import rx.Observable;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ 
@@ -54,7 +52,7 @@ public class AzureAttachmentPluginTest {
     private AzureAttachmentOperationSDK operation;
     private AzureAttachmentPlugin plugin;
     private AzureUser azureUser;
-    
+
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
@@ -146,6 +144,10 @@ public class AzureAttachmentPluginTest {
         Mockito.doReturn(instanceId).when(this.plugin).doRequestInstance(Mockito.eq(azure), Mockito.anyString(),
                 Mockito.anyString());
 
+        AttachmentInstance attachmentInstanceCreated = null;
+        Mockito.doReturn(attachmentInstanceCreated)
+                .when(this.plugin).getCreatingInstance(Mockito.eq(instanceId));
+
         // exercise
         this.plugin.requestInstance(attachmentOrder, this.azureUser);
 
@@ -166,12 +168,32 @@ public class AzureAttachmentPluginTest {
             .doRequestInstance(Mockito.eq(azure), Mockito.anyString(), Mockito.anyString());
     }
     
+    // test case: When calling the getInstance method with instance creating, it must verify that is
+    // call was successful.
+    @Test
+    public void testGetInstanceSuccessfullyWhenCreatingInstance() throws Exception {
+        // set up
+        AttachmentOrder attachmentOrder = mockAttachmentOrder();
+        String instanceId = attachmentOrder.getInstanceId();
+
+        AttachmentInstance attachmentInstanceCreating = Mockito.mock(AttachmentInstance.class);
+        Mockito.doReturn(attachmentInstanceCreating)
+                .when(this.plugin).getCreatingInstance(Mockito.eq(instanceId));
+
+        // exercise
+        AttachmentInstance creatingInstance = this.plugin.getInstance(attachmentOrder, this.azureUser);
+
+        // verify
+        Assert.assertEquals(attachmentInstanceCreating, creatingInstance);
+    }
+
     // test case: When calling the getInstance method, it must verify that is
     // call was successful.
     @Test
     public void testGetInstanceSuccessfully() throws Exception {
         // set up
         AttachmentOrder attachmentOrder = mockAttachmentOrder();
+        String instanceId = attachmentOrder.getInstanceId();
 
         Azure azure = PowerMockito.mock(Azure.class);
         PowerMockito.mockStatic(AzureClientCacheManager.class);
@@ -179,6 +201,10 @@ public class AzureAttachmentPluginTest {
 
         AttachmentInstance attachmentInstance = Mockito.mock(AttachmentInstance.class);
         Mockito.doReturn(attachmentInstance).when(this.plugin).doGetInstance(Mockito.eq(azure), Mockito.anyString());
+
+        AttachmentInstance attachmentInstanceCreated = null;
+        Mockito.doReturn(attachmentInstanceCreated).when(this.plugin)
+                .getCreatingInstance(Mockito.eq(instanceId));
 
         // exercise
         this.plugin.getInstance(attachmentOrder, this.azureUser);
@@ -429,9 +455,12 @@ public class AzureAttachmentPluginTest {
         PowerMockito.doReturn(observable).when(AzureAttachmentSDK.class, "attachDisk", Mockito.eq(virtualMachine),
                 Mockito.eq(disk));
 
-        Mockito.doNothing().when(this.operation).subscribeAttachDiskFrom(Mockito.eq(observable));
-
         String instanceId = "instance-id";
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+        Mockito.doReturn(doOnComplete).when(this.plugin).startInstanceCreation(Mockito.eq(instanceId));
+
+        Mockito.doNothing().when(this.operation).subscribeAttachDiskFrom(Mockito.eq(observable), Mockito.eq(doOnComplete));
+
         PowerMockito.mockStatic(AzureGeneralUtil.class);
         PowerMockito.doReturn(instanceId).when(AzureGeneralUtil.class, "defineInstanceId", Mockito.anyString());
 
@@ -448,7 +477,7 @@ public class AzureAttachmentPluginTest {
         AzureAttachmentSDK.attachDisk(Mockito.eq(virtualMachine), Mockito.eq(disk));
 
         Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
-                .subscribeAttachDiskFrom(Mockito.eq(observable));
+                .subscribeAttachDiskFrom(Mockito.eq(observable), Mockito.eq(doOnComplete));
 
         PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureGeneralUtil.defineInstanceId(Mockito.eq(resourceName));
