@@ -97,7 +97,6 @@ public class AssignedForDeletionProcessor implements Runnable {
                 // Signalling is only important for the business logic when it concerns the states
                 // CHECKING_DELETION and CLOSED. In this case, transitionOnlyOnSuccessfulSignalIfNeeded()
                 // must be called, when transitioning the state of an order.
-                LOGGER.info("Set state to CHECKING_DELETION and signal");
                 OrderStateTransitioner.transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(order, OrderState.CHECKING_DELETION);
             } catch (InstanceNotFoundException e) {
                 // If the provider crashes after calling deleteInstance() and before setting the order's state to
@@ -106,7 +105,6 @@ public class AssignedForDeletionProcessor implements Runnable {
                 // problem, because calling deleteInstance() multiple times has no undesired collateral effect. The
                 // order needs simply to be advanced to the CHECKING_DELETION state, to later be closed by the
                 // CheckingDeletion processor.
-                LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND+" "+String.format(Messages.Info.DELETING_INSTANCE_S, order.getId()));
                 OrderStateTransitioner.transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(order, OrderState.CHECKING_DELETION);
             } catch (FogbowException e) {
                 LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, order.getId()), e);

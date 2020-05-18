@@ -179,7 +179,7 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
         public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
         public static final String ERROR_WHILE_DETACHING_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
-        public static final String ERROR_WHILE_GETTING_DISK_SIZE = "Error while getting disk size.";
+        public static final String ERROR_WHILE_GETTING_DISK_SIZE = "Error while getting VM disk size.";
         public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
         public static final String ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD = "Error while getting %s from the cloud.";
