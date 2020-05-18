@@ -51,7 +51,7 @@ public class RemoteCloudConnector implements CloudConnector {
             // This may happen if a previous delete was partially completed (successfully completed at the
             // remote provider, but with a failure in the communication when retuning the status to the local
             // provider.
-            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED, order.getId()));
+            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED, order.toString())+" "+Thread.currentThread().getName());
             return;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
