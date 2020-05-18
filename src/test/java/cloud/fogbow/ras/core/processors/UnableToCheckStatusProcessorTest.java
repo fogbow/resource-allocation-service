@@ -9,7 +9,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -42,7 +41,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
                 TestUtils.DEFAULT_CLOUD_NAME);
 
         this.processor = Mockito.spy(new UnableToCheckStatusProcessor(TestUtils.LOCAL_MEMBER_ID,
-                ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME));
+                ConfigurationPropertyDefaults.UNABLE_TO_CHECK_ORDERS_SLEEP_TIME));
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
@@ -72,7 +71,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
         this.processor = Mockito.spy(new UnableToCheckStatusProcessor(TestUtils.FAKE_REMOTE_MEMBER_ID,
-                ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME));
+                ConfigurationPropertyDefaults.UNABLE_TO_CHECK_ORDERS_SLEEP_TIME));
 
         // exercise
         this.thread = new Thread(this.processor);
@@ -282,7 +281,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         this.unableToCheckStatus.addItem(order);
 
         this.processor = Mockito.spy(new UnableToCheckStatusProcessor(TestUtils.FAKE_REMOTE_MEMBER_ID,
-                ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME));
+                ConfigurationPropertyDefaults.UNABLE_TO_CHECK_ORDERS_SLEEP_TIME));
 
         // exercise
         this.processor.processUnableToCheckStatusOrder(order);
