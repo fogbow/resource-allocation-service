@@ -54,7 +54,7 @@ public class RemoteCloudConnector implements CloudConnector {
             LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED, order.getId()));
             return;
         } catch (Exception e) {
-            LOGGER.error(Thread.currentThread().getName()+":["+order.toString()+"]"+e.toString(), e);
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }

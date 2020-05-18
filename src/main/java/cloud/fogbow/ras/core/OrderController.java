@@ -150,6 +150,7 @@ public class OrderController {
                 LOGGER.debug("LocalRequester: transition" + this.localProviderId);
                 OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
             }
+            LOGGER.debug("Provider exiting deleteOrder(): " + this.localProviderId);
         }
     }
 
