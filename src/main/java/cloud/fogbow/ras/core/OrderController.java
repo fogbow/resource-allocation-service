@@ -135,16 +135,19 @@ public class OrderController {
             }
             // The code below is more verbose than needed, but this makes it simpler to understand.
             if (order.isProviderLocal(this.localProviderId)) {
+                LOGGER.debug("RemoteProvider: transition "+ this.localProviderId);
                 OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
             } else {
                 // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
                 RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
                         CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
+                LOGGER.debug("LocalRequester: delete " + this.localProviderId);
                 remoteCloudConnector.deleteInstance(order);
                 // Since deleteInstance() is a synchronous call (RPC), the remote provider cannot notify the state
                 // change (the execution of RPC to do so at the remote provider would raise an UnavailableProviderException
                 // due to the ongoing RPC of the deleteInstance() call). Also, if an error occur in the above call, an
                 // exception will be raised and the order will remain in whatever state it is.
+                LOGGER.debug("LocalRequester: transition" + this.localProviderId);
                 OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
             }
         }
