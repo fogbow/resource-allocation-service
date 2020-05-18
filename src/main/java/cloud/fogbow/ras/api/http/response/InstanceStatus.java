@@ -81,6 +81,8 @@ public class InstanceStatus {
             case ASSIGNED_FOR_DELETION:
             case CHECKING_DELETION:
                 return InstanceState.DELETING;
+            case CLOSED:
+                return InstanceState.DELETED;
             default:
                 throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
         }
