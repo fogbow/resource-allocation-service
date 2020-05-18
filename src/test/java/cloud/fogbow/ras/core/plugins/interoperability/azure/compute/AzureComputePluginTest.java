@@ -1,5 +1,21 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -24,18 +40,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMappe
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 
 import com.microsoft.azure.management.compute.VirtualMachineSize;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.io.File;
-import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AzureImageOperationUtil.class, AzureGeneralPolicy.class, AzureGeneralUtil.class })
@@ -259,6 +263,45 @@ public class AzureComputePluginTest {
                 .createLaunchCommand(Mockito.eq(computeOrder));
     }
 
+    // test case: When calling the doCreateInstance method,
+    // it must verify if It don't throw an exception.
+    @Test
+    public void testDoCreateInstanceSuccessfully() {
+        // set up
+        AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+
+        try {
+            // exercise
+            this.azureComputePlugin.doCreateInstance(this.azureUser, azureCreateVirtualMachineRef, doOnComplete);
+        } catch (Exception e) {
+            // verify
+            Assert.fail();
+        }
+    }
+
+    // test case: When calling the doCreateInstance method and throws an exception,
+    // it must verify if It rethrow the exception and perform the doOnComplete.
+    @Test
+    public void testDoCreateInstanceFail() throws FogbowException {
+        // set up
+        AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
+
+        Mockito.doThrow(new FogbowException()).when(this.azureVirtualMachineOperation)
+                .doCreateInstance(Mockito.eq(azureCreateVirtualMachineRef), Mockito.eq(doOnComplete),
+                Mockito.eq(this.azureUser));
+
+        try {
+            // exercise
+            this.azureComputePlugin.doCreateInstance(this.azureUser, azureCreateVirtualMachineRef, doOnComplete);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
+        }
+    }
+
     // test case: When calling the getVirtualMachineSizeName method,
     // it must verify if it calls the method with right parameters.
     @Test
@@ -287,8 +330,9 @@ public class AzureComputePluginTest {
     public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
         String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        Mockito.when(computeOrder.getInstanceId()).thenReturn(resourceName);
+        Mockito.when(computeOrder.getInstanceId()).thenReturn(instanceId);
 
         AzureGetVirtualMachineRef virtualMachineRef = Mockito.mock(AzureGetVirtualMachineRef.class);
         Mockito.when(this.azureVirtualMachineOperation.doGetInstance(Mockito.eq(this.azureUser),
@@ -298,11 +342,36 @@ public class AzureComputePluginTest {
         Mockito.doReturn(computeInstanceExpected).when(this.azureComputePlugin)
                 .buildComputeInstance(Mockito.eq(virtualMachineRef));
 
+        ComputeInstance computeInstanceCreated = null;
+        Mockito.doReturn(computeInstanceCreated).when(this.azureComputePlugin)
+                .getCreatingInstance(Mockito.eq(instanceId));
+
         // exercise
         ComputeInstance computeInstance = this.azureComputePlugin.getInstance(computeOrder, this.azureUser);
 
         // verify
         Assert.assertEquals(computeInstanceExpected, computeInstance);
+    }
+
+    // test case: When calling the getInstance method with instance creating, it must verify if It returns
+    // the right computeInstance.
+    @Test
+    public void testGetInstanceSuccessfullyWhenCreatingInstance() throws FogbowException {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getInstanceId()).thenReturn(instanceId);
+
+        ComputeInstance computeInstanceCreating = Mockito.mock(ComputeInstance.class);
+        Mockito.doReturn(computeInstanceCreating).when(this.azureComputePlugin)
+                .getCreatingInstance(Mockito.eq(instanceId));
+
+        // exercise
+        ComputeInstance computeInstance = this.azureComputePlugin.getInstance(computeOrder, this.azureUser);
+
+        // verify
+        Assert.assertEquals(computeInstanceCreating, computeInstance);
     }
 
     // test case: When calling the buildComputeInstance method,

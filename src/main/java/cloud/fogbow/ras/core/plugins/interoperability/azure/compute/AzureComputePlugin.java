@@ -1,14 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.microsoft.azure.management.compute.VirtualMachineSize;
 
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -22,6 +20,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
@@ -32,7 +31,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOpera
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 
-public class AzureComputePlugin implements ComputePlugin<AzureUser> {
+import com.google.common.annotations.VisibleForTesting;
+import com.microsoft.azure.management.compute.VirtualMachineSize;
+
+public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<ComputeInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureComputePlugin.class);
     private static final int INSTANCES_LAUNCH_NUMBER = 1;
@@ -86,7 +88,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
         int diskSize = AzureGeneralPolicy.getDisk(computeOrder);
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
 
-        AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
+        AzureCreateVirtualMachineRef virtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .regionName(regionName)
                 .resourceName(resourceName)
                 .virtualNetworkName(virtualNetworkName)
@@ -100,7 +102,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
                 .tags(tags)
                 .checkAndBuild();
 
-        return doRequestInstance(computeOrder, azureUser, azureCreateVirtualMachineRef, virtualMachineSize);
+        return doRequestInstance(computeOrder, azureUser, virtualMachineRef, virtualMachineSize);
     }
 
     @VisibleForTesting
@@ -109,20 +111,34 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    String doRequestInstance(
-            ComputeOrder computeOrder, 
-            AzureUser azureUser,
-            AzureCreateVirtualMachineRef azureCreateVirtualMachineRef, 
-            VirtualMachineSize virtualMachineSize) throws FogbowException {
+    String doRequestInstance(ComputeOrder computeOrder, AzureUser azureUser, 
+            AzureCreateVirtualMachineRef virtualMachineRef, VirtualMachineSize virtualMachineSize)
+            throws FogbowException {
 
-        this.azureVirtualMachineOperation.doCreateInstance(azureCreateVirtualMachineRef, azureUser);
+        String instanceId = getInstanceId(virtualMachineRef);
+        Runnable finishCreationCallback = this.startInstanceCreation(instanceId);
+        doCreateInstance(azureUser, virtualMachineRef, finishCreationCallback);
         updateInstanceAllocation(computeOrder, virtualMachineSize);
-        return getInstanceId(azureCreateVirtualMachineRef);
+        return instanceId;
+    }
+
+    @VisibleForTesting
+    void doCreateInstance(AzureUser azureUser, AzureCreateVirtualMachineRef virtualMachineRef,
+            Runnable finishCreationCallback) throws FogbowException {
+        
+        try {
+            this.azureVirtualMachineOperation
+                    .doCreateInstance(virtualMachineRef, finishCreationCallback, azureUser);
+            
+        } catch (Exception e) {
+            finishCreationCallback.run();
+            throw e;
+        }
     }
 
     @VisibleForTesting
     String getInstanceId(AzureCreateVirtualMachineRef azureCreateVirtualMachineRef) {
-        return azureCreateVirtualMachineRef.getResourceName();
+        return AzureGeneralUtil.defineInstanceId(azureCreateVirtualMachineRef.getResourceName());
     }
     
     @VisibleForTesting
@@ -152,11 +168,15 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     }
 
     @Override
-    public ComputeInstance getInstance(ComputeOrder computeOrder, AzureUser azureUser)
-            throws FogbowException {
-
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
+    public ComputeInstance getInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
         String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, instanceId));
+
+        ComputeInstance creatingInstance = getCreatingInstance(instanceId);
+        if (creatingInstance != null) {
+            return creatingInstance;
+        }
+        
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = this.azureVirtualMachineOperation
                 .doGetInstance(azureUser, resourceName);
@@ -207,6 +227,12 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser> {
     @VisibleForTesting
     void setLaunchCommandGenerator(DefaultLaunchCommandGenerator launchCommandGenerator) {
         this.launchCommandGenerator = launchCommandGenerator;
+    }
+
+    @Override
+    public ComputeInstance buildCreatingInstance(String instanceId) {
+        return new ComputeInstance(instanceId, InstanceState.CREATING.getValue()
+                , AzureGeneralUtil.NO_INFORMATION, new ArrayList<>());
     }
 
 }

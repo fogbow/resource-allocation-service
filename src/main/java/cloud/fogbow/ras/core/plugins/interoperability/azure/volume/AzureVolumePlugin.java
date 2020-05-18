@@ -1,18 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.volume;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
-
-import org.apache.log4j.Logger;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.compute.Disk;
-import com.microsoft.azure.management.compute.implementation.DiskInner;
-import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
-import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
-
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -25,16 +12,28 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
+import com.google.common.annotations.VisibleForTesting;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.compute.Disk;
+import com.microsoft.azure.management.compute.implementation.DiskInner;
+import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
+import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+import org.apache.log4j.Logger;
 import rx.Completable;
 import rx.Observable;
 
-public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
+import java.util.Collections;
+import java.util.Map;
+import java.util.Properties;
+
+public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<VolumeInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVolumePlugin.class);
     
@@ -80,9 +79,16 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
 
     @Override
     public VolumeInstance getInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
+        String instanceId = volumeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, instanceId));
+
+        VolumeInstance creatingInstance = getCreatingInstance(instanceId);
+        if (creatingInstance != null) {
+            return creatingInstance;
+        }
+
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         String subscriptionId = azureUser.getSubscriptionId();
         String resourceId = buildResourceId(subscriptionId, resourceName);
         
@@ -138,9 +144,11 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
     @VisibleForTesting
     String doRequestInstance(VolumeOrder volumeOrder, Creatable<Disk> diskCreatable) {
         Observable<Indexable> observable = AzureVolumeSDK.buildCreateDiskObservable(diskCreatable);
-        this.operation.subscribeCreateDisk(observable);
+        String instanceId = AzureGeneralUtil.defineInstanceId(diskCreatable.name());
+        Runnable finishCreationCallback = startInstanceCreation(instanceId);
+        this.operation.subscribeCreateDisk(observable, finishCreationCallback);
         updateInstanceAllocation(volumeOrder);
-        return AzureGeneralUtil.defineInstanceId(diskCreatable.name());
+        return instanceId;
     }
 
     @VisibleForTesting
@@ -157,4 +165,8 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>{
         this.operation = operation;
     }
 
+    @Override
+    public VolumeInstance buildCreatingInstance(String instanceId) {
+        return new VolumeInstance(instanceId, InstanceState.CREATING.getValue(), AzureGeneralUtil.NO_INFORMATION, 0);
+    }
 }

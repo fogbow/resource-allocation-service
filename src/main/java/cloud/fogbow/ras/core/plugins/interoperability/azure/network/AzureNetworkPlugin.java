@@ -11,12 +11,12 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.CreatingInstanceManager;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -24,10 +24,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
+public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<NetworkInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(AzureNetworkPlugin.class);
-    private final CreatingInstanceManager creatingInstanceManager;
 
     private AzureVirtualNetworkOperationSDK azureVirtualNetworkOperationSDK;
 
@@ -36,7 +35,6 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         String defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         String defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
         this.azureVirtualNetworkOperationSDK = new AzureVirtualNetworkOperationSDK(defaultRegionName, defaultResourceGroupName);
-        this.creatingInstanceManager = CreatingInstanceManager.getSingleton();
     }
 
     @Override
@@ -60,34 +58,37 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
 
         String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
-        Runnable defineAsCreatedInstanceCallback = createDefineCreatedInstanceCallback(instanceId);
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .resourceName(resourceName)
                 .cidr(cidr)
                 .tags(tags)
                 .checkAndBuild();
 
-        this.creatingInstanceManager.defineAsCreating(instanceId);
-        this.azureVirtualNetworkOperationSDK
-                .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, defineAsCreatedInstanceCallback);
+        Runnable finishAsyncCreationCallback = startInstanceCreation(instanceId);
+        doCreateInstance(azureUser, azureCreateVirtualNetworkRef, finishAsyncCreationCallback);
 
         return instanceId;
     }
 
     @VisibleForTesting
-    Runnable createDefineCreatedInstanceCallback(String instanceId) {
-        return () -> {
-            creatingInstanceManager.defineAsCreated(instanceId);
-        };
+    void doCreateInstance(AzureUser azureUser, AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, Runnable finishAsyncCreationCallback) throws FogbowException {
+        try {
+            this.azureVirtualNetworkOperationSDK
+                    .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, finishAsyncCreationCallback);
+        } catch (Exception e) {
+            finishAsyncCreationCallback.run();
+            throw e;
+        }
     }
 
     @Override
     public NetworkInstance getInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
-
         String instanceId = networkOrder.getInstanceId();
-        if (this.creatingInstanceManager.isCreating(instanceId)) {
-            return new NetworkInstance(instanceId, InstanceState.CREATING.getValue());
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, instanceId));
+
+        NetworkInstance creatingInstance = this.getCreatingInstance(instanceId);
+        if (creatingInstance != null) {
+            return creatingInstance;
         }
 
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
@@ -129,4 +130,8 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser> {
         this.azureVirtualNetworkOperationSDK = azureVirtualNetworkOperationSDK;
     }
 
+    @Override
+    public NetworkInstance buildCreatingInstance(String instanceId) {
+        return new NetworkInstance(instanceId, InstanceState.CREATING.getValue());
+    }
 }

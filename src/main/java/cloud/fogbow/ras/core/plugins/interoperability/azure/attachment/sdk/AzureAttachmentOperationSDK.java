@@ -1,17 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk;
 
-import java.util.concurrent.ExecutorService;
-
-import org.apache.log4j.Logger;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.microsoft.azure.management.compute.VirtualMachine;
-
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
+import com.google.common.annotations.VisibleForTesting;
+import com.microsoft.azure.management.compute.VirtualMachine;
+import org.apache.log4j.Logger;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
+
+import java.util.concurrent.ExecutorService;
 
 public class AzureAttachmentOperationSDK {
 
@@ -24,18 +22,19 @@ public class AzureAttachmentOperationSDK {
         this.scheduler = Schedulers.from(executor);
     }
     
-    public void subscribeAttachDiskFrom(Observable<VirtualMachine> observable) {
-        setAttachDiskBehaviour(observable)
+    public void subscribeAttachDiskFrom(Observable<VirtualMachine> observable, Runnable doOnComplete) {
+        setAttachDiskBehaviour(observable, doOnComplete)
         .subscribeOn(this.scheduler)
         .subscribe();
     }
 
     @VisibleForTesting
-    Observable<VirtualMachine> setAttachDiskBehaviour(Observable<VirtualMachine> observable) {
+    Observable<VirtualMachine> setAttachDiskBehaviour(Observable<VirtualMachine> observable, Runnable doOnComplete) {
         return observable.onErrorReturn((error -> {
             LOGGER.error(Messages.Error.ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR, error);
             return null;
         })).doOnCompleted(() -> {
+            doOnComplete.run();
             LOGGER.info(Messages.Info.END_ATTACH_DISK_ASYNC_BEHAVIOUR);
         });
     }
