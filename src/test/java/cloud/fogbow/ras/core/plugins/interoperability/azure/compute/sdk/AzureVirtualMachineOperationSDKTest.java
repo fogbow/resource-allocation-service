@@ -1,7 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
 import cloud.fogbow.common.constants.AzureConstants;
-import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
@@ -43,11 +46,7 @@ import rx.Completable;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -324,13 +323,15 @@ public class AzureVirtualMachineOperationSDKTest {
     public void testSubscribeCreateVirtualMachineSuccessfully() {
         // set up
         Observable<Indexable> virtualMachineObservable = createSimpleObservableSuccess();
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.subscribeCreateVirtualMachine(virtualMachineObservable);
+        this.azureVirtualMachineOperationSDK.subscribeCreateVirtualMachine(virtualMachineObservable, doOnComplete);
 
         // verify
         this.loggerAssert
                 .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VM_ASYNC_BEHAVIOUR);
+        Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
     }
 
     // test case: When calling the subscribeCreateVirtualMachine method and the observable executes
@@ -339,13 +340,15 @@ public class AzureVirtualMachineOperationSDKTest {
     public void testSubscribeCreateVirtualMachineFail() {
         // set up
         Observable<Indexable> virtualMachineObservable = createSimpleObservableFail();
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.subscribeCreateVirtualMachine(virtualMachineObservable);
+        this.azureVirtualMachineOperationSDK.subscribeCreateVirtualMachine(virtualMachineObservable, doOnComplete);
 
         // verify
         this.loggerAssert
                 .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_VM_ASYNC_BEHAVIOUR);
+        Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
     }
 
     // test case: When calling the doCreateInstance method, it must verify if It finishes without error.
@@ -362,14 +365,17 @@ public class AzureVirtualMachineOperationSDKTest {
                 Mockito.eq(azureCreateVirtualMachineRef), Mockito.eq(this.azure));
 
         Mockito.doNothing().when(this.azureVirtualMachineOperationSDK)
-                .subscribeCreateVirtualMachine(Mockito.any());
+                .subscribeCreateVirtualMachine(Mockito.any(), Mockito.any());
+
+        Runnable doOnComplete = Mockito.mock(Runnable.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.doCreateInstance(azureCreateVirtualMachineRef, this.azureCloudUser);
+        this.azureVirtualMachineOperationSDK.doCreateInstance(azureCreateVirtualMachineRef,
+                this.azureCloudUser, doOnComplete);
 
         // verify
-        Mockito.verify(this.azureVirtualMachineOperationSDK, Mockito.times(1))
-                .subscribeCreateVirtualMachine(Mockito.eq(observableMocked));
+        Mockito.verify(this.azureVirtualMachineOperationSDK, Mockito.times(TestUtils.RUN_ONCE))
+                .subscribeCreateVirtualMachine(Mockito.eq(observableMocked), Mockito.eq(doOnComplete));
     }
 
     // test case: When calling the buildAzureVirtualMachineObservable method and an
