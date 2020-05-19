@@ -43,26 +43,30 @@ public class CheckingDeletionProcessor implements Runnable {
         boolean isActive = true;
         while (isActive) {
             try {
-                checkDelection();
+                checkDeletion();
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (UnexpectedException e) {
-                LOGGER.error(e.getMessage(), e);
-            } catch (Throwable e) {
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
             }
         }
     }
 
     @VisibleForTesting
-    void checkDelection() throws UnexpectedException, InterruptedException {
-        Order order = this.checkingDeletionOrders.getNext();
-        if (order != null) {
-            processCheckingDeletionOrder(order);
-        } else {
-            this.checkingDeletionOrders.resetPointer();
-            Thread.sleep(this.sleepTime);
+    void checkDeletion() throws InterruptedException {
+        try {
+            Order order = this.checkingDeletionOrders.getNext();
+            if (order != null) {
+                processCheckingDeletionOrder(order);
+            } else {
+                this.checkingDeletionOrders.resetPointer();
+                Thread.sleep(this.sleepTime);
+            }
+        } catch (InterruptedException e) {
+            LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
+            throw e;
+        } catch (UnexpectedException e) {
+            LOGGER.error(e.getMessage(), e);
+        } catch (Throwable e) {
+            LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
         }
     }
 
