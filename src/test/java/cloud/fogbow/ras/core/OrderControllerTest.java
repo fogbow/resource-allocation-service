@@ -1,40 +1,29 @@
 package cloud.fogbow.ras.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.linkedlists.ChainedList;
+import cloud.fogbow.ras.api.http.response.*;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.Operation;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
-import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.InstanceStatus;
-import cloud.fogbow.ras.api.http.response.OrderInstance;
-import cloud.fogbow.ras.api.http.response.PublicIpInstance;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
-import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class })
 public class OrderControllerTest extends BaseUnitTests {
@@ -264,7 +253,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Creates an order with dependencies and attempts to delete
     // them in correct order must not throw any exceptions.
     @Test
-    public void testDeleteOrderWithDependencies() throws FogbowException, InterruptedException {
+    public void testDeleteOrderWithDependencies() throws FogbowException {
         // set up
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
         VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
@@ -281,22 +270,28 @@ public class OrderControllerTest extends BaseUnitTests {
         
         Assert.assertNull(this.checkingDeletionOrdersList.getNext());
 
-        // exercise
+        // exercise part 1
         this.ordersController.deleteOrder(attachmentOrder);
+
+        // Verify part 1
+        AttachmentOrder testAttachmentOrder = (AttachmentOrder) this.assignedForDeletionOrdersList.getNext();
+        Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, testAttachmentOrder.getOrderState());
+
+        // Simulating processors; Delete the attachment and remove the dependencies.
+        this.ordersController.updateOrderDependencies(attachmentOrder, Operation.DELETE);
+
+        // exercise part 2
         this.ordersController.deleteOrder(volumeOrder);
         this.ordersController.deleteOrder(computeOrder);
         
-        // verify
+        // verify part 2
         Assert.assertNull(this.openOrdersList.getNext());
+
+        VolumeOrder testVolumeOrder = (VolumeOrder) this.assignedForDeletionOrdersList.getNext();
+        Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, testVolumeOrder.getOrderState());
         
-        AttachmentOrder testAttachmentOrder = (AttachmentOrder) this.checkingDeletionOrdersList.getNext();
-        Assert.assertEquals(OrderState.CHECKING_DELETION, testAttachmentOrder.getOrderState());
-        
-        VolumeOrder testVolumeOrder = (VolumeOrder) this.checkingDeletionOrdersList.getNext();
-        Assert.assertEquals(OrderState.CHECKING_DELETION, testVolumeOrder.getOrderState());
-        
-        ComputeOrder testComputeOrder = (ComputeOrder) this.checkingDeletionOrdersList.getNext();
-        Assert.assertEquals(OrderState.CHECKING_DELETION, testComputeOrder.getOrderState());
+        ComputeOrder testComputeOrder = (ComputeOrder) this.assignedForDeletionOrdersList.getNext();
+        Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, testComputeOrder.getOrderState());
     }
 
     // test case: When invoking the deleteOrder method, it must change the order state to ASSIGNED_FOR_DELETION.
