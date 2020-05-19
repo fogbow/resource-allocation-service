@@ -12,6 +12,7 @@ import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 public class CheckingDeletionProcessor implements Runnable {
@@ -42,13 +43,7 @@ public class CheckingDeletionProcessor implements Runnable {
         boolean isActive = true;
         while (isActive) {
             try {
-                Order order = this.checkingDeletionOrders.getNext();
-                if (order != null) {
-                    processCheckingDeletionOrder(order);
-                } else {
-                    this.checkingDeletionOrders.resetPointer();
-                    Thread.sleep(this.sleepTime);
-                }
+                checkDelection();
             } catch (InterruptedException e) {
                 isActive = false;
                 LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
@@ -57,6 +52,17 @@ public class CheckingDeletionProcessor implements Runnable {
             } catch (Throwable e) {
                 LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
             }
+        }
+    }
+
+    @VisibleForTesting
+    void checkDelection() throws UnexpectedException, InterruptedException {
+        Order order = this.checkingDeletionOrders.getNext();
+        if (order != null) {
+            processCheckingDeletionOrder(order);
+        } else {
+            this.checkingDeletionOrders.resetPointer();
+            Thread.sleep(this.sleepTime);
         }
     }
 
