@@ -114,15 +114,15 @@ public class OrderController {
     }
 
     public void deleteOrder(Order order) throws FogbowException {
-        if (order == null)
+        if (order == null) {
             throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+        }
 
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (orderState.equals(OrderState.CHECKING_DELETION) ||
                     order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION)) {
-                String message = String.format(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING, order.getId());
-                throw new OnGoingOperationException(message);
+                throw new OnGoingOperationException(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
             }
             if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
                     throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED,

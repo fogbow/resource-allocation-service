@@ -17,7 +17,9 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.*;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
@@ -45,6 +47,9 @@ public class OrderControllerTest extends BaseUnitTests {
     private ChainedList<Order> checkingDeletionOrdersList;
     private ChainedList<Order> assignedForDeletionOrdersList;
 
+    @Rule
+    private ExpectedException expectedException = ExpectedException.none();
+
     @Before
     public void setUp() throws UnexpectedException {
         // mocking database to return empty instances of SynchronizedDoublyLinkedList.
@@ -58,23 +63,11 @@ public class OrderControllerTest extends BaseUnitTests {
         this.spawningOrdersList = sharedOrderHolders.getSpawningOrdersList();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
         this.failedAfterSuccessfulRequestOrdersList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
+        this.failedOnRequestOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
         this.checkingDeletionOrdersList = sharedOrderHolders.getCheckingDeletionOrdersList();
         this.assignedForDeletionOrdersList = sharedOrderHolders.getAssignedForDeletionOrdersList();
         this.ordersController = Mockito.spy(new OrderController());
         this.localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
-    }
-
-    // test case: when try to delete an order in state checking_deletion, it must raise an OnGoingOperationException.
-    @Test(expected = OnGoingOperationException.class) // verify
-    public void testDeleteCheckingDeletionOrderThrowsInstanceNotFoundException()
-            throws Exception {
-
-        // set up
-        String orderId = setupOrder(OrderState.CHECKING_DELETION);
-        ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
-
-        // exercise
-        this.ordersController.deleteOrder(computeOrder);
     }
 
     // test case: Checks if the getInstancesStatusmethod returns exactly the same
@@ -781,6 +774,32 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, order.getOrderState());
     }
 
+    // test case: Checks if deleting a failed_on_request order,
+    // this one will be moved to the assignedForDeletion orders list.
+    @Test
+    public void testDeleteOrderStateFailedOnRequest()
+            throws Exception {
+        // set up
+        String orderId = setupOrder(OrderState.FAILED_ON_REQUEST);
+        ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        // verify
+        Assert.assertNotNull(this.failedOnRequestOrdersList.getNext());
+        Assert.assertNull(this.assignedForDeletionOrdersList.getNext());
+
+        // exercise
+        this.ordersController.deleteOrder(computeOrder);
+
+        // verify
+        Order order = this.assignedForDeletionOrdersList.getNext();
+        this.failedOnRequestOrdersList.resetPointer();
+
+        Assert.assertNull(this.failedOnRequestOrdersList.getNext());
+        Assert.assertNotNull(order);
+        Assert.assertEquals(computeOrder, order);
+        Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, order.getOrderState());
+    }
+
     // test case: Checks if deleting a fulfilled order, this one will be moved to the assignedForDeletion orders
     // list.
     @Test
@@ -854,6 +873,60 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNotNull(order);
         Assert.assertEquals(computeOrder, order);
         Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, order.getOrderState());
+    }
+
+    // test case: when try to delete an order in state checking_deletion,
+    // it must raise an OnGoingOperationException.
+    @Test
+    public void testDeleteOrderStateCheckingDeletion()
+            throws Exception {
+
+        // set up
+        String orderId = setupOrder(OrderState.CHECKING_DELETION);
+        ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        // verify
+        this.expectedException.expect(OnGoingOperationException.class);
+        this.expectedException.expectMessage(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
+
+        // exercise
+        this.ordersController.deleteOrder(computeOrder);
+    }
+
+    // test case: when try to delete an order in state assigned_for_delection,
+    // it must raise an OnGoingOperationException.
+    @Test
+    public void testDeleteOrderStateAssignedForDeletion()
+            throws Exception {
+
+        // set up
+        String orderId = setupOrder(OrderState.ASSIGNED_FOR_DELETION);
+        ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        // verify
+        this.expectedException.expect(OnGoingOperationException.class);
+        this.expectedException.expectMessage(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
+
+        // exercise
+        this.ordersController.deleteOrder(computeOrder);
+    }
+
+    // test case: when try to delete an order in state selected,
+    // it must raise an OnGoingOperationException.
+    @Test
+    public void testDeleteOrderStateSelected()
+            throws Exception {
+
+        // set up
+        String orderId = setupOrder(OrderState.SELECTED);
+        ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        // verify
+        this.expectedException.expect(OnGoingOperationException.class);
+        this.expectedException.expectMessage(cloud.fogbow.common.constants.Messages.Exception.CANNOT_DELETE_INSTANCE_WHILE_IT_IS_BEING_CREATED);
+
+        // exercise
+        this.ordersController.deleteOrder(computeOrder);
     }
 
     // test case: Checks if deleting an open order, this one will be moved to the assignedForDeletion orders list.
