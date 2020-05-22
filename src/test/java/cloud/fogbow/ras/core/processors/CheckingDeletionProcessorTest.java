@@ -16,14 +16,12 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @PrepareForTest({DatabaseManager.class,
         CloudConnectorFactory.class,
@@ -74,7 +72,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         this.orderController.activateOrder(order);
         OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
 
-        LocalCloudConnector localCloudConnector = mockLocalCloudConnector();
+        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
         Mockito.doNothing().when(localCloudConnector).switchOffAuditing();
         Mockito.when(localCloudConnector.getInstance(Mockito.eq(order)))
                 .thenThrow(new InstanceNotFoundException());
@@ -103,7 +101,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         this.orderController.activateOrder(order);
         OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
 
-        LocalCloudConnector localCloudConnector = mockLocalCloudConnector();
+        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
         Mockito.doNothing().when(localCloudConnector).switchOffAuditing();
         String exceptionMessage = TestUtils.ANY_VALUE;
         FogbowException fogbowException = new FogbowException(exceptionMessage);
@@ -139,7 +137,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         OrderState orderState = OrderState.CHECKING_DELETION;
         OrderStateTransitioner.transition(orderRemote, orderState);
 
-        LocalCloudConnector localCloudConnector = mockLocalCloudConnector();
+        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
 
         // exercise
         this.processor.processCheckingDeletionOrder(orderRemote);
@@ -167,7 +165,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         OrderState orderState = OrderState.FULFILLED;
         OrderStateTransitioner.transition(orderRemote, orderState);
 
-        LocalCloudConnector localCloudConnector = mockLocalCloudConnector();
+        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
 
         // exercise
         this.processor.processCheckingDeletionOrder(orderRemote);
@@ -232,15 +230,6 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
 
         // exercise
         this.processor.checkDeletion();
-    }
-
-    private LocalCloudConnector mockLocalCloudConnector() {
-        LocalCloudConnector cloudConnector = Mockito.mock(LocalCloudConnector.class);
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.any(), Mockito.any())).thenReturn(cloudConnector);
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
-        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
-        return cloudConnector;
     }
 
 }

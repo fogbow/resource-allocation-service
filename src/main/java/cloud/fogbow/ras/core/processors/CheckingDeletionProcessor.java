@@ -79,7 +79,8 @@ public class CheckingDeletionProcessor implements Runnable {
      *
      * @param order {@link Order}
      */
-    protected void processCheckingDeletionOrder(Order order) throws UnexpectedException {
+    @VisibleForTesting
+    void processCheckingDeletionOrder(Order order) throws UnexpectedException {
         synchronized (order) {
             // Check if the order is still in the CHECKING_DELETION state (for this particular state, this should
             // always happen, since once the order gets in this state, only this thread can operate on it. However,

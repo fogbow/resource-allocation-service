@@ -11,6 +11,7 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 public class AssignedForDeletionProcessor implements Runnable {
@@ -37,25 +38,33 @@ public class AssignedForDeletionProcessor implements Runnable {
     @Override
     public void run() {
         boolean isActive = true;
-
         while (isActive) {
             try {
-                Order order = this.assignedForDeletionOrdersList.getNext();
-
-                if (order != null) {
-                    processAssignedForDeletionOrder(order);
-                } else {
-                    this.assignedForDeletionOrdersList.resetPointer();
-                    Thread.sleep(this.sleepTime);
-                }
+                assignForDeletion();
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (FogbowException e) {
-                LOGGER.error(e.getMessage(), e);
-            } catch (Throwable e) {
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
             }
+        }
+    }
+
+    @VisibleForTesting
+    void assignForDeletion() throws InterruptedException {
+        try {
+            Order order = this.assignedForDeletionOrdersList.getNext();
+
+            if (order != null) {
+                processAssignedForDeletionOrder(order);
+            } else {
+                this.assignedForDeletionOrdersList.resetPointer();
+                Thread.sleep(this.sleepTime);
+            }
+        } catch (InterruptedException e) {
+            LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
+            throw e;
+        } catch (FogbowException e) {
+            LOGGER.error(e.getMessage(), e);
+        } catch (Throwable e) {
+            LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
         }
     }
 
@@ -67,11 +76,9 @@ public class AssignedForDeletionProcessor implements Runnable {
      *
      * @param order {@link Order}
      */
-    protected void processAssignedForDeletionOrder(Order order) throws FogbowException {
-        OrderInstance instance = null;
-
-        // The order object synchronization is needed to prevent a race
-        // condition on order access.
+    @VisibleForTesting
+    void processAssignedForDeletionOrder(Order order) throws FogbowException {
+        // The order object synchronization is needed to prevent a race condition on order access.
         synchronized (order) {
             // Check if the order is still in the ASSIGNED_FOR_DELETION state (for this particular state, this should
             // always happen, since once the order gets to this state, only this thread can operate on it. However,
