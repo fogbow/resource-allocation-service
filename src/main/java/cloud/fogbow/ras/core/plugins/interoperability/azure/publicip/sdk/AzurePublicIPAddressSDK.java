@@ -15,13 +15,14 @@ import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import rx.Completable;
 import rx.Observable;
 
 public class AzurePublicIPAddressSDK {
 
     @VisibleForTesting
-    static final String SECURITY_RULE_NAME_SUFIX = "_security-rule";
+    static final String RESOURCE_NAMES_SEPARATOR = "_";
     @VisibleForTesting
     static final int SSH_ACCESS_PORT = 22;
 
@@ -39,7 +40,8 @@ public class AzurePublicIPAddressSDK {
         String regionName = publicIPAddress.regionName();
         String resourceGroupName = publicIPAddress.resourceGroupName();
         String securityGroupName = publicIPAddress.name();
-        String securityRuleName = securityGroupName + SECURITY_RULE_NAME_SUFIX;
+        String resourceName = AzureGeneralUtil.generateResourceName();
+        String securityRuleName = securityGroupName + RESOURCE_NAMES_SEPARATOR + resourceName;
         String ipAddress = publicIPAddress.ipAddress();
 
         return azure.networkSecurityGroups()

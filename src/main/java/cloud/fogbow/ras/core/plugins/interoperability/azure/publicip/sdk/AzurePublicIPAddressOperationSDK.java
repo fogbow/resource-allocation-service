@@ -12,6 +12,8 @@ import com.microsoft.azure.management.network.PublicIPAddress;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
 import rx.Completable;
 import rx.Observable;
@@ -25,31 +27,31 @@ public class AzurePublicIPAddressOperationSDK {
     @VisibleForTesting
     static final int FULL_CAPACITY = 2;
 
-    private final String resourceGroupName;
+    private final String defaultResourceGroupName;
 
     private Scheduler scheduler;
 
-    public AzurePublicIPAddressOperationSDK(String resourceGroupName) {
+    public AzurePublicIPAddressOperationSDK(String defaultResourceGroupName) {
         ExecutorService executor = AzureSchedulerManager.getPublicIPAddressExecutor();
         this.scheduler = Schedulers.from(executor);
-        this.resourceGroupName = resourceGroupName;
+        this.defaultResourceGroupName = defaultResourceGroupName;
     }
 
-    public void subscribeAssociatePublicIPAddress(Azure azure, String instanceId,
+    public void subscribeAssociatePublicIPAddress(Azure azure, String resourceName,
             Observable<NetworkInterface> observable, Runnable doOnComplete) {
         
-        setAssociatePublicIPAddressBehaviour(azure, instanceId, observable, doOnComplete)
+        setAssociatePublicIPAddressBehaviour(azure, resourceName, observable, doOnComplete)
             .subscribeOn(this.scheduler)
             .subscribe();
     }
 
     @VisibleForTesting
-    Observable<NetworkInterface> setAssociatePublicIPAddressBehaviour(Azure azure, String instanceId,
+    Observable<NetworkInterface> setAssociatePublicIPAddressBehaviour(Azure azure, String resourceName,
             Observable<NetworkInterface> observable, Runnable doOnComplete) {
 
         return observable.doOnNext(nic -> {
             LOGGER.info(Messages.Info.FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
-            doAssociateNetworkSecurityGroupAsync(azure, instanceId, nic);
+            doAssociateNetworkSecurityGroupAsync(azure, resourceName, nic);
             LOGGER.info(Messages.Info.SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR);
         }).onErrorReturn(error -> {
             LOGGER.error(Messages.Error.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
@@ -61,33 +63,33 @@ public class AzurePublicIPAddressOperationSDK {
     }
 
     @VisibleForTesting
-    void doAssociateNetworkSecurityGroupAsync(Azure azure, String instanceId, NetworkInterface nic) {
-        PublicIPAddress publicIPAddress = doGetPublicIPAddress(azure, instanceId);
+    void doAssociateNetworkSecurityGroupAsync(Azure azure, String resourceName, NetworkInterface nic) {
+        PublicIPAddress publicIPAddress = doGetPublicIPAddress(azure, resourceName);
         Creatable<NetworkSecurityGroup> creatable = AzurePublicIPAddressSDK
                 .buildNetworkSecurityGroupCreatable(azure, publicIPAddress);
 
         Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
                 .associateNetworkSecurityGroupAsync(nic, creatable);
 
-        subscribeUpdateNetworkInterface(azure, instanceId, nic, observable);
+        subscribeUpdateNetworkInterface(azure, resourceName, nic, observable);
     }
 
     @VisibleForTesting
-    void subscribeUpdateNetworkInterface(Azure azure, String instanceId,
+    void subscribeUpdateNetworkInterface(Azure azure, String resourceName,
             NetworkInterface nic, Observable<NetworkInterface> observable) {
 
-        setUpdateNetworkInterfaceBehaviour(azure, instanceId, nic, observable)
+        setUpdateNetworkInterfaceBehaviour(azure, resourceName, nic, observable)
                 .subscribeOn(this.scheduler)
                 .subscribe();
     }
 
     @VisibleForTesting
     Observable<NetworkInterface> setUpdateNetworkInterfaceBehaviour(Azure azure,
-            String instanceId, NetworkInterface nic, Observable<NetworkInterface> observable) {
+            String resourceName, NetworkInterface nic, Observable<NetworkInterface> observable) {
 
         return observable.onErrorReturn(error -> {
             LOGGER.error(Messages.Error.ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR, error);
-            doDisassociateAndDeletePublicIPAddressAsync(azure, instanceId, nic);
+            doDisassociateAndDeletePublicIPAddressAsync(azure, resourceName, nic);
             return null;
         }).doOnCompleted(() -> {
             LOGGER.info(Messages.Info.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
@@ -95,26 +97,31 @@ public class AzurePublicIPAddressOperationSDK {
     }
 
     @VisibleForTesting
-    PublicIPAddress doGetPublicIPAddress(Azure azure, String instanceId) {
+    PublicIPAddress doGetPublicIPAddress(Azure azure, String resourceName) {
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
+
         PublicIPAddress publicIPAddress = azure.publicIPAddresses()
-                .getByResourceGroup(this.resourceGroupName, instanceId);
+                .getByResourceGroup(resourceGroupName, resourceName);
 
         return publicIPAddress;
     }
 
     @VisibleForTesting
     void doDisassociateAndDeletePublicIPAddressAsync(Azure azure,
-            String instanceId, NetworkInterface nic) {
-
-        PublicIPAddress publicIPAddress = doGetPublicIPAddress(azure, instanceId);
-        String resourceId = publicIPAddress.id();
+            String resourceName, NetworkInterface nic) {
 
         Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
                 .disassociatePublicIPAddressAsync(nic);
 
-        Completable completable = AzurePublicIPAddressSDK
-                .deletePublicIpAddressAsync(azure, resourceId);
-
+        Completable completable = null;
+        if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
+            completable = AzureResourceGroupOperationUtil.deleteResourceGroupAsync(azure, resourceName);
+        } else {
+            PublicIPAddress publicIPAddress = doGetPublicIPAddress(azure, resourceName);
+            String resourceId = publicIPAddress.id();
+            completable = AzurePublicIPAddressSDK.deletePublicIpAddressAsync(azure, resourceId);
+        }
         subscribeDisassociateAndDeletePublicIPAddress(observable, completable);
     }
 
@@ -142,8 +149,7 @@ public class AzurePublicIPAddressOperationSDK {
         });
     }
 
-    @VisibleForTesting
-    void subscribeDeletePublicIPAddressAsync(Completable completable) {
+    public void subscribeDeletePublicIPAddressAsync(Completable completable) {
         setDeletePublicIPAddressBehaviour(completable)
                 .subscribeOn(this.scheduler)
                 .subscribe();

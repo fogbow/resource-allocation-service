@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip;
 
 import cloud.fogbow.common.constants.AzureConstants;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.AzureClientCacheManager;
@@ -16,6 +17,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVir
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
@@ -46,6 +48,7 @@ import java.util.Properties;
     AzureClientCacheManager.class,
     AzureGeneralUtil.class,
     AzurePublicIPAddressSDK.class,
+    AzureResourceGroupOperationUtil.class,
     AzureVirtualMachineSDK.class
 })
 public class AzurePublicIpPluginTest {
@@ -147,9 +150,13 @@ public class AzurePublicIpPluginTest {
         PowerMockito.mockStatic(AzureGeneralUtil.class);
         PowerMockito.doReturn(resourceName).when(AzureGeneralUtil.class, "generateResourceName");
 
+        PowerMockito.doReturn(this.defaultResourceGroupName).when(AzureGeneralUtil.class, "defineResourceGroupName",
+                Mockito.eq(azure), Mockito.eq(this.defaultRegionName), Mockito.eq(resourceName),
+                Mockito.eq(this.defaultResourceGroupName));
+
         String virtualMachineId = createVirtualMachineId();
-        Mockito.doReturn(virtualMachineId).when(this.plugin).buildVirtualMachineId(Mockito.anyString(),
-                Mockito.anyString());
+        Mockito.doReturn(virtualMachineId).when(this.plugin).buildVirtualMachineId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.anyString());
 
         PublicIPAddresses publicIPAddresses = Mockito.mock(PublicIPAddresses.class);
         Mockito.when(azure.publicIPAddresses()).thenReturn(publicIPAddresses);
@@ -186,8 +193,8 @@ public class AzurePublicIpPluginTest {
 
         Mockito.verify(publicIpOrder, Mockito.times(TestUtils.RUN_ONCE)).getComputeId();
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildVirtualMachineId(Mockito.anyString(),
-                Mockito.anyString());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildVirtualMachineId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.anyString());
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(azure),
                 Mockito.anyString(), Mockito.any(Creatable.class));
     }
@@ -207,7 +214,7 @@ public class AzurePublicIpPluginTest {
         String resourceId = createResourceId();
         String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
         String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
-        Mockito.doReturn(resourceId).when(this.plugin).buildResourceId(Mockito.eq(subscriptionId),
+        Mockito.doReturn(resourceId).when(this.plugin).buildResourceId(Mockito.eq(azure), Mockito.eq(subscriptionId),
                 Mockito.eq(resourceName));
 
         PublicIpInstance publicIpInstanceExpected = Mockito.mock(PublicIpInstance.class);
@@ -224,8 +231,8 @@ public class AzurePublicIpPluginTest {
         AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
 
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.eq(subscriptionId),
-                Mockito.eq(resourceName));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.eq(azure),
+                Mockito.eq(subscriptionId), Mockito.eq(resourceName));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.eq(azure),
                 Mockito.eq(resourceId));
         Assert.assertEquals(publicIpInstanceExpected, publicIpInstance);
@@ -250,42 +257,126 @@ public class AzurePublicIpPluginTest {
         Assert.assertEquals(publicIpInstanceCreating, publicIpInstance);
     }
 
-    // test case: When calling the deleteInstance method, it must verify that is
-    // call was successful.
+    // test case: When calling the deleteInstance method, with the default
+    // resource group, it must verify among others if the doDeleteInstance
+    // method has been called.
     @Test
-    public void testDeleteInstanceSuccessfully() throws Exception {
+    public void testDeleteInstanceWithDefaultResourceGroup() throws Exception {
         // set up
         String resourceName = AzureTestUtils.RESOURCE_NAME;
-        PublicIpOrder volumeOrder = mockPublicIpOrder(resourceName);
+        PublicIpOrder publicIpOrder = mockPublicIpOrder(resourceName);
 
         Azure azure = PowerMockito.mock(Azure.class);
         PowerMockito.mockStatic(AzureClientCacheManager.class);
         PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure", Mockito.eq(this.azureUser));
 
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(false).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup",
+                Mockito.eq(azure), Mockito.eq(resourceName));
+
         String resourceId = createResourceId();
-        Mockito.doReturn(resourceId).when(this.plugin).buildResourceId(Mockito.anyString(), Mockito.eq(resourceName));
+        Mockito.doReturn(resourceId).when(this.plugin).buildResourceId(Mockito.eq(azure), Mockito.anyString(),
+                Mockito.eq(resourceName));
 
         String virtualMachineId = createVirtualMachineId();
-        Mockito.doReturn(virtualMachineId).when(this.plugin).buildVirtualMachineId(Mockito.anyString(),
-                Mockito.anyString());
+        Mockito.doReturn(virtualMachineId).when(this.plugin).buildVirtualMachineId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.anyString());
 
         Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.eq(azure), Mockito.eq(resourceId),
                 Mockito.eq(virtualMachineId));
 
         // exercise
-        this.plugin.deleteInstance(volumeOrder, this.azureUser);
+        this.plugin.deleteInstance(publicIpOrder, this.azureUser);
 
         // verify
         PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
 
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.anyString(),
-                Mockito.eq(resourceName));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildVirtualMachineId(Mockito.anyString(),
-                Mockito.anyString());
+
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(resourceName));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildVirtualMachineId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.anyString());
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.eq(azure),
                 Mockito.eq(resourceId), Mockito.eq(virtualMachineId));
+    }
+
+    // test case: When calling the deleteInstance method, without the default
+    // resource group, it must verify among others if the doDeleteResourceGroup
+    // method has been called.
+    @Test
+    public void testDeleteInstanceWithoutDefaultResourceGroup() throws Exception {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        PublicIpOrder publicIpOrder = mockPublicIpOrder(resourceName);
+
+        Azure azure = PowerMockito.mock(Azure.class);
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure", Mockito.eq(this.azureUser));
+
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(true).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup",
+                Mockito.eq(azure), Mockito.eq(resourceName));
+
+        Mockito.doNothing().when(this.plugin).doDeleteResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName),
+                Mockito.anyString());
+
+        // exercise
+        this.plugin.deleteInstance(publicIpOrder, this.azureUser);
+
+        // verify
+        PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
+
+        Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
+
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteResourceGroup(Mockito.eq(azure),
+                Mockito.eq(resourceName), Mockito.anyString());
+    }
+
+    // test case: When calling the doDeleteResourceGroup method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoDeleteResourceGroupSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String virtualMachineId = createVirtualMachineId();
+
+        Observable<NetworkInterface> observable = Observable.defer(() -> {
+            NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
+            return Observable.just(networkInterface);
+        });
+        Mockito.doReturn(observable).when(this.plugin).disassociateResourcesAsync(Mockito.eq(azure),
+                Mockito.eq(virtualMachineId));
+
+        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(completable).when(AzureResourceGroupOperationUtil.class, "deleteResourceGroupAsync",
+                Mockito.eq(azure), Mockito.eq(resourceName));
+
+        Mockito.doNothing().when(this.operation).subscribeDisassociateAndDeleteResources(Mockito.eq(observable),
+                Mockito.eq(completable));
+
+        // exercise
+        this.plugin.doDeleteResourceGroup(azure, resourceName, virtualMachineId);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .disassociateResourcesAsync(Mockito.eq(azure), Mockito.eq(virtualMachineId));
+
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.deleteResourceGroupAsync(Mockito.eq(azure), Mockito.eq(resourceName));
+
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
+                .subscribeDisassociateAndDeleteResources(Mockito.eq(observable), Mockito.eq(completable));
     }
 
     // test case: When calling the doDeleteInstance method, it must verify that is
@@ -313,7 +404,7 @@ public class AzurePublicIpPluginTest {
                 .doGetNetworkSecurityGroupFrom(Mockito.eq(networkInterface));
 
         Observable observable = Mockito.mock(Observable.class);
-        Mockito.doReturn(observable).when(this.plugin).doDisassociateResourcesAsync(Mockito.eq(networkInterface));
+        Mockito.doReturn(observable).when(this.plugin).doDisassociateResourcesFrom(Mockito.eq(networkInterface));
 
         Completable completable = Mockito.mock(Completable.class);
         Mockito.doReturn(completable).when(this.plugin).doDeleteResourcesAsync(Mockito.eq(azure),
@@ -333,7 +424,7 @@ public class AzurePublicIpPluginTest {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .doGetNetworkSecurityGroupFrom(Mockito.eq(networkInterface));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .doDisassociateResourcesAsync(Mockito.eq(networkInterface));
+                .doDisassociateResourcesFrom(Mockito.eq(networkInterface));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteResourcesAsync(Mockito.eq(azure),
                 Mockito.eq(resourceId), Mockito.eq(networkSecurityGroupId));
         Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
@@ -369,10 +460,43 @@ public class AzurePublicIpPluginTest {
         AzurePublicIPAddressSDK.deletePublicIpAddressAsync(Mockito.eq(azure), Mockito.eq(resourceId));
     }
 
-    // test case: When calling the doDisassociateResourcesAsync method, it must
+    // test case: When calling the disassociateResourcesAsync method, it must
     // verify that is call was successful.
     @Test
-    public void testDoDisassociateResourcesAsyncSuccessfully() throws Exception {
+    public void testDisassociateResourcesAsyncSuccessfully() throws FogbowException {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String virtualMachineId = createVirtualMachineId();
+
+        VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+        Mockito.doReturn(virtualMachine).when(this.plugin).doGetVirtualMachineSDK(Mockito.eq(azure),
+                Mockito.eq(virtualMachineId));
+
+        NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
+        Mockito.doReturn(networkInterface).when(this.plugin)
+                .doGetPrimaryNetworkInterfaceFrom(Mockito.eq(virtualMachine));
+
+        Observable<NetworkInterface> observable = Observable.defer(() -> {
+            return Observable.just(networkInterface);
+        });
+        Mockito.doReturn(observable).when(this.plugin).doDisassociateResourcesFrom(Mockito.eq(networkInterface));
+
+        // exercise
+        this.plugin.disassociateResourcesAsync(azure, virtualMachineId);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetVirtualMachineSDK(Mockito.eq(azure), Mockito.eq(virtualMachineId));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetPrimaryNetworkInterfaceFrom(Mockito.eq(virtualMachine));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doDisassociateResourcesFrom(Mockito.eq(networkInterface));
+    }
+
+    // test case: When calling the doDisassociateResourcesFrom method, with a
+    // valid network instance, it must verify that is call was successful.
+    @Test
+    public void testDoDisassociateResourcesFromNetworkInstanceSuccessfully() throws Exception {
         // set up
         NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
 
@@ -386,7 +510,7 @@ public class AzurePublicIpPluginTest {
                 "disassociatePublicIPAddressAsync", Mockito.eq(networkInterface));
 
         // exercise
-        this.plugin.doDisassociateResourcesAsync(networkInterface);
+        this.plugin.doDisassociateResourcesFrom(networkInterface);
 
         // verify
         PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -596,17 +720,27 @@ public class AzurePublicIpPluginTest {
     // test case: When calling the buildResourceId method, it must verify that the
     // resource ID was assembled correctly.
     @Test
-    public void testBuildResourceIdSuccessfully() {
+    public void testBuildResourceIdSuccessfully() throws Exception {
         // set up
+        Azure azure = PowerMockito.mock(Azure.class);
         String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
         String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(defaultResourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.eq(azure), Mockito.eq(resourceName), Mockito.eq(defaultResourceGroupName));
 
         String expected = createResourceId();
 
         // exercise
-        String resourceId = this.plugin.buildResourceId(subscriptionId, resourceName);
+        String resourceId = this.plugin.buildResourceId(azure, subscriptionId, resourceName);
 
         // verify
+        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureGeneralUtil.selectResourceGroupName(Mockito.eq(azure), Mockito.eq(resourceName),
+                Mockito.eq(defaultResourceGroupName));
+
         Assert.assertEquals(expected, resourceId);
     }
 
@@ -710,17 +844,27 @@ public class AzurePublicIpPluginTest {
     // test case: When calling the buildVirtualMachineId method, it must verify that
     // the virtual machine ID was assembled correctly.
     @Test
-    public void testBuildVirtualMachineIdSuccessfully() {
+    public void testBuildVirtualMachineIdSuccessfully() throws Exception {
         // set up
+        Azure azure = PowerMockito.mock(Azure.class);
         String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
         String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(defaultResourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.eq(azure), Mockito.eq(resourceName), Mockito.eq(defaultResourceGroupName));
 
         String expected = createVirtualMachineId();
 
         // exercise
-        String virtualMachineId = this.plugin.buildVirtualMachineId(subscriptionId, resourceName);
+        String virtualMachineId = this.plugin.buildVirtualMachineId(azure, subscriptionId, resourceName);
 
         // verify
+        PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureGeneralUtil.selectResourceGroupName(Mockito.eq(azure), Mockito.eq(resourceName),
+                Mockito.eq(defaultResourceGroupName));
+
         Assert.assertEquals(expected, virtualMachineId);
     }
 
