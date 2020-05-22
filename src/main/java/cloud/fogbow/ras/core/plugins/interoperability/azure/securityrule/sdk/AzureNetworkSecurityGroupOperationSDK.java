@@ -10,6 +10,8 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.AzureSecurityRuleUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
@@ -31,21 +33,35 @@ public class AzureNetworkSecurityGroupOperationSDK {
     private static final String DEFAULT_SOURCE_ADDRESS = "0.0.0.0/0";
     private static final String ANY_CIDR = "*";
 
-    public void doCreateInstance(AzureUpdateNetworkSecurityGroupRef azureUpdateNetworkSecurityRef, AzureUser azureUser)
+    private String defaultResourceGroupName;
+
+    public AzureNetworkSecurityGroupOperationSDK(String defaultResourceGroupName) {
+        this.defaultResourceGroupName = defaultResourceGroupName;
+    }
+
+    public void doCreateInstance(AzureUpdateNetworkSecurityGroupRef networkSecurityGroupRef, AzureUser azureUser)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        String networkSecurityGroupId = azureUpdateNetworkSecurityRef.getNetworkSecurityGroupId();
+        String networkSecurityGroupName = networkSecurityGroupRef.getSecurityGroupResourceName();
+        String subscriptionId = azureUser.getSubscriptionId();
+        String networkSecurityGroupId = buildNetworkSecurityGroupId(azure, subscriptionId, networkSecurityGroupName);
+
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
                 .getNetworkSecurityGroup(azure, networkSecurityGroupId)
                 .orElseThrow(InstanceNotFoundException::new);
 
-        String cidr = azureUpdateNetworkSecurityRef.getCidr();
-        int portFrom = azureUpdateNetworkSecurityRef.getPortFrom();
-        int portTo = azureUpdateNetworkSecurityRef.getPortTo();
-        String ruleName = azureUpdateNetworkSecurityRef.getRuleResourceName();
-        SecurityRuleProtocol securityRuleProtocol = AzureSecurityRuleUtil.getFogbowProtocol(azureUpdateNetworkSecurityRef.getProtocol());
-        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(azureUpdateNetworkSecurityRef.getDirection());
+        String cidr = networkSecurityGroupRef.getCidr();
+        int portFrom = networkSecurityGroupRef.getPortFrom();
+        int portTo = networkSecurityGroupRef.getPortTo();
+        String ruleName = networkSecurityGroupRef.getRuleResourceName();
+
+        SecurityRuleProtocol securityRuleProtocol = AzureSecurityRuleUtil
+                .getFogbowProtocol(networkSecurityGroupRef.getProtocol());
+
+        AzureNetworkSecurityGroupSDK.Direction direction = AzureSecurityRuleUtil
+                .getFogbowDirection(networkSecurityGroupRef.getDirection());
+
         int priority = getPriority(networkSecurityGroup);
 
         AzureNetworkSecurityGroupSDK.updateNetworkSecurityGroup(networkSecurityGroup, cidr, portFrom,
@@ -66,8 +82,25 @@ public class AzureNetworkSecurityGroupOperationSDK {
         return currentPriority;
     }
 
-    public List<SecurityRuleInstance> getNetworkSecurityRules(String networkSecurityGroupId, String networkSecurityGroupName, AzureUser azureUser) throws FogbowException {
+    @VisibleForTesting
+    String buildNetworkSecurityGroupId(Azure azure, String subscriptionId, String networkSecurityGroupName) {
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, networkSecurityGroupName, this.defaultResourceGroupName);
+
+        return AzureResourceIdBuilder.networkSecurityGroupId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(resourceGroupName)
+                .withResourceName(networkSecurityGroupName)
+                .build();
+    }
+
+    public List<SecurityRuleInstance> getNetworkSecurityRules(String networkSecurityGroupName, AzureUser azureUser)
+            throws FogbowException {
+
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        String subscriptionId = azureUser.getSubscriptionId();
+        String networkSecurityGroupId = buildNetworkSecurityGroupId(azure, subscriptionId, networkSecurityGroupName);
+
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
                 .getNetworkSecurityGroup(azure, networkSecurityGroupId)
                 .orElseThrow(InstanceNotFoundException::new);
@@ -97,10 +130,12 @@ public class AzureNetworkSecurityGroupOperationSDK {
         return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
     }
 
-    public void deleteNetworkSecurityRule(String networkSecurityGroupId, String securityRuleName, AzureUser azureUser)
+    public void deleteNetworkSecurityRule(String networkSecurityGroupName, String securityRuleName, AzureUser azureUser)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
+        String subscriptionId = azureUser.getSubscriptionId();
+        String networkSecurityGroupId = buildNetworkSecurityGroupId(azure, subscriptionId, networkSecurityGroupName);
 
         NetworkSecurityGroup networkSecurityGroup = AzureNetworkSecurityGroupSDK
                 .getNetworkSecurityGroup(azure, networkSecurityGroupId)
