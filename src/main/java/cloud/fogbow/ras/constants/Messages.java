@@ -28,6 +28,7 @@ public class Messages {
         public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
         public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String MALFORMED_GENERIC_REQUEST_URL = "Malformed generic request URL <%s>";
+        public static final String MANY_NETWORKS_NOT_ALLOWED = "This cloud does not allow connection to more than one network.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
         public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
         public static final String NO_MATCHING_FLAVOR = "No matching flavor.";

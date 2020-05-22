@@ -1,14 +1,22 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
@@ -17,14 +25,14 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVir
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
-import com.microsoft.azure.management.resources.fluentcore.utils.SdkContext;
-import org.apache.log4j.Logger;
-
-import java.util.*;
 
 public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<ComputeInstance> {
 
@@ -33,9 +41,11 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     
     @VisibleForTesting
     static final String DEFAULT_OS_USER_NAME = "fogbow";
+    @VisibleForTesting
+    static final int MAXIMUM_SIZE_ALLOWED = 1;
 
     private AzureVirtualMachineOperationSDK azureVirtualMachineOperation;
-    private final DefaultLaunchCommandGenerator launchCommandGenerator;
+    private DefaultLaunchCommandGenerator launchCommandGenerator;
     private final String defaultRegionName;
     private final String defaultResourceGroupName;
     private final String defaultVirtualNetworkName;
@@ -46,7 +56,8 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
         this.defaultVirtualNetworkName = properties.getProperty(AzureConstants.DEFAULT_VIRTUAL_NETWORK_NAME_KEY);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
-        this.azureVirtualMachineOperation = new AzureVirtualMachineOperationSDK(this.defaultRegionName);
+        this.azureVirtualMachineOperation = new AzureVirtualMachineOperationSDK(this.defaultRegionName,
+                this.defaultResourceGroupName);
     }
 
     @Override
@@ -62,12 +73,10 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     @Override
     public String requestInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
-
         String name = computeOrder.getName();
         String regionName = this.defaultRegionName;
-        String resourceGroupName = this.defaultResourceGroupName;
-        String resourceName = generateResourceName();
-        String virtualNetworkId = getVirtualNetworkId(computeOrder, azureUser);
+        String resourceName = AzureGeneralUtil.generateResourceName();
+        String virtualNetworkName = getVirtualNetworkResourceName(computeOrder, azureUser);
         String imageId = computeOrder.getImageId();
         AzureGetImageRef imageRef = AzureImageOperationUtil.buildAzureVirtualMachineImageBy(imageId);
         String osUserName = DEFAULT_OS_USER_NAME;
@@ -79,11 +88,10 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         int diskSize = AzureGeneralPolicy.getDisk(computeOrder);
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
 
-        AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
+        AzureCreateVirtualMachineRef virtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .regionName(regionName)
-                .resourceGroupName(resourceGroupName)
                 .resourceName(resourceName)
-                .virtualNetworkId(virtualNetworkId)
+                .virtualNetworkName(virtualNetworkName)
                 .azureGetImageRef(imageRef)
                 .osComputeName(osComputeName)
                 .osUserName(osUserName)
@@ -94,12 +102,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
                 .tags(tags)
                 .checkAndBuild();
 
-        return doRequestInstance(computeOrder, azureUser, azureCreateVirtualMachineRef, virtualMachineSize);
-    }
-
-    @VisibleForTesting
-    String generateResourceName() {
-        return SdkContext.randomResourceName(SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX, AzureConstants.MAXIMUM_RESOURCE_NAME_LENGTH);
+        return doRequestInstance(computeOrder, azureUser, virtualMachineRef, virtualMachineSize);
     }
 
     @VisibleForTesting
@@ -108,23 +111,25 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     }
 
     @VisibleForTesting
-    String doRequestInstance(
-            ComputeOrder computeOrder, 
-            AzureUser azureUser,
-            AzureCreateVirtualMachineRef azureCreateVirtualMachineRef, 
-            VirtualMachineSize virtualMachineSize) throws FogbowException {
+    String doRequestInstance(ComputeOrder computeOrder, AzureUser azureUser, 
+            AzureCreateVirtualMachineRef virtualMachineRef, VirtualMachineSize virtualMachineSize)
+            throws FogbowException {
 
-        String instanceId = getInstanceId(azureCreateVirtualMachineRef);
+        String instanceId = getInstanceId(virtualMachineRef);
         Runnable finishCreationCallback = this.startInstanceCreation(instanceId);
-        doCreateInstance(azureUser, azureCreateVirtualMachineRef, finishCreationCallback);
+        doCreateInstance(azureUser, virtualMachineRef, finishCreationCallback);
         updateInstanceAllocation(computeOrder, virtualMachineSize);
         return instanceId;
     }
 
     @VisibleForTesting
-    void doCreateInstance(AzureUser azureUser, AzureCreateVirtualMachineRef azureCreateVirtualMachineRef, Runnable finishCreationCallback) throws FogbowException {
+    void doCreateInstance(AzureUser azureUser, AzureCreateVirtualMachineRef virtualMachineRef,
+            Runnable finishCreationCallback) throws FogbowException {
+        
         try {
-            this.azureVirtualMachineOperation.doCreateInstance(azureCreateVirtualMachineRef, azureUser, finishCreationCallback);
+            this.azureVirtualMachineOperation
+                    .doCreateInstance(virtualMachineRef, finishCreationCallback, azureUser);
+            
         } catch (Exception e) {
             finishCreationCallback.run();
             throw e;
@@ -137,17 +142,21 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     }
     
     @VisibleForTesting
-    String getVirtualNetworkId(ComputeOrder computeOrder, AzureUser azureUser) {
+    String getVirtualNetworkResourceName(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
         List<String> networkIdList = computeOrder.getNetworkIds();
         String resourceName = this.defaultVirtualNetworkName;
         if (!networkIdList.isEmpty()) {
+            checkNetworkIdListIntegrity(networkIdList);
             resourceName = networkIdList.listIterator().next();
         }
-        return AzureResourceIdBuilder.networkId()
-                .withSubscriptionId(azureUser.getSubscriptionId())
-                .withResourceGroupName(this.defaultResourceGroupName)
-                .withResourceName(resourceName)
-                .build();
+        return resourceName;
+    }
+
+    @VisibleForTesting
+    void checkNetworkIdListIntegrity(List<String> networkIdList) throws InvalidParameterException {
+        if (networkIdList.size() > MAXIMUM_SIZE_ALLOWED) {
+            throw new InvalidParameterException(Messages.Exception.MANY_NETWORKS_NOT_ALLOWED);
+        }
     }
 
     @VisibleForTesting
@@ -167,25 +176,12 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         if (creatingInstance != null) {
             return creatingInstance;
         }
-
+        
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
-        String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, resourceName);
         AzureGetVirtualMachineRef azureGetVirtualMachineRef = this.azureVirtualMachineOperation
-                .doGetInstance(resourceId, azureUser);
+                .doGetInstance(azureUser, resourceName);
         
-        return buildComputeInstance(azureGetVirtualMachineRef, azureUser);
-    }
-
-    @VisibleForTesting
-    String buildResourceId(String subscriptionId, String resourceName) {
-        String resourceId = AzureResourceIdBuilder.virtualMachineId()
-                .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.defaultResourceGroupName)
-                .withResourceName(resourceName)
-                .build();
-        
-        return resourceId;
+        return buildComputeInstance(azureGetVirtualMachineRef);
     }
 
     @VisibleForTesting
@@ -201,10 +197,8 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     }
 
     @VisibleForTesting
-    ComputeInstance buildComputeInstance(AzureGetVirtualMachineRef azureGetVirtualMachineRef, AzureUser azureUser) {
-        String subscriptionId = azureUser.getSubscriptionId();
-        String virtualMachineName = azureGetVirtualMachineRef.getName();
-        String id = buildResourceId(subscriptionId, virtualMachineName);
+    ComputeInstance buildComputeInstance(AzureGetVirtualMachineRef azureGetVirtualMachineRef) {
+        String id = azureGetVirtualMachineRef.getId();
         String cloudState = azureGetVirtualMachineRef.getCloudState();
         String name = azureGetVirtualMachineRef.getTags().get(AzureConstants.TAG_NAME);
         int vCPU = azureGetVirtualMachineRef.getvCPU();
@@ -220,10 +214,9 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
-        String resourceName = computeOrder.getInstanceId();
-        String subscriptionId = azureUser.getSubscriptionId();
-        String instanceId = buildResourceId(subscriptionId, resourceName);
-        this.azureVirtualMachineOperation.doDeleteInstance(instanceId, azureUser);
+        String instanceId = computeOrder.getInstanceId();
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+        this.azureVirtualMachineOperation.doDeleteInstance(azureUser, resourceName);
     }
 
     @VisibleForTesting
@@ -231,9 +224,15 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         this.azureVirtualMachineOperation = azureVirtualMachineOperation;
     }
 
+    @VisibleForTesting
+    void setLaunchCommandGenerator(DefaultLaunchCommandGenerator launchCommandGenerator) {
+        this.launchCommandGenerator = launchCommandGenerator;
+    }
+
     @Override
     public ComputeInstance buildCreatingInstance(String instanceId) {
         return new ComputeInstance(instanceId, InstanceState.CREATING.getValue()
                 , AzureGeneralUtil.NO_INFORMATION, new ArrayList<>());
     }
+
 }
