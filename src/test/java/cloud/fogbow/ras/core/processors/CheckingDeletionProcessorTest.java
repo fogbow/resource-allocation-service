@@ -23,8 +23,12 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-@PrepareForTest({ DatabaseManager.class, CloudConnectorFactory.class, Thread.class })
+@PrepareForTest({DatabaseManager.class,
+        CloudConnectorFactory.class,
+        Thread.class,
+        CheckingDeletionProcessor.class})
 public class CheckingDeletionProcessorTest extends BaseUnitTests {
 
     private Map<String, Order> activeOrdersMap;
@@ -41,7 +45,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         this.orderController = Mockito.spy(new OrderController());
         this.processor = Mockito.spy(new CheckingDeletionProcessor(this.orderController,
                 TestUtils.LOCAL_MEMBER_ID, ConfigurationPropertyDefaults.CHECKING_DELETION_ORDERS_SLEEP_TIME));
-        
+
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         this.checkingDeletionOrderList = sharedOrderHolders.getCheckingDeletionOrdersList();
@@ -199,8 +203,6 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
 
     // test case: When calling the checkDeletion method and there is no order in the checkingDeletionList,
     // it must verify if It does not call processCheckingDeletionOrder.
-    // FIXME (chico) - Thread mock has a problem
-    @Ignore
     @Test
     public void testCheckDeletionSuccessfullyWhenThereIsNoOrder()
             throws InterruptedException, UnexpectedException {
@@ -221,12 +223,10 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
 
     // test case: When calling the checkDeletion method and throws an InterruptedException
     // it must verify if It rethrows the same exception.
-    // FIXME (chico) - Thread mock has a problem
-    @Ignore
     @Test(expected = InterruptedException.class)
     public void testCheckDeletionFailWhenThrowsInterruptedException() throws InterruptedException {
         // set up
-        PowerMockito.mockStatic(Thread.class);
+        PowerMockito.spy(Thread.class);
         PowerMockito.doThrow(new InterruptedException()).when(Thread.class);
         Thread.sleep(Mockito.anyLong());
 
@@ -242,5 +242,5 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
         return cloudConnector;
     }
-    
+
 }
