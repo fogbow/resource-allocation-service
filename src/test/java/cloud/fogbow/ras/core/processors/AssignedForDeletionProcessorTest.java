@@ -5,12 +5,14 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import org.apache.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +28,8 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
     private ChainedList<Order> checkingAssignedForDeletionOrderList;
     private AssignedForDeletionProcessor processor;
     private OrderController orderController;
+
+    private LoggerAssert loggerTestChecking = new LoggerAssert(AssignedForDeletionProcessor.class);
 
     @Before
     public void setUp() throws UnexpectedException {
@@ -51,6 +55,54 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.processor.run();
     }
 
+    // test case: When calling the processAssignedForDeletionOrder method with local Order non expected state,
+    // it must verify if It keeps the order state and do not anything.
+    @Test
+    public void testProcessAssignedForDeletionOrderSuccessfullyWhenOrderWithAnotherState()
+            throws Exception {
+
+        // set up
+        Order order = this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE);
+        this.orderController.activateOrder(order);
+        OrderState anotherOrderState = OrderState.FULFILLED;
+        OrderStateTransitioner.transition(order, anotherOrderState);
+
+        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
+
+        // exercise
+        this.processor.processAssignedForDeletionOrder(order);
+
+        // verify
+        Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
+        Assert.assertNull(this.checkingAssignedForDeletionOrderList.getNext());
+        Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
+        Assert.assertEquals(anotherOrderState, order.getOrderState());
+        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
+    }
+
+    // test case: When calling the processAssignedForDeletionOrder method with remote Order,
+    // it must verify if It keeps the order state.
+    @Test
+    public void testProcessAssignedForDeletionOrderSuccessfullyWhenOrderRemote()
+            throws Exception {
+
+        // set up
+        Order order = this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE);
+        this.orderController.activateOrder(order);
+        OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
+
+        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
+
+        // exercise
+        this.processor.processAssignedForDeletionOrder(order);
+
+        // verify
+        Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
+        Assert.assertNotNull(this.checkingAssignedForDeletionOrderList.getNext());
+        Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
+        Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, order.getOrderState());
+    }
+
     // test case: When calling the processAssignedForDeletionOrder method
     // with local Order and it performs the deletion successfully,
     // it must verify if It changes the order context to CHECKING_DELETION.
@@ -65,13 +117,13 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
 
         LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
-        Mockito.doNothing().when(localCloudConnector).switchOffAuditing();
         Mockito.doNothing().when(localCloudConnector).deleteInstance(Mockito.eq(order));
 
         // exercise
         this.processor.processAssignedForDeletionOrder(order);
 
         // verify
+        Mockito.verify(localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).deleteInstance(Mockito.any());
         Assert.assertNull(this.checkingAssignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());
@@ -91,13 +143,38 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
 
         LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
-        Mockito.doNothing().when(localCloudConnector).switchOffAuditing();
         Mockito.doThrow(new InstanceNotFoundException()).when(localCloudConnector).deleteInstance(Mockito.eq(order));
 
         // exercise
         this.processor.processAssignedForDeletionOrder(order);
 
         // verify
+        Mockito.verify(localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).deleteInstance(Mockito.any());
+        Assert.assertNull(this.checkingAssignedForDeletionOrderList.getNext());
+        Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
+        Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());
+    }
+
+    // test case: When calling the processAssignedForDeletionOrder method
+    // with local Order without instanceId,
+    // it must verify if It changes the order context to CHECKING_DELETION.
+    @Test
+    public void testProcessAssignedForDeletionOrderSuccessfullyWhenOrderLocalWithoutInstanceId()
+            throws Exception {
+
+        // set up
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+        this.orderController.activateOrder(order);
+        OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
+
+        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
+        Mockito.doThrow(new InstanceNotFoundException()).when(localCloudConnector).deleteInstance(Mockito.eq(order));
+
+        // exercise
+        this.processor.processAssignedForDeletionOrder(order);
+
+        // verify
+        Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
         Assert.assertNull(this.checkingAssignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());
@@ -107,7 +184,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
     // with local Order and it throws a FogbowException when performs deletion operation,
     // it must verify if It throws a FogbowException.
     @Test(expected = FogbowException.class)
-    public void testProcessAssignedForDeletionOrderSuccessfullyWhenOrderLocalAndThrowsException()
+    public void testProcessAssignedForDeletionOrderFailWhenOrderLocalAndThrowsException()
             throws Exception {
 
         // set up
@@ -117,7 +194,6 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
 
         LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
-        Mockito.doNothing().when(localCloudConnector).switchOffAuditing();
         FogbowException fogbowException = new FogbowException();
         Mockito.doThrow(fogbowException).when(localCloudConnector).deleteInstance(Mockito.eq(order));
 
