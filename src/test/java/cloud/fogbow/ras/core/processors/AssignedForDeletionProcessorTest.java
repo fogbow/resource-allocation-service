@@ -17,15 +17,19 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.Map;
 
-@PrepareForTest({ DatabaseManager.class, CloudConnectorFactory.class })
+@PrepareForTest({ DatabaseManager.class,
+        CloudConnectorFactory.class,
+        Thread.class,
+        AssignedForDeletionProcessor.class })
 public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
     private Map<String, Order> activeOrdersMap;
-    private ChainedList<Order> checkingAssignedForDeletionOrderList;
+    private ChainedList<Order> assignedForDeletionOrderList;
     private AssignedForDeletionProcessor processor;
     private OrderController orderController;
 
@@ -41,7 +45,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-        this.checkingAssignedForDeletionOrderList = sharedOrderHolders.getAssignedForDeletionOrdersList();
+        this.assignedForDeletionOrderList = sharedOrderHolders.getAssignedForDeletionOrdersList();
     }
 
     // test case: When calling the run method and throws an InterruptedException,
@@ -74,7 +78,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
-        Assert.assertNull(this.checkingAssignedForDeletionOrderList.getNext());
+        Assert.assertNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(anotherOrderState, order.getOrderState());
         this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
@@ -98,7 +102,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
-        Assert.assertNotNull(this.checkingAssignedForDeletionOrderList.getNext());
+        Assert.assertNotNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, order.getOrderState());
     }
@@ -124,7 +128,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).deleteInstance(Mockito.any());
-        Assert.assertNull(this.checkingAssignedForDeletionOrderList.getNext());
+        Assert.assertNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());
     }
@@ -150,7 +154,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).deleteInstance(Mockito.any());
-        Assert.assertNull(this.checkingAssignedForDeletionOrderList.getNext());
+        Assert.assertNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());
     }
@@ -175,7 +179,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
-        Assert.assertNull(this.checkingAssignedForDeletionOrderList.getNext());
+        Assert.assertNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());
     }
@@ -199,6 +203,62 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
         // exercise
         this.processor.processAssignedForDeletionOrder(order);
+    }
+
+    // test case: When calling the assignForDeletion method and throws a Throwable
+    // it must verify if It logs an error message.
+    @Test
+    public void testAssignForDeletionFailWhenThrowsThrowable() throws InterruptedException, FogbowException {
+        // set up
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+        this.assignedForDeletionOrderList.addItem(order);
+
+        Mockito.doThrow(new RuntimeException()).when(this.processor).processAssignedForDeletionOrder(Mockito.eq(order));
+
+        // exercise
+        this.processor.assignForDeletion();
+
+        // verify
+        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
+    }
+
+    // test case: When calling the assignForDeletion method and throws an UnexpectedException
+    // it must verify if It logs an error message.
+    @Test
+    public void testAssignForDeletionFailWhenThrowsUnexpectedException() throws FogbowException, InterruptedException {
+        // set up
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+        this.assignedForDeletionOrderList.addItem(order);
+
+        String errorMessage = TestUtils.ANY_VALUE;
+        UnexpectedException unexpectedException = new UnexpectedException(errorMessage);
+        Mockito.doThrow(unexpectedException).when(this.processor).processAssignedForDeletionOrder(Mockito.eq(order));
+
+        // exercise
+        this.processor.assignForDeletion();
+
+        // verify
+        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, errorMessage);
+    }
+
+    // test case: When calling the assignForDeletion method and there is no order in the processAssignedForDeletionOrder,
+    // it must verify if It does not call processAssignedForDeletionOrder.
+    @Test
+    public void testAssignForDeletionSuccessfullyWhenThereIsNoOrder()
+            throws InterruptedException, FogbowException {
+
+        // set up
+        PowerMockito.mockStatic(Thread.class);
+        PowerMockito.doNothing().when(Thread.class);
+        Thread.sleep(Mockito.anyLong());
+
+        // exercise
+        this.processor.assignForDeletion();
+
+        // verify
+        Mockito.verify(this.processor, Mockito.times(TestUtils.NEVER_RUN))
+                .processAssignedForDeletionOrder(Mockito.any(Order.class));
+        this.loggerTestChecking.verifyIfEmpty();
     }
 
 }
