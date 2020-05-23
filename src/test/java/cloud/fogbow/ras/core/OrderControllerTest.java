@@ -968,6 +968,34 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getOrder(INVALID_ORDER_ID);
     }
 
+    // test case: When calling the updateAllOrdersDependencies method,
+    // it must verify if It performs the updateOrderDependencies to each local active order.
+    @Test
+    public void testUpdateAllOrdersDependencies() throws UnexpectedException {
+        // set up
+        SystemUser systemUser = this.testUtils.createSystemUser();
+
+        Order orderRemoteActive = Mockito.spy(this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE));
+        ComputeOrder orderLocalNonActive = Mockito.spy(this.testUtils.createLocalComputeOrder());
+        ComputeOrder orderLocalActive = Mockito.spy(this.testUtils.createLocalComputeOrder());
+
+        this.activeOrdersMap.put(orderLocalActive.getId(), orderLocalActive);
+        this.fulfilledOrdersList.addItem(orderLocalActive);
+
+        // verify
+        this.ordersController.updateAllOrdersDependencies();
+
+        // exercise
+        Mockito.verify(orderLocalActive, Mockito.times(TestUtils.RUN_ONCE))
+                .isRequesterLocal(TestUtils.LOCAL_MEMBER_ID);
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE))
+                .updateOrderDependencies(Mockito.eq(orderLocalActive), Mockito.eq(Operation.CREATE));
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.NEVER_RUN))
+                .updateOrderDependencies(Mockito.eq(orderLocalNonActive), Mockito.eq(Operation.CREATE));
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.NEVER_RUN))
+                .updateOrderDependencies(Mockito.eq(orderRemoteActive), Mockito.eq(Operation.CREATE));
+    }
+
     private PublicIpOrder createFulfilledPublicIpOrder(SystemUser systemUser) throws UnexpectedException {
         PublicIpOrder publicIpOrder = new PublicIpOrder();
         publicIpOrder.setSystemUser(systemUser);

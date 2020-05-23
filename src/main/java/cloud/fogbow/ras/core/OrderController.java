@@ -344,7 +344,8 @@ public class OrderController {
         }
     }
 
-    private void updateAllOrdersDependencies() throws UnexpectedException {
+    @VisibleForTesting
+    void updateAllOrdersDependencies() throws UnexpectedException {
         Collection<Order> allOrders = this.orderHolders.getActiveOrdersMap().values();
 
         for (Order order : allOrders) {
