@@ -659,7 +659,7 @@ public class AzureAttachmentPluginTest {
     }
 
     private String createVirtualMachineId() {
-        String virtualMachineIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s";
+        String virtualMachineIdFormat = AzureResourceIdBuilder.VIRTUAL_MACHINE_STRUCTURE;
         return String.format(virtualMachineIdFormat,
                 AzureTestUtils.DEFAULT_SUBSCRIPTION_ID,
                 AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,
@@ -667,7 +667,7 @@ public class AzureAttachmentPluginTest {
     }
 
     private String createResourceId() {
-        String diskIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s";
+        String diskIdFormat = AzureResourceIdBuilder.DISK_STRUCTURE;
         return String.format(diskIdFormat,
                 AzureTestUtils.DEFAULT_SUBSCRIPTION_ID,
                 AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME,

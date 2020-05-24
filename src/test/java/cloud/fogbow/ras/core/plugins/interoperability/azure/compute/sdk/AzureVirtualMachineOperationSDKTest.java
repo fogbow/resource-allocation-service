@@ -958,14 +958,14 @@ public class AzureVirtualMachineOperationSDKTest {
     }
 
     private String createResourceId() {
-        String virtualMachineIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s";
+        String virtualMachineIdFormat = AzureResourceIdBuilder.VIRTUAL_MACHINE_STRUCTURE;
         return String.format(virtualMachineIdFormat,
                 AzureTestUtils.DEFAULT_SUBSCRIPTION_ID, this.defaultResourceGroupName,
                 AzureTestUtils.RESOURCE_NAME);
     }
 
     private String createNetworkId() {
-        String networkIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networks/%s";
+        String networkIdFormat = AzureResourceIdBuilder.NETWORK_STRUCTURE;
         return String.format(networkIdFormat,
                 AzureTestUtils.DEFAULT_SUBSCRIPTION_ID, this.defaultResourceGroupName,
                 AzureTestUtils.RESOURCE_NAME);

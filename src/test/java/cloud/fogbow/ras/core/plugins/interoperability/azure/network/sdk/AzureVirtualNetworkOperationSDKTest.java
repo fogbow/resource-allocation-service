@@ -512,7 +512,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
         String resourceName = AzureTestUtils.RESOURCE_NAME;
 
-        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
+        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.networkId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(this.resourceGroupName)
                 .withResourceName(resourceName)
@@ -544,7 +544,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
         String resourceName = AzureTestUtils.RESOURCE_NAME;
 
-        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
+        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.networkId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(this.resourceGroupName)
                 .withResourceName(resourceName)
@@ -574,7 +574,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         // set up
         AzureTestUtils.mockGetAzureClient(this.azureUser, this.azure);
         String resourceName = AzureTestUtils.RESOURCE_NAME;
-        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.virtualNetworkId()
+        String azureVirtualNetworkIdExpected = AzureResourceIdBuilder.networkId()
                 .withSubscriptionId(this.azureUser.getSubscriptionId())
                 .withResourceGroupName(this.resourceGroupName)
                 .withResourceName(resourceName)

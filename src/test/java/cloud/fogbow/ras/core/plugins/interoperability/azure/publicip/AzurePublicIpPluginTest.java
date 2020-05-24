@@ -18,7 +18,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePu
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
+
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.network.NetworkInterface;
@@ -27,6 +29,7 @@ import com.microsoft.azure.management.network.PublicIPAddress;
 import com.microsoft.azure.management.network.PublicIPAddresses;
 import com.microsoft.azure.management.network.implementation.PublicIPAddressInner;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +38,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
 import rx.Completable;
 import rx.Observable;
 
@@ -875,21 +879,21 @@ public class AzurePublicIpPluginTest {
     }
 
     private String createNetworkSecurityGroupId() {
-        String publicIPAddressIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkSecurityGroups/%s";
+        String publicIPAddressIdFormat = AzureResourceIdBuilder.NETWORK_SECURITY_GROUP_STRUCTURE;
         return String.format(publicIPAddressIdFormat,
                 AzureTestUtils.DEFAULT_SUBSCRIPTION_ID, this.defaultResourceGroupName,
                 AzureTestUtils.RESOURCE_NAME);
     }
 
     private String createVirtualMachineId() {
-        String virtualMachineIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s";
+        String virtualMachineIdFormat = AzureResourceIdBuilder.VIRTUAL_MACHINE_STRUCTURE;
         return String.format(virtualMachineIdFormat, 
                 AzureTestUtils.DEFAULT_SUBSCRIPTION_ID, this.defaultResourceGroupName,
                 AzureTestUtils.RESOURCE_NAME);
     }
 
     private String createResourceId() {
-        String publicIPAddressIdFormat = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPAddresses/%s";
+        String publicIPAddressIdFormat = AzureResourceIdBuilder.PUBLIC_IP_ADDRESS_STRUCTURE;
         return String.format(publicIPAddressIdFormat, 
                 AzureTestUtils.DEFAULT_SUBSCRIPTION_ID, this.defaultResourceGroupName,
                 AzureTestUtils.RESOURCE_NAME);

@@ -99,7 +99,7 @@ public class AzurePublicIPAddressSDKTest {
                 .mock(NetworkSecurityGroup.DefinitionStages.WithCreate.class);
         Mockito.when(withGroup.withExistingResourceGroup(Mockito.eq(resourceGroupName))).thenReturn(withCreate);
 
-        String securityRuleName = resourceName + AzurePublicIPAddressSDK.RESOURCE_NAMES_SEPARATOR + resourceName;
+        String securityRuleName = AzureTestUtils.RESOURCE_NAME;
         NetworkSecurityRule.DefinitionStages.Blank defineSecurityRule = Mockito
                 .mock(NetworkSecurityRule.DefinitionStages.Blank.class);
         Mockito.when(withCreate.defineRule(Mockito.eq(securityRuleName))).thenReturn(defineSecurityRule);
