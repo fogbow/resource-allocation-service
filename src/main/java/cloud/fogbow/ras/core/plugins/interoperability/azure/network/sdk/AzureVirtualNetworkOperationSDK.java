@@ -233,7 +233,7 @@ public class AzureVirtualNetworkOperationSDK {
 
     @VisibleForTesting
     String getAzureVirtualNetworkId(String subscriptionId, String resourceGroupName, String resourceName) {
-        return AzureResourceIdBuilder.virtualNetworkId()
+        return AzureResourceIdBuilder.networkId()
                 .withSubscriptionId(subscriptionId)
                 .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
