@@ -40,8 +40,7 @@ public class AzurePublicIPAddressSDK {
         String regionName = publicIPAddress.regionName();
         String resourceGroupName = publicIPAddress.resourceGroupName();
         String securityGroupName = publicIPAddress.name();
-        String resourceName = AzureGeneralUtil.generateResourceName();
-        String securityRuleName = securityGroupName + RESOURCE_NAMES_SEPARATOR + resourceName;
+        String securityRuleName = AzureGeneralUtil.generateResourceName();
         String ipAddress = publicIPAddress.ipAddress();
 
         return azure.networkSecurityGroups()
