@@ -197,11 +197,14 @@ public class AzureComputePluginTest {
         Mockito.doReturn(virtualNetworkName).when(this.azureComputePlugin)
                 .getVirtualNetworkResourceName(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
 
-        AzureGetImageRef imageRef = Mockito.mock(AzureGetImageRef.class);
+        String decodeImageId = "decodeImageId";
         PowerMockito.mockStatic(AzureImageOperationUtil.class);
+        PowerMockito.doReturn(decodeImageId).when(AzureImageOperationUtil.class, "decode", Mockito.eq(imageId));
+        
+        AzureGetImageRef imageRef = Mockito.mock(AzureGetImageRef.class);
         PowerMockito.doReturn(imageRef).when(AzureImageOperationUtil.class, "buildAzureVirtualMachineImageBy",
-                Mockito.eq(imageId));
-
+                Mockito.eq(decodeImageId));
+        
         String osUserPassword = "password";
         PowerMockito.mockStatic(AzureGeneralPolicy.class);
         PowerMockito.doReturn(osUserPassword).when(AzureGeneralPolicy.class, "generatePassword");

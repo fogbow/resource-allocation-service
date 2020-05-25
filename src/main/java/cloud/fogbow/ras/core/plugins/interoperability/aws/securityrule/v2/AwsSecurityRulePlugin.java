@@ -177,10 +177,10 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
             Ec2Client client) throws FogbowException {
 
         String securityGroupId = getSecurityGroupId(instanceId, resourceType, client);
-        SecurityGroup securityGroup = getSecurityGroupById(securityGroupId, client);
+        SecurityGroup sg = getSecurityGroupById(securityGroupId, client);
 
-        List inboundInstances = loadSecurityRuleInstances(instanceId, Direction.IN, securityGroup.ipPermissions());
-        List outboundInstances = loadSecurityRuleInstances(instanceId, Direction.OUT, securityGroup.ipPermissionsEgress());
+        List inboundInstances = loadSecurityRuleInstances(instanceId, resourceType, Direction.IN, sg.ipPermissions());
+        List outboundInstances = loadSecurityRuleInstances(instanceId, resourceType, Direction.OUT, sg.ipPermissionsEgress());
 
         List<SecurityRuleInstance> resultList = new ArrayList<>();
         resultList.addAll(inboundInstances);
@@ -188,8 +188,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return resultList;
     }
     
-    protected List<SecurityRuleInstance> loadSecurityRuleInstances(String instanceId, Direction direction,
-            List<IpPermission> ipPermissions) {
+    protected List<SecurityRuleInstance> loadSecurityRuleInstances(String instanceId, ResourceType resourceType,
+            Direction direction, List<IpPermission> ipPermissions) {
         
         List<SecurityRuleInstance> instancesList = new ArrayList<>();
 
@@ -199,21 +199,23 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
 
         SecurityRuleInstance instance;
         for (IpPermission ipPermission : ipPermissions) {
-            instance = buildSecurityRuleInstance(instanceId, direction, ipPermission);
+            instance = buildSecurityRuleInstance(instanceId, resourceType, direction, ipPermission);
             instancesList.add(instance);
         }
         return instancesList;
     }
     
-    protected SecurityRuleInstance buildSecurityRuleInstance(String instanceId, Direction direction,
-            IpPermission ipPermission) {
+    protected SecurityRuleInstance buildSecurityRuleInstance(String instanceId, ResourceType resourceType,
+            Direction direction, IpPermission ipPermission) {
         
         int portFrom = ipPermission.fromPort();
         int portTo = ipPermission.toPort();
         String cidr = ipPermission.ipRanges().iterator().next().cidrIp();
         Protocol protocol = getProtocolFrom(ipPermission.ipProtocol());
         EtherType etherType = EtherType.IPv4;
-        return new SecurityRuleInstance(instanceId, direction, portFrom, portTo, cidr, etherType, protocol);
+        SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
+        String id = doPackingSecurityRuleId(instanceId, securityRule, resourceType);
+        return new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
     }
     
     protected Protocol getProtocolFrom(String ipProtocol) {

@@ -78,7 +78,8 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         String resourceName = AzureGeneralUtil.generateResourceName();
         String virtualNetworkName = getVirtualNetworkResourceName(computeOrder, azureUser);
         String imageId = computeOrder.getImageId();
-        AzureGetImageRef imageRef = AzureImageOperationUtil.buildAzureVirtualMachineImageBy(imageId);
+        String decodedImageId = AzureImageOperationUtil.decode(imageId);
+        AzureGetImageRef imageRef = AzureImageOperationUtil.buildAzureVirtualMachineImageBy(decodedImageId);
         String osUserName = DEFAULT_OS_USER_NAME;
         String osUserPassword = AzureGeneralPolicy.generatePassword();
         String osComputeName = name;

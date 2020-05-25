@@ -65,7 +65,7 @@ public class Messages {
         public static final String UNABLE_TO_CREATE_NETWORK_RESERVE = "Unable to create network reserve with CIDR: <%s>." +
                 " This address range is likely in use.";
         public static final String INVALID_REGION_NAME = "The region name '%s' is invalid.";
-        public static final String NO_IMAGES_PUBLISHER = "No virtual machine images publishers specified in azure cloud.conf";
+        public static final String NO_IMAGES_PUBLISHER = "No virtual machine images publishers specified in azure cloud.conf.";
     }
 
     public static class Fatal {
@@ -241,5 +241,6 @@ public class Messages {
         public static final String ERROR_CREATE_VNET_ASYNC_BEHAVIOUR = "Error while creating virtual network asynchronously.";
         public static final String ERROR_DELETE_VNET_ASYNC_BEHAVIOUR = "Error while deleting virtual network asynchronously.";
         public static final String ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR = "Error while deleting security group asynchronously.";
+        public static final String ERROR_WHILE_LOADING_IMAGE_S = "Error while loading the following image: %s";
     }
 }

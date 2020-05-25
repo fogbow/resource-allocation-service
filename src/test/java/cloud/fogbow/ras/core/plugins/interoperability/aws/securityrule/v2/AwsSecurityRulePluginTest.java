@@ -390,11 +390,11 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
 
         SecurityRuleInstance[] ingressInstances = { buildSecurityRuleInstance(Direction.IN) };
         Mockito.doReturn(Arrays.asList(ingressInstances)).when(this.plugin).loadSecurityRuleInstances(Mockito.eq(instanceId),
-                Mockito.eq(Direction.IN), Mockito.eq(group.ipPermissions()));
+                Mockito.eq(resourceType), Mockito.eq(Direction.IN), Mockito.eq(group.ipPermissions()));
 
         SecurityRuleInstance[] egressInstances = { buildSecurityRuleInstance(Direction.OUT) };
         Mockito.doReturn(Arrays.asList(egressInstances)).when(this.plugin).loadSecurityRuleInstances(Mockito.eq(instanceId),
-                Mockito.eq(Direction.OUT), Mockito.eq(group.ipPermissionsEgress()));
+                Mockito.eq(resourceType), Mockito.eq(Direction.OUT), Mockito.eq(group.ipPermissionsEgress()));
 
         List<SecurityRuleInstance> expected = loadSecurityRuleInstancesCollection(
                 ingressInstances[AwsSecurityRulePlugin.FIRST_POSITION],
@@ -408,9 +408,9 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
                 Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupById(Mockito.eq(groupId), Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).loadSecurityRuleInstances(Mockito.eq(instanceId),
-                Mockito.eq(Direction.IN), Mockito.eq(group.ipPermissions()));
+                Mockito.eq(resourceType), Mockito.eq(Direction.IN), Mockito.eq(group.ipPermissions()));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).loadSecurityRuleInstances(Mockito.eq(instanceId),
-                Mockito.eq(Direction.OUT), Mockito.eq(group.ipPermissionsEgress()));
+                Mockito.eq(resourceType), Mockito.eq(Direction.OUT), Mockito.eq(group.ipPermissionsEgress()));
         
         Assert.assertEquals(expected, instancesList);
     }
@@ -420,6 +420,7 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
     @Test
     public void testLoadIngressRuleInstances() {
         // set up
+        ResourceType resourceType = ResourceType.NETWORK;
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
         Direction direction = Direction.OUT;
 
@@ -429,12 +430,12 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
         List<SecurityRuleInstance> expected = loadSecurityRuleInstancesCollection(instance);
 
         // exercise
-        List<SecurityRuleInstance> instancesList = this.plugin.loadSecurityRuleInstances(instanceId, direction,
-                Arrays.asList(ipPermissions));
+        List<SecurityRuleInstance> instancesList = this.plugin.loadSecurityRuleInstances(instanceId, resourceType,
+                direction, Arrays.asList(ipPermissions));
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildSecurityRuleInstance(Mockito.eq(instanceId),
-                Mockito.eq(direction), Mockito.any(IpPermission.class));
+                Mockito.eq(resourceType), Mockito.eq(direction), Mockito.any(IpPermission.class));
 
         Assert.assertEquals(expected, instancesList);
     }
