@@ -1258,6 +1258,20 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
                 Mockito.eq(cloudUser));
     }
 
+    // test case: When invoking the doGetInstance method with order in the state CHECKING_DELETION,
+    // it must throw an InstanceNotFoundException.
+    @Test(expected = InstanceNotFoundException.class)
+    public void testDoGetInstanceWhenCheckingDeletionState() throws FogbowException {
+        // set up
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getOrderState()).thenReturn(OrderState.CHECKING_DELETION);
+
+        CloudUser cloudUser = Mockito.mock(CloudUser.class);
+
+        // exercise
+        this.localCloudConnector.doGetInstance(order, cloudUser);
+    }
+
     // test case: When invoking the doGetAllImages method, it must execute the
     // getAllImages method of the image plug-in.
     @Test
