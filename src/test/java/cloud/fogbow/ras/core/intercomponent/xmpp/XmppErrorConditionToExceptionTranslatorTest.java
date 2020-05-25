@@ -156,6 +156,30 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
+    //test case: checks if "handleError" is properly forwading "OnGoingOperationException" from
+    //"throwException" when the packet error condition is equals to "resource_constraint". In addition, it checks
+    //if its message error is correct
+    @Test
+    public void testHandleErrorThrowsOnGoingOperationException() {
+        //set up
+        IQ iq = new IQ();
+        PacketError packetError = new PacketError(PacketError.Condition.resource_constraint, null, this.messageError);
+        iq.setError(packetError);
+
+        try {
+            //exercise
+            XmppErrorConditionToExceptionTranslator.handleError(iq, providerId);
+            //verify: if some exception occurred
+            Assert.fail();
+        } catch (OnGoingOperationException e) {
+            //verify: if the message is correct
+            Assert.assertEquals(this.messageError, e.getMessage());
+        } catch (Throwable e) {
+            //verify: if some exception different from the expected exception occurred
+            Assert.fail();
+        }
+    }
+
     //test case: checks if "handleError" is properly forwading "UnavailableProviderException" from
     //"throwException" when the packet error condition is equals to "remote_server_not_found". In addition, it checks
     //if its message error is correct

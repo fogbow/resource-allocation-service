@@ -70,7 +70,7 @@ public class Messages {
         public static final String INCONSISTENT_DIRECTION = "The direction(%s) is inconsistent";
         public static final String INCONSISTENT_PROTOCOL_S = "The protocol(%s) is inconsistent";
         public static final String INCONSISTENT_RANGE_S = "The range(%s) is inconsistent";
-        public static final String INSTANCE_S_ALREADY_DELETED = "Instance <%s> has already been deleted.";
+        public static final String INSTANCE_S_ALREADY_DELETED_S = "Instance <%s> has already been deleted.";
         public static final String NETWORK_NOT_FOUND = "Network id %s was not found when trying to delete it.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";

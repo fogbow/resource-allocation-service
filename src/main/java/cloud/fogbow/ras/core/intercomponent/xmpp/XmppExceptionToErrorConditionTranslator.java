@@ -38,6 +38,10 @@ public class XmppExceptionToErrorConditionTranslator {
             return PacketError.Condition.not_acceptable;
         } else if (e.getClass() == UnavailableProviderException.class) {
             return PacketError.Condition.remote_server_not_found;
+        } else if (e.getClass() == OnGoingOperationException.class) {
+            // TODO (chico) - This mapping condition must be re-examined.
+            // We could create our own conditions.
+            return PacketError.Condition.resource_constraint;
         } else if (e.getClass() == UnexpectedException.class) {
             return PacketError.Condition.internal_server_error;
         } else {

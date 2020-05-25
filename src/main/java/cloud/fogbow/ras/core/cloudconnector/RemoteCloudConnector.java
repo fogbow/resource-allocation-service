@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.OnGoingOperationException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
@@ -47,15 +48,16 @@ public class RemoteCloudConnector implements CloudConnector {
         try {
             RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
             remoteDeleteOrderRequest.send();
-        } catch (InstanceNotFoundException e) {
+        } catch (OnGoingOperationException e) {
             // This may happen if a previous delete was partially completed (successfully completed at the
-            // remote provider, but with a failure in the communication when retuning the status to the local
+            // remote provider), but with a failure in the communication when retuning the status to the local
             // provider.
-            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED, order.getId()));
+            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED_S, order.getId()));
             return;
         } catch (Exception e) {
-            LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            String exceptionMessage = e.getMessage();
+            LOGGER.error(exceptionMessage, e);
+            throw new RemoteCommunicationException(exceptionMessage, e);
         }
     }
 
