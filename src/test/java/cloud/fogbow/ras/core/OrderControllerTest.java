@@ -360,6 +360,18 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getResourceInstance(order);
     }
 
+    // test case: Checks if given an SELECTED order getResourceInstance() throws
+    // RequestStillBeingDispatchedException.
+    @Test(expected = RequestStillBeingDispatchedException.class)
+    public void testGetResourceInstanceOfSelectedOrder() throws FogbowException {
+        // set up
+        Order order = this.testUtils.createRemoteOrder(this.testUtils.getLocalMemberId());
+        order.setOrderState(OrderState.SELECTED);
+
+        // exercise
+        this.ordersController.getResourceInstance(order);
+    }
+
     // test case: Checks if given an order in the getResourceInstance method returns its instance.
     @Test
     public void testGetResourceInstance() throws Exception {
