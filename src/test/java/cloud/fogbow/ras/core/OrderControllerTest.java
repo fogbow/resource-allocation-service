@@ -15,19 +15,21 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.*;
+import org.apache.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class })
+@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class, OrderStateTransitioner.class })
 public class OrderControllerTest extends BaseUnitTests {
 
     private static final String AVAILABLE_STATE = "available";
@@ -46,6 +48,8 @@ public class OrderControllerTest extends BaseUnitTests {
     private ChainedList<Order> failedOnRequestOrdersList;
     private ChainedList<Order> checkingDeletionOrdersList;
     private ChainedList<Order> assignedForDeletionOrdersList;
+
+    private LoggerAssert loggerTestChecking = new LoggerAssert(OrderController.class);
 
     @Rule
     private ExpectedException expectedException = ExpectedException.none();
@@ -203,6 +207,49 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
+    }
+
+    // test case: Checks if closeOrder nofities a remote RAS.
+    @Test
+    public void testCloseOrderRemoteSuccessfully() throws FogbowException {
+        // set up
+        Order remoteOrder = this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE);
+
+        this.ordersController.activateOrder(remoteOrder);
+        Assert.assertEquals(OrderState.OPEN, remoteOrder.getOrderState());
+
+        PowerMockito.mockStatic(OrderStateTransitioner.class);
+
+        // exercise
+        this.ordersController.closeOrder(remoteOrder);
+
+        // verify
+        PowerMockito.verifyStatic();
+        OrderStateTransitioner.notifyRequester(Mockito.eq(remoteOrder), Mockito.eq(OrderState.CLOSED));
+    }
+
+    // test case: Checks if closeOrder logs a warning message when occurs an exception.
+    @Test
+    public void testCloseOrderRemoteFail() throws FogbowException {
+        // set up
+        Order remoteOrder = this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE);
+
+        this.ordersController.activateOrder(remoteOrder);
+        Assert.assertEquals(OrderState.OPEN, remoteOrder.getOrderState());
+
+        PowerMockito.mockStatic(OrderStateTransitioner.class);
+        PowerMockito.doThrow(new RemoteCommunicationException()).when(OrderStateTransitioner.class);
+        OrderStateTransitioner.notifyRequester(Mockito.eq(remoteOrder), Mockito.eq(OrderState.CLOSED));
+
+        String warnMessageException = String.format(
+                Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, remoteOrder.getRequester(), remoteOrder.getId());
+
+        // exercise
+        this.ordersController.closeOrder(remoteOrder);
+
+        // verify
+        this.loggerTestChecking.assertEqualsInOrder(Level.INFO, Messages.Info.ACTIVATING_NEW_REQUEST)
+                .assertEqualsInOrder(Level.WARN, warnMessageException);
     }
 
     // test case: Creates an order with dependencies and check if the order id
