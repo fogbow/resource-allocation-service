@@ -17,6 +17,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVir
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -64,13 +65,17 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.generateResourceName();
+        String resourceGroupName = AzureGeneralUtil
+                .defineResourceGroupName(azure, this.defaultRegionName, resourceName, this.defaultResourceGroupName);
+
         String subscriptionId = azureUser.getSubscriptionId();
-        String virtualMachineId = buildVirtualMachineId(subscriptionId, publicIpOrder.getComputeId());
+        String virtualMachineName = AzureGeneralUtil.defineResourceName(publicIpOrder.getComputeId());
+        String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
         
         Creatable<PublicIPAddress> publicIPAddressCreatable = azure.publicIPAddresses()
                 .define(resourceName)
                 .withRegion(this.defaultRegionName)
-                .withExistingResourceGroup(this.defaultResourceGroupName)
+                .withExistingResourceGroup(resourceGroupName)
                 .withDynamicIP();
         
         return doRequestInstance(azure, virtualMachineId, publicIPAddressCreatable);
@@ -88,7 +93,8 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, instanceId);
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+        String resourceId = buildResourceId(azure, subscriptionId, resourceName);
         
         return doGetInstance(azure, resourceId);
     }
@@ -98,12 +104,29 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, publicIpOrder.getInstanceId());
-        String virtualMachineId = buildVirtualMachineId(subscriptionId, publicIpOrder.getComputeId());
+        String resourceName = AzureGeneralUtil.defineResourceName(publicIpOrder.getInstanceId());
+        String virtualMachineName = AzureGeneralUtil.defineResourceName(publicIpOrder.getComputeId());
+        String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
         
-        doDeleteInstance(azure, resourceId, virtualMachineId);
+        if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
+            doDeleteResourceGroup(azure, resourceName, virtualMachineId);
+        } else {
+            String resourceId = buildResourceId(azure, subscriptionId, resourceName);
+            doDeleteInstance(azure, resourceId, virtualMachineId);
+        }
     }
     
+    @VisibleForTesting
+    void doDeleteResourceGroup(Azure azure, String resourceGroupName, String virtualMachineId)
+            throws FogbowException {
+
+        Observable observable = disassociateResourcesAsync(azure, virtualMachineId);
+        Completable completable = AzureResourceGroupOperationUtil
+                .deleteResourceGroupAsync(azure, resourceGroupName);
+
+        this.operation.subscribeDisassociateAndDeleteResources(observable, completable);
+    }
+
     @VisibleForTesting
     void doDeleteInstance(Azure azure, String publicIPAddressId, String virtualMachineId) throws FogbowException {
         VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
@@ -111,7 +134,7 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
         NetworkSecurityGroup networkSecurityGroup = doGetNetworkSecurityGroupFrom(networkInterface);
         String networkSecurityGroupId = networkSecurityGroup.id();
 
-        Observable observable = doDisassociateResourcesAsync(networkInterface);
+        Observable observable = doDisassociateResourcesFrom(networkInterface);
         Completable completable = doDeleteResourcesAsync(azure, publicIPAddressId, networkSecurityGroupId);
         this.operation.subscribeDisassociateAndDeleteResources(observable, completable);
     }
@@ -128,7 +151,14 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
     }
 
     @VisibleForTesting
-    Observable doDisassociateResourcesAsync(NetworkInterface networkInterface) {
+    Observable disassociateResourcesAsync(Azure azure, String virtualMachineId) throws FogbowException {
+        VirtualMachine virtualMachine = doGetVirtualMachineSDK(azure, virtualMachineId);
+        NetworkInterface networkInterface = doGetPrimaryNetworkInterfaceFrom(virtualMachine);
+        return doDisassociateResourcesFrom(networkInterface);
+    }
+
+    @VisibleForTesting
+    Observable doDisassociateResourcesFrom(NetworkInterface networkInterface) {
         Observable<NetworkInterface> disassociateNetworkSecurityGroup = AzurePublicIPAddressSDK
                 .disassociateNetworkSecurityGroupAsync(networkInterface);
 
@@ -175,10 +205,13 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
     }
 
     @VisibleForTesting
-    String buildResourceId(String subscriptionId, String resourceName) {
+    String buildResourceId(Azure azure, String subscriptionId, String resourceName) {
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
+
         String resourceIdUrl = AzureResourceIdBuilder.publicIpAddressId()
                 .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
                 .build();
 
@@ -195,11 +228,10 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
         Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
                 .associatePublicIPAddressAsync(networkInterface, publicIPAddressCreatable);
 
-        String resourceId = publicIPAddressCreatable.name();
-        String instanceId = AzureGeneralUtil.defineInstanceId(resourceId);
+        String resourceName = publicIPAddressCreatable.name();
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
         Runnable finishCreationCallback = startInstanceCreation(instanceId);
-        this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable, finishCreationCallback);
-
+        this.operation.subscribeAssociatePublicIPAddress(azure, resourceName, observable, finishCreationCallback);
         return instanceId;
     }
 
@@ -211,10 +243,13 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
     }
     
     @VisibleForTesting
-    String buildVirtualMachineId(String subscriptionId, String resourceName) {
+    String buildVirtualMachineId(Azure azure, String subscriptionId, String resourceName) {
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
+
         String resourceIdUrl = AzureResourceIdBuilder.virtualMachineId()
                 .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
                 .build();
 
