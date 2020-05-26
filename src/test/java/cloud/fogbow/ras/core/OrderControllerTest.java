@@ -11,6 +11,7 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
+import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -21,6 +22,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -29,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class, OrderStateTransitioner.class })
+@PrepareForTest({CloudConnectorFactory.class, DatabaseManager.class, OrderStateTransitioner.class})
 public class OrderControllerTest extends BaseUnitTests {
 
     private static final String AVAILABLE_STATE = "available";
@@ -181,7 +183,7 @@ public class OrderControllerTest extends BaseUnitTests {
         String expected = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
 
         this.ordersController.activateOrder(order);
-        
+
         // exercise
         this.ordersController.closeOrder(order);
         try {
@@ -201,7 +203,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         this.ordersController.activateOrder(order);
         Assert.assertEquals(OrderState.OPEN, order.getOrderState());
-        
+
         // exercise
         this.ordersController.closeOrder(order);
 
@@ -300,14 +302,14 @@ public class OrderControllerTest extends BaseUnitTests {
 
         this.ordersController.activateOrder(computeOrder);
         Assert.assertSame(computeOrder, this.openOrdersList.getNext());
-        
+
         this.ordersController.activateOrder(volumeOrder);
         Assert.assertSame(volumeOrder, this.openOrdersList.getNext());
 
         AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
         this.ordersController.activateOrder(attachmentOrder);
         Assert.assertSame(attachmentOrder, this.openOrdersList.getNext());
-        
+
         Assert.assertNull(this.checkingDeletionOrdersList.getNext());
 
         // exercise part 1
@@ -323,13 +325,13 @@ public class OrderControllerTest extends BaseUnitTests {
         // exercise part 2
         this.ordersController.deleteOrder(volumeOrder);
         this.ordersController.deleteOrder(computeOrder);
-        
+
         // verify part 2
         Assert.assertNull(this.openOrdersList.getNext());
 
         VolumeOrder testVolumeOrder = (VolumeOrder) this.assignedForDeletionOrdersList.getNext();
         Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, testVolumeOrder.getOrderState());
-        
+
         ComputeOrder testComputeOrder = (ComputeOrder) this.assignedForDeletionOrdersList.getNext();
         Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, testComputeOrder.getOrderState());
     }
@@ -467,7 +469,8 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     // test case: Checks if given an remote order in the getResourceInstance method returns its instance.
-    @Test public void testRemoteGetResourceInstance() throws FogbowException {
+    @Test
+    public void testRemoteGetResourceInstance() throws FogbowException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         order.setOrderState(OrderState.FULFILLED);
@@ -536,13 +539,13 @@ public class OrderControllerTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserComputeAllocation(Mockito.eq(orders));
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
-        
+
         Assert.assertEquals(expectedCpuValue, allocation.getvCPU());
         Assert.assertEquals(expectedMemoryValue, allocation.getRam());
         Assert.assertEquals(expectedInstancesValue, allocation.getInstances());
         Assert.assertEquals(expectedDiskValue, allocation.getDisk());
     }
-    
+
     // test case: Tests if the getUserAllocation method returns the
     // VolumeAllocation properly.
     @Test
@@ -581,7 +584,7 @@ public class OrderControllerTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).getUserVolumeAllocation(Mockito.eq(orders));
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE)).castOrders(Mockito.anyListOf(Order.class));
-        
+
         Assert.assertEquals(expectedValue, allocation.getStorage());
     }
 
@@ -1012,6 +1015,50 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, order.getOrderState());
     }
 
+    // test case: Checks if deleting an open order, this one will be moved to the assignedForDeletion orders list
+    // even though a deleteInstance method has thrown an FogbowException.
+    @Test
+    public void testDeleteOrderStateOpenAndOccurAnException()
+            throws Exception {
+        // set up
+        String orderId = setupOrder(OrderState.OPEN);
+        ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+        computeOrder.setProvider(TestUtils.ANY_VALUE);
+
+        FogbowException fogbowExceptionExpected = new FogbowException();
+        RemoteCloudConnector removeCloudConnector = Mockito.mock(RemoteCloudConnector.class);
+        Mockito.doThrow(fogbowExceptionExpected).when(removeCloudConnector).deleteInstance(Mockito.eq(computeOrder));
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(
+                Mockito.eq(computeOrder.getProvider()), Mockito.eq(computeOrder.getCloudName())))
+                .thenReturn(removeCloudConnector);
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        // verify
+        Assert.assertNotNull(this.openOrdersList.getNext());
+        Assert.assertNull(this.assignedForDeletionOrdersList.getNext());
+
+        // exercise
+        try {
+            this.ordersController.deleteOrder(computeOrder);
+            Assert.fail();
+        } catch (FogbowException e) {
+            Assert.assertEquals(fogbowExceptionExpected.getCause(), e.getCause());
+            Assert.assertEquals(fogbowExceptionExpected.getMessage(), e.getMessage());
+        }
+
+        // verify
+        Order order = this.assignedForDeletionOrdersList.getNext();
+        Assert.assertNull(this.openOrdersList.getNext());
+        Assert.assertNotNull(order);
+        Assert.assertEquals(computeOrder, order);
+        Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, order.getOrderState());
+        Mockito.verify(removeCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
+                .deleteInstance(Mockito.eq(computeOrder));
+    }
+
     // test case: Deleting a null order must return a UnexpectedException.
     @Test(expected = UnexpectedException.class) // verify
     public void testDeleteNullOrder()
@@ -1032,8 +1079,6 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testUpdateAllOrdersDependencies() throws UnexpectedException {
         // set up
-        SystemUser systemUser = this.testUtils.createSystemUser();
-
         Order orderRemoteActive = Mockito.spy(this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE));
         ComputeOrder orderLocalNonActive = Mockito.spy(this.testUtils.createLocalComputeOrder());
         ComputeOrder orderLocalActive = Mockito.spy(this.testUtils.createLocalComputeOrder());
@@ -1074,7 +1119,7 @@ public class OrderControllerTest extends BaseUnitTests {
         volumeOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return volumeOrder;
     }
-    
+
     private NetworkOrder createFulfilledNetworkOrder(SystemUser systemUser) throws UnexpectedException {
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setSystemUser(systemUser);
@@ -1084,7 +1129,7 @@ public class OrderControllerTest extends BaseUnitTests {
         networkOrder.setCloudName(TestUtils.DEFAULT_CLOUD_NAME);
         return networkOrder;
     }
-    
+
     private ComputeOrder createFulfilledComputeOrder(SystemUser systemUser) throws UnexpectedException {
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setSystemUser(systemUser);
@@ -1125,28 +1170,28 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(orderId, computeOrder);
 
         switch (orderState) {
-        case OPEN:
-            this.openOrdersList.addItem(computeOrder);
-            break;
-        case PENDING:
-            this.pendingOrdersList.addItem(computeOrder);
-            break;
-        case SPAWNING:
-            this.spawningOrdersList.addItem(computeOrder);
-            break;
-        case FULFILLED:
-            this.fulfilledOrdersList.addItem(computeOrder);
-            break;
-        case FAILED_AFTER_SUCCESSFUL_REQUEST:
-            this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder);
-            break;
-        case FAILED_ON_REQUEST:
-            this.failedOnRequestOrdersList.addItem(computeOrder);
-            break;
-        case CHECKING_DELETION:
-            this.checkingDeletionOrdersList.addItem(computeOrder);
-        default:
-            break;
+            case OPEN:
+                this.openOrdersList.addItem(computeOrder);
+                break;
+            case PENDING:
+                this.pendingOrdersList.addItem(computeOrder);
+                break;
+            case SPAWNING:
+                this.spawningOrdersList.addItem(computeOrder);
+                break;
+            case FULFILLED:
+                this.fulfilledOrdersList.addItem(computeOrder);
+                break;
+            case FAILED_AFTER_SUCCESSFUL_REQUEST:
+                this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder);
+                break;
+            case FAILED_ON_REQUEST:
+                this.failedOnRequestOrdersList.addItem(computeOrder);
+                break;
+            case CHECKING_DELETION:
+                this.checkingDeletionOrdersList.addItem(computeOrder);
+            default:
+                break;
         }
 
         return orderId;
