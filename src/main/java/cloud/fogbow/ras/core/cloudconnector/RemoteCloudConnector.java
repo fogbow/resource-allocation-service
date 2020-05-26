@@ -48,12 +48,6 @@ public class RemoteCloudConnector implements CloudConnector {
         try {
             RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
             remoteDeleteOrderRequest.send();
-        } catch (OnGoingOperationException e) {
-            // This may happen if a previous delete was partially completed (successfully completed at the
-            // remote provider), but with a failure in the communication when retuning the status to the local
-            // provider.
-            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED_S, order.getId()));
-            return;
         } catch (Exception e) {
             String exceptionMessage = e.getMessage();
             LOGGER.error(exceptionMessage, e);

@@ -84,30 +84,6 @@ public class RemoteCloudConnectorTest extends TestUtils {
         this.remoteCloudConnector.deleteInstance(order);
     }
 
-    // test case: When calling the deleteInstance method and occurs an OnGoingOperationException in the communication,
-    // it must verify if It just logs a message.
-    @Test
-    public void testDeleteInstanceFailWhenThrowAnOnGoingOperationException() throws Exception {
-        // set up
-        ComputeOrder order = this.createLocalComputeOrder();
-        PacketSender packetSender = buildPacketSender();
-        IQ IQResponse = Mockito.mock(IQ.class);
-        Mockito.when(packetSender.syncSendPacket(Mockito.any(Packet.class))).thenReturn(IQResponse);
-
-        OnGoingOperationException onGoingOperationException = new OnGoingOperationException(TestUtils.ANY_VALUE);
-        PowerMockito.mockStatic(XmppErrorConditionToExceptionTranslator.class);
-        PowerMockito.doThrow(onGoingOperationException).when(XmppErrorConditionToExceptionTranslator.class);
-        XmppErrorConditionToExceptionTranslator.handleError(Mockito.eq(IQResponse), Mockito.eq(order.getProvider()));
-
-        String exceptionMessageExpected = String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED_S, order.getId());
-
-        // exercise
-        this.remoteCloudConnector.deleteInstance(order);
-
-        // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, exceptionMessageExpected);
-    }
-
     private PacketSender buildPacketSender() {
         PacketSender packetSender = Mockito.mock(PacketSender.class);
         PowerMockito.mockStatic(PacketSenderHolder.class);

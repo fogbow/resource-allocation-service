@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.ras.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xmpp.packet.IQ;
@@ -150,19 +149,6 @@ public class XmppExceptionToErrorConditionTranslatorTest {
         XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         // verify
         Assert.assertEquals(message, response.getError().getText());
-    }
-
-    // test case: checks if "updateErrorCondition" sets PacketError condition to
-    // resource_constraint when the exception is equal to OnGoingOperationException
-    @Test
-    public void testUpdateErrorWhenOnGoingOperationException() {
-        // set up
-        IQ response = new IQ();
-        Throwable e = new OnGoingOperationException(TestUtils.ANY_VALUE);
-        // exercise
-        XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
-        // verify
-        Assert.assertEquals(response.getError().getCondition(), PacketError.Condition.resource_constraint);
     }
 
 }

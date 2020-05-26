@@ -35,8 +35,6 @@ public class XmppErrorConditionToExceptionTranslator {
                 throw new UnavailableProviderException(message);
             case internal_server_error:
                 throw new UnexpectedException(message);
-            case resource_constraint:
-                throw new OnGoingOperationException(message);
             default:
                 throw new Exception(message);
         }
