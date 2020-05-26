@@ -1,16 +1,13 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.OnGoingOperationException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
-import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import org.apache.log4j.Level;
 import org.jamppa.component.PacketSender;
 import org.junit.Before;
 import org.junit.Rule;
