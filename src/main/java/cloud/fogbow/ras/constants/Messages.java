@@ -21,6 +21,8 @@ public class Messages {
         public static final String INVALID_CIDR_FORMAT = "The cidr %s does not follow the expected format";
         public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
         public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
+        public static final String MALFORMED_GENERIC_REQUEST_URL = "Malformed generic request URL <%s>";
+        public static final String MANY_NETWORKS_NOT_ALLOWED = "This cloud does not allow connection to more than one network.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
         public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
         public static final String NO_MATCHING_FLAVOR = "No matching flavor.";
@@ -35,6 +37,7 @@ public class Messages {
         public static final String REQUEST_ID_ALREADY_ACTIVATED = "Request %s has already been activated.";
         public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
+        public static final String RESOURCE_GROUP_LIMIT_EXCEEDED = "Resource group limit exceeded.";
         public static final String RESOURCE_TYPE_NOT_COMPATIBLE_S = "Resource type not compatible with %s request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
         public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
@@ -72,6 +75,7 @@ public class Messages {
         public static final String INCONSISTENT_RANGE_S = "The range(%s) is inconsistent";
         public static final String INSTANCE_S_ALREADY_DELETED = "Instance <%s> has already been deleted.";
         public static final String NETWORK_NOT_FOUND = "Network id %s was not found when trying to delete it.";
+        public static final String RESOURCE_CREATION_FAILED_S = "Resource creation failed: %s";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";
         public static final String UNABLE_TO_DECODE_URL = "Unable to decode url %s.";
@@ -134,6 +138,7 @@ public class Messages {
         public static final String XMPP_HANDLERS_SET = "XMPP handlers set.";
         public static final String ASYNCHRONOUS_PUBLIC_IP_STATE =
                 "The asynchronous public ip request %s is in the state %s.";
+        public static final String CHANGE_TO_DEFAULT_RESOURCE_GROUP = "Changing to the default resource group";
         public static final String CREATING_AZURE_CLIENT = "Creating a new Azure client";
         public static final String SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME =
                 "Seek for the Virtual Machine Size by name %s at region %s";

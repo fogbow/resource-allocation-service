@@ -35,7 +35,6 @@ import java.util.*;
 public class AzureImagePluginTest extends AzureTestUtils {
     private static final String IMAGE_SUMMARY_NAME = "image-summary-name";
     private static final String IMAGE_SUMMARY_ID = "image-summary-id";
-    private String defaultRegionName;
     private AzureImagePlugin plugin;
     private AzureImageOperation operation;
     private AzureUser azureUser;
@@ -52,7 +51,6 @@ public class AzureImagePluginTest extends AzureTestUtils {
                 + AzureTestUtils.AZURE_CLOUD_NAME + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.properties = PropertiesUtil.readProperties(azureConfFilePath);
-        this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.plugin = Mockito.spy(new AzureImagePlugin(azureConfFilePath));
         this.operation = Mockito.mock(AzureImageOperation.class);
         this.plugin.setAzureImageOperation(this.operation);
