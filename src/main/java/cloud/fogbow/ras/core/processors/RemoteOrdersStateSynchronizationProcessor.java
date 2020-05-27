@@ -84,7 +84,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
             try {
                 // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
                 RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
-                        CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
+                        CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
                 remoteInstance = remoteCloudConnector.getInstance(order);
                 if (order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION) &&
                         !remoteInstance.getState().equals(InstanceState.DELETING)) {

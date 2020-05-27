@@ -55,21 +55,17 @@ public class RemoteFacade {
     public Instance getResourceInstance(String requestingProvider, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting provider.
-        synchronized (order) {
-            checkOrderConsistency(requestingProvider, order);
-            authorizeOrder(systemUser, order.getCloudName(), Operation.GET, resourceType, order);
-            return this.orderController.getResourceInstance(order);
-        }
+        checkOrderConsistency(requestingProvider, order);
+        authorizeOrder(systemUser, order.getCloudName(), Operation.GET, resourceType, order);
+        return this.orderController.getResourceInstance(order);
     }
 
     public void deleteOrder(String requestingProvider, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting provider.
-        synchronized (order) {
-            checkOrderConsistency(requestingProvider, order);
-            authorizeOrder(systemUser, order.getCloudName(), Operation.DELETE, resourceType, order);
-            this.orderController.deleteOrder(order);
-        }
+        checkOrderConsistency(requestingProvider, order);
+        authorizeOrder(systemUser, order.getCloudName(), Operation.DELETE, resourceType, order);
+        this.orderController.deleteOrder(order);
     }
 
     public Quota getUserQuota(String requestingProvider, String cloudName, SystemUser systemUser) throws FogbowException {
@@ -102,23 +98,19 @@ public class RemoteFacade {
     public String createSecurityRule(String requestingProvider, String orderId, SecurityRule securityRule,
                                      SystemUser systemUser) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
-        synchronized (order) {
-            checkOrderConsistency(requestingProvider, order);
-            // The user has already been authenticated by the requesting provider.
-            this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName(), order));
-            return securityRuleController.createSecurityRule(order, securityRule, systemUser);
-        }
+        checkOrderConsistency(requestingProvider, order);
+        // The user has already been authenticated by the requesting provider.
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName(), order));
+        return securityRuleController.createSecurityRule(order, securityRule, systemUser);
     }
 
     public List<SecurityRuleInstance> getAllSecurityRules(String requestingProvider, String orderId,
                                                           SystemUser systemUser) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
-        synchronized (order) {
-            checkOrderConsistency(requestingProvider, order);
-            // The user has already been authenticated by the requesting provider.
-            this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName(), order));
-            return securityRuleController.getAllSecurityRules(order, systemUser);
-        }
+        checkOrderConsistency(requestingProvider, order);
+        // The user has already been authenticated by the requesting provider.
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName(), order));
+        return securityRuleController.getAllSecurityRules(order, systemUser);
     }
 
     public void deleteSecurityRule(String requestingProvider, String cloudName, String ruleId,
@@ -166,25 +158,29 @@ public class RemoteFacade {
 
     private void checkOrderConsistency(String requestingProvider, Order order) throws UnexpectedException,
             InvalidParameterException {
-        if (order == null || !order.getProvider().equals(this.localProviderId)) {
-            throw new UnexpectedException(Messages.Exception.INCORRECT_PROVIDER);
-        }
-        if (!order.getRequester().equals(requestingProvider)) {
-            throw new InvalidParameterException(Messages.Exception.INCORRECT_REQUESTING_PROVIDER);
+        synchronized (order) {
+            if (order == null || !order.getProvider().equals(this.localProviderId)) {
+                throw new UnexpectedException(Messages.Exception.INCORRECT_PROVIDER);
+            }
+            if (!order.getRequester().equals(requestingProvider)) {
+                throw new InvalidParameterException(Messages.Exception.INCORRECT_REQUESTING_PROVIDER);
+            }
         }
     }
 
     protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
                                   Order order) throws UnexpectedException, UnauthorizedRequestException,
-            InstanceNotFoundException {
-        // Check if requested type matches order type
-        if (!order.getType().equals(type))
-            throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
-        // Check whether requester owns order
-        SystemUser orderOwner = order.getSystemUser();
-        if (!orderOwner.equals(requester)) {
-            throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
+                                  InstanceNotFoundException {
+        synchronized (order) {
+            // Check if requested type matches order type
+            if (!order.getType().equals(type))
+                throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
+            // Check whether requester owns order
+            SystemUser orderOwner = order.getSystemUser();
+            if (!orderOwner.equals(requester)) {
+                throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
+            }
+            this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));
         }
-        this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));
     }
 }

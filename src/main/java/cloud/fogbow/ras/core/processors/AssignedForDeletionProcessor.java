@@ -84,7 +84,7 @@ public class AssignedForDeletionProcessor implements Runnable {
             // the cost of safe programming is low).
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.ASSIGNED_FOR_DELETION)) {
-                // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
+                // This can only happen if the order is deleted before it has changed to REMOTE
                 OrderStateTransitioner.transition(order, OrderState.REMOTE);
                 LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;

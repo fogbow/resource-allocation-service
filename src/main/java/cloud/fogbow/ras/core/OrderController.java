@@ -139,25 +139,29 @@ public class OrderController {
             if (order.getOrderState().equals(OrderState.SELECTED)) {
                 // This only happens if the provider fails between selecting the order and saving the new state.
                 // It means that there might be some "garbage" left in the cloud. The Fogbow node admin should
-                // take the required actions to remove such garbage.
+                // take the required actions to remove such garbage. The log below can help in identifying this
+                // kind of problem.
                 LOGGER.warn(String.format(Messages.Warn.REMOVING_ORDER_IN_SELECT_STATE_S, order.toString()));
             }
-            try {
-                if (order.isProviderRemote(this.localProviderId)) {
+            if (order.isProviderRemote(this.localProviderId)) {
+                // This is just to make sure the remote provider order will be moved to the remoteProviderOrders
+                // list (if it is not already there)
+                OrderStateTransitioner.transition(order, OrderState.REMOTE);
+                // This changes the state of the order without removing ot from the remoteProviderOrders list
+                order.setOrderState(OrderState.ASSIGNED_FOR_DELETION);
+                try {
                     // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
                     RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
                             CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
                     remoteCloudConnector.deleteInstance(order);
+                } catch (Exception e) {
+                    // Here we do not know whether the deleteOrder() has been executed or not at the remote site.
+                    // We return to the user as if deletion is on its way and try to figure out what is going on in
+                    // the RemoteOrdersStateSynchronization processor.
+                    LOGGER.warn(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER);
                 }
+            } else {
                 OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
-            } catch (OnGoingOperationException | DependencyDetectedException e) {
-                throw e;
-            } catch (Exception e) {
-                // Here we do not know whether the deleteOrder() has been executed or not at the remote site.
-                // We signal to the user that deletion is on its way and try to figure out what is going on in
-                // the RemoteOrdersStateSynchronization processor.
-                OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
-                LOGGER.warn(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER);
             }
         }
     }
