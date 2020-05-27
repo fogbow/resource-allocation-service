@@ -15,6 +15,7 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeOperationSDK;
@@ -64,12 +65,15 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.generateResourceName();
+        String resourceGroupName = AzureGeneralUtil
+                .defineResourceGroupName(azure, this.defaultRegionName, resourceName, this.defaultResourceGroupName);
+
         int sizeInGB = volumeOrder.getVolumeSize();
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, volumeOrder.getName());
         
         Creatable<Disk> diskCreatable = azure.disks().define(resourceName)
                 .withRegion(this.defaultRegionName)
-                .withExistingResourceGroup(this.defaultResourceGroupName)
+                .withExistingResourceGroup(resourceGroupName)
                 .withData()
                 .withSizeInGB(sizeInGB)
                 .withTags(tags);
@@ -89,9 +93,11 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
+
         String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, resourceName);
-        
+        String resourceId = buildResourceId(subscriptionId, resourceGroupName, resourceName);
         return doGetInstance(azure, resourceId);
     }
     
@@ -100,15 +106,27 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
-        String subscriptionId = azureUser.getSubscriptionId();
-        String resourceId = buildResourceId(subscriptionId, resourceName);
         
-        doDeleteInstance(azure, resourceId); 
+        if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
+            doDeleteResourceGroup(azure, resourceName);
+        } else {
+            String subscriptionId = azureUser.getSubscriptionId();
+            String resourceId = buildResourceId(subscriptionId, this.defaultResourceGroupName, resourceName);
+            doDeleteInstance(azure, resourceId);
+        }
     }
 
     @VisibleForTesting
     void doDeleteInstance(Azure azure, String resourceId) throws FogbowException {
         Completable completable = AzureVolumeSDK.buildDeleteDiskCompletable(azure, resourceId);
+        this.operation.subscribeDeleteDisk(completable);
+    }
+
+    @VisibleForTesting
+    void doDeleteResourceGroup(Azure azure, String resourceGroupName) {
+        Completable completable = AzureResourceGroupOperationUtil
+                .deleteResourceGroupAsync(azure, resourceGroupName);
+
         this.operation.subscribeDeleteDisk(completable);
     }
 
@@ -131,10 +149,10 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
     }
 
     @VisibleForTesting
-    String buildResourceId(String subscriptionId, String resourceName) {
+    String buildResourceId(String subscriptionId, String resourceGroupName, String resourceName) {
         String resourceId = AzureResourceIdBuilder.diskId()
                 .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
                 .build();
         

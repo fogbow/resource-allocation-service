@@ -9,8 +9,10 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.Network;
@@ -18,13 +20,16 @@ import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.implementation.VirtualNetworkInner;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+
 import org.apache.log4j.Logger;
+
 import rx.Completable;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 import javax.annotation.Nullable;
+
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +38,7 @@ public class AzureVirtualNetworkOperationSDK {
 
     private static final Logger LOGGER = Logger.getLogger(AzureVirtualNetworkOperationSDK.class);
 
-    private final String resourceGroupName;
+    private final String defaultResourceGroupName;
     private Scheduler scheduler;
     private final String regionName;
 
@@ -42,7 +47,7 @@ public class AzureVirtualNetworkOperationSDK {
         this.scheduler = Schedulers.from(virtualMachineExecutor);
 
         this.regionName = regionName;
-        this.resourceGroupName = defaultResourceGroupName;
+        this.defaultResourceGroupName = defaultResourceGroupName;
     }
 
     public void doCreateInstance(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
@@ -82,13 +87,15 @@ public class AzureVirtualNetworkOperationSDK {
 
     @VisibleForTesting
     Observable<Indexable> buildCreateSecurityGroupObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, Azure azure) {
-        String name = azureCreateVirtualNetworkRef.getResourceName();
-        String resourceGroupName = this.resourceGroupName;
+        String resourceName = azureCreateVirtualNetworkRef.getResourceName();
+        String resourceGroupName = AzureGeneralUtil
+                .defineResourceGroupName(azure, this.regionName, resourceName, this.defaultResourceGroupName);
+
         String cidr = azureCreateVirtualNetworkRef.getCidr();
         Region region = Region.findByLabelOrName(this.regionName);
         Map tags = azureCreateVirtualNetworkRef.getTags();
 
-        return AzureNetworkSDK.createSecurityGroupAsync(azure, name, region, resourceGroupName, cidr, tags);
+        return AzureNetworkSDK.createSecurityGroupAsync(azure, resourceName, region, resourceGroupName, cidr, tags);
     }
 
 
@@ -98,17 +105,20 @@ public class AzureVirtualNetworkOperationSDK {
                                            Azure azure) {
 
         NetworkSecurityGroup networkSecurityGroup = (NetworkSecurityGroup) indexableSecurityGroup;
-        String name = azureCreateVirtualNetworkRef.getResourceName();
-        String resourceGroupName = this.resourceGroupName;
+        String resourceName = azureCreateVirtualNetworkRef.getResourceName();
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
+
         String cidr = azureCreateVirtualNetworkRef.getCidr();
         Region region = Region.findByLabelOrName(this.regionName);
         Map tags = azureCreateVirtualNetworkRef.getTags();
 
         AzureNetworkSDK.createNetworkSync(
-                azure, name, region, resourceGroupName, cidr, networkSecurityGroup, tags);
+                azure, resourceName, region, resourceGroupName, cidr, networkSecurityGroup, tags);
     }
 
-    private void subscribeVirtualNetworkCreation(Observable<Indexable> virtualNetworkObservable) {
+    @VisibleForTesting
+    void subscribeVirtualNetworkCreation(Observable<Indexable> virtualNetworkObservable) {
         virtualNetworkObservable
                 .subscribeOn(this.scheduler)
                 .subscribe();
@@ -146,15 +156,12 @@ public class AzureVirtualNetworkOperationSDK {
 
     @VisibleForTesting
     Network getNetwork(String resourceName, AzureUser azureUser) throws FogbowException {
-
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-
         String subscriptionId = azureUser.getSubscriptionId();
-        String azureVirtualNetworkId = AzureResourceIdBuilder.virtualNetworkId()
-                .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.resourceGroupName)
-                .withResourceName(resourceName)
-                .build();
+        String resourceGroupName = AzureGeneralUtil
+                .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
+
+        String azureVirtualNetworkId = getAzureVirtualNetworkId(subscriptionId, resourceGroupName, resourceName);
 
         return AzureNetworkSDK
                 .getNetwork(azure, azureVirtualNetworkId)
@@ -164,15 +171,28 @@ public class AzureVirtualNetworkOperationSDK {
     public void doDeleteInstance(String resourceName, AzureUser azureUser) throws FogbowException {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
 
-        String azureVirtualNetworkId = getAzureVirtualNetworkId(resourceName, azureUser);
-        Completable firstDeleteVirtualNetwork = buildDeleteVirtualNetworkCompletable(azure, azureVirtualNetworkId);
+        if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
+            Completable deteteResourceGroupCompletable = AzureResourceGroupOperationUtil
+                    .deleteResourceGroupAsync(azure, resourceName);
 
-        String azureSecurityGroupId = getAzureNetworkSecurityGroupId(resourceName, azureUser);
-        Completable secondDeleteSecurityGroup = buildDeleteSecurityGroupCompletable(azure, azureSecurityGroupId);
+            setDeleteVirtualNetworkBehaviour(deteteResourceGroupCompletable)
+                    .subscribeOn(this.scheduler)
+                    .subscribe();
+        } else {
+            String subscriptionId = azureUser.getSubscriptionId();
+            String resourceGroupName = AzureGeneralUtil
+                    .selectResourceGroupName(azure, resourceName, this.defaultResourceGroupName);
 
-        Completable.concat(firstDeleteVirtualNetwork, secondDeleteSecurityGroup)
-                .subscribeOn(this.scheduler)
-                .subscribe();
+            String azureVirtualNetworkId = getAzureVirtualNetworkId(subscriptionId, resourceGroupName, resourceName);
+            Completable firstDeleteVirtualNetwork = buildDeleteVirtualNetworkCompletable(azure, azureVirtualNetworkId);
+
+            String azureSecurityGroupId = getAzureNetworkSecurityGroupId(subscriptionId, resourceGroupName, resourceName);
+            Completable secondDeleteSecurityGroup = buildDeleteSecurityGroupCompletable(azure, azureSecurityGroupId);
+
+            Completable.concat(firstDeleteVirtualNetwork, secondDeleteSecurityGroup)
+                    .subscribeOn(this.scheduler)
+                    .subscribe();
+        }
     }
 
     @VisibleForTesting
@@ -211,20 +231,20 @@ public class AzureVirtualNetworkOperationSDK {
                 });
     }
 
-    private String getAzureVirtualNetworkId(String resourceName, AzureUser azureUser) {
-        String subscriptionId = azureUser.getSubscriptionId();
-        return AzureResourceIdBuilder.virtualNetworkId()
+    @VisibleForTesting
+    String getAzureVirtualNetworkId(String subscriptionId, String resourceGroupName, String resourceName) {
+        return AzureResourceIdBuilder.networkId()
                 .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.resourceGroupName)
+                .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
                 .build();
     }
 
-    private String getAzureNetworkSecurityGroupId(String resourceName, AzureUser azureUser) {
-        String subscriptionId = azureUser.getSubscriptionId();
+    @VisibleForTesting
+    String getAzureNetworkSecurityGroupId(String subscriptionId, String resourceGroupName, String resourceName) {
         return AzureResourceIdBuilder.networkSecurityGroupId()
                 .withSubscriptionId(subscriptionId)
-                .withResourceGroupName(this.resourceGroupName)
+                .withResourceGroupName(resourceGroupName)
                 .withResourceName(resourceName)
                 .build();
     }

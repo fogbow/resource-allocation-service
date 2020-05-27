@@ -360,7 +360,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.spawningOrderList.addItem(order);
 
         this.processor = new SpawningProcessor(TestUtils.FAKE_REMOTE_MEMBER_ID,
-                ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME);
+                ConfigurationPropertyDefaults.UNABLE_TO_CHECK_ORDERS_SLEEP_TIME);
 
         // exercise
         this.processor.processSpawningOrder(order);

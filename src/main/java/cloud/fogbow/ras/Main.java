@@ -2,6 +2,7 @@ package cloud.fogbow.ras;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
@@ -97,7 +98,7 @@ public class Main implements ApplicationRunner {
                     }
                 }
             }
-        } catch (FatalErrorException errorException) {
+        } catch (FatalErrorException | UnexpectedException errorException) {
             LOGGER.fatal(errorException.getMessage(), errorException);
             tryExit();
         }

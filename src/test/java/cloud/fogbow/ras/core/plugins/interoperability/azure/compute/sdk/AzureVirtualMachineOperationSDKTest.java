@@ -15,6 +15,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.Az
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureNetworkSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
 import com.microsoft.azure.Page;
 import com.microsoft.azure.PagedList;
@@ -22,6 +25,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.compute.VirtualMachineSizeTypes;
+import com.microsoft.azure.management.compute.implementation.VirtualMachineInner;
 import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.network.NetworkInterface;
 import com.microsoft.azure.management.network.Subnet;
@@ -52,7 +56,9 @@ import java.util.*;
 @PrepareForTest({
     Azure.class,
     AzureClientCacheManager.class,
+    AzureGeneralUtil.class,
     AzureNetworkSDK.class,
+    AzureResourceGroupOperationUtil.class,
     AzureVirtualMachineSDK.class,
     AzureVolumeSDK.class
 })
@@ -60,20 +66,23 @@ public class AzureVirtualMachineOperationSDKTest {
 
     private static final Logger LOGGER_CLASS_MOCK = Logger.getLogger(AzureVirtualMachineOperationSDK.class);
 
+    private LoggerAssert loggerAssert = new LoggerAssert(AzureVirtualMachineOperationSDK.class);
+    private AzureVirtualMachineOperationSDK operation;
+    private AzureUser azureUser;
+    private String regionName;
+    private String defaultResourceGroupName;
+
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
-    private LoggerAssert loggerAssert = new LoggerAssert(AzureVirtualMachineOperationSDK.class);
-    private AzureVirtualMachineOperationSDK azureVirtualMachineOperationSDK;
-    private AzureUser azureCloudUser;
-    private Azure azure;
-
     @Before
     public void setUp() {
-        this.azureVirtualMachineOperationSDK =
-                Mockito.spy(new AzureVirtualMachineOperationSDK(AzureTestUtils.DEFAULT_REGION_NAME));
-        this.azureCloudUser = Mockito.mock(AzureUser.class);
-        this.azure = null;
+        this.azureUser = AzureTestUtils.createAzureUser();
+        this.regionName = AzureTestUtils.DEFAULT_REGION_NAME;
+        this.defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+        this.operation = Mockito.spy(new AzureVirtualMachineOperationSDK(this.regionName,
+                this.defaultResourceGroupName));
+
         makeTheObservablesSynchronous();
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
     }
@@ -81,86 +90,112 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the doGetInstance method with methods mocked,
     // it must verify if It returns the right AzureGetVirtualMachineRef.
     @Test
-    public void testDoGetInstanceSuccessfully() throws FogbowException {
+    public void testDoGetInstanceSuccessfully() throws Exception {
         // set up
-        mockGetAzureClient();
-        String instanceId = "instanceId";
+        Azure azure = PowerMockito.mock(Azure.class);
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
+
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceId = AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+
+        Mockito.doReturn(resourceId).when(this.operation).buildResourceId(Mockito.eq(azure),
+                Mockito.eq(subscriptionId), Mockito.eq(resourceName));
 
         VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+        Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(virtualMachine);
+        PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
+        PowerMockito.doReturn(virtualMachineOptional).when(AzureVirtualMachineSDK.class, "getVirtualMachine",
+                Mockito.eq(azure), Mockito.eq(resourceId));
+
         VirtualMachineSizeTypes virtualMachineSizeTypes = VirtualMachineSizeTypes.BASIC_A0;
-        String virtualMachineSizeName = virtualMachineSizeTypes.toString();
         Mockito.when(virtualMachine.size()).thenReturn(virtualMachineSizeTypes);
+
         String cloudState = "cloudState";
         Mockito.when(virtualMachine.provisioningState()).thenReturn(cloudState);
-        String name = "name";
-        Mockito.when(virtualMachine.name()).thenReturn(name);
+
+        VirtualMachineInner virtualMachineInner = Mockito.mock(VirtualMachineInner.class);
+        Mockito.when(virtualMachineInner.id()).thenReturn(resourceId);
+        Mockito.when(virtualMachine.inner()).thenReturn(virtualMachineInner);
+
+        String primaryPrivateIp = "primaryPrivateIp";
+        List<String> ipAddresses = Arrays.asList(primaryPrivateIp);
         NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
-        String privateIp = "privateIp";
-        List<String> ipAddresses = Arrays.asList(privateIp);
-        Mockito.when(networkInterface.primaryPrivateIP()).thenReturn(privateIp);
+        Mockito.when(networkInterface.primaryPrivateIP()).thenReturn(primaryPrivateIp);
         Mockito.when(virtualMachine.getPrimaryNetworkInterface()).thenReturn(networkInterface);
+
+        String orderName = AzureTestUtils.ORDER_NAME;
+        Map<String, String> tags = Collections.singletonMap(AzureConstants.TAG_NAME, orderName);
+        Mockito.when(virtualMachine.tags()).thenReturn(tags);
+
+        VirtualMachineSize virtualMachineSize = Mockito.mock(VirtualMachineSize.class);
+        Mockito.doReturn(virtualMachineSize).when(this.operation).findVirtualMachineSize(
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(Azure.class));
+
+        int vCPU = 2;
+        Mockito.when(virtualMachineSize.numberOfCores()).thenReturn(vCPU);
+
+        int memory = 1;
+        Mockito.when(virtualMachineSize.memoryInMB()).thenReturn(memory);
+
         int diskSize = 3;
         Mockito.when(virtualMachine.osDiskSize()).thenReturn(diskSize);
 
-        String regionName = AzureTestUtils.DEFAULT_REGION_NAME;
-
-        VirtualMachineSize virtualMachineSize = Mockito.mock(VirtualMachineSize.class);
-        int memory = 1;
-        Mockito.when(virtualMachineSize.memoryInMB()).thenReturn(memory);
-        Integer vCPU = 2;
-        Mockito.when(virtualMachineSize.numberOfCores()).thenReturn(vCPU);
-        Mockito.doReturn(virtualMachineSize).when(this.azureVirtualMachineOperationSDK)
-                .findVirtualMachineSize(Mockito.eq(virtualMachineSizeName),
-                        Mockito.eq(regionName), Mockito.eq(this.azure));
-        
-        Map<String, String> tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
-        Mockito.when(virtualMachine.tags()).thenReturn(tags);
-
-        PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(virtualMachine);
-        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachine(
-                Mockito.eq(this.azure), Mockito.eq(instanceId)))
-                .thenReturn(virtualMachineOptional);
-
-        AzureGetVirtualMachineRef azureGetVirtualMachineRefExpected = AzureGetVirtualMachineRef.builder()
+        AzureGetVirtualMachineRef expected = AzureGetVirtualMachineRef.builder()
+                .id(resourceId )
                 .cloudState(cloudState)
-                .ipAddresses(ipAddresses)
-                .disk(diskSize)
-                .memory(memory)
-                .name(name)
                 .vCPU(vCPU)
+                .memory(memory)
+                .disk(diskSize)
+                .ipAddresses(ipAddresses)
                 .tags(tags)
                 .build();
 
         // exercise
-        AzureGetVirtualMachineRef azureGetVirtualMachineRef =
-                this.azureVirtualMachineOperationSDK.doGetInstance(instanceId, this.azureCloudUser);
+        AzureGetVirtualMachineRef virtualMachineRef = this.operation.doGetInstance(this.azureUser, resourceName );
 
         // verify
-        Assert.assertEquals(azureGetVirtualMachineRefExpected, azureGetVirtualMachineRef);
+        Assert.assertEquals(expected, virtualMachineRef);
     }
 
     // test case: When calling the doGetInstance method and an error occurs,
     // it must verify if an InstanceNotFoundException has been thrown.
     @Test
     public void testDoGetInstanceFail() throws Exception {
-        // set up
-        mockGetAzureClient();
-        String instanceId = "instanceId";
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+        Azure azure = PowerMockito.mock(Azure.class);
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
 
-        VirtualMachine virtualMachine = null;
-        Optional<VirtualMachine> optional = Optional.ofNullable(virtualMachine);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceId = AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(resourceName)
+                .build();
 
+        Mockito.doReturn(resourceId).when(this.operation).buildResourceId(Mockito.eq(azure),
+                Mockito.eq(subscriptionId), Mockito.eq(resourceName));
+
+        Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(null);
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito.doReturn(optional).when(AzureVirtualMachineSDK.class, "getVirtualMachine",
-                Mockito.any(Azure.class), Mockito.anyString());
+        PowerMockito.doReturn(virtualMachineOptional).when(AzureVirtualMachineSDK.class, "getVirtualMachine",
+                Mockito.eq(azure), Mockito.eq(resourceId));
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
         try {
             // exercise
-            this.azureVirtualMachineOperationSDK.doGetInstance(instanceId, this.azureCloudUser);
+            this.operation.doGetInstance(this.azureUser, resourceName);
             Assert.fail();
-        } catch (Exception e) {
+        } catch (InstanceNotFoundException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -171,8 +206,8 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testFindVirtualMachineSizeSuccessfully() throws FogbowException {
         // set up
-        mockGetAzureClient();
-        String virtualMachineSizeExpected = "nameExpected";
+        Azure azure = PowerMockito.mock(Azure.class);
+        String virtualMachineSizeExpected = "virtualMachineSizeName";
 
         Region region = Region.US_EAST;
         String regionName = region.name();
@@ -187,12 +222,12 @@ public class AzureVirtualMachineOperationSDKTest {
         virtualMachines.add(virtualMachineSizeNotMactchTwo);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineSizes(Mockito.eq(this.azure), Mockito.eq(region)))
+        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineSizes(Mockito.eq(azure), Mockito.eq(region)))
                 .thenReturn(virtualMachines);
 
         // exercise
-        VirtualMachineSize virtualMachineSize = this.azureVirtualMachineOperationSDK
-                .findVirtualMachineSize(virtualMachineSizeExpected, regionName, this.azure);
+        VirtualMachineSize virtualMachineSize = this.operation
+                .findVirtualMachineSize(virtualMachineSizeExpected, regionName, azure);
 
         // verify
         Assert.assertEquals(virtualMachineSizeMatch.name(), virtualMachineSize.name());
@@ -201,11 +236,10 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the findVirtualMachineSize method and does not find the virtual machine size,
     // it must verify if It throws a NoAvailableResourcesException exception.
     @Test
-    public void testFindVirtualMachineSizeFail()
-            throws FogbowException {
+    public void testFindVirtualMachineSizeFail() throws FogbowException {
         // set up
-        mockGetAzureClient();
-        String virtualMachineSizeExpected = "nameExpected";
+        Azure azure = PowerMockito.mock(Azure.class);
+        String virtualMachineSizeExpected = "virtualMachineSizeName";
 
         Region region = Region.US_EAST;
         String regionName = region.name();
@@ -218,24 +252,25 @@ public class AzureVirtualMachineOperationSDKTest {
         virtualMachines.add(virtualMachineSizeNotMactchTwo);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineSizes(Mockito.eq(this.azure), Mockito.eq(region)))
+        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineSizes(Mockito.eq(azure), Mockito.eq(region)))
                 .thenReturn(virtualMachines);
 
         // verify
         this.expectedException.expect(NoAvailableResourcesException.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK
-                .findVirtualMachineSize(virtualMachineSizeExpected, regionName, this.azure);
+        this.operation.findVirtualMachineSize(virtualMachineSizeExpected, regionName, azure);
     }
 
     // test case: When calling the findVirtualMachineSize method with two virtual machines size name that
     // fits in the requirements, it must verify if It returns the smaller virtual machines size.
     @Test
-    public void testFindVirtualMachineSizeWithTwoVirtualMachinesSize() throws FogbowException {
-
+    public void testFindVirtualMachineSizeWithTwoVirtualMachinesSize() throws Exception {
         // set up
-        mockGetAzureClient();
+        Azure azure = PowerMockito.mock(Azure.class);
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
 
         int memory = 1;
         int vcpu = 2;
@@ -255,12 +290,12 @@ public class AzureVirtualMachineOperationSDKTest {
         virtualMachines.add(virtualMachineSizeFitsBigger);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineSizes(Mockito.eq(this.azure), Mockito.eq(region)))
+        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineSizes(Mockito.eq(azure), Mockito.eq(region)))
                 .thenReturn(virtualMachines);
 
         // exercise
-        VirtualMachineSize virtualMachineSize = this.azureVirtualMachineOperationSDK
-                .findVirtualMachineSize(memory, vcpu, regionName, this.azureCloudUser);
+        VirtualMachineSize virtualMachineSize = this.operation
+                .findVirtualMachineSize(memory, vcpu, regionName, this.azureUser);
 
         // verify
         Assert.assertNotEquals(virtualMachineSizeFitsBigger, virtualMachineSize);
@@ -270,10 +305,12 @@ public class AzureVirtualMachineOperationSDKTest {
     // test case: When calling the findVirtualMachineSize method with any virtual machine size name that
     // fits in the requirements, it must verify if It throws a NoAvailableResourcesException.
     @Test
-    public void testFindVirtualMachineSizeFailWhenSizeThatNotFits() throws FogbowException {
-
+    public void testFindVirtualMachineSizeFailWhenSizeThatNotFits() throws Exception {
         // set up
-        mockGetAzureClient();
+        Azure azure = PowerMockito.mock(Azure.class);
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
 
         int memory = 1;
         int vcpu = 2;
@@ -288,23 +325,25 @@ public class AzureVirtualMachineOperationSDKTest {
         virtualMachines.add(virtualMachineSizeNotFits);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineSizes(Mockito.eq(this.azure), Mockito.eq(region)))
+        PowerMockito.when(AzureVirtualMachineSDK.getVirtualMachineSizes(Mockito.eq(azure), Mockito.eq(region)))
                 .thenReturn(virtualMachines);
 
         // verify
         this.expectedException.expect(NoAvailableResourcesException.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.findVirtualMachineSize(memory, vcpu, regionName, this.azureCloudUser);
+        this.operation.findVirtualMachineSize(memory, vcpu, regionName, this.azureUser);
     }
 
     // test case: When calling the findVirtualMachineSizeName method with throws an Unauthorized
     // exception, it must verify if It throws an Unauthorized exception.
     @Test
     public void testFindVirtualMachineSizeFailWhenThrowUnauthorized() throws FogbowException {
-
         // set up
-        mockGetAzureClientUnauthorized();
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.when(AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser)))
+                .thenThrow(new UnauthenticatedUserException());
+
         int memory = 1;
         int vcpu = 2;
         String regionName = Region.US_EAST.name();
@@ -313,8 +352,30 @@ public class AzureVirtualMachineOperationSDKTest {
         this.expectedException.expect(UnauthenticatedUserException.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.findVirtualMachineSize(
-                memory, vcpu, regionName, this.azureCloudUser);
+        this.operation.findVirtualMachineSize(memory, vcpu, regionName, this.azureUser);
+    }
+
+    // test case: When calling the buildResourceId method, it must verify that
+    // the resource ID was assembled correctly.
+    @Test
+    public void testBuildResourceIdSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.eq(azure), Mockito.eq(resourceName), Mockito.eq(resourceGroupName));
+
+        String expected = createResourceId();
+
+        // exercise
+        String resourceId = this.operation.buildResourceId(azure, subscriptionId, resourceName);
+
+        // verify
+        Assert.assertEquals(expected, resourceId);
     }
 
     // test case: When calling the subscribeCreateVirtualMachine method and the observable executes
@@ -322,16 +383,38 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testSubscribeCreateVirtualMachineSuccessfully() {
         // set up
-        Observable<Indexable> virtualMachineObservable = createSimpleObservableSuccess();
+        Observable<Indexable> virtualMachineObservable = AzureTestUtils.createSimpleObservableSuccess();
         Runnable doOnComplete = Mockito.mock(Runnable.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.subscribeCreateVirtualMachine(virtualMachineObservable, doOnComplete);
+        this.operation.subscribeCreateVirtualMachine(virtualMachineObservable, doOnComplete);
 
         // verify
-        this.loggerAssert
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VM_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VM_ASYNC_BEHAVIOUR);
         Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
+    }
+
+    // test case: When calling the buildNetworkId method, it must verify that
+    // the resource ID was assembled correctly.
+    @Test
+    public void testBuildNetworkIdSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String resourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
+
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(resourceGroupName).when(AzureGeneralUtil.class, "selectResourceGroupName",
+                Mockito.eq(azure), Mockito.eq(resourceName), Mockito.eq(resourceGroupName));
+
+        String expected = createNetworkId();
+
+        // exercise
+        String resourceId = this.operation.buildNetworkId(azure, subscriptionId, resourceName);
+
+        // verify
+        Assert.assertEquals(expected, resourceId);
     }
 
     // test case: When calling the subscribeCreateVirtualMachine method and the observable executes
@@ -339,43 +422,53 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testSubscribeCreateVirtualMachineFail() {
         // set up
-        Observable<Indexable> virtualMachineObservable = createSimpleObservableFail();
+        Observable<Indexable> virtualMachineObservable = AzureTestUtils.createSimpleObservableFail();
         Runnable doOnComplete = Mockito.mock(Runnable.class);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.subscribeCreateVirtualMachine(virtualMachineObservable, doOnComplete);
+        this.operation.subscribeCreateVirtualMachine(virtualMachineObservable, doOnComplete);
 
         // verify
-        this.loggerAssert
-                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_VM_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_VM_ASYNC_BEHAVIOUR);
         Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
     }
 
     // test case: When calling the doCreateInstance method, it must verify if It finishes without error.
     @Test
-    public void testDoCreateInstanceSuccessfully() throws FogbowException {
-
+    public void testDoCreateInstanceSuccessfully() throws Exception {
         // set up
-        mockGetAzureClient();
-        AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
+        Azure azure = PowerMockito.mock(Azure.class);
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
+
+        String virtualNetworkName = AzureTestUtils.RESOURCE_NAME;
+        AzureCreateVirtualMachineRef virtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
+        Mockito.when(virtualMachineRef.getVirtualNetworkName()).thenReturn(virtualNetworkName);
+
+        String subscriptionId = this.azureUser.getSubscriptionId();
+        String networkId = AzureResourceIdBuilder.networkId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(virtualNetworkName)
                 .build();
 
-        Observable<Indexable> observableMocked = Mockito.mock(Observable.class);
-        Mockito.doReturn(observableMocked).when(this.azureVirtualMachineOperationSDK).buildAzureVirtualMachineObservable(
-                Mockito.eq(azureCreateVirtualMachineRef), Mockito.eq(this.azure));
+        Mockito.doReturn(networkId).when(this.operation).buildNetworkId(Mockito.eq(azure),
+                Mockito.eq(subscriptionId), Mockito.eq(virtualNetworkName));
 
-        Mockito.doNothing().when(this.azureVirtualMachineOperationSDK)
-                .subscribeCreateVirtualMachine(Mockito.any(), Mockito.any());
+        Observable<Indexable> virtualMachineObservable = Mockito.mock(Observable.class);
+        Mockito.doReturn(virtualMachineObservable).when(this.operation).buildAzureVirtualMachineObservable(
+                Mockito.eq(azure), Mockito.eq(virtualMachineRef), Mockito.eq(networkId));
 
         Runnable doOnComplete = Mockito.mock(Runnable.class);
+        Mockito.doNothing().when(this.operation).subscribeCreateVirtualMachine(Mockito.eq(virtualMachineObservable),
+                Mockito.eq(doOnComplete));
 
         // exercise
-        this.azureVirtualMachineOperationSDK.doCreateInstance(azureCreateVirtualMachineRef,
-                this.azureCloudUser, doOnComplete);
-
+        this.operation.doCreateInstance(virtualMachineRef, doOnComplete, this.azureUser);
         // verify
-        Mockito.verify(this.azureVirtualMachineOperationSDK, Mockito.times(TestUtils.RUN_ONCE))
-                .subscribeCreateVirtualMachine(Mockito.eq(observableMocked), Mockito.eq(doOnComplete));
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
+                .subscribeCreateVirtualMachine(Mockito.eq(virtualMachineObservable), Mockito.eq(doOnComplete));
     }
 
     // test case: When calling the buildAzureVirtualMachineObservable method and an
@@ -383,22 +476,27 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testBuildAzureVirtualMachineObservableFail() throws Exception {
         // set up
-        String virtualNetworkId = "virtualNetworkId";
+        Azure azure = PowerMockito.mock(Azure.class);
         AzureCreateVirtualMachineRef virtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
-        Mockito.when(virtualMachineRef.getVirtualNetworkId()).thenReturn(virtualNetworkId);
 
-        Network network = null;
-        Optional<Network> optional = Optional.ofNullable(network);
+        String virtualNetworkName = AzureTestUtils.RESOURCE_NAME;
+        String subscriptionId = this.azureUser.getSubscriptionId();
+        String networkId = AzureResourceIdBuilder.networkId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(virtualNetworkName)
+                .build();
 
+        Optional<Network> networkOptional = Optional.ofNullable(null);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
-        PowerMockito.doReturn(optional).when(AzureNetworkSDK.class, "getNetwork",
-                Mockito.any(Azure.class), Mockito.anyString());
+        PowerMockito.doReturn(networkOptional).when(AzureNetworkSDK.class, "getNetwork",
+                Mockito.any(Azure.class), Mockito.eq(networkId));
 
         String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
         try {
             // exercise
-            this.azureVirtualMachineOperationSDK.buildAzureVirtualMachineObservable(virtualMachineRef, this.azure);
+            this.operation.buildAzureVirtualMachineObservable(azure, virtualMachineRef, networkId);
             Assert.fail();
         } catch (InstanceNotFoundException e) {
             // verify
@@ -411,35 +509,34 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testBuildAzureVirtualMachineObservableSuccessfully() throws Exception {
         // set up
+        Azure azure = PowerMockito.mock(Azure.class);
         String imagePublishedExpected = "publisher";
         String imageSkuExpected = "sku";
         String imageOfferExpected = "offer";
-        AzureGetImageRef azureVirtualMachineImageExpected =
-                new AzureGetImageRef(imagePublishedExpected, imageOfferExpected, imageSkuExpected);
+        AzureGetImageRef imageExpected = new AzureGetImageRef(imagePublishedExpected, imageOfferExpected, imageSkuExpected);
         String resourceNameExpected = "resourceNameExpected";
-        String virtualNetworkIdExpected = "virtualNetworkIdExpected";
+        String virtualNetworkNameExpected = "virtualNetworkNameExpected";
         int diskSize = 1;
         String virtualMachineSizeNameExpected = "virtualMachineSizeNameExpected";
         String osComputeNameExpected = "osComputeNameExpected";
         String osUserNameExpected = "osUserNameExpected";
         String osUserPasswordExpected = "osUserPasswordExpected";
         String regionNameExpected = "regionNameExpected";
-        String resourceGroupNameExpected = "resourceGroupNameExpected";
+        String resourceGroupNameExpected = this.defaultResourceGroupName;
         String subnetNameExpected = "subnetNameExpected";
         String userDataExpected = "userDataExpected";
         Map expectedTags = Collections.singletonMap(AzureConstants.TAG_NAME, "virtualMachineNameExpected");
 
-        AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = AzureCreateVirtualMachineRef.builder()
+        AzureCreateVirtualMachineRef virtualMachineRef = AzureCreateVirtualMachineRef.builder()
                 .resourceName(resourceNameExpected)
-                .azureGetImageRef(azureVirtualMachineImageExpected)
-                .virtualNetworkId(virtualNetworkIdExpected)
+                .azureGetImageRef(imageExpected)
+                .virtualNetworkName(virtualNetworkNameExpected)
                 .diskSize(diskSize)
                 .size(virtualMachineSizeNameExpected)
                 .osComputeName(osComputeNameExpected)
                 .osUserName(osUserNameExpected)
                 .osUserPassword(osUserPasswordExpected)
                 .regionName(regionNameExpected)
-                .resourceGroupName(resourceGroupNameExpected)
                 .userData(userDataExpected)
                 .tags(expectedTags)
                 .checkAndBuild();
@@ -452,18 +549,17 @@ public class AzureVirtualMachineOperationSDKTest {
 
         Optional<Network> optional = Optional.ofNullable(networkExpected);
         PowerMockito.mockStatic(AzureNetworkSDK.class);
-        PowerMockito.doReturn(optional).when(AzureNetworkSDK.class, "getNetwork", Mockito.eq(this.azure), Mockito.anyString());
+        PowerMockito.doReturn(optional).when(AzureNetworkSDK.class, "getNetwork", Mockito.eq(azure), Mockito.anyString());
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
         Region regionExpected = Region.fromName(regionNameExpected);
 
         // exercise
-        this.azureVirtualMachineOperationSDK.buildAzureVirtualMachineObservable(
-                azureCreateVirtualMachineRef, this.azure);
+        this.operation.buildAzureVirtualMachineObservable(azure, virtualMachineRef, virtualNetworkNameExpected);
 
         // verify
         PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, VerificationModeFactory.times(1));
-        AzureVirtualMachineSDK.buildVirtualMachineObservable(Mockito.eq(this.azure),
+        AzureVirtualMachineSDK.buildVirtualMachineObservable(Mockito.eq(azure),
                 Mockito.eq(resourceNameExpected), Mockito.eq(regionExpected),
                 Mockito.eq(resourceGroupNameExpected), Mockito.eq(networkExpected), Mockito.eq(subnetNameExpected),
                 Mockito.eq(imagePublishedExpected), Mockito.eq(imageOfferExpected), Mockito.eq(imageSkuExpected),
@@ -472,25 +568,139 @@ public class AzureVirtualMachineOperationSDKTest {
                 Mockito.eq(expectedTags));
     }
 
-    // test case: When calling the doDeleteInstance method and an error occurs,
-    // it must verify if an InstanceNotFoundException has been thrown.
+    // test case: When calling the doDeleteInstance method whose existing
+    // resource group has the same name as the resource, it must verify among
+    // others that the doDeleteResourceGroupAsync method has been called.
     @Test
-    public void testDoDeleteInstanceFail() throws Exception {
+    public void testDoDeleteInstanceThanExistsResourceGroupWithSameResourceName() throws Exception {
         // set up
-        String instanceId = "instanceId";
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
-        mockGetAzureClient();
+        Azure azure = PowerMockito.mock(Azure.class);
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
 
-        VirtualMachine virtualMachine = null;
-        Optional<VirtualMachine> optional = Optional.ofNullable(virtualMachine);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(true).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup",
+                Mockito.eq(azure), Mockito.eq(resourceName));
+
+        Mockito.doNothing().when(this.operation).doDeleteResourceGroupAsync(Mockito.eq(azure),
+                Mockito.eq(resourceName));
+
+        // exercise
+        this.operation.doDeleteInstance(this.azureUser, resourceName);
+
+        // verify
+        PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
+
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
+
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteResourceGroupAsync(Mockito.eq(azure), Mockito.eq(resourceName));
+    }
+
+    // test case: When calling the doDeleteInstance method whose existing
+    // resource group has not the same name as the resource, it must verify
+    // among others that the doDeleteVirtualMachineAndResourcesAsync method has
+    // been called.
+    @Test
+    public void testDoDeleteInstanceThanNonExistsResourceGroupWithSameResourceName() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
+
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(false).when(AzureResourceGroupOperationUtil.class, "existsResourceGroup",
+                Mockito.eq(azure), Mockito.eq(resourceName));
+
+        String resourceId = createResourceId();
+        Mockito.doReturn(resourceId).when(this.operation).buildResourceId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(resourceName));
+
+        Mockito.doNothing().when(this.operation).doDeleteVirtualMachineAndResourcesAsync(Mockito.eq(azure),
+                Mockito.eq(resourceId));
+
+        // exercise
+        this.operation.doDeleteInstance(this.azureUser, resourceName);
+
+        // verify
+        Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.eq(azure),
+                Mockito.anyString(), Mockito.eq(resourceName));
+
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteVirtualMachineAndResourcesAsync(Mockito.eq(azure), Mockito.eq(resourceId));
+    }
+
+    // test case: When calling the buildVirtualNetworkCreationObservable method
+    // and the observables execute without any error, it must verify that the
+    // call was successful.
+    @Test
+    public void testDoDeleteVirtualMachineAndResourcesAsyncSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String resourceId = createResourceId();
+
+        VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+        Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(virtualMachine);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito.doReturn(optional).when(AzureVirtualMachineSDK.class, "getVirtualMachine",
-                Mockito.any(Azure.class), Mockito.anyString());
+        PowerMockito.doReturn(virtualMachineOptional).when(AzureVirtualMachineSDK.class, "getVirtualMachine",
+                Mockito.eq(azure), Mockito.eq(resourceId));
+
+        Completable deleteVirtualMachine = AzureTestUtils.createSimpleCompletableSuccess();
+        Mockito.doReturn(deleteVirtualMachine).when(this.operation)
+                .buildDeleteVirtualMachineCompletable(Mockito.eq(azure), Mockito.eq(resourceId));
+
+        Completable deleteVirtualMachineDisk = AzureTestUtils.createSimpleCompletableSuccess();
+        Mockito.doReturn(deleteVirtualMachineDisk).when(this.operation)
+                .buildDeleteDiskCompletable(Mockito.eq(azure), Mockito.eq(virtualMachine));
+
+        Completable deleteVirtualMachineNic = AzureTestUtils.createSimpleCompletableSuccess();
+        Mockito.doReturn(deleteVirtualMachineNic).when(this.operation)
+                .buildDeleteNicCompletable(Mockito.eq(azure), Mockito.eq(virtualMachine));
+
+        // exercise
+        this.operation.doDeleteVirtualMachineAndResourcesAsync(azure, resourceId);
+
+        // verify
+        PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureVirtualMachineSDK.getVirtualMachine(Mockito.eq(azure), Mockito.eq(resourceId));
+
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
+                .buildDeleteVirtualMachineCompletable(Mockito.eq(azure), Mockito.eq(resourceId));
+
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
+                .buildDeleteDiskCompletable(Mockito.eq(azure), Mockito.eq(virtualMachine));
+
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
+                .buildDeleteNicCompletable(Mockito.eq(azure), Mockito.eq(virtualMachine));
+    }
+
+    // test case: When calling the doDeleteVirtualMachineAndResourcesAsync
+    // method with an invalid resource ID, it must verify if an
+    // InstanceNotFoundException has been thrown.
+    @Test
+    public void testDoDeleteVirtualMachineAndResourcesAsyncFail() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String resourceId = createResourceId();
+
+        Optional<VirtualMachine> virtualMachineOptional = Optional.ofNullable(null);
+        PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
+        PowerMockito.doReturn(virtualMachineOptional).when(AzureVirtualMachineSDK.class, "getVirtualMachine",
+                Mockito.eq(azure), Mockito.eq(resourceId));
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
         try {
             // exercise
-            this.azureVirtualMachineOperationSDK.doDeleteInstance(instanceId, this.azureCloudUser);
+            this.operation.doDeleteVirtualMachineAndResourcesAsync(azure, resourceId);
             Assert.fail();
         } catch (InstanceNotFoundException e) {
             // verify
@@ -498,51 +708,60 @@ public class AzureVirtualMachineOperationSDKTest {
         }
     }
 
-    // test case: When calling the doDeleteInstance method, it must verify that is
-    // call was successful.
+    // test case: When calling the doDeleteResourceGroupAsync method, it must
+    // verify that is call was successful.
     @Test
-    public void testDoDeleteInstanceSuccessfully() throws Exception {
+    public void testDoDeleteResourceGroupAsyncSuccessfully() throws Exception {
         // set up
-        mockGetAzureClient();
-        String instanceId = "instanceId";
+        Azure azure = PowerMockito.mock(Azure.class);
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
 
-        VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-        Optional<VirtualMachine> optional = Optional.ofNullable(virtualMachine);
+        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
+        PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
+        PowerMockito.doReturn(completable).when(AzureResourceGroupOperationUtil.class, "deleteResourceGroupAsync",
+                Mockito.eq(azure), Mockito.eq(resourceName));
 
-        PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito.doReturn(optional).when(AzureVirtualMachineSDK.class, "getVirtualMachine",
-                Mockito.any(Azure.class), Mockito.anyString());
-
-        String message = "completableSuccess";
-        Completable deleteCompletableSuccess = createSimpleCompletableSuccess(message);
-
-        Mockito.doReturn(deleteCompletableSuccess).when(this.azureVirtualMachineOperationSDK)
-                .buildDeleteVirtualMachineCompletable(Mockito.any(Azure.class), Mockito.anyString());
-
-        Mockito.doReturn(deleteCompletableSuccess).when(this.azureVirtualMachineOperationSDK)
-                .buildDeleteDiskCompletable(Mockito.any(Azure.class), Mockito.eq(virtualMachine));
-
-        Mockito.doReturn(deleteCompletableSuccess).when(this.azureVirtualMachineOperationSDK)
-                .buildDeleteNicCompletable(Mockito.any(Azure.class), Mockito.eq(virtualMachine));
+        Mockito.doNothing().when(this.operation).subscribeDeleteVirtualMachine(Mockito.eq(completable));
 
         // exercise
-        this.azureVirtualMachineOperationSDK.doDeleteInstance(instanceId, this.azureCloudUser);
+        this.operation.doDeleteResourceGroupAsync(azure, resourceName);
 
         // verify
-        PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureClientCacheManager.getAzure(Mockito.eq(this.azureCloudUser));
+        PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AzureResourceGroupOperationUtil.deleteResourceGroupAsync(Mockito.eq(azure), Mockito.eq(resourceName));
 
-        PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzureVirtualMachineSDK.getVirtualMachine(Mockito.any(Azure.class), Mockito.eq(instanceId));
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
+                .subscribeDeleteVirtualMachine(Mockito.eq(completable));
+    }
 
-        Mockito.verify(this.azureVirtualMachineOperationSDK, Mockito.times(TestUtils.RUN_ONCE))
-                .buildDeleteVirtualMachineCompletable(Mockito.any(Azure.class), Mockito.eq(instanceId));
+    // test case: When calling the subscribeDeleteVirtualMachine method and the
+    // completable executes without any error, it must verify than returns the
+    // right logs.
+    @Test
+    public void testsubscribeDeleteVirtualMachineSuccessfully() {
+        // set up
+        Completable completable = AzureTestUtils.createSimpleCompletableSuccess();
 
-        Mockito.verify(this.azureVirtualMachineOperationSDK, Mockito.times(TestUtils.RUN_ONCE))
-                .buildDeleteDiskCompletable(Mockito.any(Azure.class), Mockito.eq(virtualMachine));
+        // exercise
+        this.operation.subscribeDeleteVirtualMachine(completable);
 
-        Mockito.verify(this.azureVirtualMachineOperationSDK, Mockito.times(TestUtils.RUN_ONCE))
-                .buildDeleteNicCompletable(Mockito.any(Azure.class), Mockito.eq(virtualMachine));
+        // verify
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VM_ASYNC_BEHAVIOUR);
+    }
+
+    // test case: When calling the subscribeDeleteVirtualMachine method and the
+    // completable executes with an error, it must verify if It returns the
+    // right logs.
+    @Test
+    public void testsubscribeDeleteVirtualMachineFail() {
+        // set up
+        Completable completable = AzureTestUtils.createSimpleCompletableFail();
+
+        // exercise
+        this.operation.subscribeDeleteVirtualMachine(completable);
+
+        // verify
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VM_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteDiskCompletable method and the
@@ -551,6 +770,7 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testBuildDeleteDiskCompletableSuccessfully() throws FogbowException {
         // set up
+        Azure azure = PowerMockito.mock(Azure.class);
         String osDiskId = "osDiskId";
         VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
         Mockito.when(virtualMachine.osDiskId()).thenReturn(osDiskId);
@@ -559,15 +779,11 @@ public class AzureVirtualMachineOperationSDKTest {
         Completable deleteDiskCompletableSuccess = createSimpleCompletableSuccess(expectedMessage);
 
         PowerMockito.mockStatic(AzureVolumeSDK.class);
-        PowerMockito
-                .when(AzureVolumeSDK
-                        .buildDeleteDiskCompletable(Mockito.eq(this.azure), Mockito.eq(osDiskId)))
+        PowerMockito.when(AzureVolumeSDK.buildDeleteDiskCompletable(Mockito.eq(azure), Mockito.eq(osDiskId)))
                 .thenReturn(deleteDiskCompletableSuccess);
 
         // exercise
-        Completable completable = this.azureVirtualMachineOperationSDK
-                .buildDeleteDiskCompletable(this.azure, virtualMachine);
-
+        Completable completable = this.operation.buildDeleteDiskCompletable(azure, virtualMachine);
         completable.subscribe();
 
         // verify
@@ -582,6 +798,7 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testBuildDeleteDiskCompletableFail() throws FogbowException {
         // set up
+        Azure azure = PowerMockito.mock(Azure.class);
         String osDiskId = "osDiskId";
         VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
         Mockito.when(virtualMachine.osDiskId()).thenReturn(osDiskId);
@@ -590,15 +807,11 @@ public class AzureVirtualMachineOperationSDKTest {
         Completable deleteDiskCompletableFail = createSimpleCompletableFail(expectedMessage);
 
         PowerMockito.mockStatic(AzureVolumeSDK.class);
-        PowerMockito
-                .when(AzureVolumeSDK
-                        .buildDeleteDiskCompletable(Mockito.eq(this.azure), Mockito.eq(osDiskId)))
+        PowerMockito.when(AzureVolumeSDK.buildDeleteDiskCompletable(Mockito.eq(azure), Mockito.eq(osDiskId)))
                 .thenReturn(deleteDiskCompletableFail);
 
         // exercise
-        Completable completable = this.azureVirtualMachineOperationSDK
-                .buildDeleteDiskCompletable(this.azure, virtualMachine);
-
+        Completable completable = this.operation.buildDeleteDiskCompletable(azure, virtualMachine);
         completable.subscribe();
 
         // verify
@@ -613,6 +826,7 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testBuildDeleteNicCompletableSuccessfully() throws Exception {
         // set up
+        Azure azure = PowerMockito.mock(Azure.class);
         String nicId = "nicId";
         VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
         Mockito.when(virtualMachine.primaryNetworkInterfaceId()).thenReturn(nicId);
@@ -621,15 +835,11 @@ public class AzureVirtualMachineOperationSDKTest {
         Completable deleteNicCompletableSuccess = createSimpleCompletableSuccess(expectedMessage);
 
         PowerMockito.mockStatic(AzureNetworkSDK.class);
-        PowerMockito
-                .when(AzureNetworkSDK
-                        .buildDeleteNetworkInterfaceCompletable(Mockito.eq(this.azure), Mockito.eq(nicId)))
+        PowerMockito.when(AzureNetworkSDK.buildDeleteNetworkInterfaceCompletable(Mockito.eq(azure), Mockito.eq(nicId)))
                 .thenReturn(deleteNicCompletableSuccess);
 
         // exercise
-        Completable completable = this.azureVirtualMachineOperationSDK
-                .buildDeleteNicCompletable(this.azure, virtualMachine);
-
+        Completable completable = this.operation.buildDeleteNicCompletable(azure, virtualMachine);
         completable.subscribe();
 
         // verify
@@ -644,6 +854,7 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testBuildDeleteNicCompletableFail() throws FogbowException {
         // set up
+        Azure azure = PowerMockito.mock(Azure.class);
         String nicId = "nicId";
         VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
         Mockito.when(virtualMachine.primaryNetworkInterfaceId()).thenReturn(nicId);
@@ -652,14 +863,11 @@ public class AzureVirtualMachineOperationSDKTest {
         Completable deleteNicCompletableFail = createSimpleCompletableFail(expectedMessage);
 
         PowerMockito.mockStatic(AzureNetworkSDK.class);
-        PowerMockito
-                .when(AzureNetworkSDK.buildDeleteNetworkInterfaceCompletable(Mockito.eq(this.azure), Mockito.eq(nicId)))
+        PowerMockito.when(AzureNetworkSDK.buildDeleteNetworkInterfaceCompletable(Mockito.eq(azure), Mockito.eq(nicId)))
                 .thenReturn(deleteNicCompletableFail);
 
         // exercise
-        Completable completable = this.azureVirtualMachineOperationSDK
-                .buildDeleteNicCompletable(this.azure, virtualMachine);
-
+        Completable completable = this.operation.buildDeleteNicCompletable(azure, virtualMachine);
         completable.subscribe();
 
         // verify
@@ -674,20 +882,17 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testBuildDeleteVirtualMachineCompletableSuccessfully() {
         // set up
+        Azure azure = PowerMockito.mock(Azure.class);
         String instanceId = "instanceId";
         String expectedMessage = "completableSuccess";
         Completable virtualMachineCompletableSuccess = createSimpleCompletableSuccess(expectedMessage);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito
-                .when(AzureVirtualMachineSDK
-                        .buildDeleteVirtualMachineCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+        PowerMockito.when(AzureVirtualMachineSDK.buildDeleteVirtualMachineCompletable(Mockito.eq(azure), Mockito.eq(instanceId)))
                 .thenReturn(virtualMachineCompletableSuccess);
 
         // exercise
-        Completable completable = this.azureVirtualMachineOperationSDK
-                .buildDeleteVirtualMachineCompletable(this.azure, instanceId);
-
+        Completable completable = this.operation.buildDeleteVirtualMachineCompletable(azure, instanceId);
         completable.subscribe();
 
         // verify
@@ -702,20 +907,17 @@ public class AzureVirtualMachineOperationSDKTest {
     @Test
     public void testBuildDeleteVirtualMachineCompletableFail() {
         // set up
+        Azure azure = PowerMockito.mock(Azure.class);
         String instanceId = "instanceId";
         String expectedMessage = "completableFail";
         Completable virtualMachineCompletableFail = createSimpleCompletableFail(expectedMessage);
 
         PowerMockito.mockStatic(AzureVirtualMachineSDK.class);
-        PowerMockito
-                .when(AzureVirtualMachineSDK
-                        .buildDeleteVirtualMachineCompletable(Mockito.eq(this.azure), Mockito.eq(instanceId)))
+        PowerMockito.when(AzureVirtualMachineSDK .buildDeleteVirtualMachineCompletable(Mockito.eq(azure), Mockito.eq(instanceId)))
                 .thenReturn(virtualMachineCompletableFail);
 
         // exercise
-        Completable completable = this.azureVirtualMachineOperationSDK
-                .buildDeleteVirtualMachineCompletable(this.azure, instanceId);
-
+        Completable completable = this.operation.buildDeleteVirtualMachineCompletable(azure, instanceId);
         completable.subscribe();
 
         // verify
@@ -733,21 +935,9 @@ public class AzureVirtualMachineOperationSDKTest {
         };
     }
 
-    private void mockGetAzureClient() throws UnauthenticatedUserException {
-        PowerMockito.mockStatic(AzureClientCacheManager.class);
-        PowerMockito.when(AzureClientCacheManager.getAzure(Mockito.eq(this.azureCloudUser)))
-                .thenReturn(this.azure);
-    }
-
-    private void mockGetAzureClientUnauthorized() throws UnauthenticatedUserException {
-        PowerMockito.mockStatic(AzureClientCacheManager.class);
-        PowerMockito.when(AzureClientCacheManager.getAzure(Mockito.eq(this.azureCloudUser)))
-                .thenThrow(new UnauthenticatedUserException());
-    }
-
     private void makeTheObservablesSynchronous() {
         // The scheduler trampolime makes the subscriptions execute in the current thread
-        this.azureVirtualMachineOperationSDK.setScheduler(Schedulers.trampoline());
+        this.operation.setScheduler(Schedulers.trampoline());
     }
 
     private Completable createSimpleCompletableSuccess(String message) {
@@ -764,17 +954,18 @@ public class AzureVirtualMachineOperationSDKTest {
         });
     }
 
-    private Observable<Indexable> createSimpleObservableSuccess() {
-        return Observable.defer(() -> {
-            Indexable indexable = Mockito.mock(Indexable.class);
-            return Observable.just(indexable);
-        });
+    private String createResourceId() {
+        String virtualMachineIdFormat = AzureResourceIdBuilder.VIRTUAL_MACHINE_STRUCTURE;
+        return String.format(virtualMachineIdFormat,
+                AzureTestUtils.DEFAULT_SUBSCRIPTION_ID, this.defaultResourceGroupName,
+                AzureTestUtils.RESOURCE_NAME);
     }
 
-    private Observable<Indexable> createSimpleObservableFail() {
-        return Observable.defer(() -> {
-            throw new RuntimeException();
-        });
+    private String createNetworkId() {
+        String networkIdFormat = AzureResourceIdBuilder.NETWORK_STRUCTURE;
+        return String.format(networkIdFormat,
+                AzureTestUtils.DEFAULT_SUBSCRIPTION_ID, this.defaultResourceGroupName,
+                AzureTestUtils.RESOURCE_NAME);
     }
 
     private VirtualMachineSize buildVirtualMachineSizeMock(int memory, int vcpu) {

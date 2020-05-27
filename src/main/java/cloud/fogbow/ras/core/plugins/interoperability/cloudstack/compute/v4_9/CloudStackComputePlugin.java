@@ -346,7 +346,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 return convertBytesToGigabyte(sizeInBytes);
             }
         } catch (Exception e) {
-            LOGGER.debug("Error while trying to get the virtual machine size", e);
+            LOGGER.debug(Messages.Error.ERROR_WHILE_GETTING_DISK_SIZE, e);
         }
         LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, virtualMachineId));
         return UNKNOWN_DISK_VALUE;

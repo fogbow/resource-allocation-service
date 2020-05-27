@@ -12,13 +12,15 @@ public class ProcessorsThreadController {
     private final Thread openProcessorThread;
     private final Thread spawningProcessorThread;
     private final Thread fulfilledProcessorThread;
-    private final Thread closedProcessorThread;
+    private final Thread checkingDeletionProcessorThread;
     private final Thread failedProcessorThread;
+    private final Thread assignedForDeletionProcessorThread;
     private final static String OPEN_PROCESSOR_THREAD_NAME = "open-proc";
     private final static String SPAWNING_PROCESSOR_THREAD_NAME = "spawning-proc";
     private final static String FULFILLED_PROCESSOR_THREAD_NAME = "fulfilled-proc";
-    private final static String CLOSED_PROCESSOR_THREAD_NAME = "closed-proc";
+    private final static String CHECKING_DELETION_PROCESSOR_THREAD_NAME = "checking-deletion-proc";
     private final static String FAILED_PROCESSOR_THREAD_NAME = "failed-proc";
+    private final static String ASSIGNED_FOR_DELETION_PROCESSOR_THREAD_NAME = "assigned-for-deletion-proc";
 
     public ProcessorsThreadController(String localProviderId, OrderController orderController) {
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
@@ -39,23 +41,30 @@ public class ProcessorsThreadController {
 
         FulfilledProcessor fulfilledProcessor = new FulfilledProcessor(localProviderId, fulfilledOrdersProcSleepTimeStr);
 
-        String closedOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationPropertyKeys.CLOSED_ORDERS_SLEEP_TIME_KEY,
-                        ConfigurationPropertyDefaults.CLOSED_ORDERS_SLEEP_TIME);
+        String checkingDeletionOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.CHECKING_DELETION_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.CHECKING_DELETION_ORDERS_SLEEP_TIME);
 
-        ClosedProcessor closedProcessor = new ClosedProcessor(orderController, closedOrdersProcSleepTimeStr);
+        CheckingDeletionProcessor checkingDeletionProcessor = new CheckingDeletionProcessor(orderController, localProviderId, checkingDeletionOrdersProcSleepTimeStr);
         
-        String failedOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationPropertyKeys.FAILED_ORDERS_SLEEP_TIME_KEY,
-                        ConfigurationPropertyDefaults.FAILED_ORDERS_SLEEP_TIME);
+        String unableToCheckProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.UNABLE_TO_CHECK_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.UNABLE_TO_CHECK_ORDERS_SLEEP_TIME);
         
-        UnableToCheckStatusProcessor unableToCheckStatusProcessor = new UnableToCheckStatusProcessor(localProviderId, failedOrdersProcSleepTimeStr);
+        UnableToCheckStatusProcessor unableToCheckStatusProcessor = new UnableToCheckStatusProcessor(localProviderId, unableToCheckProcSleepTimeStr);
+
+        String assignedForDeletionOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.ASSIGNED_FOR_DELETION_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.ASSIGNED_FOR_DELETION_ORDERS_SLEEP_TIME);
+
+        AssignedForDeletionProcessor assignedForDeletionProcessor = new AssignedForDeletionProcessor(localProviderId, assignedForDeletionOrdersProcSleepTimeStr);
 
         this.openProcessorThread = new Thread(openProcessor, OPEN_PROCESSOR_THREAD_NAME);
         this.spawningProcessorThread = new Thread(spawningProcessor, SPAWNING_PROCESSOR_THREAD_NAME);
         this.fulfilledProcessorThread = new Thread(fulfilledProcessor, FULFILLED_PROCESSOR_THREAD_NAME);
-        this.closedProcessorThread = new Thread(closedProcessor, CLOSED_PROCESSOR_THREAD_NAME);
+        this.checkingDeletionProcessorThread = new Thread(checkingDeletionProcessor, CHECKING_DELETION_PROCESSOR_THREAD_NAME);
         this.failedProcessorThread = new Thread(unableToCheckStatusProcessor, FAILED_PROCESSOR_THREAD_NAME);
+        this.assignedForDeletionProcessorThread = new Thread(assignedForDeletionProcessor, ASSIGNED_FOR_DELETION_PROCESSOR_THREAD_NAME);
     }
 
     /**
@@ -67,7 +76,8 @@ public class ProcessorsThreadController {
         this.openProcessorThread.start();
         this.spawningProcessorThread.start();
         this.fulfilledProcessorThread.start();
-        this.closedProcessorThread.start();
+        this.checkingDeletionProcessorThread.start();
         this.failedProcessorThread.start();
+        this.assignedForDeletionProcessorThread.start();
     }
 }

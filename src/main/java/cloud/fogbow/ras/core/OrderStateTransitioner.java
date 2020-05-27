@@ -14,21 +14,38 @@ public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
-        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         synchronized (order) {
-            if (order.isRequesterRemote(localProviderId) && !newState.equals(OrderState.CLOSED)) {
-                try {
-                    // The delete request issued by the remote requesting provider that sent the local order to CLOSE
-                    // is a synchronous event, thus it does not require an asynchronous notification to be sent to
-                    // the remote requesting provider.
-                    notifyRequester(order, newState);
-                } catch (Exception e) {
-                    String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
-                    LOGGER.warn(message, e);
-                    // Do not transition order to keep trying to notify until the site is up again.
-                    // The site admin might want to monitor the warn log in case a site never
-                    // recovers. In this case the site admin may delete the order using an
-                    // appropriate tool.
+            doTransition(order, newState);
+        }
+    }
+
+    public static void transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(Order order, OrderState newState)
+            throws UnexpectedException {
+        transitionAndPossiblySignal(order, newState, true, true);
+    }
+
+    public static void transitionAndTryToSignalRequesterIfNeeded(Order order, OrderState newState)
+            throws UnexpectedException {
+        transitionAndPossiblySignal(order, newState, true,false);
+    }
+
+    public static void transitionAndPossiblySignal(Order order, OrderState newState, boolean signal, boolean allOrNothing)
+            throws UnexpectedException {
+        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
+
+        synchronized (order) {
+            try {
+                if (signal) {
+                    if (order.isRequesterRemote(localProviderId)) {
+                        LOGGER.info(String.format(Messages.Info.NOTIFYING_REQUESTER_S_S, order.getOrderState(), newState));
+                        notifyRequester(order, newState);
+                    }
+                }
+            } catch (Exception e) {
+                String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER,
+                        order.getRequester(), order.getId());
+                LOGGER.warn(message, e);
+                if (allOrNothing) {
                     return;
                 }
             }
@@ -65,7 +82,7 @@ public class OrderStateTransitioner {
         }
     }
 
-    protected static void notifyRequester(Order order, OrderState newState) throws RemoteCommunicationException {
+    public static void notifyRequester(Order order, OrderState newState) throws RemoteCommunicationException {
         try {
             RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, newState);
             remoteNotifyEventRequest.send();

@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.cloudconnector;
 import java.sql.Timestamp;
 import java.util.List;
 
+import cloud.fogbow.ras.core.models.orders.*;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -28,12 +29,6 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.auditing.AuditableRequest;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
@@ -51,7 +46,6 @@ public class LocalCloudConnector implements CloudConnector {
 
     private static final String DELETE_INSTANCE_OPERATION = "deleteInstance";
     private static final String DELETE_SECURITY_RULE_OPERATION = "deleteSecurityRule";
-    private static final String GENERIC_REQUEST_OPERATION = "genericRequest";
     private static final String GET_ALL_IMAGES_OPERATION = "getAllImages";
     private static final String GET_ALL_SECURITY_RULES_OPERATION = "getAllSecurityRules";
     private static final String GET_IMAGE_OPERATION = "getImage";
@@ -302,7 +296,7 @@ public class LocalCloudConnector implements CloudConnector {
             // This may happen if the RAS crashed after the instance was deleted, but before the new state
             // is updated in stable storage, or if the instance has been deleted directly in the cloud
             // without the intervention of the RAS.
-            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED, order.getId()));
+            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED_S, order.getId()));
             throw e;
         }
     }
@@ -311,9 +305,14 @@ public class LocalCloudConnector implements CloudConnector {
         String instanceId = order.getInstanceId();
         if (instanceId != null) {
             return getResourceInstance(order, order.getType(), cloudUser);
-        } 
-        // When there is no instance, an empty one is created with the appropriate state
-        return createEmptyInstance(order);
+        } else if (order.getOrderState().equals(OrderState.CHECKING_DELETION)) {
+            // The instance has been deleted.
+            throw new InstanceNotFoundException();
+        } else {
+            // When there is no instance and the instance was not deleted, an empty one is created
+            // with the appropriate state.
+            return createEmptyInstance(order);
+        }
     }
 
     protected OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
@@ -431,5 +430,4 @@ public class LocalCloudConnector implements CloudConnector {
             DatabaseManager.getInstance().auditRequest(auditableRequest);
         }
     }
-    
 }

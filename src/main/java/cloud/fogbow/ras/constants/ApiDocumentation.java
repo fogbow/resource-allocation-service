@@ -11,7 +11,7 @@ public class ApiDocumentation {
     public static class Attachment {
         public static final String API = "Manages attachments.";
         public static final String CREATE_OPERATION = "Creates an attachment.";
-        public static final String GET_OPERATION = "Lists all attachments created by the user.";
+        public static final String GET_OPERATION = "Lists all attachments created by the user (the state of remote instances may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific attachment.";
         public static final String DELETE_OPERATION = "Deletes a specific attachment.";
         public static final String ID = "The ID of the specific attachment.";
@@ -32,7 +32,7 @@ public class ApiDocumentation {
     public static class Compute {
         public static final String API = "Manages compute instances.";
         public static final String CREATE_OPERATION = "Creates a compute instance.";
-        public static final String GET_OPERATION = "Lists all compute instances created by the user.";
+        public static final String GET_OPERATION = "Lists all compute instances created by the user (the state of remote instances may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific compute instance.";
         public static final String DELETE_OPERATION = "Deletes a specific compute instance.";
         public static final String GET_ALLOCATION = "Gets the current compute allocation for the user on a particular provider.";
@@ -50,7 +50,7 @@ public class ApiDocumentation {
     public static class Network {
         public static final String API = "Manages private networks.";
         public static final String CREATE_OPERATION = "Creates a private network.";
-        public static final String GET_OPERATION = "Lists all private networks created by the user.";
+        public static final String GET_OPERATION = "Lists all private networks created by the user (the state of remote instances may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific private network.";
         public static final String DELETE_OPERATION = "Deletes a specific private network.";
         public static final String ID = "The ID of the specific private network.";
@@ -71,7 +71,7 @@ public class ApiDocumentation {
     public static class PublicIp {
         public static final String API = "Manages public IPs.";
         public static final String CREATE_OPERATION = "Creates a public IP and attaches it to a compute instance.";
-        public static final String GET_OPERATION = "Lists all public IPs created by the user.";
+        public static final String GET_OPERATION = "Lists all public IPs created by the user (the state of remote instances may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific public IP.";
         public static final String DELETE_OPERATION = "Deletes a specific public IP.";
         public static final String ID = "The ID of the specific public IP.";
@@ -94,7 +94,7 @@ public class ApiDocumentation {
     public static class Volume {
         public static final String API = "Manages volumes.";
         public static final String CREATE_OPERATION = "Creates a volume.";
-        public static final String GET_OPERATION = "Lists all volumes created by the user.";
+        public static final String GET_OPERATION = "Lists all volumes created by the user (the state of remote instances may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific volume.";
         public static final String DELETE_OPERATION = "Deletes a specific volume.";
         public static final String ID = "The ID of the specific volume.";

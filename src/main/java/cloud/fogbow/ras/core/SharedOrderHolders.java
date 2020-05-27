@@ -18,13 +18,15 @@ public class SharedOrderHolders {
 
     private Map<String, Order> activeOrdersMap;
     private SynchronizedDoublyLinkedList<Order> openOrders;
+    private SynchronizedDoublyLinkedList<Order> selectedOrders;
     private SynchronizedDoublyLinkedList<Order> spawningOrders;
     private SynchronizedDoublyLinkedList<Order> failedAfterSuccessfulRequestOrders;
     private SynchronizedDoublyLinkedList<Order> failedOnRequestOrders;
     private SynchronizedDoublyLinkedList<Order> fulfilledOrders;
     private SynchronizedDoublyLinkedList<Order> unableToCheckStatus;
     private SynchronizedDoublyLinkedList<Order> pendingOrders;
-    private SynchronizedDoublyLinkedList<Order> closedOrders;
+    private SynchronizedDoublyLinkedList<Order> assignedForDeletionOrders;
+    private SynchronizedDoublyLinkedList<Order> checkingDeletionOrders;
 
     public SharedOrderHolders() {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
@@ -34,6 +36,9 @@ public class SharedOrderHolders {
             this.openOrders = databaseManager.readActiveOrders(OrderState.OPEN);
             addOrdersToMap(this.openOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.OPEN, this.activeOrdersMap.size()));
+            this.selectedOrders = databaseManager.readActiveOrders(OrderState.SELECTED);
+            addOrdersToMap(this.selectedOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.SELECTED, this.activeOrdersMap.size()));
             this.spawningOrders = databaseManager.readActiveOrders(OrderState.SPAWNING);
             addOrdersToMap(this.spawningOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.SPAWNING, this.activeOrdersMap.size()));
@@ -52,9 +57,12 @@ public class SharedOrderHolders {
             this.pendingOrders = databaseManager.readActiveOrders(OrderState.PENDING);
             addOrdersToMap(this.pendingOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.PENDING, this.activeOrdersMap.size()));
-            this.closedOrders = databaseManager.readActiveOrders(OrderState.CLOSED);
-            addOrdersToMap(this.closedOrders, this.activeOrdersMap);
-            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.CLOSED, this.activeOrdersMap.size()));
+            this.assignedForDeletionOrders = databaseManager.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION);
+            addOrdersToMap(this.assignedForDeletionOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.ASSIGNED_FOR_DELETION, this.activeOrdersMap.size()));
+            this.checkingDeletionOrders = databaseManager.readActiveOrders(OrderState.CHECKING_DELETION);
+            addOrdersToMap(this.checkingDeletionOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.CHECKING_DELETION, this.activeOrdersMap.size()));
         } catch (Exception e) {
             throw new FatalErrorException(e.getMessage(), e);
         }
@@ -86,6 +94,10 @@ public class SharedOrderHolders {
         return openOrders;
     }
 
+    public SynchronizedDoublyLinkedList<Order> getSelectedOrdersList() {
+        return selectedOrders;
+    }
+
     public SynchronizedDoublyLinkedList<Order> getSpawningOrdersList() {
         return spawningOrders;
     }
@@ -110,8 +122,12 @@ public class SharedOrderHolders {
         return pendingOrders;
     }
 
-    public SynchronizedDoublyLinkedList<Order> getClosedOrdersList() {
-        return closedOrders;
+    public SynchronizedDoublyLinkedList<Order> getAssignedForDeletionOrdersList() {
+        return assignedForDeletionOrders;
+    }
+
+    public SynchronizedDoublyLinkedList<Order> getCheckingDeletionOrdersList() {
+        return checkingDeletionOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getOrdersList(OrderState orderState) {
@@ -119,6 +135,9 @@ public class SharedOrderHolders {
         switch (orderState) {
             case OPEN:
                 list = SharedOrderHolders.getInstance().getOpenOrdersList();
+                break;
+            case SELECTED:
+                list = SharedOrderHolders.getInstance().getSelectedOrdersList();
                 break;
             case SPAWNING:
                 list = SharedOrderHolders.getInstance().getSpawningOrdersList();
@@ -129,9 +148,6 @@ public class SharedOrderHolders {
             case FULFILLED:
                 list = SharedOrderHolders.getInstance().getFulfilledOrdersList();
                 break;
-            case CLOSED:
-                list = SharedOrderHolders.getInstance().getClosedOrdersList();
-                break;
             case FAILED_AFTER_SUCCESSFUL_REQUEST:
                 list = SharedOrderHolders.getInstance().getFailedAfterSuccessfulRequestOrdersList();
                 break;
@@ -140,6 +156,12 @@ public class SharedOrderHolders {
                 break;
             case UNABLE_TO_CHECK_STATUS:
                 list = SharedOrderHolders.getInstance().getUnableToCheckStatusOrdersList();
+                break;
+            case ASSIGNED_FOR_DELETION:
+                list = SharedOrderHolders.getInstance().getAssignedForDeletionOrdersList();
+                break;
+            case CHECKING_DELETION:
+                list = SharedOrderHolders.getInstance().getCheckingDeletionOrdersList();
                 break;
             default:
                 break;

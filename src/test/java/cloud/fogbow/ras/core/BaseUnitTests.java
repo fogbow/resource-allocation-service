@@ -41,7 +41,7 @@ public class BaseUnitTests {
     public void tearDown() {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         for (OrderState state : OrderState.values()) {
-            if (!state.equals(OrderState.DEACTIVATED)) {
+            if (!state.equals(OrderState.CLOSED)) {
                 SynchronizedDoublyLinkedList<Order> ordersList = sharedOrderHolders.getOrdersList(state);
                 this.testUtils.cleanList(ordersList);
             }

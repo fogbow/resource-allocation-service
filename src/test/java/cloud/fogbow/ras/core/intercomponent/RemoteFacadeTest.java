@@ -1,42 +1,15 @@
 package cloud.fogbow.ras.core.intercomponent;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jamppa.component.PacketSender;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.xmpp.packet.IQ;
-
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.ImageInstance;
-import cloud.fogbow.ras.api.http.response.ImageSummary;
-import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.CloudListController;
-import cloud.fogbow.ras.core.OrderController;
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.SecurityRuleController;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.TestUtils;
+import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -48,19 +21,26 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class, PacketSenderHolder.class })
 public class RemoteFacadeTest extends BaseUnitTests {
 
 	private static final String DEFAULT_CLOUD_NAME = "default";
-	private static final String FAKE_CONTENT = "fooBar";
 	private static final String FAKE_IMAGE_ID = "fake-image-id";
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String FAKE_LOCALIDENTITY_PROVIDER = "fake-localidentity-provider";
 	private static final String FAKE_OWNER_USER_ID_VALUE = "fake-owner-user-id";
     private static final String FAKE_REQUESTER_USER_ID_VALUE = "fake-requester-user-id";
     private static final String FAKE_REQUESTER_ID = "fake-requester-id";
-    private static final String FAKE_URL = "https://www.foo.bar";
 	private static final String FAKE_RULE_ID = "fake-rule-id";
 
 	private RemoteFacade facade;
@@ -204,8 +184,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.deleteOrder(FAKE_REQUESTER_ID, order.getId(), systemUser, order.getType());
 	}
 
-	// test case: When calling the deleteOrder method with an Order passed per
-	// parameter, it must return its OrderState to Closed.
+	// test case: When calling the deleteOrder method with an Order passed as
+	// parameter, it must return its OrderState as ASSIGNED_FOR_DELETION.
 	@Test
 	public void testRemoteDeleteOrderSuccessfully() throws Exception {
 		// set up
@@ -228,7 +208,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
 		// checking that the order has a state and is not null
 		Assert.assertNotNull(order.getOrderState());
-		OrderState expectedOrderState = OrderState.CLOSED;
+		OrderState expectedOrderState = OrderState.ASSIGNED_FOR_DELETION;
 
 		// exercise
 		this.facade.deleteOrder(localMemberId, order.getId(), systemUser, order.getType());
@@ -542,25 +522,15 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
 		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
+		remoteOrder.setOrderState(OrderState.PENDING);
 
 		this.orderController.activateOrder(remoteOrder);
-
-		IQ response = Mockito.mock(IQ.class);
-		PacketSender packetSender = Mockito.mock(PacketSender.class);
-		PowerMockito.mockStatic(PacketSenderHolder.class);
-		Mockito.when(PacketSenderHolder.getPacketSender()).thenReturn(packetSender);
-		Mockito.when(packetSender.syncSendPacket(Mockito.any(IQ.class))).thenReturn(response);
-
-		SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
-		SynchronizedDoublyLinkedList<Order> origin = ordersHolder.getOrdersList(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
-		origin.addItem(remoteOrder);
 
 		// exercise
 		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
 
 		// verify
-		cloud.fogbow.ras.core.models.orders.OrderState expectedOrderState = cloud.fogbow.ras.core.models.orders.OrderState.FULFILLED;
+		OrderState expectedOrderState = OrderState.FULFILLED;
 		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
 	}
 
@@ -579,26 +549,42 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
 		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
+		remoteOrder.setOrderState(OrderState.PENDING);
 
 		this.orderController.activateOrder(remoteOrder);
-
-		IQ iqResponse = Mockito.mock(IQ.class);
-		PacketSender packetSender = Mockito.mock(PacketSender.class);
-		PowerMockito.mockStatic(PacketSenderHolder.class);
-		Mockito.when(PacketSenderHolder.getPacketSender()).thenReturn(packetSender);
-		Mockito.when(packetSender.syncSendPacket(Mockito.any(IQ.class))).thenReturn(iqResponse);
-
-		SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
-		SynchronizedDoublyLinkedList<Order> origin = ordersHolder.getOrdersList(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
-		origin.addItem(remoteOrder);
 
 		// exercise
 		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
 
 		// verify
-		cloud.fogbow.ras.core.models.orders.OrderState expectedOrderState = cloud.fogbow.ras.core.models.orders.OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
+		OrderState expectedOrderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
 		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
+	}
+
+	// test case: When calling the RemoteHandleRemoteEvent method from a pending
+	// remote order and state is CLOSED, it must close order.
+	@Test
+	public void testRemoteHandleRemoteEventWithCloseState() throws Exception {
+		// set up
+		OrderState orderState = OrderState.CLOSED;
+
+		String signallingMember = TestUtils.FAKE_REMOTE_MEMBER_ID;
+
+		String provider = signallingMember;
+		String requester = TestUtils.LOCAL_MEMBER_ID;
+		Order remoteOrder = new ComputeOrder();
+		remoteOrder.setRequester(requester);
+		remoteOrder.setProvider(provider);
+		remoteOrder.setOrderState(OrderState.PENDING);
+
+		this.orderController.activateOrder(remoteOrder);
+
+		// exercise
+		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
+
+		// verify
+		Order activeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(remoteOrder.getId());
+		Assert.assertNull(activeOrder);
 	}
 
 	// test case: When calling the handleRemoteEvent method with a provider

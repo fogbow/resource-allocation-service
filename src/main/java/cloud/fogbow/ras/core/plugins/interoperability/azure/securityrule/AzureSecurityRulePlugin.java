@@ -13,7 +13,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.Azu
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk.model.AzureUpdateNetworkSecurityGroupRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.util.SecurityRuleIdContext;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -25,12 +24,12 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
     private static final Logger LOGGER = Logger.getLogger(AzureSecurityRulePlugin.class);
 
     private final String defaultResourceGroupName;
-    private AzureNetworkSecurityGroupOperationSDK azureNetworkSecurityGroupOperationSDK;
+    private AzureNetworkSecurityGroupOperationSDK operation;
 
     public AzureSecurityRulePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.azureNetworkSecurityGroupOperationSDK = new AzureNetworkSecurityGroupOperationSDK();
         this.defaultResourceGroupName = properties.getProperty(AzureConstants.DEFAULT_RESOURCE_GROUP_NAME_KEY);
+        this.operation = new AzureNetworkSecurityGroupOperationSDK(this.defaultResourceGroupName);
     }
 
     @Override
@@ -38,23 +37,17 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
             throws FogbowException {
 
         LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
-
         String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
-        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                .withSubscriptionId(azureUser.getSubscriptionId())
-                .withResourceGroupName(this.defaultResourceGroupName)
-                .withResourceName(networkSecurityGroupName)
-                .build();
         String cidr = securityRule.getCidr();
         int portFrom = securityRule.getPortFrom();
         int portTo = securityRule.getPortTo();
         SecurityRule.Direction direction = securityRule.getDirection();
         SecurityRule.Protocol protocol = securityRule.getProtocol();
-        String securityRuleName = AzureGeneralUtil.generateResourceName();
+        String ruleResourceName = AzureGeneralUtil.generateResourceName();
 
-        AzureUpdateNetworkSecurityGroupRef azureUpdateNetworkSecurityRef = AzureUpdateNetworkSecurityGroupRef.builder()
-                .ruleResourceName(securityRuleName)
-                .networkSecurityGroupId(networkSecurityGroupId)
+        AzureUpdateNetworkSecurityGroupRef networkSecurityGroupRef = AzureUpdateNetworkSecurityGroupRef.builder()
+                .ruleResourceName(ruleResourceName)
+                .securityGroupResourceName(networkSecurityGroupName)
                 .protocol(protocol)
                 .cidr(cidr)
                 .direction(direction)
@@ -62,41 +55,25 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
                 .portTo(portTo)
                 .checkAndBuild();
 
-        this.azureNetworkSecurityGroupOperationSDK.doCreateInstance(azureUpdateNetworkSecurityRef, azureUser);
-
-        return SecurityRuleIdContext.buildInstanceId(networkSecurityGroupName, securityRuleName);
+        this.operation.doCreateInstance(networkSecurityGroupRef, azureUser);
+        return SecurityRuleIdContext.buildInstanceId(networkSecurityGroupName, ruleResourceName);
     }
 
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
-
-        String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
-        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                .withSubscriptionId(azureUser.getSubscriptionId())
-                .withResourceGroupName(this.defaultResourceGroupName)
-                .withResourceName(networkSecurityGroupName)
-                .build();
-
-        return this.azureNetworkSecurityGroupOperationSDK.getNetworkSecurityRules(networkSecurityGroupId,
-                networkSecurityGroupName, azureUser);
+        String instanceId = majorOrder.getInstanceId();
+        String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(instanceId);
+        return this.operation.getNetworkSecurityRules(networkSecurityGroupName, azureUser);
     }
 
     @Override
     public void deleteSecurityRule(String securityRuleId, AzureUser azureUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
-
-        SecurityRuleIdContext securityRuleIdContext = this.getSecurityRuleIdContext(securityRuleId);
-
+        SecurityRuleIdContext securityRuleIdContext = getSecurityRuleIdContext(securityRuleId);
         String networkSecurityGroupName = securityRuleIdContext.getNetworkSecurityGroupName();
-        String networkSecurityGroupId = AzureResourceIdBuilder.networkSecurityGroupId()
-                .withSubscriptionId(azureUser.getSubscriptionId())
-                .withResourceGroupName(this.defaultResourceGroupName)
-                .withResourceName(networkSecurityGroupName)
-                .build();
-
         String securityRuleName = securityRuleIdContext.getSecurityRuleName();
-        this.azureNetworkSecurityGroupOperationSDK.deleteNetworkSecurityRule(networkSecurityGroupId, securityRuleName, azureUser);
+        this.operation.deleteNetworkSecurityRule(networkSecurityGroupName, securityRuleName, azureUser);
     }
 
     @VisibleForTesting
@@ -106,6 +83,6 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
     @VisibleForTesting
     void setAzureNetworkSecurityGroupOperationSDK(AzureNetworkSecurityGroupOperationSDK operation) {
-        this.azureNetworkSecurityGroupOperationSDK = operation;
+        this.operation = operation;
     }
 }

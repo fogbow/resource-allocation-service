@@ -25,12 +25,13 @@ import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import rx.Completable;
 import rx.Observable;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Azure.class, AzurePublicIPAddressSDK.class })
+@PrepareForTest({ Azure.class, AzureGeneralUtil.class, AzurePublicIPAddressSDK.class })
 public class AzurePublicIPAddressSDKTest {
 
     @Rule
@@ -78,6 +79,9 @@ public class AzurePublicIPAddressSDKTest {
                 Mockito.eq(azure), Mockito.eq(publicIPAddress));
 
         String resourceName = AzureTestUtils.RESOURCE_NAME;
+        PowerMockito.mockStatic(AzureGeneralUtil.class);
+        PowerMockito.doReturn(resourceName).when(AzureGeneralUtil.class, "generateResourceName");
+
         NetworkSecurityGroups networkSecurityGroups = Mockito.mock(NetworkSecurityGroups.class);
         Mockito.when(azure.networkSecurityGroups()).thenReturn(networkSecurityGroups);
 
@@ -95,7 +99,7 @@ public class AzurePublicIPAddressSDKTest {
                 .mock(NetworkSecurityGroup.DefinitionStages.WithCreate.class);
         Mockito.when(withGroup.withExistingResourceGroup(Mockito.eq(resourceGroupName))).thenReturn(withCreate);
 
-        String securityRuleName = resourceName + AzurePublicIPAddressSDK.SECURITY_RULE_NAME_SUFIX;
+        String securityRuleName = AzureTestUtils.RESOURCE_NAME;
         NetworkSecurityRule.DefinitionStages.Blank defineSecurityRule = Mockito
                 .mock(NetworkSecurityRule.DefinitionStages.Blank.class);
         Mockito.when(withCreate.defineRule(Mockito.eq(securityRuleName))).thenReturn(defineSecurityRule);

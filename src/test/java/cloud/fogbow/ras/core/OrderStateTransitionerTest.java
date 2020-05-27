@@ -12,7 +12,6 @@ import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 import org.mockito.internal.verification.VerificationModeFactory;
-import org.mockito.verification.VerificationMode;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -65,7 +64,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderStateTransitioner.doTransition(Mockito.any(), Mockito.any());
     }
 
-    // test case: When calling the transition() method, it must notify it's remote requester
+    // test case: When calling the transitionAndTryToSignalRequesterIfNeeded() method, it must notify it's remote requester
     // and invoke doTransition() to change order's state.
     @Test
     public void testTransitionToChangeOrderStateOpenToSpawningWithRemoteProvider() throws Exception {
@@ -87,7 +86,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
                 "doTransition", Mockito.any(), Mockito.any());
 
         // exercise
-        OrderStateTransitioner.transition(order, destinationState);
+        OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, destinationState);
 
         // verify
         PowerMockito.verifyStatic(OrderStateTransitioner.class, Mockito.times(1));
@@ -97,7 +96,103 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderStateTransitioner.notifyRequester(Mockito.any(), Mockito.any());
     }
 
-    // test case: When calling the Transition() method, it must change the state of Order
+    // test case: When calling the transitionOnSuccessfulSignalingRequesterIfNeeded() method, it must notify
+    // it's remote requester and invoke doTransition() to change order's state.
+    @Test
+    public void testTransitionToChangeOrderStateOpenToSpawningWithRemoteProvider2() throws Exception {
+
+        // set up
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        this.testUtils.mockReadOrdersFromDataBase();
+
+        Order order = createOrder(originState);
+        order.setRequester(TestUtils.FAKE_REMOTE_MEMBER_ID);
+
+        PowerMockito.spy(OrderStateTransitioner.class);
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "notifyRequester", Mockito.any(Order.class), Mockito.any(OrderState.class));
+
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "doTransition", Mockito.any(), Mockito.any());
+
+        // exercise
+        OrderStateTransitioner.transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(order, destinationState);
+
+        // verify
+        PowerMockito.verifyStatic(OrderStateTransitioner.class, Mockito.times(1));
+        OrderStateTransitioner.doTransition(Mockito.any(), Mockito.any());
+
+        PowerMockito.verifyStatic(VerificationModeFactory.times(1));
+        OrderStateTransitioner.notifyRequester(Mockito.any(), Mockito.any());
+    }
+
+    // test case: When calling the transitionAndTryToSignalRequesterIfNeeded() method, it should not notify
+    // it's local requester and invoke doTransition() to change order's state.
+    @Test
+    public void testTransitionToChangeOrderStateOpenToSpawningWithLocalProvider() throws Exception {
+
+        // set up
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        this.testUtils.mockReadOrdersFromDataBase();
+
+        Order order = createOrder(originState);
+        order.setRequester(TestUtils.LOCAL_MEMBER_ID);
+
+        PowerMockito.spy(OrderStateTransitioner.class);
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "notifyRequester", Mockito.any(Order.class), Mockito.any(OrderState.class));
+
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "doTransition", Mockito.any(), Mockito.any());
+
+        // exercise
+        OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, destinationState);
+
+        // verify
+        PowerMockito.verifyStatic(OrderStateTransitioner.class, Mockito.times(1));
+        OrderStateTransitioner.doTransition(Mockito.any(), Mockito.any());
+
+        PowerMockito.verifyStatic(VerificationModeFactory.times(0));
+        OrderStateTransitioner.notifyRequester(Mockito.any(), Mockito.any());
+    }
+
+    // test case: When calling the transitionOnSuccessfulSignalingRequesterIfNeeded() method, it should not notify
+    // it's local requester and invoke doTransition() to change order's state.
+    @Test
+    public void testTransitionToChangeOrderStateOpenToSpawningWithLocalProvider2() throws Exception {
+
+        // set up
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        this.testUtils.mockReadOrdersFromDataBase();
+
+        Order order = createOrder(originState);
+        order.setRequester(TestUtils.LOCAL_MEMBER_ID);
+
+        PowerMockito.spy(OrderStateTransitioner.class);
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "notifyRequester", Mockito.any(Order.class), Mockito.any(OrderState.class));
+
+        PowerMockito.doNothing().when(OrderStateTransitioner.class,
+                "doTransition", Mockito.any(), Mockito.any());
+
+        // exercise
+        OrderStateTransitioner.transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(order, destinationState);
+
+        // verify
+        PowerMockito.verifyStatic(OrderStateTransitioner.class, Mockito.times(1));
+        OrderStateTransitioner.doTransition(Mockito.any(), Mockito.any());
+
+        PowerMockito.verifyStatic(VerificationModeFactory.times(0));
+        OrderStateTransitioner.notifyRequester(Mockito.any(), Mockito.any());
+    }
+
+    // test case: When calling the transition() method, it must change the state of Order
     // passed as parameter to a specific OrderState. This Order defined originally with Open, will
     // be changed to the Spawning state, removed from the open orders list, and added to the spawning
     // orders list.

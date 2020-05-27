@@ -238,6 +238,36 @@ public class OpenProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
     }
 
+    // test case: test if the open processor changes and keep the order state as SELECTED
+    // if the method processOpenOrder throws an Error or the system shutdown.
+    @Test
+    public void testProcessLocalOpenOrderAndTheSystemShutdown() throws Exception {
+        //set up
+        Order localOrder = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+        this.orderController.activateOrder(localOrder);
+
+        // Simulate a system shutdown
+        Mockito.doThrow(new Error())
+                .when(this.cloudConnector)
+                .requestInstance(Mockito.any(Order.class));
+
+        //exercise
+        this.thread = new Thread(this.processor);
+        this.thread.start();
+        Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
+
+        //verify
+        Assert.assertEquals(OrderState.SELECTED, localOrder.getOrderState());
+
+        // test if the open order list is empty and
+        // the selectedList is with the localOrder
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        ChainedList<Order> selectedOrdersList = sharedOrderHolders.getSelectedOrdersList();
+        Assert.assertTrue(this.listIsEmpty(openOrdersList));
+        Assert.assertSame(localOrder, selectedOrdersList.getNext());
+    }
+
     //test case: test if the open processor still run and do not change the order state if the method
     //processOpenOrder throws an exception.
     @Test
@@ -307,13 +337,13 @@ public class OpenProcessorTest extends BaseUnitTests {
             this.thread.start();
             Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
-            localOrder.setOrderState(OrderState.CLOSED);
+            localOrder.setOrderState(OrderState.CHECKING_DELETION);
         }
 
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
-        Assert.assertEquals(OrderState.CLOSED, localOrder.getOrderState());
+        Assert.assertEquals(OrderState.CHECKING_DELETION, localOrder.getOrderState());
     }
 
     //test case: this method tests a race condition when the attend open order thread has the order operation priority.

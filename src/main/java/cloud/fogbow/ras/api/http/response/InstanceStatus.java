@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.api.http.response;
 
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -61,9 +62,10 @@ public class InstanceStatus {
         this.state = state;
     }
 
-    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws InstanceNotFoundException {
+    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws UnexpectedException {
         switch(orderState) {
             case OPEN:
+            case SELECTED:
             case PENDING:
                 return InstanceState.DISPATCHED;
             case SPAWNING:
@@ -76,10 +78,13 @@ public class InstanceStatus {
                 return InstanceState.FAILED;
             case UNABLE_TO_CHECK_STATUS:
                 return InstanceState.UNKNOWN;
+            case ASSIGNED_FOR_DELETION:
+            case CHECKING_DELETION:
+                return InstanceState.DELETING;
             case CLOSED:
-            case DEACTIVATED:
+                return InstanceState.DELETED;
             default:
-                throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+                throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
         }
     }
 
