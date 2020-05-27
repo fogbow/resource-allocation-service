@@ -95,7 +95,7 @@ public class SharedOrderHolders {
     }
 
     public SynchronizedDoublyLinkedList<Order> getSelectedOrdersList() {
-        return openOrders;
+        return selectedOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getSpawningOrdersList() {

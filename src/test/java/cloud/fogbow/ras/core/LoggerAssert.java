@@ -30,6 +30,12 @@ public class LoggerAssert {
         return this;
     }
 
+    public void verifyIfEmpty() {
+        if (this.list != null && this.list.size() > 0) {
+            Assert.fail("Log is not empty.");
+        }
+    }
+
     private void assertEquals(int logPosition, Level level, String message) {
         LoggingEvent loggingEvent = this.list.get(getPositionList(logPosition));
         Assert.assertEquals(loggingEvent.getMessage(), message);

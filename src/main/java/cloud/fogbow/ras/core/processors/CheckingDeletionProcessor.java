@@ -12,6 +12,7 @@ import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 public class CheckingDeletionProcessor implements Runnable {
@@ -42,21 +43,30 @@ public class CheckingDeletionProcessor implements Runnable {
         boolean isActive = true;
         while (isActive) {
             try {
-                Order order = this.checkingDeletionOrders.getNext();
-                if (order != null) {
-                    processCheckingDeletionOrder(order);
-                } else {
-                    this.checkingDeletionOrders.resetPointer();
-                    Thread.sleep(this.sleepTime);
-                }
+                checkDeletion();
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (UnexpectedException e) {
-                LOGGER.error(e.getMessage(), e);
-            } catch (Throwable e) {
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
             }
+        }
+    }
+
+    @VisibleForTesting
+    void checkDeletion() throws InterruptedException {
+        try {
+            Order order = this.checkingDeletionOrders.getNext();
+            if (order != null) {
+                processCheckingDeletionOrder(order);
+            } else {
+                this.checkingDeletionOrders.resetPointer();
+                Thread.sleep(this.sleepTime);
+            }
+        } catch (InterruptedException e) {
+            LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
+            throw e;
+        } catch (UnexpectedException e) {
+            LOGGER.error(e.getMessage(), e);
+        } catch (Throwable e) {
+            LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
         }
     }
 
@@ -69,7 +79,8 @@ public class CheckingDeletionProcessor implements Runnable {
      *
      * @param order {@link Order}
      */
-    protected void processCheckingDeletionOrder(Order order) throws UnexpectedException {
+    @VisibleForTesting
+    void processCheckingDeletionOrder(Order order) throws UnexpectedException {
         synchronized (order) {
             // Check if the order is still in the CHECKING_DELETION state (for this particular state, this should
             // always happen, since once the order gets in this state, only this thread can operate on it. However,

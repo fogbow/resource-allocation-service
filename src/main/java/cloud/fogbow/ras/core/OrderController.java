@@ -114,15 +114,15 @@ public class OrderController {
     }
 
     public void deleteOrder(Order order) throws FogbowException {
-        if (order == null)
+        if (order == null) {
             throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
+        }
 
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (orderState.equals(OrderState.CHECKING_DELETION) ||
                     order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION)) {
-                String message = String.format(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING, order.getId());
-                throw new OnGoingOperationException(message);
+                throw new OnGoingOperationException(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
             }
             if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
                     throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED,
@@ -133,18 +133,23 @@ public class OrderController {
                 // "at-most-once" semantic for the requestInstance() call. See OpenProcessor.
                 throw new OnGoingOperationException(cloud.fogbow.common.constants.Messages.Exception.CANNOT_DELETE_INSTANCE_WHILE_IT_IS_BEING_CREATED);
             }
-            // The code below is more verbose than needed, but this makes it simpler to understand.
-            if (order.isProviderLocal(this.localProviderId)) {
-                OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
-            } else {
-                // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
-                RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
-                        CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
-                remoteCloudConnector.deleteInstance(order);
-                // Since deleteInstance() is a synchronous call (RPC), the remote provider cannot notify the state
-                // change (the execution of RPC to do so at the remote provider would raise an UnavailableProviderException
-                // due to the ongoing RPC of the deleteInstance() call). Also, if an error occur in the above call, an
-                // exception will be raised and the order will remain in whatever state it is.
+            try {
+                if (order.isProviderRemote(this.localProviderId)) {
+                    // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
+                    RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
+                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
+                    remoteCloudConnector.deleteInstance(order);
+                }
+            } finally {
+                // If the provider is remote, since deleteInstance() is a synchronous call (RPC), the remote provider
+                // cannot notify the state change (starting another RPC from the remote provider to the local requester
+                // in the middle of the execution of the deleteInstance() RPC would raise an UnavailableProviderException).
+                // Thus, both the local and the remote order should have their state changed here, and not as a result
+                // of a notification. If an error occur in the above call, an exception will be raised and the local
+                // order will also transition to the ASSIGNED_FOR_DELETION state. It is up to the
+                // RemoteOrdersStateSynchronization processor to make sure that the remote order is eventually deleted
+                // at the remote provider.
+                // If the provider is local, then the state transition below is the only command that is executed.
                 OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
             }
         }
@@ -344,7 +349,8 @@ public class OrderController {
         }
     }
 
-    private void updateAllOrdersDependencies() throws UnexpectedException {
+    @VisibleForTesting
+    void updateAllOrdersDependencies() throws UnexpectedException {
         Collection<Order> allOrders = this.orderHolders.getActiveOrdersMap().values();
 
         for (Order order : allOrders) {

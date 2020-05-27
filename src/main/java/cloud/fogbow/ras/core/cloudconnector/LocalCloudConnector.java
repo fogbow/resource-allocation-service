@@ -296,7 +296,7 @@ public class LocalCloudConnector implements CloudConnector {
             // This may happen if the RAS crashed after the instance was deleted, but before the new state
             // is updated in stable storage, or if the instance has been deleted directly in the cloud
             // without the intervention of the RAS.
-            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED, order.getId()));
+            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED_S, order.getId()));
             throw e;
         }
     }
