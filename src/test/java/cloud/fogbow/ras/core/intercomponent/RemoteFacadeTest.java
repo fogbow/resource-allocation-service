@@ -507,64 +507,10 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.authorizeOrder(ownerUser, cloudName, operation, resourceType, order);
 	}
 
-	// test case: When calling the RemoteHandleRemoteEvent method from a pending
-	// remote order, it must return its OrderState FULFILLED, based on the match of
-	// the event passed by parameter.
+	// test case: When calling the closeOrderAtRemoteRequester method from a pending
+	// remote order, it must close order.
 	@Test
-	public void testRemoteHandleRemoteEventWithInstanceFulfilled() throws Exception {
-		// set up
-		OrderState orderState = OrderState.FULFILLED;
-
-		String signallingMember = TestUtils.LOCAL_MEMBER_ID;
-		String requester = FAKE_REQUESTER_ID;
-		String provider = signallingMember;
-
-		Order remoteOrder = new ComputeOrder();
-		remoteOrder.setRequester(requester);
-		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(OrderState.PENDING);
-
-		this.orderController.activateOrder(remoteOrder);
-
-		// exercise
-		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
-
-		// verify
-		OrderState expectedOrderState = OrderState.FULFILLED;
-		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
-	}
-
-	// test case: When calling the RemoteHandleRemoteEvent method from a pending
-	// remote order, it must return its OrderState FAILED_AFTER_SUCCESSFUL_REQUEST,
-	// based on the match of the event passed by parameter.
-	@Test
-	public void testRemoteHandleRemoteEventWithInstanceFailed() throws Exception {
-		// set up
-		OrderState orderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
-
-		String signallingMember = TestUtils.LOCAL_MEMBER_ID;
-		String requester = FAKE_REQUESTER_ID;
-		String provider = signallingMember;
-
-		Order remoteOrder = new ComputeOrder();
-		remoteOrder.setRequester(requester);
-		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(OrderState.PENDING);
-
-		this.orderController.activateOrder(remoteOrder);
-
-		// exercise
-		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
-
-		// verify
-		OrderState expectedOrderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
-		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
-	}
-
-	// test case: When calling the RemoteHandleRemoteEvent method from a pending
-	// remote order and state is CLOSED, it must close order.
-	@Test
-	public void testRemoteHandleRemoteEventWithCloseState() throws Exception {
+	public void testCloseOrderAtRemoteRequester() throws Exception {
 		// set up
 		OrderState orderState = OrderState.CLOSED;
 
@@ -575,12 +521,12 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
 		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(OrderState.PENDING);
+		remoteOrder.setOrderState(OrderState.REMOTE);
 
 		this.orderController.activateOrder(remoteOrder);
 
 		// exercise
-		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
+		this.facade.closeOrderAtRemoteRequester(signallingMember, remoteOrder);
 
 		// verify
 		Order activeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(remoteOrder.getId());
@@ -601,12 +547,12 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
 		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
+		remoteOrder.setOrderState(cloud.fogbow.ras.core.models.orders.OrderState.REMOTE);
 
 		this.orderController.activateOrder(remoteOrder);
 
 		// exercise
-		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
+		this.facade.closeOrderAtRemoteRequester(signallingMember, remoteOrder);
 	}
 
 	private AuthorizationPlugin mockAuthorizationPlugin(SystemUser systemUser, RasOperation operation)

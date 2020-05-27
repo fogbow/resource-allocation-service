@@ -1,6 +1,9 @@
 package cloud.fogbow.ras.core.models.orders;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
@@ -13,7 +16,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "compute_order_table")
-public class ComputeOrder extends Order<ComputeOrder> {
+public class ComputeOrder extends Order<ComputeInstance> {
     private static final long serialVersionUID = 1L;
 
     private static final String NAME_COLUMN_NAME = "name";
@@ -179,7 +182,10 @@ public class ComputeOrder extends Order<ComputeOrder> {
     }
 
     @Override
-    public void updateFromRemote(ComputeOrder remoteOrder) {
-        this.setActualAllocation(remoteOrder.getActualAllocation());
+    public void updateFromRemoteInstance(ComputeInstance remoteInstance) throws UnexpectedException {
+        ComputeAllocation actualAllocation = new ComputeAllocation(1, remoteInstance.getvCPU(),
+                remoteInstance.getRam(), remoteInstance.getDisk());
+        this.setActualAllocation(actualAllocation);
+        this.setOrderState(InstanceStatus.mapOrderStateFromInstanceState(remoteInstance.getState()));
     }
 }

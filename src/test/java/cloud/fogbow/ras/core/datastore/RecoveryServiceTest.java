@@ -85,7 +85,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.REMOTE)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.CHECKING_DELETION)).thenReturn(new SynchronizedDoublyLinkedList<>());
         PowerMockito.mockStatic(DatabaseManager.class);
@@ -115,7 +115,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
         List<Order> selectedOrders = recoveryService.readActiveOrders(OrderState.SELECTED);
         List<Order> failedOnRequestOrders = recoveryService.readActiveOrders(OrderState.FAILED_ON_REQUEST);
-        List<Order> pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
+        List<Order> pendingOrders = recoveryService.readActiveOrders(OrderState.REMOTE);
         List<Order> spawningOrders = recoveryService.readActiveOrders(OrderState.SPAWNING);
         List<Order> fulfilledOrders = recoveryService.readActiveOrders(OrderState.FULFILLED);
         List<Order> unableToCheckStatus = recoveryService.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS);
@@ -178,7 +178,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         // exercise
         recoveryService.save(computeOrder);
         List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-        List<Order> pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
+        List<Order> pendingOrders = recoveryService.readActiveOrders(OrderState.REMOTE);
 
         // verify
         Assert.assertEquals(1, openOrders.size());
@@ -186,12 +186,12 @@ public class RecoveryServiceTest extends BaseUnitTests {
         Assert.assertEquals(computeOrder, openOrders.get(0));
 
         // set up
-        computeOrder.setOrderStateInTestMode(OrderState.PENDING);
+        computeOrder.setOrderStateInTestMode(OrderState.REMOTE);
 
         // exercise
         recoveryService.update(computeOrder);
         openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-        pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
+        pendingOrders = recoveryService.readActiveOrders(OrderState.REMOTE);
 
         // verify
         Assert.assertTrue(openOrders.isEmpty());

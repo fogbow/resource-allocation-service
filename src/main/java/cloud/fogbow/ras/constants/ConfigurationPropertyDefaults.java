@@ -15,6 +15,8 @@ public class ConfigurationPropertyDefaults {
     // reference value is 10 seconds
     public static final String ASSIGNED_FOR_DELETION_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(10));
     // reference value is 10 seconds
+    public static final String REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(10));
+    // reference value is 10 seconds
     public static final String UNABLE_TO_CHECK_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(10));
     public static final String BUILD_NUMBER = "[testing mode]";
 

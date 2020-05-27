@@ -73,8 +73,8 @@ public class OpenProcessor implements Runnable {
         // condition on order access. For example: a user can delete an open
         // order while this method is trying to get an Instance for this order.
         synchronized (order) {
-            OrderState orderState = order.getOrderState();
             // Check if the order is still in the OPEN state (it could have been changed by another thread)
+            OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.OPEN)) {
                 return;
             }
@@ -86,24 +86,20 @@ public class OpenProcessor implements Runnable {
                 order.setInstanceId(instanceId);
                 if (order.isProviderLocal(this.localProviderId)) {
                     if (instanceId != null) {
-                        // Signalling is only important for the business logic when it concerns the states
-                        // CHECKING_DELETION and CLOSED. In this case, transitionOnlyOnSuccessfulSignalIfNeeded()
-                        // must be called, when transitioning the state of an order. For the other states,
-                        // the only effect is that the states of the instances that are returned in the
-                        // OrderController getInstancesStatus() call may be stale. This is documented in the
-                        // API. A client can always refresh the state of a particular instance by calling
-                        // getInstance(). In these cases, the best effort transitionAndTryToSignalRequesterIfNeeded(),
-                        // should be called.
-                        OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.SPAWNING);
+                        OrderStateTransitioner.transition(order, OrderState.SPAWNING);
                     } else {
                         throw new UnexpectedException(String.format(Messages.Exception.REQUEST_INSTANCE_NULL, order.getId()));
                     }
                 } else {
-                    OrderStateTransitioner.transition(order, OrderState.PENDING);
+                    OrderStateTransitioner.transition(order, OrderState.REMOTE);
                 }
             } catch (Exception e) {
                 order.setInstanceId(null);
-                OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_ON_REQUEST);
+                if (order.isProviderLocal(this.localProviderId)) {
+                    OrderStateTransitioner.transition(order, OrderState.FAILED_ON_REQUEST);
+                } else {
+                    OrderStateTransitioner.transition(order, OrderState.REMOTE);
+                }
                 throw e;
             }
         }

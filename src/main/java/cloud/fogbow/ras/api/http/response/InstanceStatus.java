@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.api.http.response;
 
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -66,12 +66,12 @@ public class InstanceStatus {
         switch(orderState) {
             case OPEN:
             case SELECTED:
-            case PENDING:
+            case REMOTE:
                 return InstanceState.DISPATCHED;
-            case SPAWNING:
-                return InstanceState.CREATING;
             case FAILED_ON_REQUEST:
                 return InstanceState.ERROR;
+            case SPAWNING:
+                return InstanceState.CREATING;
             case FULFILLED:
                 return InstanceState.READY;
             case FAILED_AFTER_SUCCESSFUL_REQUEST:
@@ -83,6 +83,28 @@ public class InstanceStatus {
                 return InstanceState.DELETING;
             case CLOSED:
                 return InstanceState.DELETED;
+            default:
+                throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
+        }
+    }
+
+    public static OrderState mapOrderStateFromInstanceState(InstanceState instanceState) throws UnexpectedException {
+        switch(instanceState) {
+            case DISPATCHED:
+                return OrderState.REMOTE;
+            case ERROR:
+                return OrderState.FAILED_ON_REQUEST;
+            case CREATING:
+                return OrderState.SPAWNING;
+            case READY:
+                return OrderState.FULFILLED;
+            case FAILED:
+                return OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
+            case UNKNOWN:
+                return OrderState.UNABLE_TO_CHECK_STATUS;
+            case DELETING:
+                return OrderState.ASSIGNED_FOR_DELETION;
+            case DELETED:
             default:
                 throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
         }

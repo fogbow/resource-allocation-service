@@ -315,7 +315,7 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    protected OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
+    public OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
         OrderInstance instance = null;
         switch (order.getType()) {
             case COMPUTE:

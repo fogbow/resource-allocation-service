@@ -13,7 +13,7 @@ public class XmppComponentManager extends XMPPComponent {
         // instantiate set handlers here
         addSetHandler(new RemoteCreateOrderRequestHandler());
         addSetHandler(new RemoteDeleteOrderRequestHandler());
-        addSetHandler(new RemoteNotifyEventHandler());
+        addSetHandler(new CloseOrderAtRemoteRequesterHandler());
         addSetHandler(new RemoteCreateSecurityRuleRequestHandler());
         addSetHandler(new RemoteDeleteSecurityRuleRequestHandler());
         // instantiate get handlers here

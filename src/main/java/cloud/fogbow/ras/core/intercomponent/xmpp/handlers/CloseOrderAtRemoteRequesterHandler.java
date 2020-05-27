@@ -8,19 +8,18 @@ import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
-public class RemoteNotifyEventHandler extends AbstractQueryHandler {
-    private static final Logger LOGGER = Logger.getLogger(RemoteNotifyEventHandler.class);
+public class CloseOrderAtRemoteRequesterHandler extends AbstractQueryHandler {
+    private static final Logger LOGGER = Logger.getLogger(CloseOrderAtRemoteRequesterHandler.class);
 
     private static final String REMOTE_NOTIFY_EVENT = RemoteMethod.REMOTE_NOTIFY_EVENT.toString();
 
-    public RemoteNotifyEventHandler() {
+    public CloseOrderAtRemoteRequesterHandler() {
         super(REMOTE_NOTIFY_EVENT);
     }
 
@@ -31,13 +30,11 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
 
         Gson gson = new Gson();
         Order order = null;
-        OrderState orderState = null;
         try {
             order = unmarshalOrder(iq, gson);
-            orderState = unmarshalEvent(iq, gson);
 
             String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
-            RemoteFacade.getInstance().handleRemoteEvent(senderId, orderState, order);
+            RemoteFacade.getInstance().closeOrderAtRemoteRequester(senderId, order);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -54,13 +51,5 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
         String orderJsonStr = orderElement.getText();
 
         return (Order) gson.fromJson(orderJsonStr, Class.forName(className));
-    }
-
-    private OrderState unmarshalEvent(IQ iq, Gson gson) {
-        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element newStateElement = queryElement.element(IqElement.NEW_STATE.toString());
-
-        OrderState newState = gson.fromJson(newStateElement.getText(), OrderState.class);
-        return newState;
     }
 }

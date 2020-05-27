@@ -30,6 +30,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
     private Map<String, Order> activeOrdersMap;
     private ChainedList<Order> assignedForDeletionOrderList;
+    private ChainedList<Order> remoteOrderList;
     private AssignedForDeletionProcessor processor;
     private OrderController orderController;
 
@@ -46,6 +47,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         this.assignedForDeletionOrderList = sharedOrderHolders.getAssignedForDeletionOrdersList();
+        this.remoteOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
     }
 
     // test case: When calling the run method and throws an InterruptedException,
@@ -59,10 +61,10 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.processor.run();
     }
 
-    // test case: When calling the processAssignedForDeletionOrder method with local Order non expected state,
-    // it must verify if It keeps the order state and do not anything.
+    // test case: When calling the processAssignedForDeletionOrder method with a remote provider
+    // the order state should change to REMOTE
     @Test
-    public void testProcessAssignedForDeletionOrderSuccessfullyWhenOrderWithAnotherState()
+    public void testProcessAssignedForDeletionWithARemoteProvider()
             throws Exception {
 
         // set up
@@ -80,7 +82,8 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
         Assert.assertNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
-        Assert.assertEquals(anotherOrderState, order.getOrderState());
+        Assert.assertEquals(OrderState.REMOTE, order.getOrderState());
+        Assert.assertEquals(order, this.remoteOrderList.getNext());
         this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
     }
 

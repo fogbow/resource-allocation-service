@@ -28,6 +28,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
 
     private ChainedList<Order> unableToCheckStatus;
     private ChainedList<Order> fulfilledOrderList;
+    private ChainedList<Order> remoteOrderList;
     private CloudConnector cloudConnector;
     private UnableToCheckStatusProcessor processor;
     private Thread thread;
@@ -46,6 +47,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
         this.unableToCheckStatus = sharedOrderHolders.getUnableToCheckStatusOrdersList();
+        this.remoteOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
 
         this.thread = null;
     }
@@ -271,9 +273,9 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     }
 
     // test case: When calling the processUnableToCheckStatusOrder method with a
-    // remote member ID, the order state should not be changed.
+    // remote member ID, the order state should be changed to REMOTE.
     @Test
-    public void testProcessUnableToCheckStatusOrderWithRemoteMember() throws FogbowException {
+    public void testProcessUnableToCheckStatusOrderWithARemoteMember() throws FogbowException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -287,7 +289,9 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         this.processor.processUnableToCheckStatusOrder(order);
 
         // verify
-        Assert.assertEquals(OrderState.UNABLE_TO_CHECK_STATUS, order.getOrderState());
+        Assert.assertEquals(OrderState.REMOTE, order.getOrderState());
+        Assert.assertEquals(order, this.remoteOrderList.getNext());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
 }

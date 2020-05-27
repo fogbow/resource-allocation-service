@@ -15,7 +15,6 @@ import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -128,7 +127,7 @@ public class RemoteFacade {
         this.securityRuleController.deleteSecurityRule(this.localProviderId, cloudName, ruleId, systemUser);
     }
 
-    public void handleRemoteEvent(String signallingProvider, OrderState newState, Order remoteOrder) throws FogbowException {
+    public void closeOrderAtRemoteRequester(String signallingProvider, Order remoteOrder) throws FogbowException {
         // order is the java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside this server
         Order localOrder = this.orderController.getOrder(remoteOrder.getId());
@@ -138,12 +137,7 @@ public class RemoteFacade {
                     throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER,
                             signallingProvider, localOrder.getProvider()));
                 }
-                localOrder.updateFromRemote(remoteOrder);
-                if (newState.equals(OrderState.CLOSED)) {
-                    this.orderController.closeOrder(localOrder);
-                } else {
-                    OrderStateTransitioner.transition(localOrder, newState);
-                }
+                this.orderController.closeOrder(localOrder);
             }
         } else {
             // The order no longer exists locally. This may only happen in rare corner cases when the remote provider

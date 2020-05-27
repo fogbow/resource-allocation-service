@@ -9,7 +9,9 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
+import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.CloseOrderAtRemoteProviderRequest;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.UserData;
@@ -37,11 +39,14 @@ public class OrderController {
     }
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {
-        Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
-        if (requestedOrder == null) {
-            throw new InstanceNotFoundException(String.format(Messages.Exception.NOT_FOUND_ORDER_ID_S, orderId));
+        Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
+        synchronized (activeOrdersMap) {
+            Order requestedOrder = activeOrdersMap.get(orderId);
+            if (requestedOrder == null) {
+                throw new InstanceNotFoundException(String.format(Messages.Exception.NOT_FOUND_ORDER_ID_S, orderId));
+            }
+            return requestedOrder;
         }
-        return requestedOrder;
     }
 
     public String activateOrder(Order order) throws FogbowException {
@@ -51,15 +56,11 @@ public class OrderController {
             throw new UnexpectedException(Messages.Exception.UNABLE_TO_PROCESS_EMPTY_REQUEST);
         }
 
-        // One might think that the synchronized block is not really needed, since the order should not exist
-        // until now, and no other thread could be manipulating it at this time; although highly unlikely, it
-        // is possible that ids randomly assigned clash, or that a malicious user submit requests with random
-        // generated ids that may clash with the id assigned to this order. The cost of being extra safe is low.
-        synchronized (order) {
-            SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-            Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-            ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+        ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
 
+        synchronized (activeOrdersMap) {
             String orderId = order.getId();
             if (activeOrdersMap.containsKey(orderId)) {
                 String message = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, orderId);
@@ -85,7 +86,7 @@ public class OrderController {
         synchronized (order) {
             if (order.isRequesterRemote(this.localProviderId)) {
                 try {
-                    OrderStateTransitioner.notifyRequester(order, OrderState.CLOSED);
+                    this.notifyRequester(order);
                 } catch (Exception e) {
                     String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
                     LOGGER.warn(message, e);
@@ -99,15 +100,22 @@ public class OrderController {
             SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
             Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
             ChainedList<Order> checkingDeletionOrders = sharedOrderHolders.getCheckingDeletionOrdersList();
+            ChainedList<Order> remoteProviderOrders = sharedOrderHolders.getRemoteProviderOrdersList();
 
-            if (activeOrdersMap.containsKey(order.getId())) {
-                activeOrdersMap.remove(order.getId());
-            } else {
-                String message = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
-                throw new UnexpectedException(message);
+            synchronized (activeOrdersMap) {
+                if (activeOrdersMap.containsKey(order.getId())) {
+                    activeOrdersMap.remove(order.getId());
+                } else {
+                    String message = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
+                    throw new UnexpectedException(message);
+                }
+
+                if (order.isProviderLocal(this.localProviderId)) {
+                    checkingDeletionOrders.removeItem(order);
+                } else {
+                    remoteProviderOrders.removeItem(order);
+                }
             }
-
-            checkingDeletionOrders.removeItem(order);
             order.setInstanceId(null);
             order.setOrderState(OrderState.CLOSED);
         }
@@ -129,9 +137,10 @@ public class OrderController {
                             order.getId(), this.orderDependencies.get(order.getId())));
             }
             if (order.getOrderState().equals(OrderState.SELECTED)) {
-                // Orders in state SELECTED cannot be deleted. This state is used to implement an
-                // "at-most-once" semantic for the requestInstance() call. See OpenProcessor.
-                throw new OnGoingOperationException(cloud.fogbow.common.constants.Messages.Exception.CANNOT_DELETE_INSTANCE_WHILE_IT_IS_BEING_CREATED);
+                // This only happens if the provider fails between selecting the order and saving the new state.
+                // It means that there might be some "garbage" left in the cloud. The Fogbow node admin should
+                // take the required actions to remove such garbage.
+                LOGGER.warn(String.format(Messages.Warn.REMOVING_ORDER_IN_SELECT_STATE_S, order.toString()));
             }
             try {
                 if (order.isProviderRemote(this.localProviderId)) {
@@ -140,17 +149,15 @@ public class OrderController {
                             CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
                     remoteCloudConnector.deleteInstance(order);
                 }
-            } finally {
-                // If the provider is remote, since deleteInstance() is a synchronous call (RPC), the remote provider
-                // cannot notify the state change (starting another RPC from the remote provider to the local requester
-                // in the middle of the execution of the deleteInstance() RPC would raise an UnavailableProviderException).
-                // Thus, both the local and the remote order should have their state changed here, and not as a result
-                // of a notification. If an error occur in the above call, an exception will be raised and the local
-                // order will also transition to the ASSIGNED_FOR_DELETION state. It is up to the
-                // RemoteOrdersStateSynchronization processor to make sure that the remote order is eventually deleted
-                // at the remote provider.
-                // If the provider is local, then the state transition below is the only command that is executed.
                 OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
+            } catch (OnGoingOperationException | DependencyDetectedException e) {
+                throw e;
+            } catch (Exception e) {
+                // Here we do not know whether the deleteOrder() has been executed or not at the remote site.
+                // We signal to the user that deletion is on its way and try to figure out what is going on in
+                // the RemoteOrdersStateSynchronization processor.
+                OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
+                LOGGER.warn(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER);
             }
         }
     }
@@ -164,7 +171,11 @@ public class OrderController {
             if ((!this.localProviderId.equals(order.getProvider())) && (order.getOrderState().equals(OrderState.OPEN)
                             || order.getOrderState().equals(OrderState.SELECTED))) {
                 // This is an order for a remote provider that has never been received by that provider.
-                throw new RequestStillBeingDispatchedException(String.format(cloud.fogbow.common.constants.Messages.Exception.REQUEST_S_STILL_OPEN, order.getId()));
+                // We use a dummy localCloudConnector to create an empty Instance and update the Instance fields
+                // with the values held in the order.
+                LocalCloudConnector localCloudConnector = new LocalCloudConnector(null, null);
+                OrderInstance instance = localCloudConnector.createEmptyInstance(order);
+                return updateInstanceUsingOrderData(instance, order);
             }
             CloudConnector cloudConnector = getCloudConnector(order);
             Instance instance = cloudConnector.getInstance(order);
@@ -178,15 +189,20 @@ public class OrderController {
 
     public Allocation getUserAllocation(String providerId, String cloudName, SystemUser systemUser, ResourceType resourceType)
             throws UnexpectedException {
-        Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
+        List<Order> filteredOrders = null;
+        Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
-        List<Order> filteredOrders = orders.stream()
-                .filter(order -> order.getType().equals(resourceType))
-                .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
-                .filter(order -> order.isProviderLocal(providerId))
-                .filter(order -> order.getSystemUser().equals(systemUser))
-                .filter(order -> order.getCloudName().equals(cloudName))
-                .collect(Collectors.toList());
+        synchronized (activeOrdersMap) {
+            Collection<Order> orders = activeOrdersMap.values();
+
+            filteredOrders = orders.stream()
+                    .filter(order -> order.getType().equals(resourceType))
+                    .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
+                    .filter(order -> order.isProviderLocal(providerId))
+                    .filter(order -> order.getSystemUser().equals(systemUser))
+                    .filter(order -> order.getCloudName().equals(cloudName))
+                    .collect(Collectors.toList());
+        }
 
         switch (resourceType) {
             case COMPUTE:
@@ -303,14 +319,18 @@ public class OrderController {
     }
 
 	private List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
-		Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
+        Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
-		// Filter all orders of resourceType from the user systemUser.
-		List<Order> requestedOrders = orders.stream()
-				.filter(order -> order.getType().equals(resourceType))
-				.filter(order -> order.getSystemUser().equals(systemUser)).collect(Collectors.toList());
+        synchronized (activeOrdersMap) {
+            Collection<Order> orders = activeOrdersMap.values();
 
-		return requestedOrders;
+            // Filter all orders of resourceType from the user systemUser.
+            List<Order> requestedOrders = orders.stream()
+                    .filter(order -> order.getType().equals(resourceType))
+                    .filter(order -> order.getSystemUser().equals(systemUser)).collect(Collectors.toList());
+
+            return requestedOrders;
+        }
 	}
 
 	public void updateOrderDependencies(Order order, Operation operation) throws UnexpectedException {
@@ -351,10 +371,14 @@ public class OrderController {
 
     @VisibleForTesting
     void updateAllOrdersDependencies() throws UnexpectedException {
-        Collection<Order> allOrders = this.orderHolders.getActiveOrdersMap().values();
+        Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
-        for (Order order : allOrders) {
-            synchronized (order) {
+        synchronized (activeOrdersMap) {
+            Collection<Order> allOrders = activeOrdersMap.values();
+
+            for (Order order : allOrders) {
+                // No need to synchronize as this is only executed at startup time, and the processor threads
+                // have not yet been started.
                 if (order.isRequesterLocal(this.localProviderId)) {
                     this.updateOrderDependencies(order, Operation.CREATE);
                 }
@@ -404,7 +428,7 @@ public class OrderController {
         instance.setPublicKey(publicKey);
         instance.setUserData(userData);
 
-        // NOTE(pauloewerton): in order to prevent extra plugin requests to retrieve the specified instance
+        // In order to avoid extra plugin requests to retrieve the specified instance
         // resources allocation, we get those from the order allocation
         ComputeAllocation allocation = order.getActualAllocation();
         instance.setvCPU(allocation.getvCPU());
@@ -495,5 +519,16 @@ public class OrderController {
         }
         return false;
     }
+
+    protected static void notifyRequester(Order order) throws RemoteCommunicationException {
+        try {
+            CloseOrderAtRemoteProviderRequest closeOrderAtRemoteProviderRequest = new CloseOrderAtRemoteProviderRequest(order);
+            closeOrderAtRemoteProviderRequest.send();
+        } catch (Exception e) {
+            LOGGER.error(e.toString(), e);
+            throw new RemoteCommunicationException(e.getMessage(), e);
+        }
+    }
+
 }
 

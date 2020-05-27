@@ -1,6 +1,9 @@
 package cloud.fogbow.ras.core.models.orders;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
@@ -11,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "network_order_table")
-public class NetworkOrder extends Order<NetworkOrder> {
+public class NetworkOrder extends Order<NetworkInstance> {
     private static final long serialVersionUID = 1L;
 
     @Transient
@@ -84,7 +87,8 @@ public class NetworkOrder extends Order<NetworkOrder> {
     }
 
     @Override
-    public void updateFromRemote(NetworkOrder remoteOrder) {
+    public void updateFromRemoteInstance(NetworkInstance remoteInstance) throws UnexpectedException {
+        this.setOrderState(InstanceStatus.mapOrderStateFromInstanceState(remoteInstance.getState()));
     }
 
 }

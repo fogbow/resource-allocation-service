@@ -128,6 +128,11 @@ public class TestUtils {
         return createComputeOrder(requestingMember, providingMember);
     }
 
+    public Order createLocalOrderWithRemoteRequester(String providingMember) {
+        String requestingMember = FAKE_REMOTE_MEMBER_ID;
+        return createComputeOrder(requestingMember, providingMember);
+    }
+
     public ComputeOrder createLocalComputeOrder() {
         return createComputeOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
     }
@@ -242,7 +247,7 @@ public class TestUtils {
         Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.CHECKING_DELETION)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.REMOTE)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(new SynchronizedDoublyLinkedList<>());

@@ -1,6 +1,9 @@
 package cloud.fogbow.ras.core.models.orders;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
@@ -11,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "attachment_order_table")
-public class AttachmentOrder extends Order<AttachmentOrder> {
+public class AttachmentOrder extends Order<AttachmentInstance> {
     private static final long serialVersionUID = 1L;
 
     private static final String DEVICE_COLUMN_NAME = "device";
@@ -92,6 +95,7 @@ public class AttachmentOrder extends Order<AttachmentOrder> {
     }
 
     @Override
-    public void updateFromRemote(AttachmentOrder remoteOrder) {
+    public void updateFromRemoteInstance(AttachmentInstance remoteInstance) throws UnexpectedException {
+        this.setOrderState(InstanceStatus.mapOrderStateFromInstanceState(remoteInstance.getState()));
     }
 }

@@ -20,9 +20,9 @@ import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-public class RemoteNotifyEventRequestTest {
+public class CloseOrderAtRemoteProviderRequestTest {
 
-    private RemoteNotifyEventRequest remoteNotifyEventRequest;
+    private CloseOrderAtRemoteProviderRequest closeOrderAtRemoteProviderRequest;
     private Order order;
     private PacketSender packetSender;
     private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
@@ -36,14 +36,13 @@ public class RemoteNotifyEventRequestTest {
     public void setUp() {
         this.order = new ComputeOrder(null, this.requestingMember, this.providingMember, "default", "hostName", 10, 20, 30, "imageid", null,
                 "publicKey", null);
-        this.remoteNotifyEventRequest = new RemoteNotifyEventRequest(this.order, this.newState);
+        this.closeOrderAtRemoteProviderRequest = new CloseOrderAtRemoteProviderRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
         this.iqResponse = new IQ();
     }
 
-    //test case: check if IQ attributes is according to both RemoteNotifyEventRequest constructor parameters
-    //and remote notify newState request rules
+    //test case: check if IQ attributes is according to CloseOrderAtRemoteProviderRequest constructor parameter
     @Test
     public void testSend() throws Exception {
         //set up
@@ -51,7 +50,7 @@ public class RemoteNotifyEventRequestTest {
         String orderJson = new Gson().toJson(this.order);
 
         //exercise
-        Void output = this.remoteNotifyEventRequest.send();
+        Void output = this.closeOrderAtRemoteProviderRequest.send();
 
         //verify
         IQ iq = argIQ.getValue();
@@ -68,10 +67,6 @@ public class RemoteNotifyEventRequestTest {
         String iqQueryOrderClassName = iqElementQuery.element(IqElement.ORDER_CLASS_NAME.toString()).getText();
         Assert.assertEquals(this.order.getClass().getName(), iqQueryOrderClassName);
 
-        String iqQueryOrderEvent = iqElementQuery.element(IqElement.NEW_STATE.toString()).getText();
-        OrderState orderStateObjectFromJson = new Gson().fromJson(iqQueryOrderEvent, OrderState.class);
-        Assert.assertEquals(this.newState, orderStateObjectFromJson);
-
         Assert.assertEquals(null, output);
     }
 
@@ -82,7 +77,7 @@ public class RemoteNotifyEventRequestTest {
         //set up
         Mockito.doReturn(null).when(this.packetSender).syncSendPacket(this.argIQ.capture());
         // exercise/verify
-        this.remoteNotifyEventRequest.send();
+        this.closeOrderAtRemoteProviderRequest.send();
     }
 
     //test case: Check if "send" is properly forwarding UnauthorizedRequestException thrown by
@@ -94,6 +89,6 @@ public class RemoteNotifyEventRequestTest {
         this.iqResponse.setError(new PacketError(PacketError.Condition.forbidden));
 
         //exercise/verify
-        this.remoteNotifyEventRequest.send();
+        this.closeOrderAtRemoteProviderRequest.send();
     }
 }

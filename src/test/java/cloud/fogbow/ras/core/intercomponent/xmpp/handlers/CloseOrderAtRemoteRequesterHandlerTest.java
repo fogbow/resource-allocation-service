@@ -7,7 +7,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
-import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
+import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.CloseOrderAtRemoteProviderRequest;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
-public class RemoteNotifyEventHandlerTest {
+public class CloseOrderAtRemoteRequesterHandlerTest {
 
     private static final String REQUESTING_MEMBER = "requestingmember";
     private static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\"/>";
@@ -38,7 +38,7 @@ public class RemoteNotifyEventHandlerTest {
             + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.UNEXPECTED_ERROR + "</text>\n" + "  </error>\n"
             + "</iq>";
 
-    private RemoteNotifyEventHandler remoteNotifyEventHandler;
+    private CloseOrderAtRemoteRequesterHandler closeOrderAtRemoteRequesterHandler;
     private RemoteFacade remoteFacade;
     private PacketSender packetSender;
     private Order order;
@@ -46,7 +46,7 @@ public class RemoteNotifyEventHandlerTest {
 
     @Before
     public void setUp() {
-        this.remoteNotifyEventHandler = new RemoteNotifyEventHandler();
+        this.closeOrderAtRemoteRequesterHandler = new CloseOrderAtRemoteRequesterHandler();
 
         this.remoteFacade = Mockito.mock(RemoteFacade.class);
         PowerMockito.mockStatic(RemoteFacade.class);
@@ -66,17 +66,17 @@ public class RemoteNotifyEventHandlerTest {
 
         String orderId = createOrder();
 
-        Mockito.doNothing().when(this.remoteFacade).handleRemoteEvent(REQUESTING_MEMBER, this.newState, this.order);
+        Mockito.doNothing().when(this.remoteFacade).closeOrderAtRemoteRequester(REQUESTING_MEMBER, this.order);
 
-        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.newState);
+        IQ iq = CloseOrderAtRemoteProviderRequest.marshall(this.order);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
-        IQ result = this.remoteNotifyEventHandler.handle(iq);
+        IQ result = this.closeOrderAtRemoteRequesterHandler.handle(iq);
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.newState), Mockito.eq(this.order));
+                closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order));
 
         String requestingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getRequester();
         String expected = String.format(IQ_RESULT, orderId, requestingMember, REQUESTING_MEMBER);
@@ -91,17 +91,17 @@ public class RemoteNotifyEventHandlerTest {
         // set up
         String orderId = createOrder();
         Mockito.doThrow(new UnexpectedException()).when(this.remoteFacade).
-                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.newState), Mockito.eq(this.order));
+                closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order));
 
-        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.newState);
+        IQ iq = CloseOrderAtRemoteProviderRequest.marshall(this.order);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
-        IQ result = this.remoteNotifyEventHandler.handle(iq);
+        IQ result = this.closeOrderAtRemoteRequesterHandler.handle(iq);
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.newState), Mockito.eq(this.order));
+                closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order));
 
         String requestingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getRequester();
         String expected = String.format(IQ_ERROR_RESULT, orderId, requestingMember, REQUESTING_MEMBER);

@@ -1,6 +1,9 @@
 package cloud.fogbow.ras.core.models.orders;
 
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
+import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
@@ -11,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "public_ip_order_table")
-public class PublicIpOrder extends Order<PublicIpOrder> {
+public class PublicIpOrder extends Order<PublicIpInstance> {
     private static final long serialVersionUID = 1L;
 
     @Transient
@@ -60,7 +63,8 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
     }
 
     @Override
-    public void updateFromRemote(PublicIpOrder remoteOrder) {
+    public void updateFromRemoteInstance(PublicIpInstance remoteInstance) throws UnexpectedException {
+        this.setOrderState(InstanceStatus.mapOrderStateFromInstanceState(remoteInstance.getState()));
     }
 
 }

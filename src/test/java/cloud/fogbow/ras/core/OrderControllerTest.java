@@ -65,7 +65,7 @@ public class OrderControllerTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        this.pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
+        this.pendingOrdersList = sharedOrderHolders.getRemoteProviderOrdersList();
         this.spawningOrdersList = sharedOrderHolders.getSpawningOrdersList();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
         this.failedAfterSuccessfulRequestOrdersList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
@@ -215,19 +215,17 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testCloseOrderRemoteSuccessfully() throws FogbowException {
         // set up
-        Order remoteOrder = this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE);
+        Order remoteOrder = this.testUtils.createLocalOrderWithRemoteRequester(TestUtils.LOCAL_MEMBER_ID);
 
         this.ordersController.activateOrder(remoteOrder);
         Assert.assertEquals(OrderState.OPEN, remoteOrder.getOrderState());
-
-        PowerMockito.mockStatic(OrderStateTransitioner.class);
 
         // exercise
         this.ordersController.closeOrder(remoteOrder);
 
         // verify
         PowerMockito.verifyStatic();
-        OrderStateTransitioner.notifyRequester(Mockito.eq(remoteOrder), Mockito.eq(OrderState.CLOSED));
+        this.ordersController.notifyRequester(Mockito.eq(remoteOrder));
     }
 
     // test case: Checks if closeOrder logs a warning message when occurs an exception.
@@ -241,7 +239,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(OrderStateTransitioner.class);
         PowerMockito.doThrow(new RemoteCommunicationException()).when(OrderStateTransitioner.class);
-        OrderStateTransitioner.notifyRequester(Mockito.eq(remoteOrder), Mockito.eq(OrderState.CLOSED));
+        this.ordersController.notifyRequester(Mockito.eq(remoteOrder));
 
         String warnMessageException = String.format(
                 Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, remoteOrder.getRequester(), remoteOrder.getId());
@@ -388,8 +386,7 @@ public class OrderControllerTest extends BaseUnitTests {
         ComputeInstance computeInstance = new ComputeInstance(TestUtils.FAKE_INSTANCE_ID);
         computeInstance.setState(InstanceState.READY);
 
-        Mockito.doReturn(computeInstance).when(this.localCloudConnector)
-                .getInstance(Mockito.any(Order.class));
+        Mockito.doReturn(computeInstance).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
 
         // exercise
         this.ordersController.getResourceInstance(order);
@@ -918,7 +915,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStatePending()
             throws Exception {
         // set up
-        String orderId = setupOrder(OrderState.PENDING);
+        String orderId = setupOrder(OrderState.REMOTE);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
@@ -1173,7 +1170,7 @@ public class OrderControllerTest extends BaseUnitTests {
             case OPEN:
                 this.openOrdersList.addItem(computeOrder);
                 break;
-            case PENDING:
+            case REMOTE:
                 this.pendingOrdersList.addItem(computeOrder);
                 break;
             case SPAWNING:

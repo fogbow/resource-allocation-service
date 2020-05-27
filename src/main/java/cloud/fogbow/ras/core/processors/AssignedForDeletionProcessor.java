@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.processors;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
-import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -85,11 +84,14 @@ public class AssignedForDeletionProcessor implements Runnable {
             // the cost of safe programming is low).
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.ASSIGNED_FOR_DELETION)) {
+                // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
+                OrderStateTransitioner.transition(order, OrderState.REMOTE);
                 LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;
             }
-            // Only local orders need to be monitored. Remote orders are monitored by the remote provider
-            // and change state when that provider notifies state changes.
+            // Only local orders need to be monitored. Remote orders are monitored by the remote provider.
+            // State changes that happen at the remote provider are synchronized by the RemoteOrdersStateSynchronization
+            // processor.
             if (order.isProviderRemote(this.localProviderId)) {
                 return;
             }
@@ -104,7 +106,7 @@ public class AssignedForDeletionProcessor implements Runnable {
                 // Signalling is only important for the business logic when it concerns the states
                 // CHECKING_DELETION and CLOSED. In this case, transitionOnlyOnSuccessfulSignalIfNeeded()
                 // must be called, when transitioning the state of an order.
-                OrderStateTransitioner.transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(order, OrderState.CHECKING_DELETION);
+                OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
             } catch (InstanceNotFoundException e) {
                 // If the provider crashes after calling deleteInstance() and before setting the order's state to
                 // CHECKING_DELETION, or if signalling is needed but was not successful, then the deleteInstance()
@@ -112,7 +114,7 @@ public class AssignedForDeletionProcessor implements Runnable {
                 // problem, because calling deleteInstance() multiple times has no undesired collateral effect. The
                 // order needs simply to be advanced to the CHECKING_DELETION state, to later be closed by the
                 // CheckingDeletion processor.
-                OrderStateTransitioner.transitionOnlyOnSuccessfulSignalingRequesterIfNeeded(order, OrderState.CHECKING_DELETION);
+                OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
             } catch (FogbowException e) {
                 LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, order.getId()), e);
                 throw e;

@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.SerializedEntityHolder;
+import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -17,7 +18,7 @@ import java.util.Map;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "order_table")
-public abstract class Order<T extends Order> implements Serializable {
+public abstract class Order<T extends Instance> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected static final String REQUESTER_COLUMN_NAME = "requester";
@@ -109,7 +110,6 @@ public abstract class Order<T extends Order> implements Serializable {
         return this.orderState;
     }
 
-    // TODO remove this method when it's no longer used
     public void setOrderStateInTestMode(OrderState state) {
         this.orderState = state;
     }
@@ -260,5 +260,5 @@ public abstract class Order<T extends Order> implements Serializable {
         this.type = type;
     }
 
-    public abstract void updateFromRemote(T remoteOrder);
+    public abstract void updateFromRemoteInstance(T remoteInstance) throws UnexpectedException;
 }

@@ -15,12 +15,15 @@ public class ProcessorsThreadController {
     private final Thread checkingDeletionProcessorThread;
     private final Thread failedProcessorThread;
     private final Thread assignedForDeletionProcessorThread;
+    private final Thread remoteOrdersStateSynchronizationProcessorThread;
+
     private final static String OPEN_PROCESSOR_THREAD_NAME = "open-proc";
     private final static String SPAWNING_PROCESSOR_THREAD_NAME = "spawning-proc";
     private final static String FULFILLED_PROCESSOR_THREAD_NAME = "fulfilled-proc";
     private final static String CHECKING_DELETION_PROCESSOR_THREAD_NAME = "checking-deletion-proc";
     private final static String FAILED_PROCESSOR_THREAD_NAME = "failed-proc";
     private final static String ASSIGNED_FOR_DELETION_PROCESSOR_THREAD_NAME = "assigned-for-deletion-proc";
+    private final static String REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME = "remote-sync-proc";
 
     public ProcessorsThreadController(String localProviderId, OrderController orderController) {
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
@@ -59,12 +62,19 @@ public class ProcessorsThreadController {
 
         AssignedForDeletionProcessor assignedForDeletionProcessor = new AssignedForDeletionProcessor(localProviderId, assignedForDeletionOrdersProcSleepTimeStr);
 
+        String remoteOrdersStateSynchronizationProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME);
+
+        RemoteOrdersStateSynchronizationProcessor remoteOrdersStateSynchronizationProcessor = new RemoteOrdersStateSynchronizationProcessor(orderController, localProviderId, remoteOrdersStateSynchronizationProcSleepTimeStr);
+
         this.openProcessorThread = new Thread(openProcessor, OPEN_PROCESSOR_THREAD_NAME);
         this.spawningProcessorThread = new Thread(spawningProcessor, SPAWNING_PROCESSOR_THREAD_NAME);
         this.fulfilledProcessorThread = new Thread(fulfilledProcessor, FULFILLED_PROCESSOR_THREAD_NAME);
         this.checkingDeletionProcessorThread = new Thread(checkingDeletionProcessor, CHECKING_DELETION_PROCESSOR_THREAD_NAME);
         this.failedProcessorThread = new Thread(unableToCheckStatusProcessor, FAILED_PROCESSOR_THREAD_NAME);
         this.assignedForDeletionProcessorThread = new Thread(assignedForDeletionProcessor, ASSIGNED_FOR_DELETION_PROCESSOR_THREAD_NAME);
+        this.remoteOrdersStateSynchronizationProcessorThread = new Thread(remoteOrdersStateSynchronizationProcessor, REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME);
     }
 
     /**
@@ -79,5 +89,6 @@ public class ProcessorsThreadController {
         this.checkingDeletionProcessorThread.start();
         this.failedProcessorThread.start();
         this.assignedForDeletionProcessorThread.start();
+        this.remoteOrdersStateSynchronizationProcessorThread.start();
     }
 }

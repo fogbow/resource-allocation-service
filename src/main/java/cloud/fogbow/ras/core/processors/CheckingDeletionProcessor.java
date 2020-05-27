@@ -6,6 +6,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderController;
+import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
@@ -87,12 +88,15 @@ public class CheckingDeletionProcessor implements Runnable {
             // the cost of safe programming is low).
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CHECKING_DELETION)) {
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;
             }
-            // Only local orders need to be monitored. Remote orders are monitored by the remote provider
-            // and change state when that provider notifies state changes.
+            // Only local orders need to be monitored. Remote orders are monitored by the remote provider.
+            // State changes that happen at the remote provider are synchronized by the RemoteOrdersStateSynchronization
+            // processor.
             if (order.isProviderRemote(this.localProviderId)) {
+                // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
+                OrderStateTransitioner.transition(order, OrderState.REMOTE);
+                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;
             }
             try {
