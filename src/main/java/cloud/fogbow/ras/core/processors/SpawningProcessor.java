@@ -62,7 +62,7 @@ public class SpawningProcessor implements Runnable {
 
     protected void processSpawningOrder(Order order) throws FogbowException {
         // The order object synchronization is needed to prevent a race
-        // condition on order access. For example: a user can delete an open
+        // condition on order access. For example: a user can delete an spawning
         // order while this method is trying to check the status of an instance
         // that has been requested in the cloud.
         synchronized (order) {
@@ -79,22 +79,30 @@ public class SpawningProcessor implements Runnable {
             // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
             LocalCloudConnector localCloudConnector = (LocalCloudConnector)
                     CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
-            // we won't audit requests we make
+            // We don't audit requests we make
             localCloudConnector.switchOffAuditing();
 
             try {
                 OrderInstance instance = localCloudConnector.getInstance(order);
                 if (instance.hasFailed()) {
-                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                    // Signalling is only important for the business logic when it concerns the states
+                    // CHECKING_DELETION and CLOSED. In this case, transitionOnSuccessfulSignalIfNeeded()
+                    // must be called, when transitioning the state of an order. For the other states,
+                    // the only effect is that the states of the instances that are returned in the
+                    // OrderController getInstancesStatus() call may be stale. This is documented in the
+                    // API. A client can always refresh the state of a particular instance by calling
+                    // getInstance(). In these cases, the best effort transitionAndTryToSignalRequesterIfNeeded(),
+                    // should be called.
+                    OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
                 } else if (instance.isReady()) {
-                    OrderStateTransitioner.transition(order, OrderState.FULFILLED);
+                    OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FULFILLED);
                 }
             } catch (UnavailableProviderException e1) {
-                OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
+                OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.UNABLE_TO_CHECK_STATUS);
                 throw e1;
             } catch (InstanceNotFoundException e2) {
                 LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
-                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }
         }
     }

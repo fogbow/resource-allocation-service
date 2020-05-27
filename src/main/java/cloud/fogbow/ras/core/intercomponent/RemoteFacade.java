@@ -56,17 +56,21 @@ public class RemoteFacade {
     public Instance getResourceInstance(String requestingProvider, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting provider.
-        checkOrderConsistency(requestingProvider, order);
-        authorizeOrder(systemUser, order.getCloudName(), Operation.GET, resourceType, order);
-        return this.orderController.getResourceInstance(order);
+        synchronized (order) {
+            checkOrderConsistency(requestingProvider, order);
+            authorizeOrder(systemUser, order.getCloudName(), Operation.GET, resourceType, order);
+            return this.orderController.getResourceInstance(order);
+        }
     }
 
     public void deleteOrder(String requestingProvider, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting provider.
-        checkOrderConsistency(requestingProvider, order);
-        authorizeOrder(systemUser, order.getCloudName(), Operation.DELETE, resourceType, order);
-        this.orderController.deleteOrder(order);
+        synchronized (order) {
+            checkOrderConsistency(requestingProvider, order);
+            authorizeOrder(systemUser, order.getCloudName(), Operation.DELETE, resourceType, order);
+            this.orderController.deleteOrder(order);
+        }
     }
 
     public Quota getUserQuota(String requestingProvider, String cloudName, SystemUser systemUser) throws FogbowException {
@@ -99,19 +103,23 @@ public class RemoteFacade {
     public String createSecurityRule(String requestingProvider, String orderId, SecurityRule securityRule,
                                      SystemUser systemUser) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
-        checkOrderConsistency(requestingProvider, order);
-        // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName(), order));
-        return securityRuleController.createSecurityRule(order, securityRule, systemUser);
+        synchronized (order) {
+            checkOrderConsistency(requestingProvider, order);
+            // The user has already been authenticated by the requesting provider.
+            this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName(), order));
+            return securityRuleController.createSecurityRule(order, securityRule, systemUser);
+        }
     }
 
     public List<SecurityRuleInstance> getAllSecurityRules(String requestingProvider, String orderId,
                                                           SystemUser systemUser) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
-        checkOrderConsistency(requestingProvider, order);
-        // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName(), order));
-        return securityRuleController.getAllSecurityRules(order, systemUser);
+        synchronized (order) {
+            checkOrderConsistency(requestingProvider, order);
+            // The user has already been authenticated by the requesting provider.
+            this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName(), order));
+            return securityRuleController.getAllSecurityRules(order, systemUser);
+        }
     }
 
     public void deleteSecurityRule(String requestingProvider, String cloudName, String ruleId,
@@ -131,10 +139,16 @@ public class RemoteFacade {
                             signallingProvider, localOrder.getProvider()));
                 }
                 localOrder.updateFromRemote(remoteOrder);
-                OrderStateTransitioner.transition(localOrder, newState);
+                if (newState.equals(OrderState.CLOSED)) {
+                    this.orderController.closeOrder(localOrder);
+                } else {
+                    OrderStateTransitioner.transition(localOrder, newState);
+                }
             }
         } else {
-            // The order no longer exists locally. This should never happen.
+            // The order no longer exists locally. This may only happen in rare corner cases when the remote provider
+            // previously signalled that the order was closed, but failed before could save its order in stable storage.
+            // When it recovers, it tries to signal again.
             LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_LOCATE_ORDER_S_S, remoteOrder.getId(), signallingProvider));
             return;
         }

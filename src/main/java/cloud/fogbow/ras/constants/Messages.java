@@ -6,9 +6,7 @@ public class Messages {
         public static final String CLOUD_NAMES_DONT_MATCH = "The embedded resource has not been instantiated in the same cloud.";
         public static final String CORRUPTED_INSTANCE = "Corrupted instance.";
         public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
-        public static final String FAILED_TO_GENERATE_METHOD_S = "Failed to generate method: %s.";
         public static final String FAILED_TO_GET_QUOTA = "Failer to get quota.";
-        public static final String FAILED_TO_INVOKE_METHOD_S = "Failed to invoke method: %s.";
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String IMAGE_NOT_FOUND = "Image not found";
         public static final String INCORRECT_PROVIDER = "Incorrect provider.";
@@ -16,14 +14,10 @@ public class Messages {
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INSTANCE_NULL_S = "There is no active instance with id: <%s>.";
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
-        public static final String INVALID_ONE_RESOURCE_S = "Invalid oneResource: %s.";
-        public static final String INVALID_ONE_METHOD_S = "Invalid oneMethod: %s.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PARAMETER_S = "Invalid parameter: %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
         public static final String INVALID_RESOURCE = "Invalid resource type.";
-        public static final String INVALID_RESOURCE_ID_S = "Invalid resourceId: %s.";
-        public static final String INVALID_URL_S = "Invalid url: %s.";
         public static final String INVALID_CIDR_FORMAT = "The cidr %s does not follow the expected format";
         public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
         public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
@@ -39,7 +33,6 @@ public class Messages {
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
         public static final String PORT_NOT_FOUND = "No port found connecting virtual machine %s to default network %s.";
         public static final String PROVIDERS_DONT_MATCH = "The attachment provider does not match with the compute and/or volume providers.";
-        public static final String QUOTA_ENDPOINT_NOT_IMPLEMENTED = "Quota endpoint for %s not yet implemented.";
         public static final String REQUEST_ALREADY_EXIST = "Request already exists.";
         public static final String REQUEST_ID_ALREADY_ACTIVATED = "Request %s has already been activated.";
         public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
@@ -49,7 +42,6 @@ public class Messages {
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
         public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER = "Signalling provider %s is not the provider %s.";
-        public static final String TOKEN_ALREADY_SPECIFIED = "There should be no OpenStack token specified on the request";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";
         public static final String UNABLE_TO_DESERIALIZE_SYSTEM_USER = "Unable to deserialize system user.";
@@ -121,6 +113,7 @@ public class Messages {
         public static final String MAPPED_USER = "User mapped to: %s.";
         public static final String MAPPING_USER_OP = "Mapping user for operation %s on order/systemUser %s.";
         public static final String NO_REMOTE_COMMUNICATION_CONFIGURED = "No remote communication configured.";
+        public static final String NOTIFYING_REQUESTER_S_S = "Notifying requester: [%s]->[%s].";
         public static final String PACKET_SENDER_INITIALIZED = "XMPP packet sender initialized.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for provider %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
@@ -168,6 +161,7 @@ public class Messages {
     public static class Error {
     	public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
+        public static final String DELETE_OPERATION_ALREADY_ONGOING = "Delete operation is already on-going.";
         public static final String ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR = "Error while attaching disk asynchronously.";
         public static final String ERROR_CREATE_DISK_ASYNC_BEHAVIOUR = "Error while creating disk asynchronously.";
         public static final String ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while creating public IP address asynchronously.";
@@ -190,7 +184,7 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_RESPONSE_BODY = "Error while creating response body.";
         public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
         public static final String ERROR_WHILE_DETACHING_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
-        public static final String ERROR_WHILE_GETTING_DISK_SIZE = "Error while getting disk size.";
+        public static final String ERROR_WHILE_GETTING_DISK_SIZE = "Error while getting VM disk size.";
         public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
         public static final String ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD = "Error while getting %s from the cloud.";
@@ -211,7 +205,7 @@ public class Messages {
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE = "Invalid list security rule type. Order irregular: %s.";
         public static final String NO_PACKET_SENDER = "PacketSender was not initialized. Trying again.";
-        public static final String REQUEST_ALREADY_CLOSED = "Request %s is already in the closed state.";
+        public static final String REQUEST_S_ALREADY_DELETED = "Request %s has already been deleted.";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
         public static final String UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK = "Unable to complete request; template ID is required parameter.";
         public static final String UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK = "Service Offering no available.";

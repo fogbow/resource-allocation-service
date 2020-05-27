@@ -307,13 +307,13 @@ public class OpenProcessorTest extends BaseUnitTests {
             this.thread.start();
             Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
-            localOrder.setOrderState(OrderState.CLOSED);
+            localOrder.setOrderState(OrderState.CHECKING_DELETION);
         }
 
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
-        Assert.assertEquals(OrderState.CLOSED, localOrder.getOrderState());
+        Assert.assertEquals(OrderState.CHECKING_DELETION, localOrder.getOrderState());
     }
 
     //test case: this method tests a race condition when the attend open order thread has the order operation priority.
