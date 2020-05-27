@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import org.apache.commons.net.util.SubnetUtils;
+import cloud.fogbow.common.util.CidrUtils;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.ras.api.parameters.SecurityRule;
@@ -8,7 +8,6 @@ import cloud.fogbow.ras.api.parameters.SecurityRule.Direction;
 import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
 import cloud.fogbow.ras.api.parameters.SecurityRule.Protocol;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
 
 public class SecurityRuleUtil {
 
