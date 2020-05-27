@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure;
 
+import cloud.fogbow.common.util.AzureClientCacheManager;
 import org.apache.log4j.Logger;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -10,7 +11,6 @@ import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureClientCacheManager;
 import rx.Completable;
 import rx.Observable;
 
