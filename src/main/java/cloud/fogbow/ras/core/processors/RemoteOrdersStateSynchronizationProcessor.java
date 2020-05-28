@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -72,7 +73,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
      *
      * @param order {@link Order}
      */
-    protected void processRemoteProviderOrder(Order order) throws UnexpectedException {
+    protected void processRemoteProviderOrder(Order order) throws UnexpectedException, RemoteCommunicationException {
         OrderInstance remoteInstance;
         synchronized (order) {
            // Only remote orders need to be synchronized.
@@ -99,9 +100,14 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                 }
             } catch (InstanceNotFoundException e) {
                 LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
-                this.orderController.closeOrder(order);
-            } catch (FogbowException e) {
-                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+                if (order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION) ||
+                                            order.getOrderState().equals(OrderState.CHECKING_DELETION)) {
+                    this.orderController.closeOrder(order);
+                } else {
+                    // This happens when the instance is deleted directly in the cloud; at the remote side the
+                    // order has gone to the FAILURE_AFTER_SUCCESSFUL_REQUEST state, and so should the local one.
+                    order.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                }
             }
         }
     }
