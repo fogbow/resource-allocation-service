@@ -47,7 +47,6 @@ public class CloseOrderAtRemoteProviderRequestTest {
     public void testSend() throws Exception {
         //set up
         Mockito.doReturn(this.iqResponse).when(this.packetSender).syncSendPacket(argIQ.capture());
-        String orderJson = new Gson().toJson(this.order);
 
         //exercise
         Void output = this.closeOrderAtRemoteProviderRequest.send();
@@ -55,17 +54,14 @@ public class CloseOrderAtRemoteProviderRequestTest {
         //verify
         IQ iq = argIQ.getValue();
         Assert.assertEquals(IQ.Type.set.toString(), iq.getType().toString());
-        Assert.assertEquals(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getRequester().toString(), iq.getTo().toString());
-        Assert.assertEquals(this.order.getId(), iq.getID().toString());
+        Assert.assertEquals(SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getRequester(), iq.getTo().toString());
+        Assert.assertEquals(this.order.getId(), iq.getID());
 
         Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());
         Assert.assertEquals(RemoteMethod.REMOTE_NOTIFY_EVENT.toString(), iqElementQuery.getNamespaceURI());
 
-        String iqQueryOrderJson = iqElementQuery.element(IqElement.ORDER.toString()).getText();
-        Assert.assertEquals(orderJson, iqQueryOrderJson);
-
-        String iqQueryOrderClassName = iqElementQuery.element(IqElement.ORDER_CLASS_NAME.toString()).getText();
-        Assert.assertEquals(this.order.getClass().getName(), iqQueryOrderClassName);
+        Element remoteOrderIdElement = iqElementQuery.element(IqElement.ORDER_ID.toString());
+        Assert.assertEquals(this.order.getId(), remoteOrderIdElement.getText());
 
         Assert.assertEquals(null, output);
     }

@@ -66,7 +66,7 @@ public class CloseOrderAtRemoteRequesterHandlerTest {
 
         String orderId = createOrder();
 
-        Mockito.doNothing().when(this.remoteFacade).closeOrderAtRemoteRequester(REQUESTING_MEMBER, this.order);
+        Mockito.doNothing().when(this.remoteFacade).closeOrderAtRemoteRequester(REQUESTING_MEMBER, this.order.getId());
 
         IQ iq = CloseOrderAtRemoteProviderRequest.marshall(this.order);
         iq.setFrom(REQUESTING_MEMBER);
@@ -76,7 +76,7 @@ public class CloseOrderAtRemoteRequesterHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order));
+                closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order.getId()));
 
         String requestingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getRequester();
         String expected = String.format(IQ_RESULT, orderId, requestingMember, REQUESTING_MEMBER);
@@ -91,7 +91,7 @@ public class CloseOrderAtRemoteRequesterHandlerTest {
         // set up
         String orderId = createOrder();
         Mockito.doThrow(new UnexpectedException()).when(this.remoteFacade).
-                closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order));
+                closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order.getId()));
 
         IQ iq = CloseOrderAtRemoteProviderRequest.marshall(this.order);
         iq.setFrom(REQUESTING_MEMBER);
@@ -101,7 +101,7 @@ public class CloseOrderAtRemoteRequesterHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order));
+                closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order.getId()));
 
         String requestingMember = SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.order.getRequester();
         String expected = String.format(IQ_ERROR_RESULT, orderId, requestingMember, REQUESTING_MEMBER);

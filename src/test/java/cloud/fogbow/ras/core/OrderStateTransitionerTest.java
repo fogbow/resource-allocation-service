@@ -11,7 +11,6 @@ import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
-import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -54,14 +53,14 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
         PowerMockito.spy(OrderStateTransitioner.class);
         PowerMockito.doNothing().when(OrderStateTransitioner.class,
-                "doTransition", Mockito.any(), Mockito.any());
+                "transition", Mockito.any(), Mockito.any());
 
         // exercise
         OrderStateTransitioner.transition(order, destinationState);
 
         // verify
         PowerMockito.verifyStatic(OrderStateTransitioner.class, Mockito.times(1));
-        OrderStateTransitioner.doTransition(Mockito.any(), Mockito.any());
+        OrderStateTransitioner.transition(Mockito.any(), Mockito.any());
     }
 
     // test case: When calling the transition() method, it must change the state of Order
@@ -87,7 +86,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         Assert.assertNull(spawningOrdersList.getNext());
 
         // exercise
-        OrderStateTransitioner.doTransition(order, destinationState);
+        OrderStateTransitioner.transition(order, destinationState);
 
         // verify
         Assert.assertEquals(order, spawningOrdersList.getNext());
@@ -114,7 +113,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         Order order = createOrder(originState);
 
         // exercise
-        OrderStateTransitioner.doTransition(order, destinationState);
+        OrderStateTransitioner.transition(order, destinationState);
     }
 
     // test case: When calling the transition() method and the destination list of the 'Order' is
@@ -140,7 +139,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         Order order = createOrder(originState);
 
         // exercise
-        OrderStateTransitioner.doTransition(order, destinationState);
+        OrderStateTransitioner.transition(order, destinationState);
     }
 
 }

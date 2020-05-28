@@ -225,7 +225,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // verify
         PowerMockito.verifyStatic();
-        this.ordersController.notifyRequester(Mockito.eq(remoteOrder));
+        this.ordersController.notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
     }
 
     // test case: Checks if closeOrder logs a warning message when occurs an exception.
@@ -239,7 +239,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(OrderStateTransitioner.class);
         PowerMockito.doThrow(new RemoteCommunicationException()).when(OrderStateTransitioner.class);
-        this.ordersController.notifyRequester(Mockito.eq(remoteOrder));
+        this.ordersController.notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
 
         String warnMessageException = String.format(
                 Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, remoteOrder.getRequester(), remoteOrder.getId());

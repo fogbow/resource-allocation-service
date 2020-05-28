@@ -526,7 +526,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.orderController.activateOrder(remoteOrder);
 
 		// exercise
-		this.facade.closeOrderAtRemoteRequester(signallingMember, remoteOrder);
+		this.facade.closeOrderAtRemoteRequester(signallingMember, remoteOrder.getId());
 
 		// verify
 		Order activeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(remoteOrder.getId());
@@ -552,7 +552,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.orderController.activateOrder(remoteOrder);
 
 		// exercise
-		this.facade.closeOrderAtRemoteRequester(signallingMember, remoteOrder);
+		this.facade.closeOrderAtRemoteRequester(signallingMember, remoteOrder.getId());
 	}
 
 	private AuthorizationPlugin mockAuthorizationPlugin(SystemUser systemUser, RasOperation operation)

@@ -119,10 +119,10 @@ public class RemoteFacade {
         this.securityRuleController.deleteSecurityRule(this.localProviderId, cloudName, ruleId, systemUser);
     }
 
-    public void closeOrderAtRemoteRequester(String signallingProvider, Order remoteOrder) throws FogbowException {
+    public void closeOrderAtRemoteRequester(String signallingProvider, String remoteOrderId) throws FogbowException {
         // order is the java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside this server
-        Order localOrder = this.orderController.getOrder(remoteOrder.getId());
+        Order localOrder = this.orderController.getOrder(remoteOrderId);
         if (localOrder != null) {
             synchronized (localOrder) {
                 if (!localOrder.getProvider().equals(signallingProvider)) {
@@ -135,7 +135,7 @@ public class RemoteFacade {
             // The order no longer exists locally. This may only happen in rare corner cases when the remote provider
             // previously signalled that the order was closed, but failed before could save its order in stable storage.
             // When it recovers, it tries to signal again.
-            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_LOCATE_ORDER_S_S, remoteOrder.getId(), signallingProvider));
+            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_LOCATE_ORDER_S_S, remoteOrderId, signallingProvider));
             return;
         }
     }

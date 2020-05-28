@@ -7,8 +7,6 @@ import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import cloud.fogbow.ras.core.models.orders.Order;
-import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.jamppa.component.handler.AbstractQueryHandler;
@@ -28,28 +26,20 @@ public class CloseOrderAtRemoteRequesterHandler extends AbstractQueryHandler {
         LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         IQ response = IQ.createResultIQ(iq);
 
-        Gson gson = new Gson();
-        Order order = null;
+        String orderId = unmarshalOrderId(iq);
         try {
-            order = unmarshalOrder(iq, gson);
-
             String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
-            RemoteFacade.getInstance().closeOrderAtRemoteRequester(senderId, order);
+            RemoteFacade.getInstance().closeOrderAtRemoteRequester(senderId, orderId);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
         return response;
     }
 
-    private Order unmarshalOrder(IQ iq, Gson gson) throws ClassNotFoundException {
-
+    private String unmarshalOrderId(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element orderClassNameElement = queryElement.element(IqElement.ORDER_CLASS_NAME.toString());
-        String className = orderClassNameElement.getText();
-
-        Element orderElement = queryElement.element(IqElement.ORDER.toString());
-        String orderJsonStr = orderElement.getText();
-
-        return (Order) gson.fromJson(orderJsonStr, Class.forName(className));
+        Element remoteOrderIdElement = queryElement.element(IqElement.ORDER_ID.toString());
+        String orderId = remoteOrderIdElement.getText();
+        return orderId;
     }
 }

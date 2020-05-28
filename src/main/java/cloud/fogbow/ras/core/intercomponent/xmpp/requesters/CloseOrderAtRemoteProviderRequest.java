@@ -4,7 +4,6 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.*;
 import cloud.fogbow.ras.core.models.orders.Order;
-import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.xmpp.packet.IQ;
@@ -38,11 +37,8 @@ public class CloseOrderAtRemoteProviderRequest implements RemoteRequest<Void> {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_NOTIFY_EVENT.toString());
 
-        Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
-        orderElement.setText(new Gson().toJson(order));
-
-        Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
-        orderClassNameElement.setText(order.getClass().getName());
+        Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
+        orderIdElement.setText(order.getId());
 
         return iq;
     }

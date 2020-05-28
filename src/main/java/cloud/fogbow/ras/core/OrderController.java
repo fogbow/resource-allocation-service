@@ -86,7 +86,7 @@ public class OrderController {
         synchronized (order) {
             if (order.isRequesterRemote(this.localProviderId)) {
                 try {
-                    this.notifyRequester(order);
+                    this.notifyRequesterToCloseOrder(order);
                 } catch (Exception e) {
                     String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
                     LOGGER.warn(message, e);
@@ -147,7 +147,7 @@ public class OrderController {
                 // This is just to make sure the remote provider order will be moved to the remoteProviderOrders
                 // list (if it is not already there)
                 OrderStateTransitioner.transition(order, OrderState.REMOTE);
-                // This changes the state of the order without removing ot from the remoteProviderOrders list
+                // This changes the state of the order without removing it from the remoteProviderOrders list
                 order.setOrderState(OrderState.ASSIGNED_FOR_DELETION);
                 try {
                     // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
@@ -524,7 +524,7 @@ public class OrderController {
         return false;
     }
 
-    protected static void notifyRequester(Order order) throws RemoteCommunicationException {
+    protected static void notifyRequesterToCloseOrder(Order order) throws RemoteCommunicationException {
         try {
             CloseOrderAtRemoteProviderRequest closeOrderAtRemoteProviderRequest = new CloseOrderAtRemoteProviderRequest(order);
             closeOrderAtRemoteProviderRequest.send();
