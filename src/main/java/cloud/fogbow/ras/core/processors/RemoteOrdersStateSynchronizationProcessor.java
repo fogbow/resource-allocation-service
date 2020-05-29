@@ -64,12 +64,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
 
     /**
      * The RemoteOrdersStateSynchronization processor monitors the state of remote orders to make their local
-     * counterparts consistent. It must take into account that when an unanticipated failure occurs while trying
-     * to delete an order whose provider is remote, the local requester has no way to know whether the deletion
-     * was actually carried out. Thus, it assumes that it was and moves the local order to ASSIGNED_FOR_DELETION,
-     * and tries to synchronize the local and remote system states here. Thus, this processor is also responsible
-     * for detecting remote orders that should have been deleted, but were not. In this case, it should make sure
-     * these orders are also deleted remotely.
+     * counterparts consistent.
      *
      * @param order {@link Order}
      */
@@ -83,19 +78,16 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                 return;
             }
             try {
-                // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
-                RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
-                        CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
-                remoteInstance = remoteCloudConnector.getInstance(order);
-                if (order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION) &&
-                        !remoteInstance.getState().equals(InstanceState.DELETING)) {
-                    // Deletion has not been executed at the remote side due to a failure. Try it now.
-                    try {
-                        remoteCloudConnector.deleteInstance(order);
-                    } catch (Exception e) {
-                        LOGGER.warn(Messages.Error.UNABLE_TO_DELETE_INSTANCE);
-                    }
-                } else {
+                // Orders in state ASSIGNED_FOR_DELETION and FAILED_ON_REQUEST need not be updated. This is
+                // because the state of a FAILED_ON_REQUEST order cannot be changed by events happening at the
+                // remote provider. ASSIGNED_FOR_DELETION orders will change state only when the remote provider
+                // signals the local requester to close the order
+                if (!order.getOrderState().equals(OrderState.FAILED_ON_REQUEST) &&
+                        !order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION)) {
+                    // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
+                    RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
+                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
+                    remoteInstance = remoteCloudConnector.getInstance(order);
                     order.updateFromRemoteInstance(remoteInstance);
                 }
             } catch (InstanceNotFoundException e) {

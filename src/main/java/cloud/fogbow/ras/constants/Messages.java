@@ -126,7 +126,7 @@ public class Messages {
         public static final String RECEIVING_GET_REQUEST = "Get request for %s %s received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request: %s.";
         public static final String RECEIVING_RESOURCE_S_REQUEST = "Get %s request for provider %s received.";
-        public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
+        public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s list: %d requests recovered so far.";
         public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
         public static final String REQUESTING_GET_ALL_FROM_PROVIDER = "Requesting all images from provider.";
         public static final String REQUESTING_TO_CLOUD = "Requesting to the cloud by the user %s. URL: %s";

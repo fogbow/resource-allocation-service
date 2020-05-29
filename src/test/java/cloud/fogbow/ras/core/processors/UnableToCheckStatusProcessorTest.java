@@ -273,7 +273,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     }
 
     // test case: When calling the processUnableToCheckStatusOrder method with a
-    // remote member ID, the order state should be changed to REMOTE.
+    // remote member ID, the order state should be changed to PENDING.
     @Test
     public void testProcessUnableToCheckStatusOrderWithARemoteMember() throws FogbowException {
         // set up
@@ -289,7 +289,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         this.processor.processUnableToCheckStatusOrder(order);
 
         // verify
-        Assert.assertEquals(OrderState.REMOTE, order.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertEquals(order, this.remoteOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }

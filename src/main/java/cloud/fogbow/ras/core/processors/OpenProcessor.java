@@ -91,14 +91,17 @@ public class OpenProcessor implements Runnable {
                         throw new UnexpectedException(String.format(Messages.Exception.REQUEST_INSTANCE_NULL, order.getId()));
                     }
                 } else {
-                    OrderStateTransitioner.transition(order, OrderState.REMOTE);
+                    OrderStateTransitioner.transition(order, OrderState.PENDING);
                 }
             } catch (Exception e) {
                 order.setInstanceId(null);
                 if (order.isProviderLocal(this.localProviderId)) {
                     OrderStateTransitioner.transition(order, OrderState.FAILED_ON_REQUEST);
                 } else {
-                    OrderStateTransitioner.transition(order, OrderState.REMOTE);
+                    // Moves order to remoteProviderOrders list
+                    OrderStateTransitioner.transition(order, OrderState.PENDING);
+                    // Update order's state
+                    order.setOrderState(OrderState.FAILED_ON_REQUEST);
                 }
                 throw e;
             }

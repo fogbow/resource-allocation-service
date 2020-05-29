@@ -166,7 +166,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
-        Assert.assertEquals(OrderState.REMOTE, remoteOrder.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
 
         // test if the open order list is empty and
         // the pendingList is with the localOrder
@@ -177,7 +177,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Assert.assertSame(remoteOrder, pendingOrdersList.getNext());
     }
 
-    //test case: test if the open processor is setting to REMOTE an open intercomponent order when the request instance
+    //test case: test if the open processor is setting to PENDING an open intercomponent order when the request instance
     //method of intercomponent instance provider throws an exception.
     @Test
     public void testProcessRemoteOpenOrderRequestingException() throws Exception {
@@ -196,7 +196,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
-        Assert.assertEquals(OrderState.REMOTE, remoteOrder.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
 
         // test if the open order list is empty and
         // the remoteOrdersList is with the localOrder
@@ -215,7 +215,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         this.orderController.activateOrder(order);
 
-        order.setOrderState(OrderState.REMOTE);
+        order.setOrderState(OrderState.PENDING);
 
         //exercise
         this.thread = new Thread(this.processor);
@@ -225,7 +225,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        Assert.assertEquals(OrderState.REMOTE, order.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertFalse(this.listIsEmpty(openOrdersList));
     }
 

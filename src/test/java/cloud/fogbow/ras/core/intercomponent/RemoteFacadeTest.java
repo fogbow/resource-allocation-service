@@ -521,7 +521,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
 		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(OrderState.REMOTE);
+		remoteOrder.setOrderState(OrderState.PENDING);
 
 		this.orderController.activateOrder(remoteOrder);
 
@@ -547,7 +547,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Order remoteOrder = new ComputeOrder();
 		remoteOrder.setRequester(requester);
 		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(cloud.fogbow.ras.core.models.orders.OrderState.REMOTE);
+		remoteOrder.setOrderState(cloud.fogbow.ras.core.models.orders.OrderState.PENDING);
 
 		this.orderController.activateOrder(remoteOrder);
 

@@ -83,7 +83,7 @@ public class UnableToCheckStatusProcessor implements Runnable {
             // processor.
             if (order.isProviderRemote(this.localProviderId)) {
                 // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
-                OrderStateTransitioner.transition(order, OrderState.REMOTE);
+                OrderStateTransitioner.transition(order, OrderState.PENDING);
                 LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;
             }
@@ -100,13 +100,9 @@ public class UnableToCheckStatusProcessor implements Runnable {
                 } else if (instance.hasFailed()) {
                     OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
                 }
-            } catch (UnavailableProviderException e1) {
-                LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e1);
-                return;
-            } catch (InstanceNotFoundException e2) {
-                LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
+            } catch (Exception e) {
+                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e));
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
-                return;
             }
         }
 	}

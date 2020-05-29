@@ -915,7 +915,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStatePending()
             throws Exception {
         // set up
-        String orderId = setupOrder(OrderState.REMOTE);
+        String orderId = setupOrder(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
@@ -1170,7 +1170,7 @@ public class OrderControllerTest extends BaseUnitTests {
             case OPEN:
                 this.openOrdersList.addItem(computeOrder);
                 break;
-            case REMOTE:
+            case PENDING:
                 this.pendingOrdersList.addItem(computeOrder);
                 break;
             case SPAWNING:

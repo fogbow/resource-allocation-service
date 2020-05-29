@@ -152,7 +152,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     // test case: When running thread in the FulfilledProcessor with a remote provider, the method
-    // processFulfilledOrder() must change OrderState to REMOTE and move it to the remoteProviderOrders
+    // processFulfilledOrder() must change OrderState to PENDING and move it to the remoteProviderOrders
     // list.
     @Test
     public void testRunProcessLocalComputeOrderWithARemoteMember() throws Exception {
@@ -172,7 +172,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         // verify
-        Assert.assertEquals(OrderState.REMOTE, order.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertEquals(order, this.remoteOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }

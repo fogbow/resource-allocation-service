@@ -352,7 +352,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     }
     
     // test case: When calling the processSpawningOrder method with a
-    // remote member ID, the order state should change to REMOTE.
+    // remote member ID, the order state should change to PENDING.
     @Test
     public void testProcessSpawningOrderWithARemoteMember() throws FogbowException {
         // set up
@@ -368,7 +368,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.processor.processSpawningOrder(order);
 
         // verify
-        Assert.assertEquals(OrderState.REMOTE, order.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertEquals(order, this.remoteOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }

@@ -62,7 +62,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
     }
 
     // test case: When calling the processAssignedForDeletionOrder method with a remote provider
-    // the order state should change to REMOTE
+    // the order state should change to PENDING
     @Test
     public void testProcessAssignedForDeletionWithARemoteProvider()
             throws Exception {
@@ -82,7 +82,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
         Assert.assertNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
-        Assert.assertEquals(OrderState.REMOTE, order.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertEquals(order, this.remoteOrderList.getNext());
         this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
     }

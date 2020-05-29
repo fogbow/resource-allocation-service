@@ -127,7 +127,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     }
 
     // test case: When calling the processCheckingDeletionOrder method
-    // with remote Order should chsnge the order state to REMOTE.
+    // with remote Order should change the order state to PENDING.
     @Test
     public void testProcessCheckingDeletionOrderSuccessfullyWhenOrderRemote()
             throws Exception {
@@ -151,7 +151,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.checkingDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(orderRemote.getId()));
         Assert.assertEquals(orderRemote, this.remoteOrderList.getNext());
-        Assert.assertEquals(OrderState.REMOTE, orderRemote.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, orderRemote.getOrderState());
     }
 
     // test case: When calling the processCheckingDeletionOrder method
@@ -177,12 +177,12 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
                 .updateOrderDependencies(Mockito.eq(orderRemote), Mockito.eq(Operation.DELETE));
         Assert.assertNull(this.checkingDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(orderRemote.getId()));
-        Assert.assertEquals(OrderState.REMOTE, orderRemote.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, orderRemote.getOrderState());
         Assert.assertEquals(orderRemote, this.remoteOrderList.getNext());
     }
 
     // test case: When calling the checkDeletion method and throws an UnexpectedException
-    // it must verify if It logs an error message.
+    // it must verify if it logs an error message.
     @Test
     public void testCheckDeletionFailWhenThrowsUnexpectedException() throws InterruptedException, UnexpectedException {
         // set up

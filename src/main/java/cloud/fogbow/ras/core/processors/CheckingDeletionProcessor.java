@@ -95,7 +95,7 @@ public class CheckingDeletionProcessor implements Runnable {
             // processor.
             if (order.isProviderRemote(this.localProviderId)) {
                 // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
-                OrderStateTransitioner.transition(order, OrderState.REMOTE);
+                OrderStateTransitioner.transition(order, OrderState.PENDING);
                 LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;
             }

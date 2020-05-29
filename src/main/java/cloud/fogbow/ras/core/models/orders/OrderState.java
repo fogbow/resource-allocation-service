@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.models.orders;
 public enum OrderState {
     OPEN("OPEN"),
     SELECTED("SELECTED"),
-    REMOTE("REMOTE"),
+    PENDING("PENDING"),
     SPAWNING("SPAWNING"),
     FULFILLED("FULFILLED"),
     FAILED_AFTER_SUCCESSFUL_REQUEST("FAILED_AFTER_SUCCESSFUL_REQUEST"),

@@ -34,8 +34,8 @@ public class SharedOrderHolders {
         this.activeOrdersMap = new ConcurrentHashMap<>();
 
         try {
-            // All orders in the REMOTE state have remote providers
-            this.remoteProviderOrders = databaseManager.readActiveOrders(OrderState.REMOTE);
+            // All orders in the PENDING state have remote providers
+            this.remoteProviderOrders = databaseManager.readActiveOrders(OrderState.PENDING);
             this.openOrders = databaseManager.readActiveOrders(OrderState.OPEN);
             // An order in the OPEN state should be kept in the openOrders list even if its provider is remote
             // because the order has not yet been sent to the remote provider, and will be dealt with by the
@@ -75,7 +75,7 @@ public class SharedOrderHolders {
             addOrdersToMap(this.checkingDeletionOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.CHECKING_DELETION, this.activeOrdersMap.size()));
             addOrdersToMap(this.remoteProviderOrders, this.activeOrdersMap);
-            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.REMOTE, this.activeOrdersMap.size()));
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, "REMOTE", this.activeOrdersMap.size()));
         } catch (Exception e) {
             throw new FatalErrorException(e.getMessage(), e);
         }
@@ -167,7 +167,7 @@ public class SharedOrderHolders {
             case SPAWNING:
                 list = SharedOrderHolders.getInstance().getSpawningOrdersList();
                 break;
-            case REMOTE:
+            case PENDING:
                 list = SharedOrderHolders.getInstance().getRemoteProviderOrdersList();
                 break;
             case FULFILLED:

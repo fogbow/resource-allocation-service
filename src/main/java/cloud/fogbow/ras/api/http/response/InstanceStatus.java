@@ -3,7 +3,6 @@ package cloud.fogbow.ras.api.http.response;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -66,7 +65,7 @@ public class InstanceStatus {
         switch(orderState) {
             case OPEN:
             case SELECTED:
-            case REMOTE:
+            case PENDING:
                 return InstanceState.DISPATCHED;
             case FAILED_ON_REQUEST:
                 return InstanceState.ERROR;
@@ -91,7 +90,7 @@ public class InstanceStatus {
     public static OrderState mapOrderStateFromInstanceState(InstanceState instanceState) throws UnexpectedException {
         switch(instanceState) {
             case DISPATCHED:
-                return OrderState.REMOTE;
+                return OrderState.PENDING;
             case ERROR:
                 return OrderState.FAILED_ON_REQUEST;
             case CREATING:
