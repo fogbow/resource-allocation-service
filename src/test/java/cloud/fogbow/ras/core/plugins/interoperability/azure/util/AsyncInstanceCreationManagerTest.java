@@ -23,14 +23,14 @@ public class AsyncInstanceCreationManagerTest {
         String instanceId = "instanceId";
 
         // exercise
-        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks =
+        AsyncInstanceCreationManager.Callbacks finishCreationAsyncInstanceCreationCallbacks =
                 this.asyncInstanceCreationManagerPlugin.startCreation(instanceId);
 
         // verify
         Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING, this.asyncInstanceCreationManagerPlugin.getStatus(instanceId));
 
         // exercise
-        finishCreationCallbacks.runOnComplete();
+        finishCreationAsyncInstanceCreationCallbacks.runOnComplete();
 
         // verify
         Assert.assertNull(this.asyncInstanceCreationManagerPlugin.getStatus(instanceId));
@@ -46,7 +46,7 @@ public class AsyncInstanceCreationManagerTest {
         String instanceId = "instanceId";
 
         // exercise
-        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks =
+        AsyncInstanceCreationManager.Callbacks finishCreationAsyncInstanceCreationCallbacks =
                 this.asyncInstanceCreationManagerPlugin.startCreation(instanceId);
 
         // verify
@@ -54,7 +54,7 @@ public class AsyncInstanceCreationManagerTest {
         Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING, status);
 
         // exercise
-        finishCreationCallbacks.runOnError();
+        finishCreationAsyncInstanceCreationCallbacks.runOnError();
 
         // verify
         status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);

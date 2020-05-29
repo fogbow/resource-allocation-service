@@ -32,14 +32,14 @@ public class AsyncInstanceCreationManager {
     public Callbacks startCreation(String instanceId) {
         LOGGER.debug(String.format(Messages.Info.START_ASYNC_INSTANCE_CREATION_S, instanceId));
         defineAsCreating(instanceId);
-        return new Callbacks().builder()
+                return new Callbacks().builder()
                 .doOnComplete(() -> {
                     defineAsCreated(instanceId);
                     LOGGER.debug(String.format(Messages.Info.END_ASYNC_INSTANCE_CREATION_S, instanceId));
                 })
                 .doOnError(() -> {
                     defineAsFailed(instanceId);
-                    LOGGER.debug(String.format(Messages.Info.ERROR_ASYNC_INSTANCE_CREATION_S, instanceId));
+                    LOGGER.debug(String.format(Messages.Error.ERROR_ASYNC_INSTANCE_CREATION_S, instanceId));
                 }).build();
     }
 
@@ -101,24 +101,24 @@ public class AsyncInstanceCreationManager {
         }
 
         private class Builder {
-            private Callbacks callbacks;
+            private Callbacks asyncInstanceCreationCallbacks;
 
             private Builder() {
-                this.callbacks = new Callbacks();
+                this.asyncInstanceCreationCallbacks = new Callbacks();
             }
 
             public Builder doOnComplete(Runnable doOnComplete) {
-                this.callbacks.setDoOnComplete(doOnComplete);
+                this.asyncInstanceCreationCallbacks.setDoOnComplete(doOnComplete);
                 return this;
             }
 
             public Builder doOnError(Runnable doOnError) {
-                this.callbacks.setDoOnError(doOnError);
+                this.asyncInstanceCreationCallbacks.setDoOnError(doOnError);
                 return this;
             }
 
             public Callbacks build() {
-                return callbacks;
+                return asyncInstanceCreationCallbacks;
             }
         }
 
