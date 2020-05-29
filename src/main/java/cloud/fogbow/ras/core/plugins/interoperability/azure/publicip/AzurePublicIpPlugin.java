@@ -16,10 +16,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressSDK;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
@@ -230,8 +227,9 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
 
         String resourceName = publicIPAddressCreatable.name();
         String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
-        Runnable finishCreationCallback = startInstanceCreation(instanceId);
-        this.operation.subscribeAssociatePublicIPAddress(azure, resourceName, observable, finishCreationCallback);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = startInstanceCreation(instanceId);
+        this.operation.subscribeAssociatePublicIPAddress(azure, resourceName, observable, finishCreationCallbacks);
+        waitAndCheckForInstanceCreationFailed(instanceId);
         return instanceId;
     }
 
@@ -264,6 +262,6 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
 
     @Override
     public PublicIpInstance buildCreatingInstance(String instanceId) {
-        return new PublicIpInstance(instanceId, InstanceState.CREATING.getValue(), AzureGeneralUtil.NO_INFORMATION);
+        return new PublicIpInstance(instanceId);
     }
 }

@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
 import java.util.concurrent.ExecutorService;
 
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -24,8 +25,6 @@ public class AzurePublicIPAddressOperationSDK {
     
     @VisibleForTesting
     static final Logger LOGGER = Logger.getLogger(AzurePublicIPAddressOperationSDK.class);
-    @VisibleForTesting
-    static final int FULL_CAPACITY = 2;
 
     private final String defaultResourceGroupName;
 
@@ -38,26 +37,27 @@ public class AzurePublicIPAddressOperationSDK {
     }
 
     public void subscribeAssociatePublicIPAddress(Azure azure, String resourceName,
-            Observable<NetworkInterface> observable, Runnable doOnComplete) {
+            Observable<NetworkInterface> observable, AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
         
-        setAssociatePublicIPAddressBehaviour(azure, resourceName, observable, doOnComplete)
+        setAssociatePublicIPAddressBehaviour(azure, resourceName, observable, finishCreationCallbacks)
             .subscribeOn(this.scheduler)
             .subscribe();
     }
 
     @VisibleForTesting
     Observable<NetworkInterface> setAssociatePublicIPAddressBehaviour(Azure azure, String resourceName,
-            Observable<NetworkInterface> observable, Runnable doOnComplete) {
+            Observable<NetworkInterface> observable, AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
 
         return observable.doOnNext(nic -> {
             LOGGER.info(Messages.Info.FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
             doAssociateNetworkSecurityGroupAsync(azure, resourceName, nic);
             LOGGER.info(Messages.Info.SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR);
         }).onErrorReturn(error -> {
+            finishCreationCallbacks.runOnError();
             LOGGER.error(Messages.Error.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
             return null;
         }).doOnCompleted(() -> {
-            doOnComplete.run();
+            finishCreationCallbacks.runOnComplete();
             LOGGER.info(Messages.Info.END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
         });
     }
