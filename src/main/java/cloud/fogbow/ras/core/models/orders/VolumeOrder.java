@@ -1,9 +1,6 @@
 package cloud.fogbow.ras.core.models.orders;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.ras.api.http.response.InstanceStatus;
-import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
@@ -14,7 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "volume_order_table")
-public class VolumeOrder extends Order<VolumeInstance> {
+public class VolumeOrder extends Order<VolumeOrder> {
     private static final long serialVersionUID = 1L;
 
     private static final String NAME_COLUMN_NAME = "name";
@@ -76,10 +73,8 @@ public class VolumeOrder extends Order<VolumeInstance> {
     }
     
     @Override
-    public void updateFromRemoteInstance(VolumeInstance remoteInstance) throws UnexpectedException {
-        VolumeAllocation volumeAllocation = new VolumeAllocation(remoteInstance.getSize());
-        this.setActualAllocation(volumeAllocation);
-        this.setOrderState(InstanceStatus.mapOrderStateFromInstanceState(remoteInstance.getState()));
+    public void updateFromRemoteOrder(VolumeOrder remoteOrder) {
+        this.setActualAllocation(remoteOrder.getActualAllocation());
     }
 
 }

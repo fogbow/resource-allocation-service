@@ -52,6 +52,12 @@ public class RemoteFacade {
         this.orderController.activateOrder(order);
     }
 
+    public Order getOrder(String requestingProvider, String orderId) throws FogbowException {
+        Order order = this.orderController.getOrder(orderId);
+        checkOrderConsistency(requestingProvider, order);
+        return order;
+    }
+
     public Instance getResourceInstance(String requestingProvider, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting provider.

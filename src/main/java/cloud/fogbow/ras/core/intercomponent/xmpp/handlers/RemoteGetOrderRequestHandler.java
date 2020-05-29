@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.IntercomponentUtil;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -8,8 +7,7 @@ import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
 import cloud.fogbow.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.Instance;
+import cloud.fogbow.ras.core.models.orders.Order;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -19,25 +17,23 @@ import org.xmpp.packet.IQ;
 public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetOrderRequestHandler.class);
 
-    private static final String REMOTE_GET_INSTANCE = RemoteMethod.REMOTE_GET_ORDER.toString();
+    private static final String REMOTE_GET_ORDER = RemoteMethod.REMOTE_GET_ORDER.toString();
 
     public RemoteGetOrderRequestHandler() {
-        super(REMOTE_GET_INSTANCE);
+        super(REMOTE_GET_ORDER);
     }
 
     @Override
     public IQ handle(IQ iq) {
         LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
         String orderId = unmarshalOrderId(iq);
-        ResourceType resourceType = unmarshalResourceType(iq);
-        SystemUser systemUser = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
         try {
             String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
-            Instance instance = RemoteFacade.getInstance().getResourceInstance(senderId, orderId, systemUser, resourceType);
-            //on success, update response with instance data
-            updateResponse(response, instance);
+            Order order = RemoteFacade.getInstance().getOrder(senderId, orderId);
+            //on success, update response with order data
+            updateResponse(response, order);
         } catch (Exception e) {
             //on error, update response with exception data
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -45,34 +41,17 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
         return response;
     }
 
-    private void updateResponse(IQ response, Instance instance) {
+    private void updateResponse(IQ response, Order order) {
         Element queryElement =
-                response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_INSTANCE);
+                response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ORDER);
 
-        Element instanceElement = queryElement.addElement(IqElement.INSTANCE.toString());
+        Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
 
-        Element instanceClassNameElement =
-                queryElement.addElement(IqElement.INSTANCE_CLASS_NAME.toString());
+        Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
 
-        instanceClassNameElement.setText(instance.getClass().getName());
+        orderClassNameElement.setText(order.getClass().getName());
 
-        instanceElement.setText(new Gson().toJson(instance));
-    }
-
-    private SystemUser unmarshalFederationUser(IQ iq) {
-        Element systemUserElement = iq.getElement().element(IqElement.SYSTEM_USER.toString());
-        SystemUser systemUser = new Gson().fromJson(systemUserElement.getText(), SystemUser.class);
-        return systemUser;
-    }
-
-    private ResourceType unmarshalResourceType(IQ iq) {
-        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element orderTypeElementRequest = queryElement.element(IqElement.INSTANCE_TYPE.toString());
-
-        ResourceType resourceType =
-                new Gson().fromJson(orderTypeElementRequest.getText(), ResourceType.class);
-
-        return resourceType;
+        orderElement.setText(new Gson().toJson(order));
     }
 
     private String unmarshalOrderId(IQ iq) {

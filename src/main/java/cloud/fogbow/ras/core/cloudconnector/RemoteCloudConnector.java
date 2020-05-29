@@ -27,6 +27,17 @@ public class RemoteCloudConnector implements CloudConnector {
         this.cloudName = cloudName;
     }
 
+    public Order getRemoteOrder(Order localOrder) throws RemoteCommunicationException {
+        try {
+            RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(localOrder);
+            Order remoteOrder = remoteGetOrderRequest.send();
+            return remoteOrder;
+        } catch (Exception e) {
+            LOGGER.error(e.toString(), e);
+            throw new RemoteCommunicationException(e.getMessage(), e);
+        }
+    }
+
     @Override
     public String requestInstance(Order order) throws RemoteCommunicationException {
         try {
@@ -59,8 +70,8 @@ public class RemoteCloudConnector implements CloudConnector {
     @Override
     public OrderInstance getInstance(Order order) throws RemoteCommunicationException, InstanceNotFoundException {
         try {
-            RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(order);
-            OrderInstance instance = remoteGetOrderRequest.send();
+            RemoteGetInstanceRequest remoteGetInstanceRequest = new RemoteGetInstanceRequest(order);
+            OrderInstance instance = remoteGetInstanceRequest.send();
             return instance;
         } catch (InstanceNotFoundException e) {
             LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);

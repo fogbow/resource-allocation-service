@@ -6,7 +6,7 @@ import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
-import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetOrderRequest;
+import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetInstanceRequest;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -26,7 +26,7 @@ import java.util.ArrayList;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
-public class RemoteGetOrderRequestHandlerTest {
+public class RemoteGetInstanceRequestHandlerTest {
 
     private static final String REQUESTING_MEMBER = "requestingmember";
 
@@ -44,14 +44,14 @@ public class RemoteGetOrderRequestHandlerTest {
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
 
-    private RemoteGetOrderRequestHandler remoteGetOrderRequestHandler;
+    private RemoteGetInstanceRequestHandler remoteGetInstanceRequestHandler;
     private RemoteFacade remoteFacade;
 
     private PacketSender packetSender;
 
     @Before
     public void setUp() {
-        this.remoteGetOrderRequestHandler = new RemoteGetOrderRequestHandler();
+        this.remoteGetInstanceRequestHandler = new RemoteGetInstanceRequestHandler();
 
         this.remoteFacade = Mockito.mock(RemoteFacade.class);
         PowerMockito.mockStatic(RemoteFacade.class);
@@ -76,11 +76,11 @@ public class RemoteGetOrderRequestHandlerTest {
                 this.remoteFacade.getResourceInstance(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(orderId),
                         Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE))).thenReturn(instance);
 
-        IQ iq = RemoteGetOrderRequest.marshal(order);
+        IQ iq = RemoteGetInstanceRequest.marshal(order);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
-        IQ result = this.remoteGetOrderRequestHandler.handle(iq);
+        IQ result = this.remoteGetInstanceRequestHandler.handle(iq);
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
@@ -108,11 +108,11 @@ public class RemoteGetOrderRequestHandlerTest {
         Mockito.when(this.remoteFacade.getResourceInstance(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(orderId),
                 Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE))).thenThrow(new RemoteCommunicationException());
 
-        IQ iq = RemoteGetOrderRequest.marshal(order);
+        IQ iq = RemoteGetInstanceRequest.marshal(order);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
-        IQ result = this.remoteGetOrderRequestHandler.handle(iq);
+        IQ result = this.remoteGetInstanceRequestHandler.handle(iq);
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).

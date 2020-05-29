@@ -1,12 +1,9 @@
 package cloud.fogbow.ras.core.processors;
 
-import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -69,7 +66,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
      * @param order {@link Order}
      */
     protected void processRemoteProviderOrder(Order order) throws UnexpectedException, RemoteCommunicationException {
-        OrderInstance remoteInstance;
+        Order remoteOrder;
         synchronized (order) {
            // Only remote orders need to be synchronized.
             if (order.isProviderLocal(this.localProviderId)) {
@@ -87,19 +84,12 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                     // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
                     RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
                             CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
-                    remoteInstance = remoteCloudConnector.getInstance(order);
-                    order.updateFromRemoteInstance(remoteInstance);
+                    remoteOrder = remoteCloudConnector.getRemoteOrder(order);
+                    order.updateFromRemoteOrder(remoteOrder);
+                    order.setOrderState(remoteOrder.getOrderState());
                 }
-            } catch (InstanceNotFoundException e) {
-                LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
-                if (order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION) ||
-                                            order.getOrderState().equals(OrderState.CHECKING_DELETION)) {
-                    this.orderController.closeOrder(order);
-                } else {
-                    // This happens when the instance is deleted directly in the cloud; at the remote side the
-                    // order has gone to the FAILURE_AFTER_SUCCESSFUL_REQUEST state, and so should the local one.
-                    order.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
-                }
+            } catch (RemoteCommunicationException e) {
+                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e));
             }
         }
     }

@@ -22,9 +22,9 @@ import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-public class RemoteGetOrderRequestTest {
+public class RemoteGetInstanceRequestTest {
 
-    private RemoteGetOrderRequest remoteGetOrderRequest;
+    private RemoteGetInstanceRequest remoteGetInstanceRequest;
     private PacketSender packetSender;
     private SystemUser systemUser;
 
@@ -39,7 +39,7 @@ public class RemoteGetOrderRequestTest {
         this.order = new ComputeOrder(this.systemUser, "requesting-member",
                 "providing-member", "default", "hostName", 10, 20, 30, "imageid", null,
                 "publicKey", null);
-        this.remoteGetOrderRequest = new RemoteGetOrderRequest(this.order);
+        this.remoteGetInstanceRequest = new RemoteGetInstanceRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.setPacketSender(this.packetSender);
         this.instance = new ComputeInstance("compute-instance");
@@ -53,10 +53,10 @@ public class RemoteGetOrderRequestTest {
         //set up
         IQ iqResponse = getInstanceIQResponse(this.instance);
         Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
-        IQ expectedIQ = RemoteGetOrderRequest.marshal(this.order);
+        IQ expectedIQ = RemoteGetInstanceRequest.marshal(this.order);
 
         //exercise
-        Instance responseInstance = this.remoteGetOrderRequest.send();
+        Instance responseInstance = this.remoteGetInstanceRequest.send();
 
         //verify
         IQMatcher matcher = new IQMatcher(expectedIQ);
@@ -72,7 +72,7 @@ public class RemoteGetOrderRequestTest {
         Mockito.doReturn(null).when(this.packetSender).syncSendPacket(Mockito.any());
 
         //exercise/verify
-        this.remoteGetOrderRequest.send();
+        this.remoteGetInstanceRequest.send();
     }
 
     //test case: checks if "send" is properly forwading UnauthorizedRequestException thrown by
@@ -85,7 +85,7 @@ public class RemoteGetOrderRequestTest {
         iqResponse.setError(new PacketError(PacketError.Condition.forbidden));
 
         //exercise/verify
-        this.remoteGetOrderRequest.send();
+        this.remoteGetInstanceRequest.send();
     }
 
     //test case: checks if "send" is properly forwading UnexpectedException thrown by
@@ -98,7 +98,7 @@ public class RemoteGetOrderRequestTest {
         Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any());
 
         //exercise/verify
-        this.remoteGetOrderRequest.send();
+        this.remoteGetInstanceRequest.send();
     }
 
     private IQ getInstanceIQResponse(Instance instance) {

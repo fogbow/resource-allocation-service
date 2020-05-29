@@ -20,6 +20,7 @@ public class XmppComponentManager extends XMPPComponent {
         addGetHandler(new RemoteGetAllImagesRequestHandler());
         addGetHandler(new RemoteGetImageRequestHandler());
         addGetHandler(new RemoteGetCloudNamesRequestHandler());
+        addGetHandler(new RemoteGetInstanceRequestHandler());
         addGetHandler(new RemoteGetOrderRequestHandler());
         addGetHandler(new RemoteGetUserQuotaRequestHandler());
         addGetHandler(new RemoteGetAllSecurityRuleHandler());

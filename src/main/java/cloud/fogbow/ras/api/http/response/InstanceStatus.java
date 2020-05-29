@@ -87,28 +87,6 @@ public class InstanceStatus {
         }
     }
 
-    public static OrderState mapOrderStateFromInstanceState(InstanceState instanceState) throws UnexpectedException {
-        switch(instanceState) {
-            case DISPATCHED:
-                return OrderState.PENDING;
-            case ERROR:
-                return OrderState.FAILED_ON_REQUEST;
-            case CREATING:
-                return OrderState.SPAWNING;
-            case READY:
-                return OrderState.FULFILLED;
-            case FAILED:
-                return OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
-            case UNKNOWN:
-                return OrderState.UNABLE_TO_CHECK_STATUS;
-            case DELETING:
-                return OrderState.ASSIGNED_FOR_DELETION;
-            case DELETED:
-            default:
-                throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
-        }
-    }
-
     @Override
     public int hashCode() {
         final int prime = 31;

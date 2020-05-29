@@ -18,7 +18,7 @@ import java.util.Map;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "order_table")
-public abstract class Order<T extends Instance> implements Serializable {
+public abstract class Order<T extends Order> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected static final String REQUESTER_COLUMN_NAME = "requester";
@@ -260,5 +260,5 @@ public abstract class Order<T extends Instance> implements Serializable {
         this.type = type;
     }
 
-    public abstract void updateFromRemoteInstance(T remoteInstance) throws UnexpectedException;
+    public abstract void updateFromRemoteOrder(T remoteOrder) throws UnexpectedException;
 }
