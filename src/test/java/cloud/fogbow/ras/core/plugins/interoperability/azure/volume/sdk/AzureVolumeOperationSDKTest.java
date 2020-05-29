@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import org.apache.log4j.Level;
 import org.junit.Before;
@@ -36,10 +37,10 @@ public class AzureVolumeOperationSDKTest {
         // set up
         Observable<Indexable> observable = AzureTestUtils.createSimpleObservableSuccess();
 
-        Runnable doOnComplete = Mockito.mock(Runnable.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallback = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         // exercise
-        this.operation.subscribeCreateDisk(observable, doOnComplete);
+        this.operation.subscribeCreateDisk(observable, finishCreationCallback);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_DISK_ASYNC_BEHAVIOUR);
@@ -53,10 +54,10 @@ public class AzureVolumeOperationSDKTest {
         // set up
         Observable observable = AzureTestUtils.createSimpleObservableFail();
 
-        Runnable doOnComplete = Mockito.mock(Runnable.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallback = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         // exercise
-        this.operation.subscribeCreateDisk(observable, doOnComplete);
+        this.operation.subscribeCreateDisk(observable, finishCreationCallback);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR);

@@ -14,10 +14,7 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
 import com.google.common.annotations.VisibleForTesting;
@@ -160,11 +157,12 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
     }
     
     @VisibleForTesting
-    String doRequestInstance(VolumeOrder volumeOrder, Creatable<Disk> diskCreatable) {
+    String doRequestInstance(VolumeOrder volumeOrder, Creatable<Disk> diskCreatable) throws FogbowException {
         Observable<Indexable> observable = AzureVolumeSDK.buildCreateDiskObservable(diskCreatable);
         String instanceId = AzureGeneralUtil.defineInstanceId(diskCreatable.name());
-        Runnable finishCreationCallback = startInstanceCreation(instanceId);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallback = startInstanceCreation(instanceId);
         this.operation.subscribeCreateDisk(observable, finishCreationCallback);
+        waitAndCheckForInstanceCreationFailed(instanceId);
         updateInstanceAllocation(volumeOrder);
         return instanceId;
     }
@@ -185,6 +183,6 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
 
     @Override
     public VolumeInstance buildCreatingInstance(String instanceId) {
-        return new VolumeInstance(instanceId, InstanceState.CREATING.getValue(), AzureGeneralUtil.NO_INFORMATION, 0);
+        return new VolumeInstance(instanceId);
     }
 }
