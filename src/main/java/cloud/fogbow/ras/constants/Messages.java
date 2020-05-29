@@ -157,6 +157,7 @@ public class Messages {
         public static final String END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR = "End asynchronous delete security group.";
         public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
         public static final String END_ASYNC_INSTANCE_CREATION_S = "End instance (%s) creation.";
+        public static final String ORDER_S_CHANGED_STATE_TO_S = "Order changed %s state to %s.";
     }
 
     public static class Error {

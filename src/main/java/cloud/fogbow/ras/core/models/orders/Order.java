@@ -4,7 +4,6 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.SerializedEntityHolder;
-import cloud.fogbow.ras.api.http.response.Instance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -115,6 +114,7 @@ public abstract class Order<T extends Order> implements Serializable {
     }
 
     public void setOrderState(OrderState state) throws UnexpectedException {
+        LOGGER.debug(String.format(Messages.Info.ORDER_S_CHANGED_STATE_TO_S, this.getId(), state));
         this.orderState = state;
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         if (state.equals(OrderState.OPEN)) {
