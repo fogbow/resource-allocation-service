@@ -1,13 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import org.apache.log4j.Logger;
-
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -25,14 +17,16 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVir
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
+import org.apache.log4j.Logger;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<ComputeInstance> {
 
@@ -117,22 +111,23 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
             throws FogbowException {
 
         String instanceId = getInstanceId(virtualMachineRef);
-        Runnable finishCreationCallback = this.startInstanceCreation(instanceId);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallback = startInstanceCreation(instanceId);
         doCreateInstance(azureUser, virtualMachineRef, finishCreationCallback);
+        waitAndCheckForInstanceCreationFailed(instanceId);
         updateInstanceAllocation(computeOrder, virtualMachineSize);
         return instanceId;
     }
 
     @VisibleForTesting
     void doCreateInstance(AzureUser azureUser, AzureCreateVirtualMachineRef virtualMachineRef,
-            Runnable finishCreationCallback) throws FogbowException {
+                          AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) throws FogbowException {
         
         try {
             this.azureVirtualMachineOperation
-                    .doCreateInstance(virtualMachineRef, finishCreationCallback, azureUser);
-            
+                    .doCreateInstance(virtualMachineRef, finishCreationCallbacks, azureUser);
         } catch (Exception e) {
-            finishCreationCallback.run();
+            finishCreationCallbacks.runOnError();
+            finishCreationCallbacks.runOnComplete();
             throw e;
         }
     }
@@ -232,8 +227,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
 
     @Override
     public ComputeInstance buildCreatingInstance(String instanceId) {
-        return new ComputeInstance(instanceId, InstanceState.CREATING.getValue()
-                , AzureGeneralUtil.NO_INFORMATION, new ArrayList<>());
+        return new ComputeInstance(instanceId);
     }
 
 }

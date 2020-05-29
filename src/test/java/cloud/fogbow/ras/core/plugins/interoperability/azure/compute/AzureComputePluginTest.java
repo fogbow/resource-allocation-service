@@ -265,11 +265,11 @@ public class AzureComputePluginTest {
     public void testDoCreateInstanceSuccessfully() {
         // set up
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
-        AsyncInstanceCreationManager.Callbacks callbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         try {
             // exercise
-            this.azureComputePlugin.doCreateInstance(this.azureUser, azureCreateVirtualMachineRef, callbacks);
+            this.azureComputePlugin.doCreateInstance(this.azureUser, azureCreateVirtualMachineRef, finishCreationCallbacks);
         } catch (Exception e) {
             // verify
             Assert.fail();
@@ -282,20 +282,20 @@ public class AzureComputePluginTest {
     public void testDoCreateInstanceFail() throws FogbowException {
         // set up
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
-        AsyncInstanceCreationManager.Callbacks callbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         Mockito.doThrow(new FogbowException()).when(this.azureVirtualMachineOperation)
-                .doCreateInstance(Mockito.eq(azureCreateVirtualMachineRef), Mockito.eq(callbacks),
+                .doCreateInstance(Mockito.eq(azureCreateVirtualMachineRef), Mockito.eq(finishCreationCallbacks),
                 Mockito.eq(this.azureUser));
 
         try {
             // exercise
-            this.azureComputePlugin.doCreateInstance(this.azureUser, azureCreateVirtualMachineRef, callbacks);
+            this.azureComputePlugin.doCreateInstance(this.azureUser, azureCreateVirtualMachineRef, finishCreationCallbacks);
             Assert.fail();
         } catch (Exception e) {
             // verify
-            Mockito.verify(callbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
-            Mockito.verify(callbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
+            Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
+            Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
         }
     }
 
@@ -446,10 +446,10 @@ public class AzureComputePluginTest {
 
         String instanceIdExpected = "instancenId";
         Mockito.doReturn(instanceIdExpected).when(this.azureComputePlugin).getInstanceId(Mockito.eq(virtualMachineRef));
-        AsyncInstanceCreationManager.Callbacks callbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
-        Mockito.doReturn(callbacks).when(this.azureComputePlugin).startInstanceCreation(Mockito.eq(instanceIdExpected));
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
+        Mockito.doReturn(finishCreationCallbacks).when(this.azureComputePlugin).startInstanceCreation(Mockito.eq(instanceIdExpected));
         Mockito.doNothing().when(this.azureComputePlugin).doCreateInstance(
-                Mockito.eq(this.azureUser), Mockito.eq(virtualMachineRef), Mockito.eq(callbacks));
+                Mockito.eq(this.azureUser), Mockito.eq(virtualMachineRef), Mockito.eq(finishCreationCallbacks));
         Mockito.doNothing().when(this.azureComputePlugin).waitAndCheckForInstanceCreationFailed(Mockito.eq(instanceIdExpected));
         Mockito.doNothing().when(this.azureComputePlugin)
                 .updateInstanceAllocation(Mockito.eq(computeOrder), Mockito.eq(virtualMachineSize));

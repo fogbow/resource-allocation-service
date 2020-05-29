@@ -10,10 +10,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.Az
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureNetworkSDK;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
@@ -53,8 +50,9 @@ public class AzureVirtualMachineOperationSDK {
     /**
      * Create asynchronously because this operation takes a long time to finish.
      */
-    public void doCreateInstance(AzureCreateVirtualMachineRef virtualMachineRef, Runnable doOnComplete,
-            AzureUser azureUser) throws FogbowException {
+    public void doCreateInstance(AzureCreateVirtualMachineRef virtualMachineRef,
+                                 AsyncInstanceCreationManager.Callbacks finishCreationCallbacks,
+                                 AzureUser azureUser) throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
@@ -62,7 +60,7 @@ public class AzureVirtualMachineOperationSDK {
         String networkId = buildNetworkId(azure, subscriptionId, virtualNetworkName);
 
         Observable<Indexable> virtualMachineObservable = buildAzureVirtualMachineObservable(azure, virtualMachineRef, networkId);
-        subscribeCreateVirtualMachine(virtualMachineObservable, doOnComplete);
+        subscribeCreateVirtualMachine(virtualMachineObservable, finishCreationCallbacks);
     }
 
     @VisibleForTesting
@@ -102,22 +100,25 @@ public class AzureVirtualMachineOperationSDK {
      * Execute create Virtual Machine observable and set its behaviour.
      */
     @VisibleForTesting
-    void subscribeCreateVirtualMachine(Observable<Indexable> virtualMachineObservable, Runnable doOnComplete) {
-        setCreateVirtualMachineBehaviour(virtualMachineObservable, doOnComplete)
+    void subscribeCreateVirtualMachine(Observable<Indexable> virtualMachineObservable,
+                                       AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
+
+        setCreateVirtualMachineBehaviour(virtualMachineObservable, finishCreationCallbacks)
                 .subscribeOn(this.scheduler)
                 .subscribe();
     }
 
     private Observable<Indexable> setCreateVirtualMachineBehaviour(Observable<Indexable> virtualMachineObservable,
-                                                                   Runnable doOnComplete) {
+                                                                   AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
 
         return virtualMachineObservable
                 .onErrorReturn((error -> {
+                    finishCreationCallbacks.runOnError();
                     LOGGER.error(Messages.Error.ERROR_CREATE_VM_ASYNC_BEHAVIOUR, error);
                     return null;
                 }))
                 .doOnCompleted(() -> {
-                    doOnComplete.run();
+                    finishCreationCallbacks.runOnComplete();
                     LOGGER.info(Messages.Info.END_CREATE_VM_ASYNC_BEHAVIOUR);
                 });
     }
