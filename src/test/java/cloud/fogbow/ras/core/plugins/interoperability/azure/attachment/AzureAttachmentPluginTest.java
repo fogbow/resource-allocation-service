@@ -13,6 +13,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
@@ -480,10 +481,12 @@ public class AzureAttachmentPluginTest {
                 Mockito.eq(disk));
 
         String instanceId = "instance-id";
-        Runnable doOnComplete = Mockito.mock(Runnable.class);
-        Mockito.doReturn(doOnComplete).when(this.plugin).startInstanceCreation(Mockito.eq(instanceId));
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
+        Mockito.doReturn(finishCreationCallbacks).when(this.plugin).startInstanceCreation(Mockito.eq(instanceId));
 
-        Mockito.doNothing().when(this.operation).subscribeAttachDiskFrom(Mockito.eq(observable), Mockito.eq(doOnComplete));
+        Mockito.doNothing().when(this.operation).subscribeAttachDiskFrom(Mockito.eq(observable), Mockito.eq(finishCreationCallbacks));
+
+        Mockito.doNothing().when(this.plugin).waitAndCheckForInstanceCreationFailed(Mockito.eq(instanceId));
 
         PowerMockito.mockStatic(AzureGeneralUtil.class);
         PowerMockito.doReturn(instanceId).when(AzureGeneralUtil.class, "defineInstanceId", Mockito.anyString());
@@ -501,7 +504,10 @@ public class AzureAttachmentPluginTest {
         AzureAttachmentSDK.attachDisk(Mockito.eq(virtualMachine), Mockito.eq(disk));
 
         Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
-                .subscribeAttachDiskFrom(Mockito.eq(observable), Mockito.eq(doOnComplete));
+                .subscribeAttachDiskFrom(Mockito.eq(observable), Mockito.eq(finishCreationCallbacks));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .waitAndCheckForInstanceCreationFailed(Mockito.eq(instanceId));
 
         PowerMockito.verifyStatic(AzureGeneralUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureGeneralUtil.defineInstanceId(Mockito.eq(resourceName));
@@ -577,7 +583,7 @@ public class AzureAttachmentPluginTest {
         PowerMockito.verifyStatic(AzureVirtualMachineSDK.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureVirtualMachineSDK.getVirtualMachine(Mockito.eq(azure), Mockito.eq(virtualMachineId));
     }
-    
+
     // test case: When calling the doGetVirtualMachineSDK method with an invalid
     // virtual machine ID, it must verify than an InstanceNotFoundException has been
     // thrown.

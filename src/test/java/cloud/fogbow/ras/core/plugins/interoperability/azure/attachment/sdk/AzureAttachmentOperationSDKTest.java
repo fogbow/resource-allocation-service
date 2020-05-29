@@ -4,6 +4,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import org.apache.log4j.Level;
 import org.junit.Before;
@@ -35,14 +36,15 @@ public class AzureAttachmentOperationSDKTest {
     public void testSubscribeAttachDiskFromObservableSuccessfully() {
         // set up
         Observable<VirtualMachine> observable = AzureTestUtils.createVirtualMachineObservableSuccess();
-        Runnable doOnComplete = Mockito.mock(Runnable.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         // exercise
-        this.operation.subscribeAttachDiskFrom(observable, doOnComplete);
+        this.operation.subscribeAttachDiskFrom(observable, finishCreationCallbacks);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_ATTACH_DISK_ASYNC_BEHAVIOUR);
-        Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.NEVER_RUN)).runOnError();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
     
     // test case: When calling the subscribeAttachDiskFrom method and the
@@ -52,14 +54,15 @@ public class AzureAttachmentOperationSDKTest {
     public void testSubscribeAttachDiskFromObservableFail() {
         // set up
         Observable observable = AzureTestUtils.createSimpleObservableFail();
-        Runnable doOnComplete = Mockito.mock(Runnable.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         // exercise
-        this.operation.subscribeAttachDiskFrom(observable, doOnComplete);
+        this.operation.subscribeAttachDiskFrom(observable, finishCreationCallbacks);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR);
-        Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
     
     // test case: When calling the subscribeDetachDiskFrom method and the

@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk;
 
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.compute.VirtualMachine;
@@ -22,19 +23,22 @@ public class AzureAttachmentOperationSDK {
         this.scheduler = Schedulers.from(executor);
     }
     
-    public void subscribeAttachDiskFrom(Observable<VirtualMachine> observable, Runnable doOnComplete) {
-        setAttachDiskBehaviour(observable, doOnComplete)
+    public void subscribeAttachDiskFrom(Observable<VirtualMachine> observable,
+                                        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
+        setAttachDiskBehaviour(observable, finishCreationCallbacks)
         .subscribeOn(this.scheduler)
         .subscribe();
     }
 
     @VisibleForTesting
-    Observable<VirtualMachine> setAttachDiskBehaviour(Observable<VirtualMachine> observable, Runnable doOnComplete) {
+    Observable<VirtualMachine> setAttachDiskBehaviour(Observable<VirtualMachine> observable,
+                                                      AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
         return observable.onErrorReturn((error -> {
+            finishCreationCallbacks.runOnError();
             LOGGER.error(Messages.Error.ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR, error);
             return null;
         })).doOnCompleted(() -> {
-            doOnComplete.run();
+            finishCreationCallbacks.runOnComplete();
             LOGGER.info(Messages.Info.END_ATTACH_DISK_ASYNC_BEHAVIOUR);
         });
     }

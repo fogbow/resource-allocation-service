@@ -16,6 +16,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.attachment.sdk.AzureAttachmentSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
@@ -146,8 +147,9 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser>, Azure
 
         Observable<VirtualMachine> observable = AzureAttachmentSDK.attachDisk(virtualMachine, disk);
         String instanceId = AzureGeneralUtil.defineInstanceId(disk.name());
-        Runnable finishCreationCallback = startInstanceCreation(instanceId);
-        this.operation.subscribeAttachDiskFrom(observable, finishCreationCallback);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = startInstanceCreation(instanceId);
+        this.operation.subscribeAttachDiskFrom(observable, finishCreationCallbacks);
+        waitAndCheckForInstanceCreationFailed(instanceId);
         return instanceId;
     }
 
@@ -200,7 +202,6 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser>, Azure
 
     @Override
     public AttachmentInstance buildCreatingInstance(String instanceId) {
-        return new AttachmentInstance(instanceId, InstanceState.CREATING.getValue(),
-                AzureGeneralUtil.NO_INFORMATION, AzureGeneralUtil.NO_INFORMATION, AzureGeneralUtil.NO_INFORMATION);
+        return new AttachmentInstance(instanceId);
     }
 }
