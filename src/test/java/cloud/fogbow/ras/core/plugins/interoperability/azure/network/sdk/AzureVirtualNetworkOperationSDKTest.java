@@ -12,6 +12,7 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
@@ -75,7 +76,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .resourceName(resourceName)
                 .build();
-        Runnable callback = Mockito.mock(Runnable.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         Indexable securityGroupIndexable = Mockito.mock(Indexable.class);
         Observable<Indexable> observableSecurityGroupSuccess = AzureTestUtils.createSimpleObservableSuccess(securityGroupIndexable);
@@ -89,7 +90,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         // exercise
 
         Observable<Indexable> virtualNetworkCreationObservable = this.azureVirtualNetworkOperationSDK
-                .buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, this.azure, callback);
+                .buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, this.azure, finishCreationCallbacks);
         virtualNetworkCreationObservable.subscribe();
 
         // verify
@@ -97,7 +98,7 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.INFO, Messages.Info.SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
-        Mockito.verify(callback, Mockito.times(TestUtils.RUN_ONCE)).run();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 
     // test case: When calling the buildVirtualNetworkCreationObservable method and the observables execute
@@ -109,7 +110,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = AzureCreateVirtualNetworkRef.builder()
                 .resourceName(resourceName)
                 .build();
-        Runnable callback = Mockito.mock(Runnable.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         Indexable securityGroupIndexable = Mockito.mock(Indexable.class);
         Observable<Indexable> observableSecurityGroupSuccess = AzureTestUtils.createSimpleObservableSuccess(securityGroupIndexable);
@@ -122,7 +123,7 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // exercise
         Observable<Indexable> virtualNetworkCreationObservable = this.azureVirtualNetworkOperationSDK
-                .buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, this.azure, callback);
+                .buildVirtualNetworkCreationObservable(azureCreateVirtualNetworkRef, this.azure, finishCreationCallbacks);
         virtualNetworkCreationObservable.subscribe();
 
         // verify
@@ -130,7 +131,8 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
-        Mockito.verify(callback, Mockito.times(TestUtils.RUN_ONCE)).run();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 
     // test case: When calling the buildCreateSecurityGroupObservable method and the observables execute
@@ -704,7 +706,7 @@ public class AzureVirtualNetworkOperationSDKTest {
     public void testDoCreateInstanceSuccessfully() throws Exception {
         // set up
         AzureCreateVirtualNetworkRef virtualNetworkRef = Mockito.mock(AzureCreateVirtualNetworkRef.class);
-        Runnable instanceCallback = Mockito.mock(Runnable.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         PowerMockito.mockStatic(AzureClientCacheManager.class);
         PowerMockito.doReturn(this.azure).when(AzureClientCacheManager.class, "getAzure",
@@ -713,10 +715,10 @@ public class AzureVirtualNetworkOperationSDKTest {
         Observable observable = AzureTestUtils.createSimpleObservableSuccess();
         Mockito.doReturn(observable).when(this.azureVirtualNetworkOperationSDK)
                 .buildVirtualNetworkCreationObservable(Mockito.eq(virtualNetworkRef),
-                Mockito.any(Azure.class), Mockito.eq(instanceCallback));
+                Mockito.any(Azure.class), Mockito.eq(finishCreationCallbacks));
 
         // exercise
-        this.azureVirtualNetworkOperationSDK.doCreateInstance(virtualNetworkRef , this.azureUser, instanceCallback);
+        this.azureVirtualNetworkOperationSDK.doCreateInstance(virtualNetworkRef , this.azureUser, finishCreationCallbacks);
 
         // verify
         PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -724,7 +726,7 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         Mockito.verify(this.azureVirtualNetworkOperationSDK, Mockito.times(TestUtils.RUN_ONCE))
                 .buildVirtualNetworkCreationObservable(Mockito.eq(virtualNetworkRef),
-                Mockito.any(Azure.class), Mockito.eq(instanceCallback));
+                Mockito.any(Azure.class), Mockito.eq(finishCreationCallbacks));
 
         Mockito.verify(this.azureVirtualNetworkOperationSDK, Mockito.times(TestUtils.RUN_ONCE))
                 .subscribeVirtualNetworkCreation(Mockito.eq(observable));

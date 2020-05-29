@@ -15,6 +15,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.AzureVirtualNetworkOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -64,19 +65,22 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
                 .tags(tags)
                 .checkAndBuild();
 
-        Runnable finishAsyncCreationCallback = startInstanceCreation(instanceId);
-        doCreateInstance(azureUser, azureCreateVirtualNetworkRef, finishAsyncCreationCallback);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = startInstanceCreation(instanceId);
+        doCreateInstance(azureUser, azureCreateVirtualNetworkRef, finishCreationCallbacks);
+        waitAndCheckForInstanceCreationFailed(instanceId);
 
         return instanceId;
     }
 
     @VisibleForTesting
-    void doCreateInstance(AzureUser azureUser, AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef, Runnable finishAsyncCreationCallback) throws FogbowException {
+    void doCreateInstance(AzureUser azureUser, AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
+                          AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) throws FogbowException {
         try {
             this.azureVirtualNetworkOperationSDK
-                    .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, finishAsyncCreationCallback);
+                    .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, finishCreationCallbacks);
         } catch (Exception e) {
-            finishAsyncCreationCallback.run();
+            finishCreationCallbacks.runOnError();
+            finishCreationCallbacks.runOnComplete();
             throw e;
         }
     }
@@ -132,6 +136,6 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
 
     @Override
     public NetworkInstance buildCreatingInstance(String instanceId) {
-        return new NetworkInstance(instanceId, InstanceState.CREATING.getValue());
+        return new NetworkInstance(instanceId);
     }
 }

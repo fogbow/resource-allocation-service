@@ -8,10 +8,7 @@ import cloud.fogbow.common.util.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureSchedulerManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
@@ -51,12 +48,12 @@ public class AzureVirtualNetworkOperationSDK {
     }
 
     public void doCreateInstance(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
-                                 AzureUser azureUser, Runnable doOnComplete)
+                                 AzureUser azureUser, AsyncInstanceCreationManager.Callbacks finishCreationCallbacks)
             throws FogbowException {
 
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         Observable<Indexable> virtualNetworkCreationObservable = buildVirtualNetworkCreationObservable(
-                azureCreateVirtualNetworkRef, azure, doOnComplete);
+                azureCreateVirtualNetworkRef, azure, finishCreationCallbacks);
         subscribeVirtualNetworkCreation(virtualNetworkCreationObservable);
     }
 
@@ -67,7 +64,7 @@ public class AzureVirtualNetworkOperationSDK {
      */
     @VisibleForTesting
     Observable<Indexable> buildVirtualNetworkCreationObservable(AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef,
-                                                                Azure azure, Runnable doOnComplete) {
+                                                                Azure azure, AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
         Observable<Indexable> securityGroupObservable = buildCreateSecurityGroupObservable(azureCreateVirtualNetworkRef, azure);
         return securityGroupObservable
                 .doOnNext(indexableSecurityGroup -> {
@@ -76,11 +73,12 @@ public class AzureVirtualNetworkOperationSDK {
                     LOGGER.info(Messages.Info.SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
                 })
                 .onErrorReturn(error -> {
+                    finishCreationCallbacks.runOnError();
                     LOGGER.error(Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR);
                     return null;
                 })
                 .doOnCompleted(() -> {
-                    doOnComplete.run();
+                    finishCreationCallbacks.runOnComplete();
                     LOGGER.info(Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
                 });
     }
