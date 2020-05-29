@@ -40,10 +40,10 @@ public class AzureAsyncTest {
         String instanceId = TestUtils.ANY_VALUE;
 
         // exercise
-        AsyncInstanceCreationManager.Callbacks callbacks = this.azureWrapper.startInstanceCreation(instanceId);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = this.azureWrapper.startInstanceCreation(instanceId);
 
         // verify
-        Assert.assertNotNull(callbacks);
+        Assert.assertNotNull(finishCreationCallbacks);
     }
 
     // test case: When calling the getCreatingInstance method when it starts instance creation,
@@ -69,8 +69,8 @@ public class AzureAsyncTest {
         // set up
         String instanceId = TestUtils.ANY_VALUE;
 
-        AsyncInstanceCreationManager.Callbacks callbacks = this.azureWrapper.startInstanceCreation(instanceId);
-        callbacks.runOnComplete();
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = this.azureWrapper.startInstanceCreation(instanceId);
+        finishCreationCallbacks.runOnComplete();
 
         // exercise
         OrderInstance creatingInstance = this.azureWrapper.getCreatingInstance(instanceId);
@@ -86,8 +86,8 @@ public class AzureAsyncTest {
         // set up
         String instanceId = TestUtils.ANY_VALUE;
 
-        AsyncInstanceCreationManager.Callbacks callbacks = this.azureWrapper.startInstanceCreation(instanceId);
-        callbacks.runOnError();
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = this.azureWrapper.startInstanceCreation(instanceId);
+        finishCreationCallbacks.runOnError();
 
         // exercise
         OrderInstance creatingInstance = this.azureWrapper.getCreatingInstance(instanceId);
@@ -108,8 +108,8 @@ public class AzureAsyncTest {
         PowerMockito.doNothing().when(Thread.class);
         Thread.sleep(Mockito.anyLong());
 
-        AsyncInstanceCreationManager.Callbacks callbacks = this.azureWrapper.startInstanceCreation(instanceId);
-        callbacks.runOnError();
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = this.azureWrapper.startInstanceCreation(instanceId);
+        finishCreationCallbacks.runOnError();
 
         // exercise
         this.azureWrapper.waitAndCheckForInstanceCreationFailed(instanceId);

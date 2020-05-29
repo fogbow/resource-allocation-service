@@ -236,5 +236,6 @@ public class Messages {
         public static final String ERROR_DELETE_VNET_ASYNC_BEHAVIOUR = "Error while deleting virtual network asynchronously.";
         public static final String ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR = "Error while deleting security group asynchronously.";
         public static final String ERROR_WHILE_LOADING_IMAGE_S = "Error while loading the following image: %s";
+        public static final String ERROR_ASYNC_INSTANCE_CREATION_S = "Error at async instance (%s) creation.";
     }
 }
