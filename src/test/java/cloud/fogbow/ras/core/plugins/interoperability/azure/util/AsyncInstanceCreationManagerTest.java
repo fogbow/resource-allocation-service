@@ -14,25 +14,51 @@ public class AsyncInstanceCreationManagerTest {
     }
 
     // test case: When calling the startCreation method,
-    // it must verify if the instanceId is creating;
-    // Afterwards, when calling the runnable(finishCreationCallback),
-    // it must verify if the instanceId is not creating.
+    // it must verify if it has a Creating status;
+    // Afterwards, when calling the callback and the method runOnComplete,
+    // it must verify if the status is null because it was finished.
     @Test
     public void testCreationContextSuccessfully() {
         // set up
         String instanceId = "instanceId";
 
         // exercise
-        Runnable finishCreationCallback = this.asyncInstanceCreationManagerPlugin.startCreation(instanceId);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks =
+                this.asyncInstanceCreationManagerPlugin.startCreation(instanceId);
 
         // verify
-        Assert.assertTrue(this.asyncInstanceCreationManagerPlugin.isCreating(instanceId));
+        Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING, this.asyncInstanceCreationManagerPlugin.getStatus(instanceId));
 
         // exercise
-        finishCreationCallback.run();
+        finishCreationCallbacks.runOnComplete();
 
         // verify
-        Assert.assertFalse(this.asyncInstanceCreationManagerPlugin.isCreating(instanceId));
+        Assert.assertNull(this.asyncInstanceCreationManagerPlugin.getStatus(instanceId));
+    }
+
+    // test case: When calling the startCreation method,
+    // it must verify if it has a Creating status;
+    // Afterwards, when calling the callback and the method runOnError,
+    // it must verify if the status is FAILED;
+    @Test
+    public void testCreationContextSuccessfullyWhenInstanceCreationFails() {
+        // set up
+        String instanceId = "instanceId";
+
+        // exercise
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks =
+                this.asyncInstanceCreationManagerPlugin.startCreation(instanceId);
+
+        // verify
+        AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
+        Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING, status);
+
+        // exercise
+        finishCreationCallbacks.runOnError();
+
+        // verify
+        status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
+        Assert.assertEquals(AsyncInstanceCreationManager.Status.FAILED, status);
     }
 
 }
