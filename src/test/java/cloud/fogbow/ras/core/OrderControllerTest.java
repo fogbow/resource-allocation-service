@@ -360,7 +360,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getResourceInstance(order);
     }
 
-    // test case: Checks if given an SELECTED order getResourceInstance() throws
+    // test case: Checks if given a SELECTED order getResourceInstance() throws
     // RequestStillBeingDispatchedException.
     @Test(expected = RequestStillBeingDispatchedException.class)
     public void testGetResourceInstanceOfSelectedOrder() throws FogbowException {

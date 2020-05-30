@@ -362,7 +362,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     
     // test case: When invoking the getInstance method with a valid compute order
     // and an error occurs while getting the instance in the cloud, it must throw an
-    // UnexpectedException and call the auditRequest method confirming its requested
+    // InstanceNotFoundException and call the auditRequest method confirming its requested
     // operation and resource type.
     @Test
     public void testGetInstanceFailWithComputeOrder() throws FogbowException {
@@ -374,13 +374,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         CloudUser cloudUser = Mockito.mock(CloudUser.class);
         Mockito.when(this.mapperPlugin.map(Mockito.any(SystemUser.class))).thenReturn(cloudUser);
 
-        String expected = Messages.Exception.NULL_VALUE_RETURNED;
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
         try {
             // exercise
             this.localCloudConnector.getInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InstanceNotFoundException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
@@ -420,7 +420,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     
     // test case: When invoking the getInstance method with a valid attachment order
     // and an error occurs while getting the instance in the cloud, it must throw an
-    // UnexpectedException and call the auditRequest method confirming its requested
+    // InstanceNotFoundException and call the auditRequest method confirming its requested
     // operation and resource type.
     @Test
     public void testGetInstanceFailWithAttachmentOrder() throws FogbowException {
@@ -433,13 +433,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         CloudUser cloudUser = Mockito.mock(CloudUser.class);
         Mockito.when(this.mapperPlugin.map(Mockito.any(SystemUser.class))).thenReturn(cloudUser);
 
-        String expected = Messages.Exception.NULL_VALUE_RETURNED;
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
         try {
             // exercise
             this.localCloudConnector.getInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InstanceNotFoundException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
@@ -450,7 +450,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     
     // test case: When invoking the getInstance method with a valid network order
     // and an error occurs while getting the instance in the cloud, it must throw an
-    // UnexpectedException and call the auditRequest method confirming its requested
+    // InstanceNotFoundException and call the auditRequest method confirming its requested
     // operation and resource type.
     @Test
     public void testGetInstanceFailWithNetworkOrder() throws FogbowException {
@@ -462,13 +462,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         CloudUser cloudUser = Mockito.mock(CloudUser.class);
         Mockito.when(this.mapperPlugin.map(Mockito.any(SystemUser.class))).thenReturn(cloudUser);
 
-        String expected = Messages.Exception.NULL_VALUE_RETURNED;
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
         try {
             // exercise
             this.localCloudConnector.getInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InstanceNotFoundException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
@@ -479,7 +479,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     
     // test case: When invoking the getInstance method with a valid public IP order
     // and an error occurs while getting the instance in the cloud, it must throw an
-    // UnexpectedException and call the auditRequest method confirming its requested
+    // InstanceNotFoundException and call the auditRequest method confirming its requested
     // operation and resource type.
     @Test
     public void testGetInstanceFailWithPublicIpOrder() throws FogbowException {
@@ -491,13 +491,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         CloudUser cloudUser = Mockito.mock(CloudUser.class);
         Mockito.when(this.mapperPlugin.map(Mockito.any(SystemUser.class))).thenReturn(cloudUser);
 
-        String expected = Messages.Exception.NULL_VALUE_RETURNED;
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
         try {
             // exercise
             this.localCloudConnector.getInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InstanceNotFoundException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
