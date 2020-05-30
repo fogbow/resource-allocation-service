@@ -260,5 +260,5 @@ public abstract class Order<T extends Order> implements Serializable {
         this.type = type;
     }
 
-    public abstract void updateFromRemoteOrder(T remoteOrder) throws UnexpectedException;
+    public abstract void updateFromRemote(T remoteOrder) throws UnexpectedException;
 }

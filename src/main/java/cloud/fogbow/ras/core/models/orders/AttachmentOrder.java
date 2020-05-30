@@ -92,6 +92,6 @@ public class AttachmentOrder extends Order<AttachmentOrder> {
     }
 
     @Override
-    public void updateFromRemoteOrder(AttachmentOrder remoteOrder) {
+    public void updateFromRemote(AttachmentOrder remoteOrder) {
     }
 }

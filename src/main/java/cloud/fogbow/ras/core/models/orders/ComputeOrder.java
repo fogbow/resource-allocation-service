@@ -179,7 +179,7 @@ public class ComputeOrder extends Order<ComputeOrder> {
     }
 
     @Override
-    public void updateFromRemoteOrder(ComputeOrder remoteOrder) {
+    public void updateFromRemote(ComputeOrder remoteOrder) {
         this.setActualAllocation(remoteOrder.getActualAllocation());
     }
 }

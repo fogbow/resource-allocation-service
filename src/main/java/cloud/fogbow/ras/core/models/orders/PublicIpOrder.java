@@ -60,7 +60,7 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
     }
 
     @Override
-    public void updateFromRemoteOrder(PublicIpOrder remoteOrder) {
+    public void updateFromRemote(PublicIpOrder remoteOrder) {
     }
 
 }

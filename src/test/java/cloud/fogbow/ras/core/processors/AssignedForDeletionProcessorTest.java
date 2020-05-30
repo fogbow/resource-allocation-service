@@ -70,7 +70,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         // set up
         Order order = this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE);
         this.orderController.activateOrder(order);
-        OrderState anotherOrderState = OrderState.FULFILLED;
+        OrderState anotherOrderState = OrderState.ASSIGNED_FOR_DELETION;
         OrderStateTransitioner.transition(order, anotherOrderState);
 
         LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
@@ -85,29 +85,6 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertEquals(order, this.remoteOrderList.getNext());
         this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
-    }
-
-    // test case: When calling the processAssignedForDeletionOrder method with remote Order,
-    // it must verify if It keeps the order state.
-    @Test
-    public void testProcessAssignedForDeletionOrderSuccessfullyWhenOrderRemote()
-            throws Exception {
-
-        // set up
-        Order order = this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE);
-        this.orderController.activateOrder(order);
-        OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
-
-        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
-
-        // exercise
-        this.processor.processAssignedForDeletionOrder(order);
-
-        // verify
-        Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
-        Assert.assertNotNull(this.assignedForDeletionOrderList.getNext());
-        Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
-        Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, order.getOrderState());
     }
 
     // test case: When calling the processAssignedForDeletionOrder method

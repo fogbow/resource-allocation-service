@@ -177,8 +177,8 @@ public class OpenProcessorTest extends BaseUnitTests {
         Assert.assertSame(remoteOrder, pendingOrdersList.getNext());
     }
 
-    //test case: test if the open processor is setting to PENDING an open intercomponent order when the request instance
-    //method of intercomponent instance provider throws an exception.
+    // test case: test if the open processor is setting to FAIL_ON_REQUEST an open intercomponent order when the
+    // request instance method of intercomponent instance provider throws an exception.
     @Test
     public void testProcessRemoteOpenOrderRequestingException() throws Exception {
         //set up
@@ -196,7 +196,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         //verify
-        Assert.assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_ON_REQUEST, remoteOrder.getOrderState());
 
         // test if the open order list is empty and
         // the remoteOrdersList is with the localOrder

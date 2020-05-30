@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.processors;
 
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
@@ -85,7 +84,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                     RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
                             CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
                     remoteOrder = remoteCloudConnector.getRemoteOrder(order);
-                    order.updateFromRemoteOrder(remoteOrder);
+                    order.updateFromRemote(remoteOrder);
                     order.setOrderState(remoteOrder.getOrderState());
                 }
             } catch (RemoteCommunicationException e) {
