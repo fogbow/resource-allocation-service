@@ -34,13 +34,13 @@ import java.util.List;
  */
 public class GetSecurityRulesResponse {
     @SerializedName(OpenStackConstants.Network.SECURITY_GROUP_RULES_KEY_JSON)
-    private List<SecurityRules> securityRules;
+    private List<SecurityGroupRule> securityGroupRules;
 
     public static GetSecurityRulesResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, GetSecurityRulesResponse.class);
     }
 
-    public class SecurityRules {
+    public class SecurityGroupRule {
         @SerializedName(OpenStackConstants.Network.ID_KEY_JSON)
         private String id;
         @SerializedName(OpenStackConstants.Network.REMOTE_IP_PREFIX_KEY_JSON)
@@ -85,7 +85,7 @@ public class GetSecurityRulesResponse {
         }
     }
 
-    public List<SecurityRules> getSecurityRules() {
-        return this.securityRules;
+    public List<SecurityGroupRule> getSecurityGroupRules() {
+        return this.securityGroupRules;
     }
 }
