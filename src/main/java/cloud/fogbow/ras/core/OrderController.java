@@ -173,7 +173,7 @@ public class OrderController {
                 // We create an empty Instance and update the Instance fields with the values held in the order.
                 OrderInstance instance = EmptyOrderInstanceGenerator.createEmptyInstance(order);
                 instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState(),
-                        false, false));
+                        false, false, false));
                 return updateInstanceUsingOrderData(instance, order);
             }
             CloudConnector cloudConnector = getCloudConnector(order);
@@ -286,7 +286,7 @@ public class OrderController {
                         name,
                         order.getProvider(),
                         order.getCloudName(),
-                        InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState(), false, false));
+                        InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState(), false, false, false));
 
                 instanceStatusList.add(instanceStatus);
             }

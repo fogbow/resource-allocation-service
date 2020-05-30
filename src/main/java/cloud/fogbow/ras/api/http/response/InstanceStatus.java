@@ -61,8 +61,8 @@ public class InstanceStatus {
         this.state = state;
     }
 
-    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState, Boolean isReady,
-                                                               Boolean hasFailed) throws UnexpectedException {
+    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState,
+          Boolean knowWhetherInstaceIsReadyOrHasFailed, Boolean isReady, Boolean hasFailed) throws UnexpectedException {
         switch(orderState) {
             case OPEN:
             case SELECTED:
@@ -70,28 +70,40 @@ public class InstanceStatus {
             case FAILED_ON_REQUEST:
                 return InstanceState.ERROR;
             case SPAWNING:
-                if (isReady) {
-                    return InstanceState.READY;
-                } else if (hasFailed) {
-                    return InstanceState.FAILED;
+                if (knowWhetherInstaceIsReadyOrHasFailed) {
+                    if (isReady) {
+                        return InstanceState.READY;
+                    } else if (hasFailed) {
+                        return InstanceState.FAILED;
+                    } else {
+                        return InstanceState.CREATING;
+                    }
                 } else {
                     return InstanceState.CREATING;
                 }
             case FULFILLED:
-                if (isReady) {
-                    return InstanceState.READY;
-                } else if (hasFailed) {
-                    return InstanceState.READY;
+                if (knowWhetherInstaceIsReadyOrHasFailed) {
+                    if (isReady) {
+                        return InstanceState.READY;
+                    } else if (hasFailed) {
+                        return InstanceState.FAILED;
+                    } else {
+                        return InstanceState.UNKNOWN;
+                    }
                 } else {
-                    return InstanceState.UNKNOWN;
+                    return InstanceState.READY;
                 }
             case FAILED_AFTER_SUCCESSFUL_REQUEST:
                 return InstanceState.FAILED;
             case UNABLE_TO_CHECK_STATUS:
-                if (isReady) {
-                    return InstanceState.READY;
-                } else if (hasFailed) {
-                    return InstanceState.FAILED;
+                if (knowWhetherInstaceIsReadyOrHasFailed) {
+                    if (isReady) {
+                        return InstanceState.READY;
+                    } else if (hasFailed) {
+                        return InstanceState.FAILED;
+                    } else {
+                        return InstanceState.UNKNOWN;
+                    }
                 } else {
                     return InstanceState.UNKNOWN;
                 }

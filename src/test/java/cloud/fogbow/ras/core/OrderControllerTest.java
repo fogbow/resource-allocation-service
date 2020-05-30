@@ -1153,7 +1153,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private InstanceStatus createInstanceStatus(ComputeOrder computeOrder) throws UnexpectedException {
         return new InstanceStatus(computeOrder.getId(),
                 computeOrder.getProvider(), computeOrder.getCloudName(),
-                InstanceStatus.mapInstanceStateFromOrderState(computeOrder.getOrderState(), false, false));
+                InstanceStatus.mapInstanceStateFromOrderState(computeOrder.getOrderState(), false, false, false));
     }
 
     private String setupOrder(OrderState orderState) throws UnexpectedException {
