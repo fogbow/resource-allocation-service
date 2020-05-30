@@ -66,6 +66,7 @@ public class InstanceStatus {
         switch(orderState) {
             case OPEN:
             case SELECTED:
+            case PENDING:
                 return InstanceState.DISPATCHED;
             case FAILED_ON_REQUEST:
                 return InstanceState.ERROR;
@@ -112,7 +113,6 @@ public class InstanceStatus {
                 return InstanceState.DELETING;
             case CLOSED:
                 return InstanceState.DELETED;
-            case PENDING:
             default:
                 throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
         }
