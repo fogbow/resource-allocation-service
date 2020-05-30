@@ -116,7 +116,6 @@ public class OrderController {
                     remoteProviderOrders.removeItem(order);
                 }
             }
-            order.setInstanceId(null);
             order.setOrderState(OrderState.CLOSED);
         }
     }
@@ -288,7 +287,7 @@ public class OrderController {
                         name,
                         order.getProvider(),
                         order.getCloudName(),
-                        InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState()));
+                        InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState(), false, false));
 
                 instanceStatusList.add(instanceStatus);
             }

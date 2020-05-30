@@ -129,7 +129,8 @@ public class LocalCloudConnector implements CloudConnector {
         try {
             instance = doGetInstance(order, cloudUser);
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, instance));
-            instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState()));
+            instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState(),
+                    instance.isReady(), instance.hasFailed()));
             auditableResponse = instance.toString();
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
@@ -305,9 +306,6 @@ public class LocalCloudConnector implements CloudConnector {
         String instanceId = order.getInstanceId();
         if (instanceId != null) {
             return getResourceInstance(order, order.getType(), cloudUser);
-        } else if (order.getOrderState().equals(OrderState.CHECKING_DELETION)) {
-            // The instance has been deleted.
-            throw new InstanceNotFoundException();
         } else {
             // When there is no instance and the instance was not deleted, an empty one is created
             // with the appropriate state.
@@ -349,7 +347,7 @@ public class LocalCloudConnector implements CloudConnector {
             if (instanceIsReady) instance.setReady();
             return instance;
         } else {
-            throw new UnexpectedException(Messages.Exception.NULL_VALUE_RETURNED);
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
     }
 

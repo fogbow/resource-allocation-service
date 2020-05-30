@@ -89,7 +89,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.failedOrderList.getNext());
 
         ComputeInstance orderInstance = new ComputeInstance(TestUtils.FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.READY);
+        orderInstance.setReady();
+
+        Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
 
         // exercise
         this.thread = new Thread(this.processor);
@@ -187,11 +189,14 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         order.setOrderState(OrderState.FULFILLED);
-        this.fulfilledOrderList.addItem(order);
-        Assert.assertNull(this.failedOrderList.getNext());
 
         ComputeInstance orderInstance = new ComputeInstance(TestUtils.FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.READY);
+        orderInstance.setReady();
+
+        Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
+
+        this.fulfilledOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
 
         // exercise
         this.thread = new Thread(this.processor);

@@ -61,27 +61,46 @@ public class InstanceStatus {
         this.state = state;
     }
 
-    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws UnexpectedException {
+    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState, Boolean isReady,
+                                                               Boolean hasFailed) throws UnexpectedException {
         switch(orderState) {
             case OPEN:
             case SELECTED:
-            case PENDING:
                 return InstanceState.DISPATCHED;
             case FAILED_ON_REQUEST:
                 return InstanceState.ERROR;
             case SPAWNING:
-                return InstanceState.CREATING;
+                if (isReady) {
+                    return InstanceState.READY;
+                } else if (hasFailed) {
+                    return InstanceState.FAILED;
+                } else {
+                    return InstanceState.CREATING;
+                }
             case FULFILLED:
-                return InstanceState.READY;
+                if (isReady) {
+                    return InstanceState.READY;
+                } else if (hasFailed) {
+                    return InstanceState.READY;
+                } else {
+                    return InstanceState.UNKNOWN;
+                }
             case FAILED_AFTER_SUCCESSFUL_REQUEST:
                 return InstanceState.FAILED;
             case UNABLE_TO_CHECK_STATUS:
-                return InstanceState.UNKNOWN;
+                if (isReady) {
+                    return InstanceState.READY;
+                } else if (hasFailed) {
+                    return InstanceState.FAILED;
+                } else {
+                    return InstanceState.UNKNOWN;
+                }
             case ASSIGNED_FOR_DELETION:
             case CHECKING_DELETION:
                 return InstanceState.DELETING;
             case CLOSED:
                 return InstanceState.DELETED;
+            case PENDING:
             default:
                 throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
         }

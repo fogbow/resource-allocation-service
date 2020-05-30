@@ -96,13 +96,10 @@ public class AssignedForDeletionProcessor implements Runnable {
                 return;
             }
             try {
-                // When the instanceId is null, there is nothing to be deleted in the cloud.
-                if (order.getInstanceId() != null) {
-                    // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
-                    LocalCloudConnector localCloudConnector = (LocalCloudConnector)
+                // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
+                LocalCloudConnector localCloudConnector = (LocalCloudConnector)
                             CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, order.getCloudName());
-                    localCloudConnector.deleteInstance(order);
-                }
+                localCloudConnector.deleteInstance(order);
                 OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
             } catch (InstanceNotFoundException e) {
                 // If the provider crashes after calling deleteInstance() and before setting the order's state to

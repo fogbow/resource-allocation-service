@@ -158,7 +158,6 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.processor.processAssignedForDeletionOrder(order);
 
         // verify
-        Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
         Assert.assertNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());

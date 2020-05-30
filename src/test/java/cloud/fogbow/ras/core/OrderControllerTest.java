@@ -971,18 +971,16 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     // test case: when try to delete an order in state selected,
-    // it must raise an OnGoingOperationException.
+    // it must log a warning message.
     @Test
-    public void testDeleteOrderStateSelected()
-            throws Exception {
+    public void testDeleteOrderStateSelected() throws Exception {
 
         // set up
         String orderId = setupOrder(OrderState.SELECTED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
-        this.expectedException.expect(OnGoingOperationException.class);
-        this.expectedException.expectMessage(cloud.fogbow.common.constants.Messages.Exception.CANNOT_DELETE_INSTANCE_WHILE_IT_IS_BEING_CREATED);
+        this.expectedException.expectMessage(String.format(Messages.Warn.REMOVING_ORDER_IN_SELECT_STATE_S, computeOrder.toString()));
 
         // exercise
         this.ordersController.deleteOrder(computeOrder);
@@ -1155,7 +1153,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private InstanceStatus createInstanceStatus(ComputeOrder computeOrder) throws UnexpectedException {
         return new InstanceStatus(computeOrder.getId(),
                 computeOrder.getProvider(), computeOrder.getCloudName(),
-                InstanceStatus.mapInstanceStateFromOrderState(computeOrder.getOrderState()));
+                InstanceStatus.mapInstanceStateFromOrderState(computeOrder.getOrderState(), false, false));
     }
 
     private String setupOrder(OrderState orderState) throws UnexpectedException {
