@@ -122,6 +122,8 @@ public class LocalCloudConnector implements CloudConnector {
             LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, instance));
             instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState(),
                     instance.isReady(), instance.hasFailed()));
+            LOGGER.debug(String.format("State %s, isReady=%s, hasFailed=%s", instance.getState().toString(),
+                    (instance.isReady()?"true":"false"), (instance.hasFailed()?"true":"false")));
             auditableResponse = instance.toString();
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
