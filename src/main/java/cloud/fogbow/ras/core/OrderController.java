@@ -9,7 +9,6 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
-import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.CloseOrderAtRemoteProviderRequest;
 import cloud.fogbow.ras.core.models.Operation;
@@ -171,10 +170,10 @@ public class OrderController {
             if ((!this.localProviderId.equals(order.getProvider())) && (order.getOrderState().equals(OrderState.OPEN)
                             || order.getOrderState().equals(OrderState.SELECTED))) {
                 // This is an order for a remote provider that has never been received by that provider.
-                // We use a dummy localCloudConnector to create an empty Instance and update the Instance fields
-                // with the values held in the order.
-                LocalCloudConnector localCloudConnector = new LocalCloudConnector(null, null);
-                OrderInstance instance = localCloudConnector.createEmptyInstance(order);
+                // We create an empty Instance and update the Instance fields with the values held in the order.
+                OrderInstance instance = EmptyOrderInstanceGenerator.createEmptyInstance(order);
+                instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState(),
+                        false, false));
                 return updateInstanceUsingOrderData(instance, order);
             }
             CloudConnector cloudConnector = getCloudConnector(order);

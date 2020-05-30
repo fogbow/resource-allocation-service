@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
+import cloud.fogbow.ras.api.http.response.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,13 +12,6 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.ImageInstance;
-import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.api.http.response.OrderInstance;
-import cloud.fogbow.ras.api.http.response.PublicIpInstance;
-import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
@@ -1137,7 +1131,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
         try {
             // exercise
-            this.localCloudConnector.createEmptyInstance(order);
+            EmptyOrderInstanceGenerator.createEmptyInstance(order);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify

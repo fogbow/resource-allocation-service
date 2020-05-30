@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.cloudconnector;
 import java.sql.Timestamp;
 import java.util.List;
 
+import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.core.models.orders.*;
 import org.apache.log4j.Logger;
 
@@ -11,16 +12,6 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.ImageInstance;
-import cloud.fogbow.ras.api.http.response.ImageSummary;
-import cloud.fogbow.ras.api.http.response.InstanceStatus;
-import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.api.http.response.OrderInstance;
-import cloud.fogbow.ras.api.http.response.PublicIpInstance;
-import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
-import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
@@ -309,32 +300,8 @@ public class LocalCloudConnector implements CloudConnector {
         } else {
             // When there is no instance and the instance was not deleted, an empty one is created
             // with the appropriate state.
-            return createEmptyInstance(order);
+            return EmptyOrderInstanceGenerator.createEmptyInstance(order);
         }
-    }
-
-    public OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
-        OrderInstance instance = null;
-        switch (order.getType()) {
-            case COMPUTE:
-                instance = new ComputeInstance(order.getId());
-                break;
-            case VOLUME:
-                instance = new VolumeInstance(order.getId());
-                break;
-            case NETWORK:
-                instance = new NetworkInstance(order.getId());
-                break;
-            case ATTACHMENT:
-                instance = new AttachmentInstance(order.getId());
-                break;
-            case PUBLIC_IP:
-                instance = new PublicIpInstance(order.getId());
-                break;
-            default:
-                throw new UnexpectedException(Messages.Exception.UNSUPPORTED_REQUEST_TYPE);
-        }
-        return instance;
     }
 
     private OrderInstance getResourceInstance(Order order, ResourceType resourceType, CloudUser cloudUser) throws FogbowException {
