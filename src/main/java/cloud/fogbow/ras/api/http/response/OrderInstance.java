@@ -36,7 +36,7 @@ public class OrderInstance extends Instance {
     }
 
     public void setCloudState(String cloudState) {
-        cloudState = cloudState;
+        this.cloudState = cloudState;
     }
 
     public boolean isReady() {

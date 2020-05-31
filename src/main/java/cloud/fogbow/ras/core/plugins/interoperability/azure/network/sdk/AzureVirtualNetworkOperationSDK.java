@@ -74,7 +74,7 @@ public class AzureVirtualNetworkOperationSDK {
                 })
                 .onErrorReturn(error -> {
                     finishCreationCallbacks.runOnError();
-                    LOGGER.error(Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR);
+                    LOGGER.error(Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR, error);
                     return null;
                 })
                 .doOnCompleted(() -> {

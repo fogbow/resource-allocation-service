@@ -203,8 +203,6 @@ public class AzureVolumePluginTest {
         Mockito.verify(volumeOrder, Mockito.times(TestUtils.RUN_ONCE)).getName();
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(volumeOrder),
                 Mockito.any(Creatable.class));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .waitAndCheckForInstanceCreationFailed(Mockito.eq(instanceId));
     }
     
     // test case: When calling the getInstance method, it must verify that is call

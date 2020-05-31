@@ -2,12 +2,12 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import org.apache.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,6 +46,29 @@ public class AzureAsyncTest {
         Assert.assertNotNull(finishCreationCallbacks);
     }
 
+    // test case: When calling the endInstanceCreation method,
+    // it must verify if It returns null to the CreatingInstance.
+    @Test
+    public void testEndInstanceCreationSuccessfully() throws UnexpectedException {
+        // set up
+        String instanceId = TestUtils.ANY_VALUE;
+
+        // exercise before
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = this.azureWrapper.startInstanceCreation(instanceId);
+
+        // verify before
+        OrderInstance creatingInstance = this.azureWrapper.getCreatingInstance(instanceId);
+        Assert.assertEquals(AzureStateMapper.CREATING_STATE, creatingInstance.getCloudState());
+        Assert.assertNotNull(finishCreationCallbacks);
+
+        // exercise
+        this.azureWrapper.endInstanceCreation(instanceId);
+
+        // verify
+        creatingInstance = this.azureWrapper.getCreatingInstance(instanceId);
+        Assert.assertNull(creatingInstance);
+    }
+
     // test case: When calling the getCreatingInstance method when it starts instance creation,
     // it must verify if It return instanceState Creating.
     @Test
@@ -59,7 +82,7 @@ public class AzureAsyncTest {
         OrderInstance creatingInstance = this.azureWrapper.getCreatingInstance(instanceId);
 
         // verify
-        Assert.assertEquals(InstanceState.CREATING, creatingInstance.getState());
+        Assert.assertEquals(AzureStateMapper.CREATING_STATE, creatingInstance.getCloudState());
     }
 
     // test case: When calling the getCreatingInstance method when it ends instance creation,
@@ -88,12 +111,13 @@ public class AzureAsyncTest {
 
         AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = this.azureWrapper.startInstanceCreation(instanceId);
         finishCreationCallbacks.runOnError();
+        finishCreationCallbacks.runOnComplete();
 
         // exercise
         OrderInstance creatingInstance = this.azureWrapper.getCreatingInstance(instanceId);
 
         // verify
-        Assert.assertEquals(InstanceState.FAILED, creatingInstance.getState());
+        Assert.assertEquals(AzureStateMapper.FAILED_STATE, creatingInstance.getCloudState());
     }
 
     // test case: When calling the waitAndCheckForInstanceCreationFailed method and there is a failed,

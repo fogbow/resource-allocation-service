@@ -209,7 +209,7 @@ public class AzureNetworkPluginTest {
         } catch (Exception e) {
             // verify
             Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
-            Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
+            Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.NEVER_RUN)).runOnComplete();
         }
     }
 
@@ -333,6 +333,8 @@ public class AzureNetworkPluginTest {
         // verify
         Mockito.verify(this.azureVirtualNetworkOperation, Mockito.times(TestUtils.RUN_ONCE))
                 .doDeleteInstance(Mockito.eq(resourceNameExpected), Mockito.eq(this.azureUser));
+        Mockito.verify(this.azureNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE))
+                .endInstanceCreation(instanceId);
     }
 
     // test case: When calling the deleteInstance method with mocked methods and throws an exception,
@@ -354,7 +356,13 @@ public class AzureNetworkPluginTest {
         this.expectedException.expectMessage(exceptionExpected.getMessage());
 
         // exercise
-        this.azureNetworkPlugin.deleteInstance(networkOrder, this.azureUser);
+        try {
+            this.azureNetworkPlugin.deleteInstance(networkOrder, this.azureUser);
+        } finally {
+            // verify
+            Mockito.verify(this.azureNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE))
+                    .endInstanceCreation(instanceId);
+        }
     }
 
 }

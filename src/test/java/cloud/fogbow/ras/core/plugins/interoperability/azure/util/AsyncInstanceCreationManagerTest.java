@@ -27,7 +27,8 @@ public class AsyncInstanceCreationManagerTest {
                 this.asyncInstanceCreationManagerPlugin.startCreation(instanceId);
 
         // verify
-        Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING, this.asyncInstanceCreationManagerPlugin.getStatus(instanceId));
+        Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING,
+                this.asyncInstanceCreationManagerPlugin.getStatus(instanceId));
 
         // exercise
         finishCreationAsyncInstanceCreationCallbacks.runOnComplete();
@@ -55,10 +56,34 @@ public class AsyncInstanceCreationManagerTest {
 
         // exercise
         finishCreationAsyncInstanceCreationCallbacks.runOnError();
+        finishCreationAsyncInstanceCreationCallbacks.runOnComplete();
 
         // verify
         status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
         Assert.assertEquals(AsyncInstanceCreationManager.Status.FAILED, status);
+    }
+
+    // test case: When calling the endCreation method,
+    // it must verify if the Status is null.
+    @Test
+    public void testEndCreationSuccessfully() {
+        // set up
+        String instanceId = "instanceId";
+
+        // exercise
+        this.asyncInstanceCreationManagerPlugin.endCreation(instanceId);
+        this.asyncInstanceCreationManagerPlugin.startCreation(instanceId);
+
+        // verify
+        AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
+        Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING, status);
+
+        // exercise
+        this.asyncInstanceCreationManagerPlugin.endCreation(instanceId);
+
+        // verify
+        status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
+        Assert.assertNull(status);
     }
 
 }

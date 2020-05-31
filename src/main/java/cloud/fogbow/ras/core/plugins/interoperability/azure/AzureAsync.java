@@ -2,10 +2,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import org.apache.log4j.Logger;
 
 import javax.annotation.Nullable;
@@ -28,6 +28,13 @@ public interface AzureAsync<T extends OrderInstance> {
     }
 
     /*
+    It must be used in the deleteInstance method context.
+     */
+    default void endInstanceCreation(String instanceId) {
+        this.asyncInstanceCreation.endCreation(instanceId);
+    }
+
+    /*
     It must be used in the getInstance method context; It returns the current Creating Instance Status.
      */
     @Nullable
@@ -41,10 +48,10 @@ public interface AzureAsync<T extends OrderInstance> {
         T creatingInstance = buildCreatingInstance(instanceId);
         switch (currentStatus) {
             case CREATING:
-                creatingInstance.setState(InstanceState.CREATING);
+                creatingInstance.setCloudState(AzureStateMapper.CREATING_STATE);
                 break;
             case FAILED:
-                creatingInstance.setState(InstanceState.FAILED);
+                creatingInstance.setCloudState(AzureStateMapper.FAILED_STATE);
                 break;
             default:
                 throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
@@ -65,7 +72,7 @@ public interface AzureAsync<T extends OrderInstance> {
         } finally {
             Status status = this.asyncInstanceCreation.getStatus(instanceId);
             if (status == Status.FAILED) {
-                throw new FogbowException();
+                throw new FogbowException(Messages.Error.ERROR_ON_REQUEST_ASYNC_PLUGIN);
             }
         }
     }

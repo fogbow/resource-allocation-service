@@ -32,7 +32,7 @@ public class AsyncInstanceCreationManager {
     public Callbacks startCreation(String instanceId) {
         LOGGER.debug(String.format(Messages.Info.START_ASYNC_INSTANCE_CREATION_S, instanceId));
         defineAsCreating(instanceId);
-                return new Callbacks().builder()
+        return new Callbacks().builder()
                 .doOnComplete(() -> {
                     defineAsCreated(instanceId);
                     LOGGER.debug(String.format(Messages.Info.END_ASYNC_INSTANCE_CREATION_S, instanceId));
@@ -41,6 +41,15 @@ public class AsyncInstanceCreationManager {
                     defineAsFailed(instanceId);
                     LOGGER.debug(String.format(Messages.Error.ERROR_ASYNC_INSTANCE_CREATION_S, instanceId));
                 }).build();
+    }
+
+    /*
+    It must remove the instance of the map.
+    */
+    public void endCreation(String instanceId) {
+        if (this.creating.get(instanceId) != null) {
+            this.creating.remove(instanceId);
+        }
     }
 
     /*
@@ -65,10 +74,12 @@ public class AsyncInstanceCreationManager {
     }
 
     /*
-    It must remove the instance of the map when the resource be created in the cloud.
+    It must remove the instance of the map whether the status is CREATING.
     */
     private void defineAsCreated(String instanceId) {
-        this.creating.remove(instanceId);
+        if (this.creating.get(instanceId) == Status.CREATING) {
+            this.creating.remove(instanceId);
+        }
     }
 
     public enum Status {

@@ -68,10 +68,14 @@ public class AzureStateMapper {
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, VOLUME_PLUGIN));
                 }
             case NETWORK:
-                // cloud state values: [succeeded]
+                // cloud state values: [creating, failed, succeeded]
                 switch (state) {
+                    case CREATING_STATE:
+                        return InstanceState.CREATING;
                     case SUCCEEDED_STATE:
                         return InstanceState.READY;
+                    case FAILED_STATE:
+                        return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
                         return InstanceState.INCONSISTENT;

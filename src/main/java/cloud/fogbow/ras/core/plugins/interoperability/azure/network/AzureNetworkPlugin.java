@@ -43,10 +43,9 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
         return AzureStateMapper.map(ResourceType.NETWORK, instanceState).equals(InstanceState.READY);
     }
 
-    // This method always must return false, because there is no state failed in the Azure context.
     @Override
     public boolean hasFailed(String instanceState) {
-        return false;
+        return AzureStateMapper.map(ResourceType.NETWORK, instanceState).equals(InstanceState.FAILED);
     }
 
     @Override
@@ -80,7 +79,6 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
                     .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, finishCreationCallbacks);
         } catch (Exception e) {
             finishCreationCallbacks.runOnError();
-            finishCreationCallbacks.runOnComplete();
             throw e;
         }
     }
@@ -125,8 +123,12 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
 
         String instanceId = networkOrder.getInstanceId();
-        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
-        this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, azureUser);
+        try {
+            String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+            this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, azureUser);
+        } finally {
+            endInstanceCreation(instanceId);
+        }
     }
 
     @VisibleForTesting
