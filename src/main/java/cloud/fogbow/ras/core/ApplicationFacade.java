@@ -86,11 +86,7 @@ public class ApplicationFacade {
     public void setAuthorizationPlugin(AuthorizationPlugin<RasOperation> authorizationPlugin) {
         this.authorizationPlugin = authorizationPlugin;
     }
-
-    protected AuthorizationPlugin<RasOperation> getAuthorizationPlugin() {
-        return authorizationPlugin;
-    }
-
+    
     public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
