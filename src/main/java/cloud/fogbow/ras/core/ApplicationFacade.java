@@ -378,15 +378,7 @@ public class ApplicationFacade {
     }
 
     protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
-            Order order) throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
-        // Check if requested type matches order type
-        if (!order.getType().equals(type))
-            throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
-        // Check whether requester owns order
-        SystemUser orderOwner = order.getSystemUser();
-        if (!orderOwner.equals(requester)) {
-            throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
-        }
+            Order order) throws UnexpectedException, UnauthorizedRequestException {
         this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));
     }
 

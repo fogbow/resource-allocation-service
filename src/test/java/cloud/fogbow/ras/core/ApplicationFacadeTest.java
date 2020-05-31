@@ -1452,7 +1452,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     
     // test case: When calling the authorizeOrder method with resource type
     // different from COMPUTE, NETWORK, ATTACHMENT, VOLUME or PUBLIC_IP, it must
-    // throw an InstanceNotFoundException;
+    // throw an UnauthorizedRequestException;
     @Test
     public void testAuthorizeOrderWithDifferentResourceType() throws FogbowException {
         // set up
@@ -1464,14 +1464,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             // exercise
             this.facade.authorizeOrder(null, null, null, ResourceType.INVALID_RESOURCE, order);
             Assert.fail();
-        } catch (InstanceNotFoundException e) {
+        } catch (UnauthorizedRequestException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
     }
     
     // test case: When calling the authorizeOrder method with requester
-    // different from order owner, it must throws an InstanceNotFoundException;
+    // different from order owner, it must throws an UnauthorizedRequestException;
     @Test
     public void testAuthorizeOrderWithDifferentRequester() throws FogbowException {
         // set up
@@ -1768,8 +1768,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	
     private AuthorizationPlugin mockAuthorizationPlugin() throws FogbowException {
         AuthorizationPlugin plugin = Mockito.mock(DefaultAuthorizationPlugin.class);
-        Mockito.when(plugin.isAuthorized(Mockito.any(SystemUser.class), Mockito.any(RasOperation.class)))
-                .thenReturn(true);
         return plugin;
     }
 
