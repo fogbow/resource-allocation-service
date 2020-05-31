@@ -86,7 +86,7 @@ public class ApplicationFacade {
     public void setAuthorizationPlugin(AuthorizationPlugin<RasOperation> authorizationPlugin) {
         this.authorizationPlugin = authorizationPlugin;
     }
-    
+
     public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
@@ -334,8 +334,8 @@ public class ApplicationFacade {
         // both a ComputeOrder and a VolumeOrder).
         checkEmbeddedOrdersConsistency(order);
         // Check if the authenticated user is authorized to perform the requested operation
-        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
-                order.getType(), order.getCloudName(), order));
+        RasOperation rasOperation = new RasOperation(Operation.CREATE, order.getType(), order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         // Add order to the poll of active orders and to the OPEN linked list
         return this.orderController.activateOrder(order);
     }
@@ -343,14 +343,16 @@ public class ApplicationFacade {
     protected Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
-        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET, resourceType, order.getCloudName(), order));
+        RasOperation rasOperation = new RasOperation(Operation.GET, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         return this.orderController.getResourceInstance(order);
     }
 
     protected void deleteOrder(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
-        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order));
+        RasOperation rasOperation = new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         this.orderController.deleteOrder(order);
     }
 

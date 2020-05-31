@@ -48,7 +48,8 @@ public class RemoteFacade {
     public void activateOrder(String requestingProvider, Order order) throws FogbowException {
         // The user has already been authenticated by the requesting provider.
         checkOrderConsistency(requestingProvider, order);
-        this.authorizationPlugin.isAuthorized(order.getSystemUser(), new RasOperation(Operation.CREATE, order.getType(), order.getCloudName(), order));
+        RasOperation rasOperation = new RasOperation(Operation.CREATE, order.getType(), order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(order.getSystemUser(), rasOperation);
         this.orderController.activateOrder(order);
     }
 
@@ -58,46 +59,54 @@ public class RemoteFacade {
         return order;
     }
 
-    public Instance getResourceInstance(String requestingProvider, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
+    public Instance getResourceInstance(String requestingProvider, String orderId, SystemUser systemUser,
+                                        ResourceType resourceType) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting provider.
         checkOrderConsistency(requestingProvider, order);
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, resourceType, order.getCloudName(), order));
+        RasOperation rasOperation = new RasOperation(Operation.GET, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         return this.orderController.getResourceInstance(order);
     }
 
-    public void deleteOrder(String requestingProvider, String orderId, SystemUser systemUser, ResourceType resourceType) throws FogbowException {
+    public void deleteOrder(String requestingProvider, String orderId, SystemUser systemUser,
+                            ResourceType resourceType) throws FogbowException {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting provider.
         checkOrderConsistency(requestingProvider, order);
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order));
+        RasOperation rasOperation = new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         this.orderController.deleteOrder(order);
     }
 
     public Quota getUserQuota(String requestingProvider, String cloudName, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, ResourceType.QUOTA, cloudName));
+        RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.QUOTA, cloudName);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
         return cloudConnector.getUserQuota(systemUser);
     }
 
     public ImageInstance getImage(String requestingProvider, String cloudName, String imageId, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, ResourceType.IMAGE, cloudName));
+        RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.IMAGE, cloudName);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
         return cloudConnector.getImage(imageId, systemUser);
     }
 
     public List<ImageSummary> getAllImages(String requestingProvider, String cloudName, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.IMAGE, cloudName));
+        RasOperation rasOperation = new RasOperation(Operation.GET_ALL, ResourceType.IMAGE, cloudName);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
         return cloudConnector.getAllImages(systemUser);
     }
 
-    public List<String> getCloudNames(String requestingProvider, SystemUser systemUser) throws UnexpectedException, UnauthorizedRequestException {
+    public List<String> getCloudNames(String requestingProvider, SystemUser systemUser) throws UnauthorizedRequestException {
         // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, ResourceType.CLOUD_NAME));
+        RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         return this.cloudListController.getCloudNames();
     }
 
@@ -106,7 +115,9 @@ public class RemoteFacade {
         Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingProvider, order);
         // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName(), order));
+        RasOperation rasOperation = new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName(),
+                order);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         return securityRuleController.createSecurityRule(order, securityRule, systemUser);
     }
 
@@ -115,13 +126,16 @@ public class RemoteFacade {
         Order order = this.orderController.getOrder(orderId);
         checkOrderConsistency(requestingProvider, order);
         // The user has already been authenticated by the requesting provider.
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName(), order));
+        RasOperation rasOperation = new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName(),
+                order);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         return securityRuleController.getAllSecurityRules(order, systemUser);
     }
 
     public void deleteSecurityRule(String requestingProvider, String cloudName, String ruleId,
                                    SystemUser systemUser) throws FogbowException {
-        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName));
+        RasOperation rasOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         this.securityRuleController.deleteSecurityRule(this.localProviderId, cloudName, ruleId, systemUser);
     }
 
