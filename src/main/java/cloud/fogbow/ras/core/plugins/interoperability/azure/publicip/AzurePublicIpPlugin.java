@@ -104,12 +104,17 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
         String resourceName = AzureGeneralUtil.defineResourceName(publicIpOrder.getInstanceId());
         String virtualMachineName = AzureGeneralUtil.defineResourceName(publicIpOrder.getComputeId());
         String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
-        
-        if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
-            doDeleteResourceGroup(azure, resourceName, virtualMachineId);
-        } else {
-            String resourceId = buildResourceId(azure, subscriptionId, resourceName);
-            doDeleteInstance(azure, resourceId, virtualMachineId);
+
+        try {
+            if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
+                doDeleteResourceGroup(azure, resourceName, virtualMachineId);
+            } else {
+                String resourceId = buildResourceId(azure, subscriptionId, resourceName);
+                doDeleteInstance(azure, resourceId, virtualMachineId);
+            }
+        } finally {
+            String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
+            endInstanceCreation(instanceId);
         }
     }
     

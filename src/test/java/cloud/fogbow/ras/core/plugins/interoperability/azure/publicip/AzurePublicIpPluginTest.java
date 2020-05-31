@@ -301,6 +301,8 @@ public class AzurePublicIpPluginTest {
                 Mockito.anyString(), Mockito.anyString());
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.eq(azure),
                 Mockito.eq(resourceId), Mockito.eq(virtualMachineId));
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).endInstanceCreation(Mockito.eq(instanceId));
     }
 
     // test case: When calling the deleteInstance method, without the default
@@ -337,6 +339,8 @@ public class AzurePublicIpPluginTest {
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteResourceGroup(Mockito.eq(azure),
                 Mockito.eq(resourceName), Mockito.anyString());
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).endInstanceCreation(Mockito.eq(instanceId));
     }
 
     // test case: When calling the doDeleteResourceGroup method, it must verify
