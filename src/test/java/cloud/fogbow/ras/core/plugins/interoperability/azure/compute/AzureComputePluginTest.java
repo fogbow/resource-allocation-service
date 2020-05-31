@@ -295,7 +295,7 @@ public class AzureComputePluginTest {
         } catch (Exception e) {
             // verify
             Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
-            Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
+            Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.NEVER_RUN)).runOnComplete();
         }
     }
 
@@ -421,6 +421,7 @@ public class AzureComputePluginTest {
     public void testDeleteInstanceSuccessfully() throws FogbowException {
         // set up
         String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
         Mockito.when(computeOrder.getInstanceId()).thenReturn(resourceName);
 
@@ -433,6 +434,8 @@ public class AzureComputePluginTest {
         // verify
         Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE))
                 .doDeleteInstance(Mockito.eq(this.azureUser), Mockito.eq(resourceName));
+        Mockito.verify(this.azureComputePlugin, Mockito.times(TestUtils.RUN_ONCE))
+                .endInstanceCreation(Mockito.eq(instanceId));
     }
 
     // test case: When calling the doRequestInstance method,

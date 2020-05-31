@@ -127,7 +127,6 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
                     .doCreateInstance(virtualMachineRef, finishCreationCallbacks, azureUser);
         } catch (Exception e) {
             finishCreationCallbacks.runOnError();
-            finishCreationCallbacks.runOnComplete();
             throw e;
         }
     }
@@ -212,7 +211,11 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
         String instanceId = computeOrder.getInstanceId();
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
-        this.azureVirtualMachineOperation.doDeleteInstance(azureUser, resourceName);
+        try {
+            this.azureVirtualMachineOperation.doDeleteInstance(azureUser, resourceName);
+        } finally {
+            endInstanceCreation(instanceId);
+        }
     }
 
     @VisibleForTesting
