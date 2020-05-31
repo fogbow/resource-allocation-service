@@ -87,6 +87,10 @@ public class ApplicationFacade {
         this.authorizationPlugin = authorizationPlugin;
     }
 
+    protected AuthorizationPlugin<RasOperation> getAuthorizationPlugin() {
+        return authorizationPlugin;
+    }
+
     public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
@@ -343,14 +347,14 @@ public class ApplicationFacade {
     protected Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
-        authorizeOrder(requester, order.getCloudName(), Operation.GET, resourceType, order);
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.GET, resourceType, order.getCloudName(), order));
         return this.orderController.getResourceInstance(order);
     }
 
     protected void deleteOrder(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
-        authorizeOrder(requester, order.getCloudName(), Operation.DELETE, resourceType, order);
+        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order));
         this.orderController.deleteOrder(order);
     }
 
@@ -375,11 +379,6 @@ public class ApplicationFacade {
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
         return cloudConnector.getUserQuota(requester);
-    }
-
-    protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
-            Order order) throws UnexpectedException, UnauthorizedRequestException {
-        this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));
     }
 
     protected RSAPublicKey getAsPublicKey() throws FogbowException {

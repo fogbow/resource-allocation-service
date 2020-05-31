@@ -48,7 +48,7 @@ public class RemoteFacade {
     public void activateOrder(String requestingProvider, Order order) throws FogbowException {
         // The user has already been authenticated by the requesting provider.
         checkOrderConsistency(requestingProvider, order);
-        authorizeOrder(order.getSystemUser(), order.getCloudName(), Operation.CREATE, order.getType(), order);
+        this.authorizationPlugin.isAuthorized(order.getSystemUser(), new RasOperation(Operation.CREATE, order.getType(), order.getCloudName(), order));
         this.orderController.activateOrder(order);
     }
 
@@ -62,7 +62,7 @@ public class RemoteFacade {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting provider.
         checkOrderConsistency(requestingProvider, order);
-        authorizeOrder(systemUser, order.getCloudName(), Operation.GET, resourceType, order);
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.GET, resourceType, order.getCloudName(), order));
         return this.orderController.getResourceInstance(order);
     }
 
@@ -70,7 +70,7 @@ public class RemoteFacade {
         Order order = this.orderController.getOrder(orderId);
         // The user has already been authenticated by the requesting provider.
         checkOrderConsistency(requestingProvider, order);
-        authorizeOrder(systemUser, order.getCloudName(), Operation.DELETE, resourceType, order);
+        this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order));
         this.orderController.deleteOrder(order);
     }
 
@@ -171,22 +171,6 @@ public class RemoteFacade {
             if (!order.getRequester().equals(requestingProvider)) {
                 throw new InvalidParameterException(Messages.Exception.INCORRECT_REQUESTING_PROVIDER);
             }
-        }
-    }
-
-    protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
-                                  Order order) throws UnexpectedException, UnauthorizedRequestException,
-                                  InstanceNotFoundException {
-        synchronized (order) {
-            // Check if requested type matches order type
-            if (!order.getType().equals(type))
-                throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
-            // Check whether requester owns order
-            SystemUser orderOwner = order.getSystemUser();
-            if (!orderOwner.equals(requester)) {
-                throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
-            }
-            this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));
         }
     }
 }
