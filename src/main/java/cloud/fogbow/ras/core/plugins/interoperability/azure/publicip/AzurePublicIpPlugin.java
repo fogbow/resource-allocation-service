@@ -98,10 +98,11 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
     
     @Override
     public void deleteInstance(PublicIpOrder publicIpOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
+        String instanceId = publicIpOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, instanceId));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
-        String resourceName = AzureGeneralUtil.defineResourceName(publicIpOrder.getInstanceId());
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         String virtualMachineName = AzureGeneralUtil.defineResourceName(publicIpOrder.getComputeId());
         String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
 
@@ -113,7 +114,6 @@ public class AzurePublicIpPlugin implements PublicIpPlugin<AzureUser>, AzureAsyn
                 doDeleteInstance(azure, resourceId, virtualMachineId);
             }
         } finally {
-            String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
             endInstanceCreation(instanceId);
         }
     }

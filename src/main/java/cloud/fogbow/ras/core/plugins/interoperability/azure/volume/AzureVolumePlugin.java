@@ -100,16 +100,21 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
     
     @Override
     public void deleteInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
+        String instanceId = volumeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, instanceId));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
-        String resourceName = AzureGeneralUtil.defineResourceName(volumeOrder.getInstanceId());
-        
-        if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
-            doDeleteResourceGroup(azure, resourceName);
-        } else {
-            String subscriptionId = azureUser.getSubscriptionId();
-            String resourceId = buildResourceId(subscriptionId, this.defaultResourceGroupName, resourceName);
-            doDeleteInstance(azure, resourceId);
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+
+        try {
+            if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
+                doDeleteResourceGroup(azure, resourceName);
+            } else {
+                String subscriptionId = azureUser.getSubscriptionId();
+                String resourceId = buildResourceId(subscriptionId, this.defaultResourceGroupName, resourceName);
+                doDeleteInstance(azure, resourceId);
+            }
+        } finally {
+            endInstanceCreation(instanceId);
         }
     }
 

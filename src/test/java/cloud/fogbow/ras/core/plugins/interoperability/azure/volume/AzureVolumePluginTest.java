@@ -297,9 +297,10 @@ public class AzureVolumePluginTest {
                 Mockito.eq(resourceGroupName), Mockito.eq(resourceName));
 
         Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.eq(azure), Mockito.eq(resourceId));
-        
-        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
-        volumeOrder.setInstanceId(resourceName);
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
+        Mockito.doNothing().when(this.plugin).endInstanceCreation(Mockito.eq(instanceId));
+
+        VolumeOrder volumeOrder = new VolumeOrder(instanceId);
 
         // exercise
         this.plugin.deleteInstance(volumeOrder, this.azureUser);
@@ -317,8 +318,10 @@ public class AzureVolumePluginTest {
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildResourceId(Mockito.eq(subscriptionId),
                 Mockito.eq(resourceGroupName), Mockito.eq(resourceName));
-
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.eq(azure), Mockito.eq(resourceId));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteInstance(Mockito.eq(azure), Mockito.eq(resourceId));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .endInstanceCreation(Mockito.eq(instanceId));
     }
 
     // test case: When calling the deleteInstance method, without the default
@@ -340,9 +343,10 @@ public class AzureVolumePluginTest {
                 Mockito.eq(resourceName));
 
         Mockito.doNothing().when(this.plugin).doDeleteResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
+        Mockito.doNothing().when(this.plugin).endInstanceCreation(Mockito.eq(instanceId));
 
-        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
-        volumeOrder.setInstanceId(resourceName);
+        VolumeOrder volumeOrder = new VolumeOrder(instanceId);
 
         // exercise
         this.plugin.deleteInstance(volumeOrder, this.azureUser);
@@ -356,9 +360,10 @@ public class AzureVolumePluginTest {
 
         PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureResourceGroupOperationUtil.existsResourceGroup(Mockito.eq(azure), Mockito.eq(resourceName));
-
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteResourceGroup(Mockito.eq(azure),
                 Mockito.eq(resourceName));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .endInstanceCreation(Mockito.eq(instanceId));
     }
 
     // test case: When calling the doDeleteResourceGroup method, it must verify
