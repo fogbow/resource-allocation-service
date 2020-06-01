@@ -89,15 +89,20 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser>, Azure
 
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
+        String instanceId = attachmentOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, instanceId));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
         String virtualMachineName = AzureGeneralUtil.defineResourceName(attachmentOrder.getComputeId());
         String virtualMachineId = buildVirtualMachineId(azure, subscriptionId, virtualMachineName);
-        String resourceName = AzureGeneralUtil.defineResourceName(attachmentOrder.getInstanceId());
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         String resourceId = buildResourceId(azure, subscriptionId, resourceName);
-        
-        doDeleteInstance(azure, virtualMachineId, resourceId);
+
+        try {
+            doDeleteInstance(azure, virtualMachineId, resourceId);
+        } finally {
+            endInstanceCreation(instanceId);
+        }
     }
 
     @VisibleForTesting

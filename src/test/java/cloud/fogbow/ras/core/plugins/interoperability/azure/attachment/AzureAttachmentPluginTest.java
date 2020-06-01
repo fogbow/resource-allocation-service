@@ -264,7 +264,7 @@ public class AzureAttachmentPluginTest {
         PowerMockito.verifyStatic(AzureClientCacheManager.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureClientCacheManager.getAzure(Mockito.eq(this.azureUser));
 
-        Mockito.verify(attachmentOrder, Mockito.times(TestUtils.RUN_TWICE)).getInstanceId();
+        Mockito.verify(attachmentOrder, Mockito.times(TestUtils.RUN_ONCE)).getInstanceId();
         Mockito.verify(attachmentOrder, Mockito.times(TestUtils.RUN_ONCE)).getComputeId();
         Mockito.verify(this.azureUser, Mockito.times(TestUtils.RUN_ONCE)).getSubscriptionId();
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildVirtualMachineId(Mockito.eq(azure),
@@ -275,6 +275,9 @@ public class AzureAttachmentPluginTest {
         
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.eq(azure),
                 Mockito.anyString(), Mockito.anyString());
+
+        String instanceId = attachmentOrder.getInstanceId();
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).endInstanceCreation(Mockito.eq(instanceId));
     }
     
     // test case: When calling the doDeleteInstance method, it must verify that is
