@@ -4,7 +4,6 @@ import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
@@ -20,14 +19,12 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
     private Long sleepTime;
-    private OrderController orderController;
     private String localProviderId;
 
-    public RemoteOrdersStateSynchronizationProcessor(OrderController orderController, String localProviderId, String sleepTimeStr) {
+    public RemoteOrdersStateSynchronizationProcessor(String localProviderId, String sleepTimeStr) {
         SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
         this.remoteProviderOrders = sharedOrdersHolder.getRemoteProviderOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.orderController = orderController;
         this.localProviderId = localProviderId;
     }
 
@@ -65,7 +62,6 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
      * @param order {@link Order}
      */
     protected void processRemoteProviderOrder(Order order) throws UnexpectedException, RemoteCommunicationException {
-        Order remoteOrder;
         synchronized (order) {
            // Only remote orders need to be synchronized.
             if (order.isProviderLocal(this.localProviderId)) {
@@ -83,7 +79,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                     // Here we know that the CloudConnector is remote, but the use of CloudConnectFactory facilitates testing.
                     RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
                             CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
-                    remoteOrder = remoteCloudConnector.getRemoteOrder(order);
+                    Order remoteOrder = remoteCloudConnector.getRemoteOrder(order);
                     order.updateFromRemote(remoteOrder);
                     order.setOrderState(remoteOrder.getOrderState());
                 }
