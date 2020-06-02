@@ -68,8 +68,6 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
     /**
      * The RemoteOrdersStateSynchronization processor monitors the state of remote orders to make their local
      * counterparts consistent.
-     *
-     * @param order {@link Order}
      */
     @VisibleForTesting
     void processRemoteProviderOrder(Order order) throws UnexpectedException {
@@ -95,6 +93,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                     order.setOrderState(remoteOrder.getOrderState());
                 }
             } catch (RemoteCommunicationException e) {
+                // TODO(chico) - Check it with the Team; Should not we change it to Warn Log Level?
                 LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
             }
         }

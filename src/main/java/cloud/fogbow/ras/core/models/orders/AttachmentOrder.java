@@ -91,6 +91,7 @@ public class AttachmentOrder extends Order<AttachmentOrder> {
         return volumeOrderId;
     }
 
+    // TODO(chico) - Check it with the Team; Why does this implementation does not follow other(Compute, Volume, ...).
     @Override
     public void updateFromRemote(AttachmentOrder remoteOrder) {
     }
