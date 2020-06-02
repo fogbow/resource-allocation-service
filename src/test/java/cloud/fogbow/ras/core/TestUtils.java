@@ -1,43 +1,35 @@
 package cloud.fogbow.ras.core;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.util.CloudInitUserDataBuilder;
-import cloud.fogbow.ras.core.datastore.services.RecoveryService;
-import org.apache.http.client.HttpResponseException;
-import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
-
-import org.mockito.BDDMockito;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-
-import com.google.gson.Gson;
-
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
+import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import cloud.fogbow.ras.core.models.orders.*;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import com.google.gson.Gson;
+import org.apache.http.client.HttpResponseException;
+import org.mockito.BDDMockito;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class TestUtils {
 
@@ -274,6 +266,22 @@ public class TestUtils {
                 .thenReturn(localCloudConnector);
         
         return localCloudConnector;
+    }
+
+    /*
+     * Simulates instance of a LocalCloudConnector since its creation via CloudConnectorFactory.
+     */
+    public RemoteCloudConnector mockRemoteCloudConnectorFromFactory() {
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        RemoteCloudConnector remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(remoteCloudConnector);
+
+        return remoteCloudConnector;
     }
 
     public List<Order> populateFedNetDbWithState(OrderState state, int size, RecoveryService service) throws UnexpectedException {

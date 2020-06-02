@@ -9,6 +9,7 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
@@ -37,21 +38,30 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
         boolean isActive = true;
         while (isActive) {
             try {
-                Order order = this.remoteProviderOrders.getNext();
-                if (order != null) {
-                    processRemoteProviderOrder(order);
-                } else {
-                    this.remoteProviderOrders.resetPointer();
-                    Thread.sleep(this.sleepTime);
-                }
+                synchronizeWithRemote();
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (UnexpectedException e) {
-                LOGGER.error(e.getMessage(), e);
-            } catch (Throwable e) {
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
             }
+        }
+    }
+
+    @VisibleForTesting
+    void synchronizeWithRemote() throws InterruptedException {
+        try {
+            Order order = this.remoteProviderOrders.getNext();
+            if (order != null) {
+                processRemoteProviderOrder(order);
+            } else {
+                this.remoteProviderOrders.resetPointer();
+                Thread.sleep(this.sleepTime);
+            }
+        } catch (InterruptedException e) {
+            LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
+            throw e;
+        } catch (UnexpectedException e) {
+            LOGGER.error(e.getMessage(), e);
+        } catch (Throwable e) {
+            LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
         }
     }
 
@@ -61,7 +71,8 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
      *
      * @param order {@link Order}
      */
-    protected void processRemoteProviderOrder(Order order) throws UnexpectedException, RemoteCommunicationException {
+    @VisibleForTesting
+    void processRemoteProviderOrder(Order order) throws UnexpectedException {
         synchronized (order) {
            // Only remote orders need to be synchronized.
             if (order.isProviderLocal(this.localProviderId)) {
@@ -84,7 +95,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                     order.setOrderState(remoteOrder.getOrderState());
                 }
             } catch (RemoteCommunicationException e) {
-                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e));
+                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
             }
         }
     }

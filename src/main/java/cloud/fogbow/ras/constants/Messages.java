@@ -7,6 +7,7 @@ public class Messages {
         public static final String CORRUPTED_INSTANCE = "Corrupted instance.";
         public static final String DEPENDENCY_DETECTED = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String FAILED_TO_GET_QUOTA = "Failer to get quota.";
+        // TODO(chico) - Check it with the Team; Should it be GENERIC_S_EXCEPTION?
         public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String IMAGE_NOT_FOUND = "Image not found";
         public static final String INCORRECT_PROVIDER = "Incorrect provider.";
