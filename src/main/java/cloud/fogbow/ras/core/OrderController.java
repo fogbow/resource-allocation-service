@@ -18,6 +18,7 @@ import cloud.fogbow.ras.core.models.orders.*;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -136,6 +137,7 @@ public class OrderController {
                 // take the required actions to remove such garbage. The log below can help in identifying this
                 // kind of problem.
                 LOGGER.warn(String.format(Messages.Warn.REMOVING_ORDER_IN_SELECT_STATE_S, order.toString()));
+                return;
             }
             if (order.isProviderRemote(this.localProviderId)) {
                 try {
@@ -161,19 +163,21 @@ public class OrderController {
         }
     }
 
-    public Instance getResourceInstance(Order order) throws FogbowException {
+    public Instance getResourceInstance(@Nullable Order order) throws FogbowException {
         if (order == null) {
             throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
         }
 
         synchronized (order) {
-            if ((!this.localProviderId.equals(order.getProvider())) && (order.getOrderState().equals(OrderState.OPEN)
-                            || order.getOrderState().equals(OrderState.SELECTED))) {
+            boolean isRemoteProvider = !this.localProviderId.equals(order.getProvider());
+            boolean isOpen = order.getOrderState().equals(OrderState.OPEN);
+            boolean isSelected = order.getOrderState().equals(OrderState.SELECTED);
+            if (isRemoteProvider && (isOpen || isSelected)) {
                 // This is an order for a remote provider that has never been received by that provider.
                 // We create an empty Instance and update the Instance fields with the values held in the order.
+                InstanceState instanceState = InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState());
                 OrderInstance instance = EmptyOrderInstanceGenerator.createEmptyInstance(order);
-                instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState(),
-                        false, false, false));
+                instance.setState(instanceState);
                 return updateInstanceUsingOrderData(instance, order);
             }
             CloudConnector cloudConnector = getCloudConnector(order);
@@ -385,7 +389,8 @@ public class OrderController {
         }
     }
 
-    private Instance updateInstanceUsingOrderData(Instance instance, Order order) {
+    @VisibleForTesting
+    Instance updateInstanceUsingOrderData(Instance instance, Order order) {
         switch (order.getType()) {
             case COMPUTE:
                 updateComputeInstanceUsingOrderData(((ComputeInstance) instance), ((ComputeOrder) order));
@@ -519,7 +524,7 @@ public class OrderController {
         return false;
     }
 
-    protected static void notifyRequesterToCloseOrder(Order order) throws RemoteCommunicationException {
+    protected void notifyRequesterToCloseOrder(Order order) throws RemoteCommunicationException {
         try {
             CloseOrderAtRemoteProviderRequest closeOrderAtRemoteProviderRequest = new CloseOrderAtRemoteProviderRequest(order);
             closeOrderAtRemoteProviderRequest.send();

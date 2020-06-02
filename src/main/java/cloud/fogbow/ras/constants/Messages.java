@@ -85,6 +85,7 @@ public class Messages {
         public static final String DISK_OFFERING_COMPATIBLE_NOT_FOUND = "There is not disk offering compatible with volume order size.";
         public static final String DISK_OFFERING_CUSTOMIZED_NOT_FOUND ="There is not disk offering customized in the cloud.";
         public static final String SLEEP_THREAD_INTERRUPTED = "Thread's not able to sleep.";
+        // TODO(chico) - Check it with the Team; Should it be REMOVING_S_ORDER_IN_SELECT_STATE?
         public static final String REMOVING_ORDER_IN_SELECT_STATE_S = "Order [%s] might have left garbage in cloud.";
     }
 
