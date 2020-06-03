@@ -48,6 +48,7 @@ import software.amazon.awssdk.services.ec2.model.ModifyNetworkInterfaceAttribute
 import software.amazon.awssdk.services.ec2.model.ReleaseAddressRequest;
 import software.amazon.awssdk.services.ec2.model.ReleaseAddressResponse;
 import software.amazon.awssdk.services.ec2.model.Reservation;
+import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.ec2.model.Tag;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
@@ -57,11 +58,11 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     private static final String FAKE_ALLOCATION_ID = "fake-allocation-id";
     private static final String FAKE_ASSOCIATION_ID = "fake-association-id";
     private static final String FAKE_CIDR_ADDRESS = "1.0.1.0/28";
-    private static final String FAKE_DEFAULT_SECURITY_GROUP_ID = "fake-security-group-id";
-    private static final String FAKE_DEFAULT_VPC_ID = "fake-vpc-id";
+    private static final String FAKE_DEFAULT_GROUP_ID = "fake-default-group-id";
     private static final String FAKE_GROUP_ID = "fake-group-id";
     private static final String FAKE_NETWORK_INTERFACE_ID = "fake-network-interface-id";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
+    private static final String FAKE_VPC_ID = "fake-vpc-id";
 	
     private AwsPublicIpPlugin plugin;
     private Ec2Client client;
@@ -111,7 +112,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         PublicIpOrder order = createPublicIpOrder();
 
         Mockito.doNothing().when(this.plugin).doDeleteInstance(Mockito.eq(order.getInstanceId()),
-                Mockito.eq(this.client));
+                Mockito.eq(order.getComputeId()), Mockito.eq(this.client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
@@ -123,7 +124,8 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .doDeleteInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+                .doDeleteInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(order.getComputeId()),
+                Mockito.eq(this.client));
     }
     
     // test case: When calling the getInstance method, with a public IP order and
@@ -214,49 +216,58 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     public void testDoDeleteInstance() throws Exception {
         // setup
         String allocationId = FAKE_ALLOCATION_ID;
-        String defaultGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
         Address address = buildAddress();
 
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
         PowerMockito.doReturn(address).when(AwsV2CloudUtil.class, TestUtils.GET_ADDRESS_BY_ID_METHOD,
                 Mockito.eq(allocationId), Mockito.eq(this.client));
 
-        Mockito.doReturn(FAKE_ASSOCIATION_ID).when(this.plugin).getAssociationIdFrom(Mockito.eq(address.tags()));
+        String computeId = TestUtils.FAKE_COMPUTE_ID;
+        String defaultGroupId = FAKE_DEFAULT_GROUP_ID;
+        Mockito.doReturn(defaultGroupId).when(this.plugin).getDefaultGroupId(Mockito.eq(computeId),
+                Mockito.eq(this.client));
 
-        PowerMockito.doReturn(FAKE_GROUP_ID).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
-                Mockito.eq(address.tags()));
-
+        String groupId = FAKE_GROUP_ID;
+        String networkInterfaceId = address.networkInterfaceId();
         Mockito.doNothing().when(plugin).doModifyNetworkInterfaceAttributes(Mockito.eq(allocationId),
-                Mockito.eq(defaultGroupId), Mockito.eq(address.networkInterfaceId()), Mockito.eq(this.client));
+                Mockito.eq(groupId), Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
+
+        List<Tag> addressTags = address.tags();
+        Mockito.doReturn(FAKE_ASSOCIATION_ID).when(this.plugin).getAssociationIdFrom(Mockito.eq(addressTags));
+        PowerMockito.doReturn(FAKE_GROUP_ID).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
+                Mockito.eq(addressTags));
 
         PowerMockito.doNothing().when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD,
-                Mockito.anyString(), Mockito.eq(this.client));
+                Mockito.eq(groupId), Mockito.eq(this.client));
 
         Mockito.doNothing().when(this.plugin).doDisassociateAddresses(Mockito.anyString(), Mockito.eq(this.client));
-
         Mockito.doNothing().when(this.plugin).doReleaseAddresses(Mockito.eq(allocationId), Mockito.eq(this.client));
 
         // exercise
-        plugin.doDeleteInstance(allocationId, this.client);
+        plugin.doDeleteInstance(allocationId, computeId, this.client);
 
         // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AwsV2CloudUtil.getAddressById(Mockito.eq(allocationId), Mockito.eq(this.client));
 
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAssociationIdFrom(Mockito.eq(address.tags()));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getDefaultGroupId(Mockito.eq(computeId),
+                Mockito.eq(this.client));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doModifyNetworkInterfaceAttributes(
+                Mockito.eq(allocationId), Mockito.eq(defaultGroupId), Mockito.eq(networkInterfaceId),
+                Mockito.eq(this.client));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAssociationIdFrom(Mockito.eq(addressTags));
 
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AwsV2CloudUtil.getGroupIdFrom(Mockito.eq(address.tags()));
 
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doModifyNetworkInterfaceAttributes(
-                Mockito.eq(allocationId), Mockito.eq(defaultGroupId), Mockito.eq(address.networkInterfaceId()),
-                Mockito.eq(this.client));
-
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.doDeleteSecurityGroup(Mockito.anyString(), Mockito.eq(this.client));
+        AwsV2CloudUtil.doDeleteSecurityGroup(Mockito.eq(groupId), Mockito.eq(this.client));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDisassociateAddresses(Mockito.anyString(),
                 Mockito.eq(this.client));
+
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doReleaseAddresses(Mockito.eq(allocationId),
                 Mockito.eq(this.client));
     }
@@ -269,36 +280,41 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     public void testDoDeleteInstanceFail() throws Exception {
         // setup
         String allocationId = FAKE_ALLOCATION_ID;
-        String defaultGroupId = FAKE_DEFAULT_SECURITY_GROUP_ID;
         Address address = buildAddress();
-
         PowerMockito.mockStatic(AwsV2CloudUtil.class);
         PowerMockito.doReturn(address).when(AwsV2CloudUtil.class, TestUtils.GET_ADDRESS_BY_ID_METHOD,
                 Mockito.eq(allocationId), Mockito.eq(this.client));
 
-        Mockito.doReturn(FAKE_ASSOCIATION_ID).when(this.plugin).getAssociationIdFrom(Mockito.eq(address.tags()));
-
-        PowerMockito.doReturn(FAKE_GROUP_ID).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
-                Mockito.eq(address.tags()));
-        
-        Mockito.doNothing().when(plugin).doModifyNetworkInterfaceAttributes(Mockito.eq(allocationId),
-                Mockito.eq(defaultGroupId), Mockito.eq(address.networkInterfaceId()), Mockito.eq(this.client));
-
-        PowerMockito.doThrow(new UnexpectedException()).when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD, Mockito.anyString(),
+        String computeId = TestUtils.FAKE_COMPUTE_ID;
+        String defaultGroupId = FAKE_DEFAULT_GROUP_ID;
+        Mockito.doReturn(defaultGroupId).when(this.plugin).getDefaultGroupId(Mockito.eq(computeId),
                 Mockito.eq(this.client));
 
-        Mockito.doNothing().when(this.plugin).doDisassociateAddresses(Mockito.anyString(), Mockito.eq(this.client));
+        String groupId = FAKE_GROUP_ID;
+        String networkInterfaceId = address.networkInterfaceId();
+        Mockito.doNothing().when(plugin).doModifyNetworkInterfaceAttributes(Mockito.eq(allocationId),
+                Mockito.eq(groupId), Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
 
+        List<Tag> addressTags = address.tags();
+        Mockito.doReturn(FAKE_ASSOCIATION_ID).when(this.plugin).getAssociationIdFrom(Mockito.eq(addressTags));
+        PowerMockito.doReturn(FAKE_GROUP_ID).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
+                Mockito.eq(addressTags));
+
+        PowerMockito.doThrow(new UnexpectedException()).when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD,
+                Mockito.eq(groupId), Mockito.eq(this.client));
+
+        Mockito.doNothing().when(this.plugin).doDisassociateAddresses(Mockito.anyString(), Mockito.eq(this.client));
         Mockito.doNothing().when(this.plugin).doReleaseAddresses(Mockito.eq(allocationId), Mockito.eq(this.client));
 
         try {
             // exercise
-            plugin.doDeleteInstance(allocationId, this.client);
+            plugin.doDeleteInstance(allocationId, computeId, this.client);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDisassociateAddresses(Mockito.anyString(),
                     Mockito.eq(this.client));
+
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doReleaseAddresses(Mockito.eq(allocationId),
                     Mockito.eq(this.client));
         }
@@ -430,19 +446,21 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testDoRequestInstance() throws FogbowException {
         // set up
-        PublicIpOrder order = createPublicIpOrder();
         String allocationId = FAKE_ALLOCATION_ID;
-        String groupId = FAKE_GROUP_ID;
-        String networkInterfaceId = FAKE_NETWORK_INTERFACE_ID;
-
         Mockito.doReturn(allocationId).when(this.plugin).doAllocateAddresses(Mockito.eq(this.client));
+
+        PublicIpOrder order = createPublicIpOrder();
+        String computeId = order.getComputeId();
+        Instance instance = buildInstance();
+        Mockito.doReturn(instance).when(this.plugin).getInstanceReservation(Mockito.eq(computeId),
+                Mockito.eq(this.client));
         
+        String groupId = FAKE_GROUP_ID;
         Mockito.doReturn(groupId).when(this.plugin).handleSecurityIssues(Mockito.eq(allocationId),
-                Mockito.eq(this.client));
-        
-        Mockito.doReturn(networkInterfaceId).when(this.plugin).getInstanceNetworkInterfaceId(Mockito.eq(order.getComputeId()),
-                Mockito.eq(this.client));
-        
+                Mockito.eq(instance), Mockito.eq(this.client));
+
+        String networkInterfaceId = FAKE_NETWORK_INTERFACE_ID;
+        Mockito.doReturn(networkInterfaceId).when(this.plugin).getNetworkInterfaceIdFrom(Mockito.eq(instance));
         Mockito.doNothing().when(this.plugin).doModifyNetworkInterfaceAttributes(Mockito.eq(allocationId),
                 Mockito.eq(groupId), Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
         
@@ -454,15 +472,17 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doAllocateAddresses(Mockito.eq(this.client));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).handleSecurityIssues(Mockito.eq(allocationId),
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getInstanceReservation(Mockito.eq(computeId),
                 Mockito.eq(this.client));
         
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).handleSecurityIssues(Mockito.eq(allocationId),
+                Mockito.eq(instance), Mockito.eq(this.client));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkInterfaceIdFrom(Mockito.eq(instance));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .getInstanceNetworkInterfaceId(Mockito.eq(order.getComputeId()), Mockito.eq(this.client));
-        
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doModifyNetworkInterfaceAttributes(
-                Mockito.eq(allocationId), Mockito.eq(groupId), Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
-        
+                .doModifyNetworkInterfaceAttributes(Mockito.eq(allocationId), Mockito.eq(groupId),
+                Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
+
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doAssociateAddress(Mockito.eq(allocationId),
                 Mockito.eq(networkInterfaceId), Mockito.eq(this.client));
     }
@@ -526,6 +546,41 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         }
     }
     
+    // test case: When calling the getDefaultGroupId method, it must verify
+    // that is call was successful.
+    @Test
+    public void testGetDefaultGroupIdSuccessfully() throws Exception {
+        // set up
+        String computeId = TestUtils.FAKE_COMPUTE_ID;
+        String subnetId = FAKE_SUBNET_ID;
+        Instance instance = buildInstance(subnetId);
+        Mockito.doReturn(instance).when(this.plugin).getInstanceReservation(Mockito.eq(computeId),
+                Mockito.eq(this.client));
+
+        Subnet subnet = buildSubnet();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(subnet).when(AwsV2CloudUtil.class, TestUtils.GET_SUBNET_BY_ID_METHOD,
+                Mockito.anyString(), Mockito.eq(this.client));
+
+        List<Tag> subnetTags = subnet.tags();
+        String defaultGroupId = FAKE_DEFAULT_GROUP_ID;
+        PowerMockito.doReturn(defaultGroupId).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
+                Mockito.eq(subnetTags));
+
+        // exercise
+        this.plugin.getDefaultGroupId(computeId, this.client);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .getInstanceReservation(Mockito.eq(computeId), Mockito.eq(this.client));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getSubnetById(Mockito.anyString(), Mockito.eq(this.client));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getGroupIdFrom(Mockito.eq(subnetTags));
+    }
+
     // test case: When calling the doAssociateAddress method, it must verify
     // that is call was successful.
     @Test
@@ -630,142 +685,21 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         }
     }
     
-    // test case: When calling the getInstanceNetworkInterfaceId method, it must
-    // verify that is call was successful.
+    // test case: When calling the getNetworkInterfaceIdFrom method from an
+    // instance, it must verify than the expected network interface ID was
+    // returned.
     @Test
-    public void testGetInstanceNetworkInterfaceId() throws Exception {
-        // set up
-        String instanceId = TestUtils.FAKE_INSTANCE_ID;
-
-        DescribeInstancesResponse response = DescribeInstancesResponse.builder().build();
-
-        PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_INSTANCE_BY_ID_METHOD, Mockito.eq(instanceId),
-                Mockito.eq(this.client));
-
-        Instance instance = Instance.builder().instanceId(instanceId).build();
-        Mockito.doReturn(instance).when(this.plugin).getInstanceReservation(Mockito.eq(response));
-
-        InstanceNetworkInterface networkInterface = buildNetworkInterface();
-        Mockito.doReturn(networkInterface).when(this.plugin).selectNetworkInterfaceFrom(Mockito.eq(instance));
-
-        // exercise
-        this.plugin.getInstanceNetworkInterfaceId(instanceId, this.client);
-
-        // verify
-        PowerMockito.verifyStatic(AwsV2CloudUtil.class);
-        AwsV2CloudUtil.doDescribeInstanceById(Mockito.eq(instanceId), Mockito.eq(this.client));
-
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getInstanceReservation(Mockito.eq(response));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).selectNetworkInterfaceFrom(Mockito.eq(instance));
-    }
-    
-    // test case: When calling the selectNetworkInterfaceFrom method from a instance
-    // network interface with a sub-net ID different of default, it must return this
-    // network interface.
-    @Test
-    public void testSelectNetworkInterfaceFromInstance() {
+    public void testGetNetworkInterfaceIdFromInstanceSuccessfully() {
         // set up
         Instance instance = buildInstance();
 
-        InstanceNetworkInterface expected = buildNetworkInterface();
+        String expected = FAKE_NETWORK_INTERFACE_ID;
 
         // exercise
-        InstanceNetworkInterface networkInterface = this.plugin.selectNetworkInterfaceFrom(instance);
+        String networkInterfaceId = this.plugin.getNetworkInterfaceIdFrom(instance);
 
         // verify
-        Assert.assertEquals(expected, networkInterface);
-    }
-    
-    // test case:  When calling the selectNetworkInterfaceFrom method from a instance
-    // network interface with a default sub-net ID, it must return this
-    // network interface.
-    @Test
-    public void testSelectNetworkInterfaceFromInstanceWithSubnetIdDefault() {
-        // set up
-        String defaultSubnetId = FAKE_SUBNET_ID;
-        Instance instance = buildInstance(defaultSubnetId);
-
-        InstanceNetworkInterface expected = instance.networkInterfaces().listIterator().next();
-
-        // exercise
-        InstanceNetworkInterface networkInterface = this.plugin.selectNetworkInterfaceFrom(instance);
-
-        // verify
-        Assert.assertEquals(expected, networkInterface);
-    }
-    
-    // test case: When calling the getInstanceReservation method with a response
-    // containing a valid instance reservation, it must return the instance
-    // contained in this reservation.
-    @Test
-    public void testGetInstanceReservation() throws FogbowException {
-        // set up
-        DescribeInstancesResponse response = buildDescribeInstancesResponse();
-
-        Instance expected = buildInstance();
-
-        // exercise
-        Instance instance = this.plugin.getInstanceReservation(response);
-
-        // verify
-        Assert.assertEquals(expected, instance);
-    }
-
-    // test case: When calling the getInstanceReservation method and return a null
-    // response, it must verify that an InstanceNotFoundException has been thrown.
-    @Test
-    public void testGetInstanceReservationWithNullResponse() throws FogbowException {
-        // set up
-        DescribeInstancesResponse response = null;
-
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
-        try {
-            // exercise
-            this.plugin.getInstanceReservation(response);
-            Assert.fail();
-        } catch (InstanceNotFoundException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
-    // test case: When calling the getInstanceReservation method and return a empty
-    // response, it must verify that an InstanceNotFoundException has been thrown.
-    @Test
-    public void testGetInstanceReservationWithEmptyResponse() throws FogbowException {
-        // set up
-        DescribeInstancesResponse response = DescribeInstancesResponse.builder().build();
-
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
-        try {
-            // exercise
-            this.plugin.getInstanceReservation(response);
-            Assert.fail();
-        } catch (InstanceNotFoundException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
-    // test case: When calling the getInstanceReservation method and return a
-    // response with an empty reservation, it must verify that an
-    // InstanceNotFoundException has been thrown.
-    @Test
-    public void testGetInstanceReservationEmpty() throws FogbowException {
-        // set up
-        Reservation reservation = Reservation.builder().build();
-        DescribeInstancesResponse response = buildDescribeInstancesResponse(reservation);
-
-        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
-        try {
-            // exercise
-            this.plugin.getInstanceReservation(response);
-            Assert.fail();
-        } catch (InstanceNotFoundException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
+        Assert.assertEquals(expected, networkInterfaceId);
     }
     
     // test case: When calling the handleSecurityIssues method, it must
@@ -773,8 +707,9 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testHandleSecurityIssues() throws Exception {
         // set up
+        Instance instance = buildInstance();
         String allocationId = FAKE_ALLOCATION_ID;
-        String defaultVpcId = FAKE_DEFAULT_VPC_ID;
+        String defaultVpcId = FAKE_VPC_ID;
         String description = AwsPublicIpPlugin.SECURITY_GROUP_DESCRIPTION;
         String groupId = FAKE_GROUP_ID;
         String groupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId;
@@ -799,7 +734,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
                 Mockito.eq(allocationId), Mockito.eq(tagKey), Mockito.eq(groupId), Mockito.eq(this.client));
 
         // exercise
-        this.plugin.handleSecurityIssues(allocationId, this.client);
+        this.plugin.handleSecurityIssues(allocationId, instance, this.client);
 
         // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -820,8 +755,9 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     @Test
     public void testHandleSecurityIssuesFail() throws Exception {
         // set up
+        Instance instance = buildInstance();
         String allocationId = FAKE_ALLOCATION_ID;
-        String defaultVpcId = FAKE_DEFAULT_VPC_ID;
+        String defaultVpcId = FAKE_VPC_ID;
         String description = AwsPublicIpPlugin.SECURITY_GROUP_DESCRIPTION;
         String groupId = FAKE_GROUP_ID;
         String groupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId;
@@ -848,7 +784,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
 
         try {
             // exercise
-            this.plugin.handleSecurityIssues(allocationId, this.client);
+            this.plugin.handleSecurityIssues(allocationId, instance, this.client);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
@@ -858,6 +794,99 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         }
     }
     
+    // test case: When calling the getInstanceReservation method with a response
+    // containing a valid instance reservation, it must return the instance
+    // contained in this reservation.
+    @Test
+    public void testGetInstanceReservationSuccessfully() throws Exception {
+        // set up
+        String computeId = TestUtils.FAKE_COMPUTE_ID;
+        DescribeInstancesResponse response = buildDescribeInstancesResponse();
+
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_INSTANCE_BY_ID_METHOD,
+                Mockito.eq(computeId), Mockito.eq(this.client));
+
+        Instance expected = buildInstance();
+
+        // exercise
+        Instance instance = this.plugin.getInstanceReservation(computeId, this.client);
+
+        // verify
+        Assert.assertEquals(expected, instance);
+    }
+
+    // test case: When calling the getInstanceReservation method and return a null
+    // response, it must verify that an InstanceNotFoundException has been thrown.
+    @Test
+    public void testGetInstanceReservationWithNullResponse() throws Exception {
+        // set up
+        String computeId = TestUtils.FAKE_COMPUTE_ID;
+        DescribeInstancesResponse response = null;
+
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_INSTANCE_BY_ID_METHOD,
+                Mockito.eq(computeId), Mockito.eq(this.client));
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+        try {
+            // exercise
+            this.plugin.getInstanceReservation(computeId, this.client);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: When calling the getInstanceReservation method and return a empty
+    // response, it must verify that an InstanceNotFoundException has been thrown.
+    @Test
+    public void testGetInstanceReservationWithEmptyResponse() throws Exception {
+        // set up
+        String computeId = TestUtils.FAKE_COMPUTE_ID;
+        DescribeInstancesResponse response = DescribeInstancesResponse.builder().build();
+
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_INSTANCE_BY_ID_METHOD,
+                Mockito.eq(computeId), Mockito.eq(this.client));
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+        try {
+            // exercise
+            this.plugin.getInstanceReservation(computeId, this.client);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: When calling the getInstanceReservation method and return a
+    // response with an empty reservation, it must verify that an
+    // InstanceNotFoundException has been thrown.
+    @Test
+    public void testGetInstanceReservationEmpty() throws Exception {
+        // set up
+        String computeId = TestUtils.FAKE_COMPUTE_ID;
+        Reservation reservation = Reservation.builder().build();
+        DescribeInstancesResponse response = buildDescribeInstancesResponse(reservation);
+
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, TestUtils.DO_DESCRIBE_INSTANCE_BY_ID_METHOD,
+                Mockito.eq(computeId), Mockito.eq(this.client));
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+        try {
+            // exercise
+            this.plugin.getInstanceReservation(computeId, this.client);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
     // test case: When calling the doAllocateAddresses method, it must
     // verify that is call was successful.
     @Test
@@ -896,16 +925,26 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         }
     }
     
+    private Subnet buildSubnet() {
+        Tag[] tags = { buildTag(AwsV2CloudUtil.AWS_TAG_GROUP_ID, FAKE_DEFAULT_GROUP_ID) };
+        List<Tag> subnetTags = Arrays.asList(tags);
+
+        return Subnet.builder()
+                .tags(subnetTags)
+                .subnetId(FAKE_SUBNET_ID)
+                .build();
+    }
+
     private AllocateAddressResponse buildAllocateAddressResponse() {
         String allocationId = FAKE_ALLOCATION_ID;
-        
+
         AllocateAddressResponse response = AllocateAddressResponse.builder()
                 .allocationId(allocationId)
                 .build();
         
         return response;
     }
-    
+
     private DescribeInstancesResponse buildDescribeInstancesResponse(Reservation... reservations) {
         Reservation reservation = reservations.length > 0 ? reservations[0]
                 : buildReservation();
@@ -929,10 +968,12 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     
     private Instance buildInstance(String... subnetIds) {
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
+        String vpcId = FAKE_VPC_ID;
         
         Instance instance = Instance.builder()
                 .instanceId(instanceId)
                 .networkInterfaces(buildNetworkInterface(subnetIds))
+                .vpcId(vpcId)
                 .build();
         
         return instance;
@@ -942,6 +983,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         String subnetId = subnetIds.length > 0 ? subnetIds[0] : TestUtils.FAKE_NETWORK_ID;
 
         InstanceNetworkInterface networkInterface = InstanceNetworkInterface.builder()
+                .networkInterfaceId(FAKE_NETWORK_INTERFACE_ID)
                 .subnetId(subnetId)
                 .build();
 
