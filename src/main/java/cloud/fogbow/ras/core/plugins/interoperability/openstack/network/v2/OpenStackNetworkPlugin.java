@@ -229,7 +229,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = this.networkV2APIEndpoint + OpenStackConstants.SECURITY_GROUPS_ENDPOINT +
-                OpenStackConstants.QUERY_NAME + "=" + securityGroupName;
+                OpenStackConstants.QUERY_NAME + securityGroupName;
         String responseStr = doGetRequest(cloudUser, endpoint);
         return OpenStackCloudUtils.getSecurityGroupIdFromGetResponse(responseStr);
     }
