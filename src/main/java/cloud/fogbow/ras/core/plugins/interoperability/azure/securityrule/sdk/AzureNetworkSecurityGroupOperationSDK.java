@@ -30,8 +30,9 @@ public class AzureNetworkSecurityGroupOperationSDK {
     @VisibleForTesting
     static final int UNKNOWN_PRIORITY_VALUE = -1;
     private static int currentPriority = UNKNOWN_PRIORITY_VALUE;
+    private static final String ASTERISK_VALUE = "*";
+    private static final String DEFAULT_RANGE_PORTS = "0-65535";
     private static final String DEFAULT_SOURCE_ADDRESS = "0.0.0.0/0";
-    private static final String ANY_CIDR = "*";
 
     private String defaultResourceGroupName;
 
@@ -114,10 +115,11 @@ public class AzureNetworkSecurityGroupOperationSDK {
     @VisibleForTesting
     SecurityRuleInstance buildSecurityRuleInstance(NetworkSecurityRule networkSecurityRule, String networkSecurityGroupName) {
         String address = networkSecurityRule.sourceAddressPrefix();
-        String cidr = address.equals(ANY_CIDR) ? DEFAULT_SOURCE_ADDRESS : address;
+        String cidr = address.equals(ASTERISK_VALUE) ? DEFAULT_SOURCE_ADDRESS : address;
         SecurityRuleDirection securityRuleDirection = networkSecurityRule.direction();
         SecurityRule.Direction direction = AzureSecurityRuleUtil.getFogbowDirection(securityRuleDirection);
-        String portRange = networkSecurityRule.destinationPortRange();
+        String range = networkSecurityRule.destinationPortRange();
+        String portRange = range.equals(ASTERISK_VALUE) ? DEFAULT_RANGE_PORTS : range;
         AzureSecurityRuleUtil.Ports ports = AzureSecurityRuleUtil.getPorts(portRange);
         int portFrom = ports.getFrom();
         int portTo = ports.getTo();

@@ -2,11 +2,14 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.*;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
+
 import rx.Completable;
 import rx.Observable;
 
@@ -15,7 +18,6 @@ import java.util.Optional;
 
 public class AzureNetworkSDK {
 
-    private static final String DEFAULT_SECURITY_GROUPS_RULES_NAME = "default-security-rule";
     private static final String DEFAULT_SUBNET_NAME = "default-subnet";
 
     public static Optional<NetworkInterface> getNetworkInterface(Azure azure, String azureNetworkInterfaceId)
@@ -44,12 +46,13 @@ public class AzureNetworkSDK {
 
     public static Observable<Indexable> createSecurityGroupAsync(Azure azure, String securityGroupName, Region region,
                                                                  String resourceGroupName, String cidr, Map tags) {
+        String securityRuleName = AzureGeneralUtil.generateResourceName();
         return azure.networkSecurityGroups()
                 .define(securityGroupName)
                 .withRegion(region)
                 .withExistingResourceGroup(resourceGroupName)
                 .withTags(tags)
-                .defineRule(DEFAULT_SECURITY_GROUPS_RULES_NAME)
+                .defineRule(securityRuleName)
                     .allowInbound()
                     .fromAddress(cidr)
                     .fromAnyPort()
