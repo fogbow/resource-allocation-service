@@ -62,8 +62,6 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     private static final String NEUTRON_PREFIX_ENDPOINT = "https://mycloud.domain:9696";
     private static final String COMPUTE_PREFIX_ENDPOINT = "https://mycloud.domain:8774";
     
-    private static final int RUN_TWICE = 2;
-    
     private OpenStackPublicIpPlugin plugin;
     private OpenStackHttpClient client;
     
@@ -689,7 +687,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         this.plugin.allowAllIngressSecurityRules(securityGroupId, cloudUser);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(RUN_TWICE)).doPostRequestFromCloud(Mockito.any(), Mockito.eq(cloudUser));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_TWICE))
+                .doPostRequestFromCloud(Mockito.any(), Mockito.eq(cloudUser));
     }
     
     // test case: When calling the doPostRequestFromCloud method, it must verify
