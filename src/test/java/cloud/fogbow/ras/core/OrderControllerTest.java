@@ -224,7 +224,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.activateOrder(remoteOrder);
         Assert.assertEquals(OrderState.OPEN, remoteOrder.getOrderState());
 
-        Mockito.doNothing().when(this.ordersController). notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
+        Mockito.doNothing().when(this.ordersController).notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
 
         // exercise
         this.ordersController.closeOrder(remoteOrder);

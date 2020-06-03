@@ -229,21 +229,40 @@ public class TestUtils {
         return systemUser;
     }
 
+    public void mockReadOrdersFromDataBase() throws UnexpectedException {
+                mockReadOrdersFromDataBase(new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
+                        new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
+                        new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
+                        new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
+                        new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>());
+    }
+
     /*
      * Mocks the behavior of the database as if there was no order in any state.
      */
-    public void mockReadOrdersFromDataBase() throws UnexpectedException {
+    public void mockReadOrdersFromDataBase(SynchronizedDoublyLinkedList<Order> openList,
+                                           SynchronizedDoublyLinkedList<Order> selectedList,
+                                           SynchronizedDoublyLinkedList<Order> fulfilledList,
+                                           SynchronizedDoublyLinkedList<Order> failedAfterSuccessRequestList,
+                                           SynchronizedDoublyLinkedList<Order> checkingDeletionList,
+                                           SynchronizedDoublyLinkedList<Order> pendingList,
+                                           SynchronizedDoublyLinkedList<Order> spawningList,
+                                           SynchronizedDoublyLinkedList<Order> failedOnRequestList,
+                                           SynchronizedDoublyLinkedList<Order> unableToCheckRequestList,
+                                           SynchronizedDoublyLinkedList<Order> assignedForDeletionRequestList)
+            throws UnexpectedException {
+
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SELECTED)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.CHECKING_DELETION)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(openList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SELECTED)).thenReturn(selectedList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(fulfilledList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST)).thenReturn(failedAfterSuccessRequestList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.CHECKING_DELETION)).thenReturn(checkingDeletionList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(pendingList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(spawningList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(failedOnRequestList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(unableToCheckRequestList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION)).thenReturn(assignedForDeletionRequestList);
 
         Mockito.doNothing().when(databaseManager).add(Matchers.any(Order.class));
         Mockito.doNothing().when(databaseManager).update(Matchers.any(Order.class));

@@ -91,6 +91,7 @@ public class SharedOrderHolders {
                 this.remoteProviderOrders.addItem(order);
             }
         }
+        list.resetPointer();
     }
 
     private void addOrdersToMap(SynchronizedDoublyLinkedList<Order> ordersList, Map<String, Order> activeOrdersMap) {

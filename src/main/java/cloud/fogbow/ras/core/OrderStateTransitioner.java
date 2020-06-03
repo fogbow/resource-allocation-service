@@ -2,18 +2,14 @@ package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
-import org.apache.log4j.Logger;
 
 public class OrderStateTransitioner {
-    private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
         synchronized (order) {
-            String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
             OrderState currentState = order.getOrderState();
 
             if (currentState == newState) {
@@ -42,4 +38,5 @@ public class OrderStateTransitioner {
             }
         }
     }
+    
 }
