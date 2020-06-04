@@ -66,7 +66,8 @@ public class OrderControllerTest extends BaseUnitTests {
         this.testUtils.mockReadOrdersFromDataBase();
 
         // setting up the attributes.
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        PowerMockito.spy(SharedOrderHolders.class);
+        SharedOrderHolders sharedOrderHolders = Mockito.spy(SharedOrderHolders.getInstance());
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
         this.pendingOrdersList = sharedOrderHolders.getRemoteProviderOrdersList();
@@ -166,6 +167,9 @@ public class OrderControllerTest extends BaseUnitTests {
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         String expected = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, order.getId());
 
+        // verify before
+        Assert.assertEquals(0, this.activeOrdersMap.size());
+
         // exercise
         this.ordersController.activateOrder(order);
         try {
@@ -206,23 +210,55 @@ public class OrderControllerTest extends BaseUnitTests {
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
 
         this.ordersController.activateOrder(order);
-        Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
+
+        // verify before
+        Assert.assertEquals(order, this.checkingDeletionOrdersList.getNext());
+        this.checkingDeletionOrdersList.resetPointer();
 
         // exercise
         this.ordersController.closeOrder(order);
 
         // verify
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
+        Assert.assertNull(this.checkingDeletionOrdersList.getNext());
     }
 
-    // test case: Checks if closeOrder nofities a remote RAS.
+    // test case: Checks if closeOrder changes to  a remote RAS.
     @Test
     public void testCloseOrderRemoteSuccessfully() throws Exception {
         // set up
         Order remoteOrder = this.testUtils.createLocalOrderWithRemoteRequester(TestUtils.LOCAL_MEMBER_ID);
 
         this.ordersController.activateOrder(remoteOrder);
-        Assert.assertEquals(OrderState.OPEN, remoteOrder.getOrderState());
+        OrderStateTransitioner.transition(remoteOrder, OrderState.CHECKING_DELETION);
+
+        Mockito.doNothing().when(this.ordersController).notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
+        // verify before
+        Assert.assertEquals(remoteOrder, this.checkingDeletionOrdersList.getNext());
+        this.checkingDeletionOrdersList.resetPointer();
+
+        // exercise
+        this.ordersController.closeOrder(remoteOrder);
+
+        // verify
+        Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE))
+                .notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
+        Assert.assertEquals(OrderState.CLOSED, remoteOrder.getOrderState());
+        Assert.assertNull(this.checkingDeletionOrdersList.getNext());
+    }
+
+    // test case: Checks if closeOrder changes the order(provide remotely) state to CLOSED;
+    @Test
+    public void testCloseOrderSuccessfullyWhenIsProviderRemote() throws Exception {
+        // set up
+        Order remoteOrder = this.testUtils.createLocalOrderWithRemoteRequester(TestUtils.LOCAL_MEMBER_ID);
+        remoteOrder.setProvider(TestUtils.ANY_VALUE);
+
+        this.ordersController.activateOrder(remoteOrder);
+        OrderStateTransitioner.transition(remoteOrder, OrderState.PENDING);
+        Assert.assertEquals(remoteOrder, this.pendingOrdersList.getNext());
+        this.pendingOrdersList.resetPointer();
 
         Mockito.doNothing().when(this.ordersController).notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
 
@@ -232,6 +268,8 @@ public class OrderControllerTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.RUN_ONCE))
                 .notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
+        Assert.assertEquals(OrderState.CLOSED, remoteOrder.getOrderState());
+        Assert.assertNull(this.pendingOrdersList.getNext());
     }
 
     // test case: Checks if closeOrder logs a warning message when occurs an exception.

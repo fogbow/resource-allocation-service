@@ -23,6 +23,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+// TODO(chico) - Question! Why is the necessity of synchronized block at activeOrdersMaps.
+//  It is already Thread Safe, right ?
 public class OrderController {
     private static final Logger LOGGER = Logger.getLogger(OrderController.class);
 
@@ -49,9 +51,8 @@ public class OrderController {
         }
     }
 
-    public String activateOrder(Order order) throws FogbowException {
+    public String activateOrder(@Nullable Order order) throws FogbowException {
         LOGGER.info(Messages.Info.ACTIVATING_NEW_REQUEST);
-
         if (order == null) {
             throw new UnexpectedException(Messages.Exception.UNABLE_TO_PROCESS_EMPTY_REQUEST);
         }
