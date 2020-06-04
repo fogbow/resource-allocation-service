@@ -391,6 +391,54 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, computeOrder.getOrderState());
     }
 
+    // test case: When invoking the deleteOrder method with a order provider remotely,
+    // it must change the order state to ASSIGNED_FOR_DELETION.
+    @Test
+    public void testDeleteOrderSuccessfullyWhenOrderIsProviderRemotely() throws FogbowException {
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        computeOrder.setProvider(TestUtils.ANY_VALUE);
+        this.ordersController.activateOrder(computeOrder);
+
+        RemoteCloudConnector remoteCloudConnector = this.testUtils.mockRemoteCloudConnectorFromFactory();
+        Mockito.doNothing().when(remoteCloudConnector).deleteInstance(Mockito.eq(computeOrder));
+
+        // exercise
+        this.ordersController.deleteOrder(computeOrder);
+
+        // verify
+        Assert.assertEquals(computeOrder, this.pendingOrdersList.getNext());
+        Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, computeOrder.getOrderState());
+        Mockito.verify(remoteCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
+                .deleteInstance(Mockito.eq(computeOrder));
+    }
+
+    // test case: When invoking the deleteOrder method with a order provider remotely and it fails,
+    // it must change the order state to ASSIGNED_FOR_DELETION.
+    @Test
+    public void testDeleteOrderFailWhenOrderIsProviderRemotely() throws FogbowException {
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        computeOrder.setProvider(TestUtils.ANY_VALUE);
+        this.ordersController.activateOrder(computeOrder);
+
+        RemoteCloudConnector remoteCloudConnector = this.testUtils.mockRemoteCloudConnectorFromFactory();
+        RemoteCommunicationException remoteCommunicationException = new RemoteCommunicationException();
+        Mockito.doThrow(remoteCommunicationException).when(remoteCloudConnector)
+                .deleteInstance(Mockito.eq(computeOrder));
+
+        try {
+            // exercise
+            this.ordersController.deleteOrder(computeOrder);
+            Assert.fail();
+        } catch (Exception e) {
+            // verify
+            Assert.assertEquals(computeOrder, this.activeOrdersMap.get(computeOrder.getId()));
+            Mockito.verify(remoteCloudConnector, Mockito.times(TestUtils.RUN_ONCE))
+                    .deleteInstance(Mockito.eq(computeOrder));
+        }
+    }
+
     // test case: Checks if given an OPEN order getResourceInstance() returns the right instance.
     @Test
     public void testGetResourceInstanceOfOpenOrder() throws Exception {

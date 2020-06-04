@@ -148,9 +148,8 @@ public class OrderController {
                     remoteCloudConnector.deleteInstance(order);
                     // This is just to make sure the remote provider order will be moved to the remoteProviderOrders
                     // list (if it is not already there), since PENDING orders belong to this list.
-                    OrderStateTransitioner.transition(order, OrderState.PENDING);
-                    // This changes the state of the order without removing it from the remoteProviderOrders list
-                    order.setOrderState(OrderState.ASSIGNED_FOR_DELETION);
+                    // TODO(chico) - Check with team.
+                    OrderStateTransitioner.transitionToRemoteList(order, OrderState.ASSIGNED_FOR_DELETION);
                 } catch (Exception e) {
                     // Here we do not know whether the deleteOrder() has been executed or not at the remote site.
                     // We return to the user as if deletion is on its way and try to figure out what is going on in
