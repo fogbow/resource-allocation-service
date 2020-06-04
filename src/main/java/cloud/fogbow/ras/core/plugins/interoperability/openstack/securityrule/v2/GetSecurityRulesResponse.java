@@ -46,9 +46,9 @@ public class GetSecurityRulesResponse {
         @SerializedName(OpenStackConstants.Network.REMOTE_IP_PREFIX_KEY_JSON)
         private String cidr;
         @SerializedName(OpenStackConstants.Network.MIN_PORT_KEY_JSON)
-        private int portFrom;
+        private Integer portFrom;
         @SerializedName(OpenStackConstants.Network.MAX_PORT_KEY_JSON)
-        private int portTo;
+        private Integer portTo;
         @SerializedName(OpenStackConstants.Network.DIRECTION_KEY_JSON)
         private String direction;
         @SerializedName(OpenStackConstants.Network.ETHER_TYPE_KEY_JSON)
@@ -64,11 +64,11 @@ public class GetSecurityRulesResponse {
             return this.cidr;
         }
 
-        public int getPortFrom() {
+        public Integer getPortFrom() {
             return this.portFrom;
         }
 
-        public int getPortTo() {
+        public Integer getPortTo() {
             return this.portTo;
         }
 
