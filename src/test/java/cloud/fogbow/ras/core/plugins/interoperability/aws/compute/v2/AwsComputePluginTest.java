@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.compute.v2;
 
 import java.io.File;
 import java.nio.file.NoSuchFileException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.services.ec2.model.InstanceType;
 import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesResponse;
@@ -68,7 +71,8 @@ public class AwsComputePluginTest extends BaseUnitTests {
     private static final String AWS_TAG_NAME = "Name";
     private static final String BANDWIDTH_REQUIREMENT_VALUE = "not-defined";
     private static final String CLOUD_NAME = "amazon";
-    private static final String FAKE_DEFAULT_SECURITY_GROUP_ID = "fake-security-group-id";
+    private static final String DEFAULT_SUBNET_ID = "default-subnet-id";
+    private static final String FAKE_GROUP_ID = "fake-group-id";
     private static final String FAKE_IP_ADDRESS = "0.0.0.0";
     private static final String FAKE_SUBNET_ID = "fake-subnet-id";
     private static final String FLAVOR_LINE_FORMAT = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s";
@@ -106,17 +110,20 @@ public class AwsComputePluginTest extends BaseUnitTests {
     // test case: When calling the requestInstance method, with a compute order and
     // cloud user valid, a client is invoked to run instances, returning its ID.
     @Test
-    public void testRequestInstance() throws FogbowException {
+    public void testRequestInstance() throws Exception {
         // set up
-        List networkOrderIds = createNetworkOrderIds();
-        ComputeOrder order = this.testUtils.createLocalComputeOrder(networkOrderIds);
+        List networkIds = createNetworkIds();
+        ComputeOrder order = this.testUtils.createLocalComputeOrder(networkIds);
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
 
         AwsHardwareRequirements flavor = createFlavor(null);
         Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(Mockito.eq(order), Mockito.eq(cloudUser));
 
+        Subnet subnet = buildSubnet();
+        Mockito.doReturn(subnet).when(this.plugin).getNetworkSelected(Mockito.eq(order), Mockito.eq(this.client));
+
         RunInstancesRequest request = buildRunInstancesResquest(order, flavor);
-        Mockito.doReturn(request).when(this.plugin).buildRequestInstance(Mockito.eq(order), Mockito.eq(flavor));
+        Mockito.doReturn(request).when(this.plugin).buildRequestInstance(Mockito.eq(order), Mockito.eq(flavor), Mockito.eq(subnet));
 
         Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(order),
                 Mockito.eq(flavor), Mockito.eq(request), Mockito.eq(this.client));
@@ -130,8 +137,10 @@ public class AwsComputePluginTest extends BaseUnitTests {
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findSmallestFlavor(Mockito.eq(order),
                 Mockito.eq(cloudUser));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkSelected(Mockito.eq(order),
+                Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildRequestInstance(Mockito.eq(order),
-                Mockito.eq(flavor));
+                Mockito.eq(flavor), Mockito.eq(subnet));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(order),
                 Mockito.eq(flavor), Mockito.eq(request), Mockito.eq(this.client));
     }
@@ -585,82 +594,123 @@ public class AwsComputePluginTest extends BaseUnitTests {
     // test case: When calling the buildRequestInstance method, it must verify
     // that is call was successful.
     @Test
-    public void testBuildRequestInstance() {
+    public void testBuildRequestInstance() throws FogbowException {
         // set up
         ComputeOrder order = this.testUtils.createLocalComputeOrder();
         AwsHardwareRequirements flavor = createFlavor(null);
 
-        List networkOrderIds = createNetworkOrderIds();
-        Mockito.doReturn(networkOrderIds).when(this.plugin).getSubnetIdsFrom(Mockito.eq(order));
-
-        List networkInterfaces = createNetworkInterfaceCollection();
-        Mockito.doReturn(networkInterfaces).when(this.plugin).loadNetworkInterfaces(Mockito.eq(networkOrderIds));
+        Subnet subnet = buildSubnet();
+        InstanceNetworkInterfaceSpecification networkInterface = buildNetworkInterface();
+        Mockito.doReturn(networkInterface).when(this.plugin).buildNetworkInterface(Mockito.eq(subnet));
 
         RunInstancesRequest expected = buildRunInstancesResquest(order, flavor);
 
         // exercise
-        RunInstancesRequest request = this.plugin.buildRequestInstance(order, flavor);
+        RunInstancesRequest request = this.plugin.buildRequestInstance(order, flavor, subnet);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSubnetIdsFrom(Mockito.eq(order));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .loadNetworkInterfaces(Mockito.eq(networkOrderIds));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkInterface(Mockito.eq(subnet));
 
         Assert.assertEquals(expected, request);
-    }
-    
-    // test case: When calling the loadNetworkInterfaces method, it must verify
-    // that is call was successful.
-    @Test
-    public void testLoadNetworkInterfaces() {
-        // set up
-        List subnetIds = createNetworkOrderIds();
-        String subnetId = FAKE_SUBNET_ID;
-        int index = ZERO_VALUE;
-
-        InstanceNetworkInterfaceSpecification networkInterface = buildNetworkInterface();
-        Mockito.doReturn(networkInterface).when(this.plugin).buildNetworkInterfaces(Mockito.eq(subnetId),
-                Mockito.eq(index));
-
-        // exercise
-        this.plugin.loadNetworkInterfaces(subnetIds);
-
-        // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkInterfaces(Mockito.eq(subnetId),
-                Mockito.eq(index));
     }
     
     // test case: When calling the buildNetworkInterfaces method, it must verify
     // that the obtained network interface is the equals as expected.
     @Test
-    public void testBuildNetworkInterfaces() {
+    public void testBuildNetworkInterfaces() throws Exception {
         // set up
-        String subnetId = FAKE_SUBNET_ID;
-        int index = ZERO_VALUE;
+        Subnet subnet = buildSubnet();
+
+        String groupId = FAKE_GROUP_ID;
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(groupId).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
+                Mockito.anyCollectionOf(Tag.class));
 
         InstanceNetworkInterfaceSpecification expected = buildNetworkInterface();
 
         // exercise
-        InstanceNetworkInterfaceSpecification networkInterface = this.plugin.buildNetworkInterfaces(subnetId, index);
+        InstanceNetworkInterfaceSpecification networkInterface = this.plugin.buildNetworkInterface(subnet);
 
         // verify
         Assert.assertEquals(expected, networkInterface);
     }
     
-    // test case: When calling the getSubnetIdsFrom method, it must verify
-    // that the obtained a list of sub-net ID is the equals as expected.
+    // test case: When calling the getNetworkSelected method, it must verify
+    // that is call was successful.
     @Test
-    public void testGetSubnetIdsFromOrder() {
+    public void testGetNetworkSelectedSuccessfully() throws Exception {
         // set up
-        ComputeOrder order = this.testUtils.createLocalComputeOrder();
-        
-        List expected = createNetworkOrderIds();
+        List networkIds = createNetworkIds();
+        ComputeOrder order = Mockito.mock(ComputeOrder.class);
+        Mockito.when(order.getNetworkIds()).thenReturn(networkIds);
+
+        String subnetId = FAKE_SUBNET_ID;
+        Mockito.doReturn(subnetId).when(this.plugin).selectNetworkId(Mockito.eq(networkIds));
+
+        Subnet subnet = buildSubnet();
+        PowerMockito.mockStatic(AwsV2CloudUtil.class);
+        PowerMockito.doReturn(subnet).when(AwsV2CloudUtil.class, TestUtils.GET_SUBNET_BY_ID_METHOD,
+                Mockito.eq(subnetId), Mockito.eq(this.client));
 
         // exercise
-        List subnetIds = this.plugin.getSubnetIdsFrom(order);
+        this.plugin.getNetworkSelected(order, this.client);
 
         // verify
-        Assert.assertEquals(expected, subnetIds);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).selectNetworkId(Mockito.eq(networkIds));
+
+        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
+        AwsV2CloudUtil.getSubnetById(Mockito.eq(subnetId), Mockito.eq(this.client));
+    }
+    
+    // test case: When calling the selectNetworkId method, with a non-empty
+    // list, it must verify that the list item has been returned.
+    @Test
+    public void testSelectNetworkIdFromList() throws FogbowException {
+        // set up
+        List networkIds = createNetworkIds();
+        String expected = FAKE_SUBNET_ID;
+        
+        // exercise
+        String networkId = this.plugin.selectNetworkId(networkIds);
+
+        // verify
+        Assert.assertEquals(expected, networkId);
+    }
+
+    // test case: When calling the selectNetworkId method, with an empty list,
+    // it must verify that the default subnet ID has been returned.
+    @Test
+    public void testSelectNetworkIdWithEmptyList() throws FogbowException {
+        // set up
+        List networkIds = new ArrayList();
+        String expected = DEFAULT_SUBNET_ID;
+
+        // exercise
+        String defaultSubnetId = this.plugin.selectNetworkId(networkIds);
+
+        // verify
+        Assert.assertEquals(expected, defaultSubnetId);
+    }
+
+    // test case: When calling the checkNetworkIdListIntegrity method, with a
+    // list of network IDs containing more than one element, it should check
+    // that an InvalidParameterException was thrown.
+    @Test
+    public void testCheckNetworkIdListIntegrity() throws FogbowException {
+        // set up
+        String[] networkIds = { FAKE_SUBNET_ID, DEFAULT_SUBNET_ID };
+        List<String> networkIdList = Arrays.asList(networkIds);
+
+        String expected = Messages.Exception.MANY_NETWORKS_NOT_ALLOWED;
+
+        try {
+            // exercise
+            this.plugin.checkNetworkIdListIntegrity(networkIdList);
+            Assert.fail();
+        } catch (InvalidParameterException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
     }
     
     // test case: When calling the findSmallestFlavor method, it must verify
@@ -1098,12 +1148,27 @@ public class AwsComputePluginTest extends BaseUnitTests {
         InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
                 .subnetId(FAKE_SUBNET_ID)
                 .deviceIndex(ZERO_VALUE)
-                .groups(FAKE_DEFAULT_SECURITY_GROUP_ID)
+                .groups(FAKE_GROUP_ID)
                 .build();
         
         return networkInterface;
     }
     
+    private Subnet buildSubnet() {
+        Tag[] tags = {
+                Tag.builder()
+                .key(AwsV2CloudUtil.AWS_TAG_GROUP_ID)
+                .value(FAKE_GROUP_ID)
+                .build()
+        };
+        Subnet subnet = Subnet.builder()
+                .subnetId(FAKE_SUBNET_ID)
+                .tags(tags)
+                .build();
+
+        return subnet;
+    }
+
     private AwsHardwareRequirements createFlavor(Map<String, String> requirements) {
         int cpu = (requirements != null && requirements.containsKey(VCPU_TEST_KEY))
               ? Integer.parseInt(requirements.get(VCPU_TEST_KEY))
@@ -1116,7 +1181,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
         return new AwsHardwareRequirements(name, flavorId, cpu, memory, disk, imageId, requirements);
     }
 
-    private List<String> createNetworkOrderIds() {
+    private List<String> createNetworkIds() {
         String[] networkOrderIds = { FAKE_SUBNET_ID };
         return Arrays.asList(networkOrderIds);
     }
