@@ -282,7 +282,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.OPEN, remoteOrder.getOrderState());
 
         Mockito.doThrow(new RemoteCommunicationException())
-                .when(this.ordersController). notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
+                .when(this.ordersController).notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
 
         String warnMessageException = String.format(
                 Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, remoteOrder.getRequester(), remoteOrder.getId());
@@ -439,184 +439,100 @@ public class OrderControllerTest extends BaseUnitTests {
         }
     }
 
-    // test case: Checks if given an OPEN order getResourceInstance() returns the right instance.
+    // test case: Checks if given an order provided locally in the getResourceInstance method returns its instance.
     @Test
-    public void testGetResourceInstanceOfOpenOrder() throws Exception {
+    public void testGetResourceInstanceSuccessfullyWhenIsProviderLocally() throws Exception {
         // set up
-        Order order = this.testUtils.createRemoteOrder(this.testUtils.getLocalMemberId());
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         order.setOrderState(OrderState.OPEN);
 
-        PowerMockito.mockStatic(InstanceStatus.class);
-        PowerMockito.mockStatic(EmptyOrderInstanceGenerator.class);
-        InstanceState instanceState = InstanceState.CREATING;
-        PowerMockito.doReturn(instanceState)
-                .when(InstanceStatus.class, "mapInstanceStateFromOrderState", Mockito.eq(order.getOrderState()));
-        OrderInstance orderInstance = Mockito.spy(new OrderInstance(TestUtils.ANY_VALUE));
-        PowerMockito.doReturn(orderInstance)
-                .when(EmptyOrderInstanceGenerator.class, "createEmptyInstance", (Mockito.eq(order)));
-
-        Instance resourceInstanceExpected = Mockito.mock(Instance.class);
-        Mockito.doReturn(resourceInstanceExpected).when(this.ordersController)
-                .updateInstanceUsingOrderData(Mockito.eq(orderInstance), Mockito.eq(order));
+        OrderInstance instanceExpected = Mockito.mock(OrderInstance.class);
+        Mockito.doReturn(instanceExpected).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
+        Mockito.doReturn(instanceExpected).when(this.ordersController)
+                .updateInstanceUsingOrderData(Mockito.eq(instanceExpected), Mockito.eq(order));
 
         // exercise
         Instance resourceInstance = this.ordersController.getResourceInstance(order);
 
         // verify
-        Assert.assertEquals(resourceInstanceExpected, resourceInstance);
+        Assert.assertEquals(instanceExpected, resourceInstance);
     }
 
-    // test case: Checks if given an SELECTED order getResourceInstance() returns the right instance.
+    // test case: Checks if given an OPEN order provided remotely in the getResourceInstance method returns its instance.
     @Test
-    public void testGetResourceInstanceOfSelectedOrder() throws Exception {
+    public void testGetResourceInstanceSuccessfullyWhenIsProviderRemoteAndOpen() throws Exception {
         // set up
-        Order order = this.testUtils.createRemoteOrder(this.testUtils.getLocalMemberId());
-        order.setOrderState(OrderState.SELECTED);
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+        order.setProvider(TestUtils.FAKE_REMOTE_MEMBER_ID);
+        OrderState orderState = OrderState.OPEN;
+        order.setOrderState(orderState);
 
+        OrderInstance instanceExpected = new OrderInstance(TestUtils.ANY_VALUE);
         PowerMockito.mockStatic(InstanceStatus.class);
+        InstanceState instanceState = InstanceState.READY;
+        PowerMockito.when(InstanceStatus.mapInstanceStateFromOrderState(Mockito.eq(orderState)))
+                .thenReturn(instanceState);
         PowerMockito.mockStatic(EmptyOrderInstanceGenerator.class);
-        InstanceState instanceState = InstanceState.CREATING;
-        PowerMockito.doReturn(instanceState)
-                .when(InstanceStatus.class, "mapInstanceStateFromOrderState", Mockito.eq(order.getOrderState()));
-        OrderInstance orderInstance = Mockito.spy(new OrderInstance(TestUtils.ANY_VALUE));
-        PowerMockito.doReturn(orderInstance)
-                .when(EmptyOrderInstanceGenerator.class, "createEmptyInstance", (Mockito.eq(order)));
+        PowerMockito.when(EmptyOrderInstanceGenerator.createEmptyInstance(Mockito.eq(order)))
+                .thenReturn(instanceExpected);
 
-        Instance resourceInstanceExpected = Mockito.mock(Instance.class);
-        Mockito.doReturn(resourceInstanceExpected).when(this.ordersController)
-                .updateInstanceUsingOrderData(Mockito.eq(orderInstance), Mockito.eq(order));
+        Mockito.doReturn(instanceExpected).when(this.ordersController)
+                .updateInstanceUsingOrderData(Mockito.eq(instanceExpected), Mockito.eq(order));
 
         // exercise
         Instance resourceInstance = this.ordersController.getResourceInstance(order);
 
         // verify
-        Assert.assertEquals(resourceInstanceExpected, resourceInstance);
+        Assert.assertEquals(instanceExpected, resourceInstance);
     }
 
-    // test case: Checks if given an order in the getResourceInstance method returns its instance.
+    // test case: Checks if given a SELECTED order provided remotely in the getResourceInstance method returns its instance.
     @Test
-    public void testGetResourceInstance() throws Exception {
+    public void testGetResourceInstanceSuccessfullyWhenIsProviderRemoteAndSeleted() throws Exception {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
-        order.setOrderState(OrderState.FULFILLED);
-        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        order.setProvider(TestUtils.FAKE_REMOTE_MEMBER_ID);
+        OrderState orderState = OrderState.SELECTED;
+        order.setOrderState(orderState);
 
-        this.fulfilledOrdersList.addItem(order);
-        this.activeOrdersMap.put(order.getId(), order);
+        OrderInstance instanceExpected = new OrderInstance(TestUtils.ANY_VALUE);
+        PowerMockito.mockStatic(InstanceStatus.class);
+        InstanceState instanceState = InstanceState.READY;
+        PowerMockito.when(InstanceStatus.mapInstanceStateFromOrderState(Mockito.eq(orderState)))
+                .thenReturn(instanceState);
+        PowerMockito.mockStatic(EmptyOrderInstanceGenerator.class);
+        PowerMockito.when(EmptyOrderInstanceGenerator.createEmptyInstance(Mockito.eq(order)))
+                .thenReturn(instanceExpected);
 
-        ComputeInstance computeInstance = new ComputeInstance(TestUtils.FAKE_INSTANCE_ID);
-        computeInstance.setState(InstanceState.READY);
-
-        Mockito.doReturn(computeInstance).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
-
-        // exercise
-        this.ordersController.getResourceInstance(order);
-
-        // verify
-        Mockito.verify(this.ordersController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-        Mockito.verify(this.localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(order));
-    }
-
-    // test case: Checks if given an attachment order in the getResourceInstance method returns its instance.
-    @Test
-    public void testGetAttachmentInstance() throws Exception {
-        // set up
-        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
-        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
-        AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
-
-        this.ordersController.activateOrder(computeOrder);
-        this.ordersController.activateOrder(volumeOrder);
-        this.ordersController.activateOrder(attachmentOrder);
-
-        String instanceId = TestUtils.FAKE_INSTANCE_ID;
-        computeOrder.setInstanceId(instanceId);
-        volumeOrder.setInstanceId(instanceId);
-
-        attachmentOrder.setInstanceId(instanceId);
-        String cloudState = AVAILABLE_STATE;
-        String device = TestUtils.FAKE_DEVICE;
-        AttachmentInstance attachmentInstance =
-                new AttachmentInstance(
-                        instanceId,
-                        cloudState,
-                        computeOrder.getInstanceId(),
-                        volumeOrder.getInstanceId(),
-                        device);
-
-        Mockito.doReturn(attachmentInstance).when(this.localCloudConnector).getInstance(Mockito.eq(attachmentOrder));
+        Mockito.doReturn(instanceExpected).when(this.ordersController)
+                .updateInstanceUsingOrderData(Mockito.eq(instanceExpected), Mockito.eq(order));
 
         // exercise
-        this.ordersController.getResourceInstance(attachmentOrder);
+        Instance resourceInstance = this.ordersController.getResourceInstance(order);
 
         // verify
-        Mockito.verify(this.ordersController, Mockito.times(1)).getCloudConnector(Mockito.eq(attachmentOrder));
-        Mockito.verify(this.localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(attachmentOrder));
+        Assert.assertEquals(instanceExpected, resourceInstance);
     }
 
-    // test case: Checks if given an public ip order in the getResourceInstance method returns its instance.
+    // test case: Checks if given a order provided remotely but stade diferent from OPEN and SELECTED
+    // in the getResourceInstance method returns its instance.
     @Test
-    public void testGetPublicIpInstance() throws Exception {
-        // set up
-        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
-        PublicIpOrder publicIpOrder = this.testUtils.createLocalPublicIpOrder(computeOrder.getId());
-
-        this.ordersController.activateOrder(computeOrder);
-        this.ordersController.activateOrder(publicIpOrder);
-
-        String instanceId = TestUtils.FAKE_INSTANCE_ID;
-        computeOrder.setInstanceId(instanceId);
-        publicIpOrder.setInstanceId(instanceId);
-
-        String cloudState = AVAILABLE_STATE;
-        String ip = FAKE_IP_ADDRESS;
-        PublicIpInstance publicIpInstance =
-                new PublicIpInstance(
-                        instanceId,
-                        cloudState,
-                        ip);
-
-        Mockito.doReturn(publicIpInstance).when(this.localCloudConnector).getInstance(Mockito.eq(publicIpOrder));
-
-        // exercise
-        this.ordersController.getResourceInstance(publicIpOrder);
-
-        // verify
-        Mockito.verify(this.ordersController, Mockito.times(1)).getCloudConnector(Mockito.eq(publicIpOrder));
-        Mockito.verify(this.localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(publicIpOrder));
-    }
-
-    // test case: Checks if given an remote order in the getResourceInstance method returns its instance.
-    @Test
-    public void testRemoteGetResourceInstance() throws FogbowException {
+    public void testGetResourceInstanceSuccessfullyWhenIsProviderRemoteAndNotOpenOrSelected() throws Exception {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
-        order.setOrderState(OrderState.FULFILLED);
+        order.setProvider(TestUtils.FAKE_REMOTE_MEMBER_ID);
+        OrderState orderState = OrderState.FULFILLED;
+        order.setOrderState(orderState);
 
-        this.fulfilledOrdersList.addItem(order);
-        this.activeOrdersMap.put(order.getId(), order);
-
-        String instanceId = TestUtils.FAKE_INSTANCE_ID;
-        OrderInstance orderInstance = new ComputeInstance(instanceId);
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(instanceId);
-
-        Mockito.doReturn(orderInstance).when(this.localCloudConnector)
-                .getInstance(Mockito.any(Order.class));
+        OrderInstance instanceExpected = Mockito.mock(OrderInstance.class);
+        Mockito.doReturn(instanceExpected).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
 
         // exercise
-        this.ordersController.getResourceInstance(order);
+        Instance resourceInstance = this.ordersController.getResourceInstance(order);
 
         // verify
-        Mockito.verify(this.ordersController, Mockito.times(1)).getCloudConnector(Mockito.eq(order));
-        Mockito.verify(this.localCloudConnector, Mockito.times(1)).getInstance(Mockito.eq(order));
-    }
-
-    // test case: Requesting a null order must return a UnexpectedException.
-    @Test(expected = UnexpectedException.class) // verify
-    public void testGetResourceInstanceNullOrder() throws Exception {
-        // exercise
-        this.ordersController.getResourceInstance(null);
+        Assert.assertEquals(instanceExpected, resourceInstance);
+        Mockito.verify(this.ordersController, Mockito.never()).updateInstanceUsingOrderData(Mockito.any(), Mockito.any());
     }
 
     // test case: Tests if the getUserAllocation method returns the

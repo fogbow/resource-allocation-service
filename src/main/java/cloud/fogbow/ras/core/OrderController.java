@@ -129,8 +129,8 @@ public class OrderController {
                 throw new OnGoingOperationException(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
             }
             if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
-                    throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED,
-                            order.getId(), this.orderDependencies.get(order.getId())));
+                throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED,
+                        order.getId(), this.orderDependencies.get(order.getId())));
             }
             if (order.getOrderState().equals(OrderState.SELECTED)) {
                 // This only happens if the provider has failed between selecting the order and saving the new state.
@@ -163,30 +163,23 @@ public class OrderController {
         }
     }
 
-    public Instance getResourceInstance(@Nullable Order order) throws FogbowException {
-        if (order == null) {
-            throw new UnexpectedException(Messages.Exception.CORRUPTED_INSTANCE);
-        }
-
+    public Instance getResourceInstance(Order order) throws FogbowException {
         synchronized (order) {
-            boolean isRemoteProvider = !this.localProviderId.equals(order.getProvider());
-            boolean isOpen = order.getOrderState().equals(OrderState.OPEN);
-            boolean isSelected = order.getOrderState().equals(OrderState.SELECTED);
-            if (isRemoteProvider && (isOpen || isSelected)) {
+            CloudConnector cloudConnector = getCloudConnector(order);
+            if (order.isProviderLocal(this.localProviderId)) {
+                Instance instance = cloudConnector.getInstance(order);
+                return updateInstanceUsingOrderData(instance, order);
+            } else if (order.getOrderState().equals(OrderState.OPEN) || order.getOrderState().equals(OrderState.SELECTED)) {
                 // This is an order for a remote provider that has never been received by that provider.
                 // We create an empty Instance and update the Instance fields with the values held in the order.
                 InstanceState instanceState = InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState());
-                OrderInstance instance = EmptyOrderInstanceGenerator.createEmptyInstance(order);
-                instance.setState(instanceState);
-                return updateInstanceUsingOrderData(instance, order);
-            }
-            CloudConnector cloudConnector = getCloudConnector(order);
-            Instance instance = cloudConnector.getInstance(order);
-            if (order.isProviderLocal(this.localProviderId)) {
-                return updateInstanceUsingOrderData(instance, order);
+                OrderInstance emptyInstance = EmptyOrderInstanceGenerator.createEmptyInstance(order);
+                emptyInstance.setState(instanceState);
+                return updateInstanceUsingOrderData(emptyInstance, order);
             } else {
-                return instance;
+                return cloudConnector.getInstance(order);
             }
+
         }
     }
 
@@ -258,14 +251,16 @@ public class OrderController {
             }
         }
         return new VolumeAllocation(volumes, storage);
-    };
+    }
+
+    ;
 
     public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws UnexpectedException {
-		List<InstanceStatus> instanceStatusList = new ArrayList<>();
-		List<Order> allOrders = getAllOrders(systemUser, resourceType);
+        List<InstanceStatus> instanceStatusList = new ArrayList<>();
+        List<Order> allOrders = getAllOrders(systemUser, resourceType);
 
-		for (Order order : allOrders) {
-		    synchronized (order) {
+        for (Order order : allOrders) {
+            synchronized (order) {
                 String name = null;
 
                 switch (resourceType) {
@@ -294,10 +289,10 @@ public class OrderController {
 
                 instanceStatusList.add(instanceStatus);
             }
-		}
+        }
 
-		return instanceStatusList;
-	}
+        return instanceStatusList;
+    }
 
     protected CloudConnector getCloudConnector(Order order) {
         return CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
@@ -321,7 +316,7 @@ public class OrderController {
         return new ComputeAllocation(instances, vCPU, ram, disk);
     }
 
-	private List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
+    private List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
         synchronized (activeOrdersMap) {
@@ -334,9 +329,9 @@ public class OrderController {
 
             return requestedOrders;
         }
-	}
+    }
 
-	public void updateOrderDependencies(Order order, Operation operation) throws UnexpectedException {
+    public void updateOrderDependencies(Order order, Operation operation) throws UnexpectedException {
         synchronized (order) {
             List<String> dependentOrderIds = new LinkedList<>();
 

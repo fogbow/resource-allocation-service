@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 
+// TODO(chico) - Refactor it
 public class EmptyOrderInstanceGenerator {
     public static OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
         OrderInstance instance = null;
