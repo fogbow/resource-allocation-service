@@ -98,10 +98,7 @@ public class OpenProcessor implements Runnable {
                 if (order.isProviderLocal(this.localProviderId)) {
                     OrderStateTransitioner.transition(order, OrderState.FAILED_ON_REQUEST);
                 } else {
-                    // Moves order to remoteProviderOrders list
-                    OrderStateTransitioner.transition(order, OrderState.PENDING);
-                    // Update order's state
-                    order.setOrderState(OrderState.FAILED_ON_REQUEST);
+                    OrderStateTransitioner.transitionToRemoteList(order, OrderState.FAILED_ON_REQUEST);
                 }
                 throw e;
             }
