@@ -4,29 +4,23 @@ import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 
-// TODO(chico) - Refactor it
 public class EmptyOrderInstanceGenerator {
+
     public static OrderInstance createEmptyInstance(Order order) throws UnexpectedException {
-        OrderInstance instance = null;
         switch (order.getType()) {
             case COMPUTE:
-                instance = new ComputeInstance(order.getId());
-                break;
+                return new ComputeInstance(order.getId());
             case VOLUME:
-                instance = new VolumeInstance(order.getId());
-                break;
+                return new VolumeInstance(order.getId());
             case NETWORK:
-                instance = new NetworkInstance(order.getId());
-                break;
+                return new NetworkInstance(order.getId());
             case ATTACHMENT:
-                instance = new AttachmentInstance(order.getId());
-                break;
+                return new AttachmentInstance(order.getId());
             case PUBLIC_IP:
-                instance = new PublicIpInstance(order.getId());
-                break;
+                return new PublicIpInstance(order.getId());
             default:
                 throw new UnexpectedException(Messages.Exception.UNSUPPORTED_REQUEST_TYPE);
         }
-        return instance;
     }
+
 }
