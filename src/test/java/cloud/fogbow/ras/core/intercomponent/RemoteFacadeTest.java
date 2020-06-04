@@ -612,8 +612,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 
 	private SystemUser createFederationUser() {
-		return new SystemUser(FAKE_REQUESTER_USER_ID_VALUE, FAKE_REQUESTER_USER_ID_VALUE, null
-        );
+		return new SystemUser(FAKE_REQUESTER_USER_ID_VALUE, FAKE_REQUESTER_USER_ID_VALUE, null);
 	}
 
 	private CloudConnector mockCloudConnector(CloudConnectorFactory cloudConnectorFactory) {
