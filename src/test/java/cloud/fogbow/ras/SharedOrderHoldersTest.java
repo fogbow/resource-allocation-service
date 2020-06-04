@@ -54,7 +54,6 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
 
     // test case: When calling the constructor method,
     // it must verify if It It retrieves Orders at the database and populates lists.
-    // FIXME(chico): PowerMockito fails depending on the tests execution order.
     @Test
     public void testConstructorSuccessfully() throws UnexpectedException {
         // set up
@@ -130,7 +129,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
                 assignedForDeletionRequestLis);
 
         // exercise
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        SharedOrderHolders sharedOrderHolders = new SharedOrderHolders();
 
         // verify
         int activeOrderSize = sharedOrderHolders.getActiveOrdersMap().size();
