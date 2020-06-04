@@ -39,9 +39,10 @@ import java.util.Properties;
 public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStackV3User> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackSecurityRulePlugin.class);
-    private static final int MAXIMUM_PORT_RANGE = 65535;
-    private static final int MINIMUM_PORT_RANGE = 0;
     private static final int MAXIMUM_SIZE_ALLOWED = 1;
+
+    public static final int MAXIMUM_PORT_RANGE = 65535;
+    public static final int MINIMUM_PORT_RANGE = 0;
 
     private String prefixEndpoint;
     private OpenStackHttpClient client;
