@@ -13,7 +13,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.UUID;
 
-// TODO(chico) - This class must be moved to the right package (cloud.fogbow.ras.core).
 @PrepareForTest(DatabaseManager.class)
 public class SharedOrderHoldersTest extends BaseUnitTests {
 
