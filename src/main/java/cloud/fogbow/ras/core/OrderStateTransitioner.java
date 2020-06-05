@@ -13,7 +13,6 @@ public class OrderStateTransitioner {
      * @param order - Order to be moved;
      * @param newStateOrder - New state to this order in the RemoteProviderList.
      */
-    // TODO (chico) - Implement tests
     public static void transitionToRemoteList(Order order, OrderState newStateOrder) throws UnexpectedException {
         transition(order, OrderState.PENDING, newStateOrder);
     }
