@@ -39,13 +39,11 @@ public class OrderController {
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
-        synchronized (activeOrdersMap) {
-            Order requestedOrder = activeOrdersMap.get(orderId);
-            if (requestedOrder == null) {
-                throw new InstanceNotFoundException(String.format(Messages.Exception.NOT_FOUND_ORDER_ID_S, orderId));
-            }
-            return requestedOrder;
+        Order requestedOrder = activeOrdersMap.get(orderId);
+        if (requestedOrder == null) {
+            throw new InstanceNotFoundException(String.format(Messages.Exception.NOT_FOUND_ORDER_ID_S, orderId));
         }
+        return requestedOrder;
     }
 
     public String activateOrder(Order order) throws FogbowException {
@@ -103,12 +101,12 @@ public class OrderController {
                     String message = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
                     throw new UnexpectedException(message);
                 }
+            }
 
-                if (order.isProviderLocal(this.localProviderId)) {
-                    checkingDeletionOrders.removeItem(order);
-                } else {
-                    remoteProviderOrders.removeItem(order);
-                }
+            if (order.isProviderLocal(this.localProviderId)) {
+                checkingDeletionOrders.removeItem(order);
+            } else {
+                remoteProviderOrders.removeItem(order);
             }
             order.setOrderState(OrderState.CLOSED);
         }
@@ -176,20 +174,18 @@ public class OrderController {
 
     public Allocation getUserAllocation(String providerId, String cloudName, SystemUser systemUser, ResourceType resourceType)
             throws UnexpectedException {
-        List<Order> filteredOrders = null;
+
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
-        synchronized (activeOrdersMap) {
-            Collection<Order> orders = activeOrdersMap.values();
+        Collection<Order> orders = activeOrdersMap.values();
 
-            filteredOrders = orders.stream()
-                    .filter(order -> order.getType().equals(resourceType))
-                    .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
-                    .filter(order -> order.isProviderLocal(providerId))
-                    .filter(order -> order.getSystemUser().equals(systemUser))
-                    .filter(order -> order.getCloudName().equals(cloudName))
-                    .collect(Collectors.toList());
-        }
+        List<Order> filteredOrders = orders.stream()
+                .filter(order -> order.getType().equals(resourceType))
+                .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
+                .filter(order -> order.isProviderLocal(providerId))
+                .filter(order -> order.getSystemUser().equals(systemUser))
+                .filter(order -> order.getCloudName().equals(cloudName))
+                .collect(Collectors.toList());
 
         switch (resourceType) {
             case COMPUTE:
@@ -310,16 +306,14 @@ public class OrderController {
     private List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
-        synchronized (activeOrdersMap) {
-            Collection<Order> orders = activeOrdersMap.values();
+        Collection<Order> orders = activeOrdersMap.values();
 
-            // Filter all orders of resourceType from the user systemUser.
-            List<Order> requestedOrders = orders.stream()
-                    .filter(order -> order.getType().equals(resourceType))
-                    .filter(order -> order.getSystemUser().equals(systemUser)).collect(Collectors.toList());
+        // Filter all orders of resourceType from the user systemUser.
+        List<Order> requestedOrders = orders.stream()
+                .filter(order -> order.getType().equals(resourceType))
+                .filter(order -> order.getSystemUser().equals(systemUser)).collect(Collectors.toList());
 
-            return requestedOrders;
-        }
+        return requestedOrders;
     }
 
     public void updateOrderDependencies(Order order, Operation operation) throws UnexpectedException {
@@ -362,15 +356,13 @@ public class OrderController {
     void updateAllOrdersDependencies() throws UnexpectedException {
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
-        synchronized (activeOrdersMap) {
-            Collection<Order> allOrders = activeOrdersMap.values();
+        Collection<Order> allOrders = activeOrdersMap.values();
 
-            for (Order order : allOrders) {
-                // No need to synchronize as this is only executed at startup time, and the processor threads
-                // have not yet been started.
-                if (order.isRequesterLocal(this.localProviderId)) {
-                    this.updateOrderDependencies(order, Operation.CREATE);
-                }
+        for (Order order : allOrders) {
+            // No need to synchronize as this is only executed at startup time, and the processor threads
+            // have not yet been started.
+            if (order.isRequesterLocal(this.localProviderId)) {
+                this.updateOrderDependencies(order, Operation.CREATE);
             }
         }
     }
