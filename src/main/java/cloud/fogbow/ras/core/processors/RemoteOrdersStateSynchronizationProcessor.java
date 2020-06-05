@@ -93,8 +93,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                     order.setOrderState(remoteOrder.getOrderState());
                 }
             } catch (RemoteCommunicationException e) {
-                // TODO(chico) - Check it with the Team; Should not we change it to Warn Log Level?
-                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+                LOGGER.warn(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
             }
         }
     }

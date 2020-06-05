@@ -96,7 +96,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
         this.processor.processRemoteProviderOrder(order);
 
         // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.INFO, infoMessageExpected);
+        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, infoMessageExpected);
     }
 
     // test case: When calling the processRemoteProviderOrder method with local FULFILLED order,
