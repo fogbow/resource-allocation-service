@@ -22,8 +22,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-// TODO(chico) - Question! Why is the necessity of synchronized block at activeOrdersMaps.
-//  It is already Thread Safe, right ?
 public class OrderController {
     private static final Logger LOGGER = Logger.getLogger(OrderController.class);
 
@@ -142,7 +140,6 @@ public class OrderController {
                     remoteCloudConnector.deleteInstance(order);
                     // This is just to make sure the remote provider order will be moved to the remoteProviderOrders
                     // list (if it is not already there), since PENDING orders belong to this list.
-                    // TODO(chico) - Check with team.
                     OrderStateTransitioner.transitionToRemoteList(order, OrderState.ASSIGNED_FOR_DELETION);
                 } catch (Exception e) {
                     // Here we do not know whether the deleteOrder() has been executed or not at the remote site.
