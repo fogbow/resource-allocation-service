@@ -83,9 +83,7 @@ public class NetworkOrder extends Order<NetworkOrder> {
         return allocationMode;
     }
 
-    // TODO(chico) - Check it with the Team; Why does this implementation does not follow other(Compute, Volume, ...).
     @Override
-    public void updateFromRemote(NetworkOrder remoteOrder) {
-    }
+    public void updateFromRemote(NetworkOrder remoteOrder) { }
 
 }
