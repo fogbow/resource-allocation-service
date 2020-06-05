@@ -18,7 +18,6 @@ import cloud.fogbow.ras.core.models.orders.*;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -51,12 +50,8 @@ public class OrderController {
         }
     }
 
-    public String activateOrder(@Nullable Order order) throws FogbowException {
+    public String activateOrder(Order order) throws FogbowException {
         LOGGER.info(Messages.Info.ACTIVATING_NEW_REQUEST);
-        if (order == null) {
-            throw new UnexpectedException(Messages.Exception.UNABLE_TO_PROCESS_EMPTY_REQUEST);
-        }
-
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();

@@ -38,8 +38,6 @@ import java.util.Map;
         EmptyOrderInstanceGenerator.class})
 public class OrderControllerTest extends BaseUnitTests {
 
-    private static final String AVAILABLE_STATE = "available";
-    private static final String FAKE_IP_ADDRESS = "0.0.0.0";
     private static final String INVALID_ORDER_ID = "invalid-order-id";
     private static final int INSTANCES_LAUNCH_NUMBER = 1;
 
@@ -81,7 +79,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
     }
 
-    // test case: Checks if the getInstancesStatusmethod returns exactly the same
+    // test case: Checks if the getInstancesStatus method returns exactly the same
     // list of instances that were added on the lists.
     @Test
     public void testGetAllInstancesStatus() throws Exception {
@@ -147,16 +145,6 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetInvalidOrder() throws FogbowException {
         // exercise
         this.ordersController.getOrder(INVALID_ORDER_ID);
-    }
-
-    //test case: Checks if attempt to activate null order throws UnexpectedException
-    @Test(expected = UnexpectedException.class)
-    public void testActivateNullOrder() throws FogbowException {
-        // set up
-        Order order = null;
-
-        // exercise
-        this.ordersController.activateOrder(order);
     }
 
     // test case: Attempt to activate the same order more than once must throw
