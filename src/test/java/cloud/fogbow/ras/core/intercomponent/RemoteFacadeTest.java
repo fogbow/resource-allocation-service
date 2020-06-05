@@ -504,45 +504,6 @@ public class RemoteFacadeTest extends BaseUnitTests {
 				Mockito.eq(cloudName), Mockito.anyString(), Mockito.eq(systemUser));
 	}
 
-	// test case: When calling the isAuthorizedOrder method with a different resource
-	// type of the order, it must throw a InstanceNotFoundException.
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testisAuthorizedOrderThrowsInstanceNotFoundException() throws Exception {
-		// set up
-		SystemUser systemUser = null;
-		String cloudName = null;
-		Operation operation = null;
-		ResourceType resourceType = ResourceType.VOLUME;
-		ComputeOrder order = new ComputeOrder();
-
-		// exercise
-		this.facade.authorizeOrder(systemUser, cloudName, operation, resourceType, order);
-	}
-
-	// test case: When calling the isAuthorizedOrder method with a federation user
-	// different of the order requester, it must throw an
-	// UnisAuthorizeddRequestException.
-	@Test(expected = UnauthorizedRequestException.class) // verify
-	public void testisAuthorizedOrderThrowsUnisAuthorizeddRequestException() throws Exception {
-		// set up
-		SystemUser ownerUser = new SystemUser(FAKE_OWNER_USER_ID_VALUE, FAKE_OWNER_USER_ID_VALUE, null
-        );
-
-		SystemUser requesterUser = new SystemUser(FAKE_REQUESTER_USER_ID_VALUE, FAKE_REQUESTER_USER_ID_VALUE, null
-        );
-
-		String cloudName = null;
-		String provider = null;
-
-		Order order = spyComputeOrder(requesterUser, cloudName, provider);
-
-		Operation operation = null;
-		ResourceType resourceType = ResourceType.COMPUTE;
-
-		// exercise
-		this.facade.authorizeOrder(ownerUser, cloudName, operation, resourceType, order);
-	}
-
 	// test case: When calling the closeOrderAtRemoteRequester method from a pending
 	// remote order, it must close order.
 	@Test

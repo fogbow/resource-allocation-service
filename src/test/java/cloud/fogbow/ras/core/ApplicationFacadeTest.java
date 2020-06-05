@@ -14,7 +14,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.RemoteCommunicationException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
@@ -63,7 +62,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private ApplicationFacade facade;
 	private OrderController orderController;
 	private LocalCloudConnector localCloudConnector;
-	private AuthorizationPlugin authorizationPlugin;
+	private AuthorizationPlugin<RasOperation> authorizationPlugin;
 	private CloudListController cloudListController;
     private SecurityRuleController securityRuleController;
 
@@ -1119,6 +1118,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         this.orderController.activateOrder(order);
 
+        RasOperation operation = new RasOperation(Operation.GET, order.getType(), order.getCloudName(), order);
+
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
 
@@ -1129,9 +1130,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET), Mockito.eq(ResourceType.COMPUTE),
-                Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                        Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getResourceInstance(Mockito.eq(order));
     }
     
@@ -1148,6 +1148,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         this.orderController.activateOrder(order);
 
+        RasOperation operation = new RasOperation(Operation.GET, order.getType(), order.getCloudName(), order);
+
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
 
@@ -1158,9 +1160,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET), Mockito.eq(ResourceType.VOLUME),
-                Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                        Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getResourceInstance(Mockito.eq(order));
     }
     
@@ -1178,6 +1179,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         order.setProvider(TestUtils.LOCAL_MEMBER_ID);
         this.orderController.activateOrder(order);
 
+        RasOperation operation = new RasOperation(Operation.GET, order.getType(), order.getCloudName(), order);
+
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
 
@@ -1187,9 +1190,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET),
-                Mockito.eq(ResourceType.ATTACHMENT), Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                        Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getResourceInstance(Mockito.eq(order));
     }
     
@@ -1206,6 +1208,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         this.orderController.activateOrder(order);
 
+        RasOperation operation = new RasOperation(Operation.GET, order.getType(), order.getCloudName(), order);
+
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
 
@@ -1216,9 +1220,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET), Mockito.eq(ResourceType.NETWORK),
-                Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                        Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getResourceInstance(Mockito.eq(order));
     }
     
@@ -1235,6 +1238,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         this.orderController.activateOrder(order);
 
+        RasOperation operation = new RasOperation(Operation.GET, order.getType(), order.getCloudName(), order);
+
         ComputeInstance instance = Mockito.mock(ComputeInstance.class);
         Mockito.doReturn(instance).when(this.orderController).getResourceInstance(Mockito.eq(order));
 
@@ -1245,9 +1250,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.GET), Mockito.eq(ResourceType.PUBLIC_IP),
-                Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                        Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getResourceInstance(Mockito.eq(order));
     }
     
@@ -1259,10 +1263,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
-        
+
         Order order = testUtils.createLocalComputeOrder();
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         this.orderController.activateOrder(order);
+
+        RasOperation operation = new RasOperation(Operation.DELETE, order.getType(), order.getCloudName(), order);
 
         Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
 
@@ -1273,9 +1279,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE),
-                Mockito.eq(ResourceType.COMPUTE), Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
     }
     
@@ -1292,6 +1297,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         this.orderController.activateOrder(order);
 
+        RasOperation operation = new RasOperation(Operation.DELETE, order.getType(), order.getCloudName(), order);
+
         Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
 
         // exercise
@@ -1301,9 +1308,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.VOLUME),
-                Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                        Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
     }
     
@@ -1315,11 +1321,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
-        
         Order order = testUtils.createLocalAttachmentOrder(this.testUtils.createLocalComputeOrder(),
                 this.testUtils.createLocalVolumeOrder());
         order.setProvider(TestUtils.LOCAL_MEMBER_ID);
         this.orderController.activateOrder(order);
+
+        RasOperation operation = new RasOperation(Operation.DELETE, order.getType(), order.getCloudName(), order);
 
         Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
 
@@ -1330,9 +1337,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE),
-                Mockito.eq(ResourceType.ATTACHMENT), Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                        Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
     }
     
@@ -1349,6 +1355,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         this.orderController.activateOrder(order);
 
+        RasOperation operation = new RasOperation(Operation.DELETE, order.getType(), order.getCloudName(), order);
+
         Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
 
         // exercise
@@ -1358,9 +1366,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.NETWORK),
-                Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                        Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
     }
     
@@ -1377,6 +1384,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         this.orderController.activateOrder(order);
 
+        RasOperation operation = new RasOperation(Operation.DELETE, order.getType(), order.getCloudName(), order);
+
         Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.eq(order));
 
         // exercise
@@ -1386,9 +1395,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
                 .authenticate(Mockito.eq(userToken));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).getOrder(Mockito.eq(order.getId()));
-        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE)).authorizeOrder(Mockito.eq(systemUser),
-                Mockito.eq(TestUtils.DEFAULT_CLOUD_NAME), Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.PUBLIC_IP),
-                Mockito.eq(order));
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                        Mockito.eq(operation));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.RUN_ONCE)).deleteOrder(Mockito.eq(order));
     }
     
@@ -1449,47 +1457,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).getUserQuota(Mockito.eq(systemUser)
         );
     }
-    
-    // test case: When calling the authorizeOrder method with resource type
-    // different from COMPUTE, NETWORK, ATTACHMENT, VOLUME or PUBLIC_IP, it must
-    // throw an InstanceNotFoundException;
-    @Test
-    public void testAuthorizeOrderWithDifferentResourceType() throws FogbowException {
-        // set up
-        Order order = this.testUtils.createLocalComputeOrder();
-        
-        String expected = Messages.Exception.MISMATCHING_RESOURCE_TYPE;
 
-        try {
-            // exercise
-            this.facade.authorizeOrder(null, null, null, ResourceType.INVALID_RESOURCE, order);
-            Assert.fail();
-        } catch (InstanceNotFoundException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
-    // test case: When calling the authorizeOrder method with requester
-    // different from order owner, it must throws an InstanceNotFoundException;
-    @Test
-    public void testAuthorizeOrderWithDifferentRequester() throws FogbowException {
-        // set up
-        SystemUser requester = Mockito.mock(SystemUser.class);
-        Order order = this.testUtils.createLocalComputeOrder();
-        
-        String expected = Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST;
-
-        try {
-            // exercise
-            this.facade.authorizeOrder(requester, null, null, ResourceType.COMPUTE, order);
-            Assert.fail();
-        } catch (UnauthorizedRequestException e) {
-            // verify
-            Assert.assertEquals(expected, e.getMessage());
-        }
-    }
-    
     // test case: When calling the checkEmbeddedOrdersConsistency method with a
     // COMPUTE resource type, it must verify that checkComputeOrderConsistency
     // method was called.
@@ -1766,10 +1734,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         return userDataScripts;
     }
 	
-    private AuthorizationPlugin mockAuthorizationPlugin() throws FogbowException {
-        AuthorizationPlugin plugin = Mockito.mock(DefaultAuthorizationPlugin.class);
-        Mockito.when(plugin.isAuthorized(Mockito.any(SystemUser.class), Mockito.any(RasOperation.class)))
-                .thenReturn(true);
+    private AuthorizationPlugin<RasOperation> mockAuthorizationPlugin() {
+        AuthorizationPlugin<RasOperation> plugin = Mockito.mock(DefaultAuthorizationPlugin.class);
         return plugin;
     }
 
