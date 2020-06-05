@@ -1,4 +1,4 @@
-package cloud.fogbow.ras;
+package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
