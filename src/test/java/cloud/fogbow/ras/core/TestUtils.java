@@ -1,43 +1,35 @@
 package cloud.fogbow.ras.core;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.util.CloudInitUserDataBuilder;
-import cloud.fogbow.ras.core.datastore.services.RecoveryService;
-import org.apache.http.client.HttpResponseException;
-import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
-
-import org.mockito.BDDMockito;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-
-import com.google.gson.Gson;
-
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
+import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.UserData;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.core.models.orders.OrderState;
-import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import cloud.fogbow.ras.core.models.orders.*;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
+import com.google.gson.Gson;
+import org.apache.http.client.HttpResponseException;
+import org.mockito.BDDMockito;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class TestUtils {
 
@@ -237,21 +229,40 @@ public class TestUtils {
         return systemUser;
     }
 
+    public void mockReadOrdersFromDataBase() throws UnexpectedException {
+                mockReadOrdersFromDataBase(new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
+                        new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
+                        new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
+                        new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
+                        new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>());
+    }
+
     /*
      * Mocks the behavior of the database as if there was no order in any state.
      */
-    public void mockReadOrdersFromDataBase() throws UnexpectedException {
+    public void mockReadOrdersFromDataBase(SynchronizedDoublyLinkedList<Order> openList,
+                                           SynchronizedDoublyLinkedList<Order> selectedList,
+                                           SynchronizedDoublyLinkedList<Order> fulfilledList,
+                                           SynchronizedDoublyLinkedList<Order> failedAfterSuccessRequestList,
+                                           SynchronizedDoublyLinkedList<Order> checkingDeletionList,
+                                           SynchronizedDoublyLinkedList<Order> pendingList,
+                                           SynchronizedDoublyLinkedList<Order> spawningList,
+                                           SynchronizedDoublyLinkedList<Order> failedOnRequestList,
+                                           SynchronizedDoublyLinkedList<Order> unableToCheckRequestList,
+                                           SynchronizedDoublyLinkedList<Order> assignedForDeletionRequestList)
+            throws UnexpectedException {
+
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SELECTED)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.CHECKING_DELETION)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(openList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SELECTED)).thenReturn(selectedList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(fulfilledList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST)).thenReturn(failedAfterSuccessRequestList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.CHECKING_DELETION)).thenReturn(checkingDeletionList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(pendingList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(spawningList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(failedOnRequestList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(unableToCheckRequestList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION)).thenReturn(assignedForDeletionRequestList);
 
         Mockito.doNothing().when(databaseManager).add(Matchers.any(Order.class));
         Mockito.doNothing().when(databaseManager).update(Matchers.any(Order.class));
@@ -274,6 +285,22 @@ public class TestUtils {
                 .thenReturn(localCloudConnector);
         
         return localCloudConnector;
+    }
+
+    /*
+     * Simulates instance of a LocalCloudConnector since its creation via CloudConnectorFactory.
+     */
+    public RemoteCloudConnector mockRemoteCloudConnectorFromFactory() {
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        RemoteCloudConnector remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(remoteCloudConnector);
+
+        return remoteCloudConnector;
     }
 
     public List<Order> populateFedNetDbWithState(OrderState state, int size, RecoveryService service) throws UnexpectedException {

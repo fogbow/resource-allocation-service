@@ -91,6 +91,7 @@ public class SharedOrderHolders {
                 this.remoteProviderOrders.addItem(order);
             }
         }
+        list.resetPointer();
     }
 
     private void addOrdersToMap(SynchronizedDoublyLinkedList<Order> ordersList, Map<String, Order> activeOrdersMap) {
@@ -112,47 +113,47 @@ public class SharedOrderHolders {
     }
 
     public Map<String, Order> getActiveOrdersMap() {
-        return activeOrdersMap;
+        return this.activeOrdersMap;
     }
 
     public SynchronizedDoublyLinkedList<Order> getOpenOrdersList() {
-        return openOrders;
+        return this.openOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getSelectedOrdersList() {
-        return selectedOrders;
+        return this.selectedOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getSpawningOrdersList() {
-        return spawningOrders;
+        return this.spawningOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getFailedAfterSuccessfulRequestOrdersList() {
-        return failedAfterSuccessfulRequestOrders;
+        return this.failedAfterSuccessfulRequestOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getFailedOnRequestOrdersList() {
-        return failedOnRequestOrders;
+        return this.failedOnRequestOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getFulfilledOrdersList() {
-        return fulfilledOrders;
+        return this.fulfilledOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getUnableToCheckStatusOrdersList() {
-        return unableToCheckStatus;
+        return this.unableToCheckStatus;
     }
 
     public SynchronizedDoublyLinkedList<Order> getRemoteProviderOrdersList() {
-        return remoteProviderOrders;
+        return this.remoteProviderOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getAssignedForDeletionOrdersList() {
-        return assignedForDeletionOrders;
+        return this.assignedForDeletionOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getCheckingDeletionOrdersList() {
-        return checkingDeletionOrders;
+        return this.checkingDeletionOrders;
     }
 
     public SynchronizedDoublyLinkedList<Order> getOrdersList(OrderState orderState) {

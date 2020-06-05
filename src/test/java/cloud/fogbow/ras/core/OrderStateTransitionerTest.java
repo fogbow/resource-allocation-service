@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.junit.After;
@@ -13,7 +14,6 @@ import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
@@ -140,6 +140,37 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
         // exercise
         OrderStateTransitioner.transition(order, destinationState);
+    }
+
+    // test case: When calling the transitionToRemote() method,
+    // it must move the order to remote list and change the state
+    @Test
+    public void testTransitionToRemoteListSuccessfully() throws Exception {
+        // set up
+        this.testUtils.mockReadOrdersFromDataBase();
+
+        OrderState originState = OrderState.OPEN;
+        OrderState orderStateExpected = OrderState.SPAWNING;
+        Order order = createOrder(originState);
+
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        SynchronizedDoublyLinkedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        openOrdersList.addItem(order);
+        SynchronizedDoublyLinkedList<Order> remoteProviderOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
+
+        // verify before
+        Assert.assertEquals(order, openOrdersList.getNext());
+        Assert.assertNull(remoteProviderOrderList.getNext());
+        openOrdersList.resetPointer();
+        remoteProviderOrderList.resetPointer();
+
+        // exercise
+        OrderStateTransitioner.transitionToRemoteList(order, orderStateExpected);
+
+        // verify
+        Assert.assertNull(openOrdersList.getNext());
+        Assert.assertEquals(order, remoteProviderOrderList.getNext());
+        Assert.assertEquals(orderStateExpected, order.getOrderState());
     }
 
 }

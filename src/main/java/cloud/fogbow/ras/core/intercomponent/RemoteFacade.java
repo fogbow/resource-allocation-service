@@ -5,19 +5,22 @@ import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.api.http.response.Instance;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.*;
+import cloud.fogbow.ras.core.CloudListController;
+import cloud.fogbow.ras.core.OrderController;
+import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.SecurityRuleController;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
-import cloud.fogbow.ras.api.http.response.Instance;
-import cloud.fogbow.ras.api.http.response.quotas.Quota;
-import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import org.apache.log4j.Logger;
 
 import java.util.List;
@@ -162,8 +165,9 @@ public class RemoteFacade {
         this.securityRuleController = securityRuleController;
     }
 
-    private void checkOrderConsistency(String requestingProvider, Order order) throws UnexpectedException,
-            InvalidParameterException {
+    private void checkOrderConsistency(String requestingProvider, Order order)
+            throws UnexpectedException, InvalidParameterException {
+
         synchronized (order) {
             if (order == null || !order.getProvider().equals(this.localProviderId)) {
                 throw new UnexpectedException(Messages.Exception.INCORRECT_PROVIDER);
@@ -174,9 +178,10 @@ public class RemoteFacade {
         }
     }
 
-    protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
-                                  Order order) throws UnexpectedException, UnauthorizedRequestException,
-                                  InstanceNotFoundException {
+    protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation,
+                                  ResourceType type, Order order)
+            throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
+
         synchronized (order) {
             // Check if requested type matches order type
             if (!order.getType().equals(type))
