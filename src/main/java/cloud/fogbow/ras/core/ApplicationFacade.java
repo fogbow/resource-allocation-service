@@ -334,8 +334,8 @@ public class ApplicationFacade {
         // both a ComputeOrder and a VolumeOrder).
         checkEmbeddedOrdersConsistency(order);
         // Check if the authenticated user is authorized to perform the requested operation
-        this.authorizationPlugin.isAuthorized(requester, new RasOperation(Operation.CREATE,
-                order.getType(), order.getCloudName(), order));
+        RasOperation rasOperation = new RasOperation(Operation.CREATE, order.getType(), order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         // Add order to the poll of active orders and to the OPEN linked list
         return this.orderController.activateOrder(order);
     }
@@ -343,14 +343,16 @@ public class ApplicationFacade {
     protected Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
-        authorizeOrder(requester, order.getCloudName(), Operation.GET, resourceType, order);
+        RasOperation rasOperation = new RasOperation(Operation.GET, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         return this.orderController.getResourceInstance(order);
     }
 
     protected void deleteOrder(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
-        authorizeOrder(requester, order.getCloudName(), Operation.DELETE, resourceType, order);
+        RasOperation rasOperation = new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         this.orderController.deleteOrder(order);
     }
 
@@ -375,19 +377,6 @@ public class ApplicationFacade {
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
         return cloudConnector.getUserQuota(requester);
-    }
-
-    protected void authorizeOrder(SystemUser requester, String cloudName, Operation operation, ResourceType type,
-            Order order) throws UnexpectedException, UnauthorizedRequestException, InstanceNotFoundException {
-        // Check if requested type matches order type
-        if (!order.getType().equals(type))
-            throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
-        // Check whether requester owns order
-        SystemUser orderOwner = order.getSystemUser();
-        if (!orderOwner.equals(requester)) {
-            throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
-        }
-        this.authorizationPlugin.isAuthorized(requester, new RasOperation(operation, type, cloudName, order));
     }
 
     protected RSAPublicKey getAsPublicKey() throws FogbowException {

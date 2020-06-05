@@ -31,6 +31,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
 
     private Map<String, Order> activeOrdersMap;
     private ChainedList<Order> checkingDeletionOrderList;
+    private ChainedList<Order> remoteOrderList;
     private CheckingDeletionProcessor processor;
     private OrderController orderController;
 
@@ -47,6 +48,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         this.checkingDeletionOrderList = sharedOrderHolders.getCheckingDeletionOrdersList();
+        this.remoteOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
     }
 
     // test case: When calling the run method and throws an InterruptedException,
@@ -125,8 +127,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     }
 
     // test case: When calling the processCheckingDeletionOrder method
-    // with remote Order and there is no more instance in the cloud,
-    // it must verify if It keeps the same order context.
+    // with remote Order should change the order state to PENDING.
     @Test
     public void testProcessCheckingDeletionOrderSuccessfullyWhenOrderRemote()
             throws Exception {
@@ -147,22 +148,21 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Mockito.verify(this.orderController, Mockito.times(TestUtils.NEVER_RUN)).closeOrder(Mockito.eq(orderRemote));
         Mockito.verify(this.orderController, Mockito.times(TestUtils.NEVER_RUN))
                 .updateOrderDependencies(Mockito.eq(orderRemote), Mockito.eq(Operation.DELETE));
-        Assert.assertNotNull(this.checkingDeletionOrderList.getNext());
+        Assert.assertNull(this.checkingDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(orderRemote.getId()));
-        Assert.assertEquals(orderState, orderRemote.getOrderState());
+        Assert.assertEquals(orderRemote, this.remoteOrderList.getNext());
+        Assert.assertEquals(OrderState.PENDING, orderRemote.getOrderState());
     }
 
     // test case: When calling the processCheckingDeletionOrder method
-    // with local Order with a unexpected state,
-    // it must verify if It keeps the same order context.
+    // with a remote provider, the order should change state to REMOTE.
     @Test
-    public void testProcessCheckingDeletionOrderSuccessfullyWhenOrderHasUnexpectedState()
-            throws Exception {
+    public void testProcessCheckingDeletionWithARemoteProvider() throws Exception {
 
         // set up
         Order orderRemote = this.testUtils.createRemoteOrder(this.testUtils.getLocalMemberId());
         this.orderController.activateOrder(orderRemote);
-        OrderState orderState = OrderState.FULFILLED;
+        OrderState orderState = OrderState.CHECKING_DELETION;
         OrderStateTransitioner.transition(orderRemote, orderState);
 
         LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
@@ -177,11 +177,12 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
                 .updateOrderDependencies(Mockito.eq(orderRemote), Mockito.eq(Operation.DELETE));
         Assert.assertNull(this.checkingDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(orderRemote.getId()));
-        Assert.assertEquals(orderState, orderRemote.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, orderRemote.getOrderState());
+        Assert.assertEquals(orderRemote, this.remoteOrderList.getNext());
     }
 
     // test case: When calling the checkDeletion method and throws an UnexpectedException
-    // it must verify if It logs an error message.
+    // it must verify if it logs an error message.
     @Test
     public void testCheckDeletionFailWhenThrowsUnexpectedException() throws InterruptedException, UnexpectedException {
         // set up

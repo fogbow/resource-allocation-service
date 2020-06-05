@@ -16,6 +16,7 @@ public class ConfigurationPropertyKeys {
     public static final String UNABLE_TO_CHECK_ORDERS_SLEEP_TIME_KEY = "unable_to_check_orders_sleep_time";
     public static final String CHECKING_DELETION_ORDERS_SLEEP_TIME_KEY = "checking_deletion_orders_sleep_period";
     public static final String ASSIGNED_FOR_DELETION_ORDERS_SLEEP_TIME_KEY = "assigned_for_deletion_orders_sleep_period";
+    public static final String REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME_KEY = "remote_order_state_synchronization_sleep_period";
     public static final String CLOUD_NAMES_KEY = "cloud_names";
     public static final String BUILD_NUMBER_KEY = "build_number";
 

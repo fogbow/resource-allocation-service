@@ -35,6 +35,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private ChainedList<Order> fulfilledOrderList;
     private ChainedList<Order> openOrderList;
     private ChainedList<Order> spawningOrderList;
+    private ChainedList<Order> remoteOrderList;
     private CloudConnector cloudConnector;
     private SpawningProcessor processor;
     private Thread thread;
@@ -55,6 +56,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
         this.failedOrderList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
         this.openOrderList = sharedOrderHolders.getOpenOrdersList();
+        this.remoteOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
 
         this.thread = null;
     }
@@ -350,7 +352,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     }
     
     // test case: When calling the processSpawningOrder method with a
-    // remote member ID, the order state should not be changed.
+    // remote member ID, the order state should change to PENDING.
     @Test
     public void testProcessSpawningOrderWithARemoteMember() throws FogbowException {
         // set up
@@ -366,7 +368,9 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.processor.processSpawningOrder(order);
 
         // verify
-        Assert.assertEquals(OrderState.SPAWNING, order.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, order.getOrderState());
+        Assert.assertEquals(order, this.remoteOrderList.getNext());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
 }

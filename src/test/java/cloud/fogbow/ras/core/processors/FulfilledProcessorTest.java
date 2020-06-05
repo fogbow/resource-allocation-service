@@ -37,6 +37,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private static final int MAX_SLEEP_TIME = 10000;
 
     private ChainedList<Order> failedOrderList;
+    private ChainedList<Order> remoteOrderList;
     private ChainedList<Order> fulfilledOrderList;
     private FulfilledProcessor processor;
     private CloudConnector cloudConnector;
@@ -62,6 +63,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
         this.failedOrderList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
+        this.remoteOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
 
         this.thread = null;
     }
@@ -87,7 +89,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.failedOrderList.getNext());
 
         ComputeInstance orderInstance = new ComputeInstance(TestUtils.FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.READY);
+        orderInstance.setReady();
+
+        Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
 
         // exercise
         this.thread = new Thread(this.processor);
@@ -149,17 +153,17 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: When running thread in the FulfilledProcessor without a LocalMember, the method
-    // processFulfilledOrder() must not change OrderState to Failed and must remain in Fulfilled
+    // test case: When running thread in the FulfilledProcessor with a remote provider, the method
+    // processFulfilledOrder() must change OrderState to PENDING and move it to the remoteProviderOrders
     // list.
     @Test
-    public void testRunProcessLocalComputeOrderWithoutLocalMember() throws Exception {
+    public void testRunProcessLocalComputeOrderWithARemoteMember() throws Exception {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         order.setOrderState(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
-        Assert.assertNull(this.failedOrderList.getNext());
+        Assert.assertNull(this.remoteOrderList.getNext());
 
         this.processor = new FulfilledProcessor(TestUtils.FAKE_REMOTE_MEMBER_ID,
                 ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME);
@@ -170,8 +174,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         // verify
-        Assert.assertEquals(order, this.fulfilledOrderList.getNext());
-        Assert.assertNull(this.failedOrderList.getNext());
+        Assert.assertEquals(OrderState.PENDING, order.getOrderState());
+        Assert.assertEquals(order, this.remoteOrderList.getNext());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
     // test case: When running thread in the FulfilledProcessor and the InstanceState is Ready, the
@@ -184,11 +189,14 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
         order.setOrderState(OrderState.FULFILLED);
-        this.fulfilledOrderList.addItem(order);
-        Assert.assertNull(this.failedOrderList.getNext());
 
         ComputeInstance orderInstance = new ComputeInstance(TestUtils.FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.READY);
+        orderInstance.setReady();
+
+        Mockito.doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
+
+        this.fulfilledOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
 
         // exercise
         this.thread = new Thread(this.processor);

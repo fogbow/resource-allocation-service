@@ -66,14 +66,18 @@ public class SpawningProcessor implements Runnable {
         // order while this method is trying to check the status of an instance
         // that has been requested in the cloud.
         synchronized (order) {
-            OrderState orderState = order.getOrderState();
             // Check if the order is still in the SPAWNING state (it could have been changed by another thread)
+            OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.SPAWNING)) {
                 return;
             }
-            // Only local orders need to be monitored. Remote orders are monitored by the remote provider
-            // and change state when that provider notifies state changes.
+            // Only local orders need to be monitored. Remote orders are monitored by the remote provider.
+            // State changes that happen at the remote provider are synchronized by the RemoteOrdersStateSynchronization
+            // processor.
             if (order.isProviderRemote(this.localProviderId)) {
+                // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
+                OrderStateTransitioner.transition(order, OrderState.PENDING);
+                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;
             }
             // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
@@ -85,24 +89,16 @@ public class SpawningProcessor implements Runnable {
             try {
                 OrderInstance instance = localCloudConnector.getInstance(order);
                 if (instance.hasFailed()) {
-                    // Signalling is only important for the business logic when it concerns the states
-                    // CHECKING_DELETION and CLOSED. In this case, transitionOnSuccessfulSignalIfNeeded()
-                    // must be called, when transitioning the state of an order. For the other states,
-                    // the only effect is that the states of the instances that are returned in the
-                    // OrderController getInstancesStatus() call may be stale. This is documented in the
-                    // API. A client can always refresh the state of a particular instance by calling
-                    // getInstance(). In these cases, the best effort transitionAndTryToSignalRequesterIfNeeded(),
-                    // should be called.
-                    OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
                 } else if (instance.isReady()) {
-                    OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FULFILLED);
+                    OrderStateTransitioner.transition(order, OrderState.FULFILLED);
                 }
             } catch (UnavailableProviderException e1) {
-                OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.UNABLE_TO_CHECK_STATUS);
+                OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
                 throw e1;
-            } catch (InstanceNotFoundException e2) {
-                LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
-                OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+            } catch (Exception e2) {
+                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e2));
+                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }
         }
     }

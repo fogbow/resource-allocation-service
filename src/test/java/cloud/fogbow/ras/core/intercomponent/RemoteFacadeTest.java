@@ -49,10 +49,46 @@ public class RemoteFacadeTest extends BaseUnitTests {
     @Before
     public void setUp() throws UnexpectedException {
         this.testUtils.mockReadOrdersFromDataBase();
-        this.orderController = new OrderController();
+        this.orderController = Mockito.spy(new OrderController());
         this.facade = Mockito.spy(RemoteFacade.getInstance());
         this.facade.setOrderController(this.orderController);
     }
+
+	// test case: When calling the getOrder method, it must return the order expected.
+	@Test
+	public void testGetOrderSuccessfully() throws FogbowException {
+		// set up
+		SystemUser systemUser = createFederationUser();
+
+		String cloudName = DEFAULT_CLOUD_NAME;
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
+		Order orderExpected = spyComputeOrder(systemUser, cloudName, requester);
+		this.orderController.activateOrder(orderExpected);
+
+		// exercise
+		Order order = this.facade.getOrder(requester, orderExpected.getId());
+
+		// verify
+		Assert.assertEquals(orderExpected, order);
+	}
+
+	// test case: When calling the getOrder method, it must return the order expected.
+	@Test(expected = InstanceNotFoundException.class)
+	public void testGetOrderFail() throws FogbowException {
+		// set up
+		SystemUser systemUser = createFederationUser();
+
+		String cloudName = DEFAULT_CLOUD_NAME;
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
+		Order orderExpected = spyComputeOrder(systemUser, cloudName, requester);
+		String orderId = orderExpected.getId();
+		InstanceNotFoundException instanceNotFoundException = new InstanceNotFoundException();
+		Mockito.doThrow(instanceNotFoundException).when(this.orderController)
+				.getOrder(Mockito.eq(orderId));
+
+		// exercise
+		this.facade.getOrder(requester, orderId);
+	}
 
 	// test case: When calling the activateOrder method with a requesting member
 	// different of the order requester, it must throw an UnexpectedException.
@@ -468,103 +504,10 @@ public class RemoteFacadeTest extends BaseUnitTests {
 				Mockito.eq(cloudName), Mockito.anyString(), Mockito.eq(systemUser));
 	}
 
-	// test case: When calling the isAuthorizedOrder method with a different resource
-	// type of the order, it must throw a InstanceNotFoundException.
-	@Test(expected = InstanceNotFoundException.class) // verify
-	public void testisAuthorizedOrderThrowsInstanceNotFoundException() throws Exception {
-		// set up
-		SystemUser systemUser = null;
-		String cloudName = null;
-		Operation operation = null;
-		ResourceType resourceType = ResourceType.VOLUME;
-		ComputeOrder order = new ComputeOrder();
-
-		// exercise
-		this.facade.authorizeOrder(systemUser, cloudName, operation, resourceType, order);
-	}
-
-	// test case: When calling the isAuthorizedOrder method with a federation user
-	// different of the order requester, it must throw an
-	// UnisAuthorizeddRequestException.
-	@Test(expected = UnauthorizedRequestException.class) // verify
-	public void testisAuthorizedOrderThrowsUnisAuthorizeddRequestException() throws Exception {
-		// set up
-		SystemUser ownerUser = new SystemUser(FAKE_OWNER_USER_ID_VALUE, FAKE_OWNER_USER_ID_VALUE, null
-        );
-
-		SystemUser requesterUser = new SystemUser(FAKE_REQUESTER_USER_ID_VALUE, FAKE_REQUESTER_USER_ID_VALUE, null
-        );
-
-		String cloudName = null;
-		String provider = null;
-
-		Order order = spyComputeOrder(requesterUser, cloudName, provider);
-
-		Operation operation = null;
-		ResourceType resourceType = ResourceType.COMPUTE;
-
-		// exercise
-		this.facade.authorizeOrder(ownerUser, cloudName, operation, resourceType, order);
-	}
-
-	// test case: When calling the RemoteHandleRemoteEvent method from a pending
-	// remote order, it must return its OrderState FULFILLED, based on the match of
-	// the event passed by parameter.
+	// test case: When calling the closeOrderAtRemoteRequester method from a pending
+	// remote order, it must close order.
 	@Test
-	public void testRemoteHandleRemoteEventWithInstanceFulfilled() throws Exception {
-		// set up
-		OrderState orderState = OrderState.FULFILLED;
-
-		String signallingMember = TestUtils.LOCAL_MEMBER_ID;
-		String requester = FAKE_REQUESTER_ID;
-		String provider = signallingMember;
-
-		Order remoteOrder = new ComputeOrder();
-		remoteOrder.setRequester(requester);
-		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(OrderState.PENDING);
-
-		this.orderController.activateOrder(remoteOrder);
-
-		// exercise
-		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
-
-		// verify
-		OrderState expectedOrderState = OrderState.FULFILLED;
-		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
-	}
-
-	// test case: When calling the RemoteHandleRemoteEvent method from a pending
-	// remote order, it must return its OrderState FAILED_AFTER_SUCCESSFUL_REQUEST,
-	// based on the match of the event passed by parameter.
-	@Test
-	public void testRemoteHandleRemoteEventWithInstanceFailed() throws Exception {
-		// set up
-		OrderState orderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
-
-		String signallingMember = TestUtils.LOCAL_MEMBER_ID;
-		String requester = FAKE_REQUESTER_ID;
-		String provider = signallingMember;
-
-		Order remoteOrder = new ComputeOrder();
-		remoteOrder.setRequester(requester);
-		remoteOrder.setProvider(provider);
-		remoteOrder.setOrderState(OrderState.PENDING);
-
-		this.orderController.activateOrder(remoteOrder);
-
-		// exercise
-		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
-
-		// verify
-		OrderState expectedOrderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
-		Assert.assertEquals(expectedOrderState, remoteOrder.getOrderState());
-	}
-
-	// test case: When calling the RemoteHandleRemoteEvent method from a pending
-	// remote order and state is CLOSED, it must close order.
-	@Test
-	public void testRemoteHandleRemoteEventWithCloseState() throws Exception {
+	public void testCloseOrderAtRemoteRequester() throws Exception {
 		// set up
 		OrderState orderState = OrderState.CLOSED;
 
@@ -580,7 +523,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.orderController.activateOrder(remoteOrder);
 
 		// exercise
-		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
+		this.facade.closeOrderAtRemoteRequester(signallingMember, remoteOrder.getId());
 
 		// verify
 		Order activeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(remoteOrder.getId());
@@ -606,7 +549,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.orderController.activateOrder(remoteOrder);
 
 		// exercise
-		this.facade.handleRemoteEvent(signallingMember, orderState, remoteOrder);
+		this.facade.closeOrderAtRemoteRequester(signallingMember, remoteOrder.getId());
 	}
 
 	private AuthorizationPlugin mockAuthorizationPlugin(SystemUser systemUser, RasOperation operation)
@@ -630,8 +573,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 
 	private SystemUser createFederationUser() {
-		return new SystemUser(FAKE_REQUESTER_USER_ID_VALUE, FAKE_REQUESTER_USER_ID_VALUE, null
-        );
+		return new SystemUser(FAKE_REQUESTER_USER_ID_VALUE, FAKE_REQUESTER_USER_ID_VALUE, null);
 	}
 
 	private CloudConnector mockCloudConnector(CloudConnectorFactory cloudConnectorFactory) {

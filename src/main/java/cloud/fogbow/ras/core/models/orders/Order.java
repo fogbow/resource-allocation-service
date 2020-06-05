@@ -109,12 +109,12 @@ public abstract class Order<T extends Order> implements Serializable {
         return this.orderState;
     }
 
-    // TODO remove this method when it's no longer used
     public void setOrderStateInTestMode(OrderState state) {
         this.orderState = state;
     }
 
     public void setOrderState(OrderState state) throws UnexpectedException {
+        LOGGER.debug(String.format(Messages.Info.ORDER_S_CHANGED_STATE_TO_S, this.getId(), state));
         this.orderState = state;
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         if (state.equals(OrderState.OPEN)) {
@@ -260,5 +260,5 @@ public abstract class Order<T extends Order> implements Serializable {
         this.type = type;
     }
 
-    public abstract void updateFromRemote(T remoteOrder);
+    public abstract void updateFromRemote(T remoteOrder) throws UnexpectedException;
 }

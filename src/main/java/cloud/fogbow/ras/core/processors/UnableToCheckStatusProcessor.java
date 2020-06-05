@@ -78,9 +78,13 @@ public class UnableToCheckStatusProcessor implements Runnable {
             if (!orderState.equals(OrderState.UNABLE_TO_CHECK_STATUS)) {
                 return;
             }
-            // Only local orders need to be monitored. Remote orders are monitored by the remote provider
-            // and change state when that provider notifies state changes.
+            // Only local orders need to be monitored. Remote orders are monitored by the remote provider.
+            // State changes that happen at the remote provider are synchronized by the RemoteOrdersStateSynchronization
+            // processor.
             if (order.isProviderRemote(this.localProviderId)) {
+                // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
+                OrderStateTransitioner.transition(order, OrderState.PENDING);
+                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
                 return;
             }
             try {
@@ -92,25 +96,13 @@ public class UnableToCheckStatusProcessor implements Runnable {
 
                 instance = localCloudConnector.getInstance(order);
                 if (instance.isReady()) {
-                    // Signalling is only important for the business logic when it concerns the states
-                    // CHECKING_DELETION and CLOSED. In this case, transitionOnSuccessfulSignalIfNeeded()
-                    // must be called, when transitioning the state of an order. For the other states,
-                    // the only effect is that the states of the instances that are returned in the
-                    // OrderController getInstancesStatus() call may be stale. This is documented in the
-                    // API. A client can always refresh the state of a particular instance by calling
-                    // getInstance(). In these cases, the best effort transitionAndTryToSignalRequesterIfNeeded(),
-                    // should be called.
-                    OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FULFILLED);
+                    OrderStateTransitioner.transition(order, OrderState.FULFILLED);
                 } else if (instance.hasFailed()) {
-                    OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
                 }
-            } catch (UnavailableProviderException e1) {
-                LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e1);
-                return;
-            } catch (InstanceNotFoundException e2) {
-                LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
-                OrderStateTransitioner.transitionAndTryToSignalRequesterIfNeeded(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
-                return;
+            } catch (Exception e) {
+                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e));
+                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }
         }
 	}
