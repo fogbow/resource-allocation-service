@@ -61,8 +61,12 @@ public class InstanceStatus {
         this.state = state;
     }
 
+    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws UnexpectedException {
+        return mapInstanceStateFromOrderState(orderState, false, false, false);
+    }
+
     public static InstanceState mapInstanceStateFromOrderState(OrderState orderState,
-          Boolean knowWhetherInstaceIsReadyOrHasFailed, Boolean isReady, Boolean hasFailed) throws UnexpectedException {
+          Boolean knowWhetherInstanceIsReadyOrHasFailed, Boolean isReady, Boolean hasFailed) throws UnexpectedException {
         switch(orderState) {
             case OPEN:
             case SELECTED:
@@ -71,7 +75,7 @@ public class InstanceStatus {
             case FAILED_ON_REQUEST:
                 return InstanceState.ERROR;
             case SPAWNING:
-                if (knowWhetherInstaceIsReadyOrHasFailed) {
+                if (knowWhetherInstanceIsReadyOrHasFailed) {
                     if (isReady) {
                         return InstanceState.READY;
                     } else if (hasFailed) {
@@ -83,7 +87,7 @@ public class InstanceStatus {
                     return InstanceState.CREATING;
                 }
             case FULFILLED:
-                if (knowWhetherInstaceIsReadyOrHasFailed) {
+                if (knowWhetherInstanceIsReadyOrHasFailed) {
                     if (isReady) {
                         return InstanceState.READY;
                     } else if (hasFailed) {
@@ -97,7 +101,7 @@ public class InstanceStatus {
             case FAILED_AFTER_SUCCESSFUL_REQUEST:
                 return InstanceState.FAILED;
             case UNABLE_TO_CHECK_STATUS:
-                if (knowWhetherInstaceIsReadyOrHasFailed) {
+                if (knowWhetherInstanceIsReadyOrHasFailed) {
                     if (isReady) {
                         return InstanceState.READY;
                     } else if (hasFailed) {

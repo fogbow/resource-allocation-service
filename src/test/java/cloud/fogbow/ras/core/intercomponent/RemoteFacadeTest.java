@@ -49,10 +49,46 @@ public class RemoteFacadeTest extends BaseUnitTests {
     @Before
     public void setUp() throws UnexpectedException {
         this.testUtils.mockReadOrdersFromDataBase();
-        this.orderController = new OrderController();
+        this.orderController = Mockito.spy(new OrderController());
         this.facade = Mockito.spy(RemoteFacade.getInstance());
         this.facade.setOrderController(this.orderController);
     }
+
+	// test case: When calling the getOrder method, it must return the order expected.
+	@Test
+	public void testGetOrderSuccessfully() throws FogbowException {
+		// set up
+		SystemUser systemUser = createFederationUser();
+
+		String cloudName = DEFAULT_CLOUD_NAME;
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
+		Order orderExpected = spyComputeOrder(systemUser, cloudName, requester);
+		this.orderController.activateOrder(orderExpected);
+
+		// exercise
+		Order order = this.facade.getOrder(requester, orderExpected.getId());
+
+		// verify
+		Assert.assertEquals(orderExpected, order);
+	}
+
+	// test case: When calling the getOrder method, it must return the order expected.
+	@Test(expected = InstanceNotFoundException.class)
+	public void testGetOrderFail() throws FogbowException {
+		// set up
+		SystemUser systemUser = createFederationUser();
+
+		String cloudName = DEFAULT_CLOUD_NAME;
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
+		Order orderExpected = spyComputeOrder(systemUser, cloudName, requester);
+		String orderId = orderExpected.getId();
+		InstanceNotFoundException instanceNotFoundException = new InstanceNotFoundException();
+		Mockito.doThrow(instanceNotFoundException).when(this.orderController)
+				.getOrder(Mockito.eq(orderId));
+
+		// exercise
+		this.facade.getOrder(requester, orderId);
+	}
 
 	// test case: When calling the activateOrder method with a requesting member
 	// different of the order requester, it must throw an UnexpectedException.
@@ -537,8 +573,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 
 	private SystemUser createFederationUser() {
-		return new SystemUser(FAKE_REQUESTER_USER_ID_VALUE, FAKE_REQUESTER_USER_ID_VALUE, null
-        );
+		return new SystemUser(FAKE_REQUESTER_USER_ID_VALUE, FAKE_REQUESTER_USER_ID_VALUE, null);
 	}
 
 	private CloudConnector mockCloudConnector(CloudConnectorFactory cloudConnectorFactory) {

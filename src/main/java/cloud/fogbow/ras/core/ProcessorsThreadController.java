@@ -66,7 +66,7 @@ public class ProcessorsThreadController {
                 getProperty(ConfigurationPropertyKeys.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME);
 
-        RemoteOrdersStateSynchronizationProcessor remoteOrdersStateSynchronizationProcessor = new RemoteOrdersStateSynchronizationProcessor(orderController, localProviderId, remoteOrdersStateSynchronizationProcSleepTimeStr);
+        RemoteOrdersStateSynchronizationProcessor remoteOrdersStateSynchronizationProcessor = new RemoteOrdersStateSynchronizationProcessor(localProviderId, remoteOrdersStateSynchronizationProcSleepTimeStr);
 
         this.openProcessorThread = new Thread(openProcessor, OPEN_PROCESSOR_THREAD_NAME);
         this.spawningProcessorThread = new Thread(spawningProcessor, SPAWNING_PROCESSOR_THREAD_NAME);
