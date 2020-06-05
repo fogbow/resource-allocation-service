@@ -133,7 +133,6 @@ public class OrderController {
                 // take the required actions to remove such garbage. The log below can help in identifying this
                 // kind of problem.
                 LOGGER.warn(String.format(Messages.Warn.REMOVING_ORDER_IN_SELECT_STATE_S, order.toString()));
-                return;
             }
             if (order.isProviderRemote(this.localProviderId)) {
                 try {

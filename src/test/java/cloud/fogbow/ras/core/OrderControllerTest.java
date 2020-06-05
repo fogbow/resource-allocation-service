@@ -1010,7 +1010,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // verify
         this.loggerTestChecking.assertEqualsInOrder(Level.WARN, messageExpected);
-        Mockito.verify(computeOrder, Mockito.times(TestUtils.NEVER_RUN)).isProviderRemote(Mockito.any());
+        Mockito.verify(computeOrder, Mockito.times(TestUtils.RUN_ONCE)).isProviderRemote(Mockito.any());
     }
 
     // test case: Checks if deleting an open order, this one will be moved to the assignedForDeletion orders list.
