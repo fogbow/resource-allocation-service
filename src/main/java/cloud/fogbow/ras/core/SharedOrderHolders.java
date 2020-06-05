@@ -113,7 +113,7 @@ public class SharedOrderHolders {
     }
 
     public Map<String, Order> getActiveOrdersMap() {
-        return activeOrdersMap;
+        return this.activeOrdersMap;
     }
 
     public SynchronizedDoublyLinkedList<Order> getOpenOrdersList() {
