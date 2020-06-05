@@ -239,6 +239,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                     .etherType(etherType)
                     .minPort(SSH_DEFAULT_PORT)
                     .maxPort(SSH_DEFAULT_PORT)
+                    .protocol(OpenStackConstants.TCP_PROTOCOL)
                     .build();
 
             doPostRequestFromCloud(request, cloudUser);
