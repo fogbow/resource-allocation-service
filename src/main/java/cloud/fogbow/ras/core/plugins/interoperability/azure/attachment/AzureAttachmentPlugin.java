@@ -98,11 +98,8 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser>, Azure
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         String resourceId = buildResourceId(azure, subscriptionId, resourceName);
 
-        try {
-            doDeleteInstance(azure, virtualMachineId, resourceId);
-        } finally {
-            endInstanceCreation(instanceId);
-        }
+        doDeleteInstance(azure, virtualMachineId, resourceId);
+        endInstanceCreation(instanceId);
     }
 
     @VisibleForTesting

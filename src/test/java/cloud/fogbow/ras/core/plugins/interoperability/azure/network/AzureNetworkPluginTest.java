@@ -356,12 +356,11 @@ public class AzureNetworkPluginTest {
         this.expectedException.expectMessage(exceptionExpected.getMessage());
 
         // exercise
+        this.azureNetworkPlugin.deleteInstance(networkOrder, this.azureUser);
         try {
-            this.azureNetworkPlugin.deleteInstance(networkOrder, this.azureUser);
         } finally {
             // verify
-            Mockito.verify(this.azureNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE))
-                    .endInstanceCreation(instanceId);
+            Mockito.verify(this.azureNetworkPlugin, Mockito.never()).endInstanceCreation(instanceId);
         }
     }
 

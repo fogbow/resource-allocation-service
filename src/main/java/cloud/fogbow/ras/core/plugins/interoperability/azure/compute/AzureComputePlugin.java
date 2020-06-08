@@ -211,11 +211,8 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
         String instanceId = computeOrder.getInstanceId();
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
-        try {
-            this.azureVirtualMachineOperation.doDeleteInstance(azureUser, resourceName);
-        } finally {
-            endInstanceCreation(instanceId);
-        }
+        this.azureVirtualMachineOperation.doDeleteInstance(azureUser, resourceName);
+        endInstanceCreation(instanceId);
     }
 
     @VisibleForTesting

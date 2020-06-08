@@ -123,12 +123,9 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
 
         String instanceId = networkOrder.getInstanceId();
-        try {
-            String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
-            this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, azureUser);
-        } finally {
-            endInstanceCreation(instanceId);
-        }
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+        this.azureVirtualNetworkOperationSDK.doDeleteInstance(resourceName, azureUser);
+        endInstanceCreation(instanceId);
     }
 
     @VisibleForTesting
