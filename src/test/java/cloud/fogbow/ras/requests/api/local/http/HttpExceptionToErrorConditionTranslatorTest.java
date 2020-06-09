@@ -1,9 +1,6 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
-import cloud.fogbow.common.exceptions.DependencyDetectedException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.OnGoingOperationException;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.requests.api.local.http.util.PojoController;
 import cloud.fogbow.ras.requests.api.local.http.util.PojoService;
 import org.junit.Assert;
@@ -27,7 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 // TODO (chico) - Finish implementation
 public class HttpExceptionToErrorConditionTranslatorTest {
 
-    private final String POJO_CONTROLER_REQUEST_SUFIX = "/";
+    private final String POJO_CONTROLLER_REQUEST_SUFIX = "/";
     private final String EXCEPTION_MESSAGE_DEFAULT = "EXCEPTION_MESSAGE_DEFAULT";
     private final int IT_SHOULD_NEVER_HAPPEN = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
 
@@ -41,6 +38,45 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     @Before
     public void setUp() {
         this.requestBuilder = createRequestBuilder();
+    }
+
+    // test case: When any request is performed and throws a UnexpectedException,
+    // it must verify if it return a GATEWAY_TIMEOUT status code.
+    @Test
+    public void testTranslationWhenIsUnexpectedException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        UnexpectedException exceptionThrown = new UnexpectedException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a UnavailableProviderException,
+    // it must verify if it return a GATEWAY_TIMEOUT status code.
+    @Test
+    public void testTranslationWhenIsUnavailableProviderException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        UnavailableProviderException exceptionThrown = new UnavailableProviderException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.GATEWAY_TIMEOUT.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a UnauthorizedRequestException,
+    // it must verify if it return a FORBIDDEN status code.
+    @Test
+    public void testTranslationWhenIsUnauthorizedRequestException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        UnauthorizedRequestException exceptionThrown = new UnauthorizedRequestException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.FORBIDDEN.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
     }
 
     // test case: When any request is performed and throws a FogbowException,
@@ -111,7 +147,7 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     }
 
     private RequestBuilder createRequestBuilder() {
-        return MockMvcRequestBuilders.get(POJO_CONTROLER_REQUEST_SUFIX);
+        return MockMvcRequestBuilders.get(POJO_CONTROLLER_REQUEST_SUFIX);
     }
 
 }
