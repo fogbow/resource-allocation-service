@@ -30,6 +30,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
 
     private Map<String, Order> activeOrdersMap;
     private ChainedList<Order> assignedForDeletionOrderList;
+    private ChainedList<Order> remoteOrderList;
     private AssignedForDeletionProcessor processor;
     private OrderController orderController;
 
@@ -46,6 +47,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         this.assignedForDeletionOrderList = sharedOrderHolders.getAssignedForDeletionOrdersList();
+        this.remoteOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
     }
 
     // test case: When calling the run method and throws an InterruptedException,
@@ -59,16 +61,16 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.processor.run();
     }
 
-    // test case: When calling the processAssignedForDeletionOrder method with local Order non expected state,
-    // it must verify if It keeps the order state and do not anything.
+    // test case: When calling the processAssignedForDeletionOrder method with a remote provider
+    // the order state should change to PENDING
     @Test
-    public void testProcessAssignedForDeletionOrderSuccessfullyWhenOrderWithAnotherState()
+    public void testProcessAssignedForDeletionWithARemoteProvider()
             throws Exception {
 
         // set up
         Order order = this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE);
         this.orderController.activateOrder(order);
-        OrderState anotherOrderState = OrderState.FULFILLED;
+        OrderState anotherOrderState = OrderState.ASSIGNED_FOR_DELETION;
         OrderStateTransitioner.transition(order, anotherOrderState);
 
         LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
@@ -80,31 +82,9 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
         Assert.assertNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
-        Assert.assertEquals(anotherOrderState, order.getOrderState());
+        Assert.assertEquals(OrderState.PENDING, order.getOrderState());
+        Assert.assertEquals(order, this.remoteOrderList.getNext());
         this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
-    }
-
-    // test case: When calling the processAssignedForDeletionOrder method with remote Order,
-    // it must verify if It keeps the order state.
-    @Test
-    public void testProcessAssignedForDeletionOrderSuccessfullyWhenOrderRemote()
-            throws Exception {
-
-        // set up
-        Order order = this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE);
-        this.orderController.activateOrder(order);
-        OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
-
-        LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
-
-        // exercise
-        this.processor.processAssignedForDeletionOrder(order);
-
-        // verify
-        Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
-        Assert.assertNotNull(this.assignedForDeletionOrderList.getNext());
-        Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
-        Assert.assertEquals(OrderState.ASSIGNED_FOR_DELETION, order.getOrderState());
     }
 
     // test case: When calling the processAssignedForDeletionOrder method
@@ -178,7 +158,6 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.processor.processAssignedForDeletionOrder(order);
 
         // verify
-        Mockito.verify(localCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).deleteInstance(Mockito.any());
         Assert.assertNull(this.assignedForDeletionOrderList.getNext());
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(OrderState.CHECKING_DELETION, order.getOrderState());

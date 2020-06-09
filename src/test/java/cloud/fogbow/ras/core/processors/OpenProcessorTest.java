@@ -172,13 +172,13 @@ public class OpenProcessorTest extends BaseUnitTests {
         // the pendingList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList<Order> pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
+        ChainedList<Order> pendingOrdersList = sharedOrderHolders.getRemoteProviderOrdersList();
         Assert.assertTrue(this.listIsEmpty(openOrdersList));
         Assert.assertSame(remoteOrder, pendingOrdersList.getNext());
     }
 
-    //test case: test if the open processor is setting to fail an open intercomponent order when the request instance
-    //method of intercomponent instance provider throws an exception.
+    // test case: test if the open processor is setting to FAIL_ON_REQUEST an open intercomponent order when the
+    // request instance method of intercomponent instance provider throws an exception.
     @Test
     public void testProcessRemoteOpenOrderRequestingException() throws Exception {
         //set up
@@ -199,12 +199,12 @@ public class OpenProcessorTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.FAILED_ON_REQUEST, remoteOrder.getOrderState());
 
         // test if the open order list is empty and
-        // the failedList is with the localOrder
+        // the remoteOrdersList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList<Order> failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
+        ChainedList<Order> remoteOrdersList = sharedOrderHolders.getRemoteProviderOrdersList();
         Assert.assertTrue(this.listIsEmpty(openOrdersList));
-        Assert.assertSame(remoteOrder, failedOrdersList.getNext());
+        Assert.assertSame(remoteOrder, remoteOrdersList.getNext());
     }
 
     //test case: test if the open processor does not process an Order that is not in the open state.

@@ -1,9 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws.network.v2;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
@@ -22,14 +25,28 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AssociateRouteTableRequest;
+import software.amazon.awssdk.services.ec2.model.AttachInternetGatewayRequest;
+import software.amazon.awssdk.services.ec2.model.AttributeBooleanValue;
 import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
+import software.amazon.awssdk.services.ec2.model.CreateInternetGatewayResponse;
+import software.amazon.awssdk.services.ec2.model.CreateRouteRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSubnetRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSubnetResponse;
+import software.amazon.awssdk.services.ec2.model.CreateVpcRequest;
+import software.amazon.awssdk.services.ec2.model.CreateVpcResponse;
+import software.amazon.awssdk.services.ec2.model.DeleteInternetGatewayRequest;
 import software.amazon.awssdk.services.ec2.model.DeleteSubnetRequest;
+import software.amazon.awssdk.services.ec2.model.DeleteVpcRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeInternetGatewaysResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
+import software.amazon.awssdk.services.ec2.model.DetachInternetGatewayRequest;
+import software.amazon.awssdk.services.ec2.model.InternetGateway;
+import software.amazon.awssdk.services.ec2.model.InternetGatewayAttachment;
+import software.amazon.awssdk.services.ec2.model.ModifyVpcAttributeRequest;
 import software.amazon.awssdk.services.ec2.model.Route;
 import software.amazon.awssdk.services.ec2.model.RouteTable;
 import software.amazon.awssdk.services.ec2.model.Subnet;
@@ -39,17 +56,18 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
     private static final Logger LOGGER = Logger.getLogger(AwsNetworkPlugin.class);
 
     protected static final String ALL_PROTOCOLS = "-1";
+    protected static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
+    protected static final String GATEWAY_RESOURCE = "Gateway";
     protected static final String LOCAL_GATEWAY_DESTINATION = "local";
     protected static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
     protected static final String SUBNET_RESOURCE = "Subnet";
+    protected static final String VPC_RESOURCE = "VPC";
 
-    private String defaultVpcId;
     private String region;
     private String zone;
 
     public AwsNetworkPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.defaultVpcId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_VPC_ID_KEY);
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
         this.zone = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_AVAILABILITY_ZONE_KEY);
     }
@@ -58,15 +76,17 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
     public String requestInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        String instanceName = networkOrder.getName();
         String cidr = networkOrder.getCidr();
+        String vpcId = doCreateAndConfigureVpc(cidr, client);
 
         CreateSubnetRequest request = CreateSubnetRequest.builder()
                 .availabilityZone(this.zone)
                 .cidrBlock(cidr)
-                .vpcId(this.defaultVpcId)
+                .vpcId(vpcId)
                 .build();
 
-        return doRequestInstance(networkOrder, request, client);
+        return doRequestInstance(instanceName, request, client);
     }
 
     @Override
@@ -95,20 +115,27 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         return false;
     }
 
-    protected void doDeleteInstance(String subnetId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void doDeleteInstance(String subnetId, Ec2Client client) throws FogbowException {
         Subnet subnet = AwsV2CloudUtil.getSubnetById(subnetId, client);
         String groupId = AwsV2CloudUtil.getGroupIdFrom(subnet.tags());
+        String vpcId = subnet.vpcId();
         AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
         doDeleteSubnet(subnetId, client);
+        String gatewayId = getGatewayIdAttachedToVpc(vpcId, client);
+        doRollbackAllConfigurationAndDeleteVpc(gatewayId, vpcId, client);
     }
 
-    protected NetworkInstance doGetInstance(String subnetId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    NetworkInstance doGetInstance(String subnetId, Ec2Client client) throws FogbowException {
         Subnet subnet = AwsV2CloudUtil.getSubnetById(subnetId, client);
-        RouteTable routeTable = getRouteTables(client);
+        String vpcId = subnet.vpcId();
+        RouteTable routeTable = getRouteTables(vpcId, client);
         return buildNetworkInstance(subnet, routeTable);
     }
 
-    protected NetworkInstance buildNetworkInstance(Subnet subnet, RouteTable routeTable) {
+    @VisibleForTesting
+    NetworkInstance buildNetworkInstance(Subnet subnet, RouteTable routeTable) {
         String id = subnet.subnetId();
         String cloudState = subnet.stateAsString();
         String name = subnet.tags().listIterator().next().value();
@@ -123,7 +150,8 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
                 macInterface, interfaceState);
     }
 
-    protected String getGatewayFromRouteTables(List<Route> routes) {
+    @VisibleForTesting
+    String getGatewayFromRouteTables(List<Route> routes) {
         for (Route route : routes) {
             if (!route.gatewayId().equals(LOCAL_GATEWAY_DESTINATION)) {
                 return route.destinationCidrBlock();
@@ -132,23 +160,29 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         return null;
     }
 
-    protected String doRequestInstance(NetworkOrder order, CreateSubnetRequest request, Ec2Client client)
+    @VisibleForTesting
+    String doRequestInstance(String instanceName, CreateSubnetRequest request, Ec2Client client)
             throws FogbowException {
         
-        String subnetId = doCreateSubnetResquest(order.getName(), request, client);
-        doAssociateRouteTables(subnetId, client);
-        handleSecurityIssues(subnetId, request.cidrBlock(), client);
+        String cidrBlock = request.cidrBlock();
+        String vpcId = request.vpcId();
+        String subnetId = doCreateSubnetResquest(instanceName, request, client);
+        doAssociateRouteTables(subnetId, vpcId, client);
+        handleSecurityIssues(subnetId, vpcId, cidrBlock, client);
         return subnetId;
     }
 
-    protected void handleSecurityIssues(String subnetId, String cidr, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void handleSecurityIssues(String subnetId, String vpcId, String cidrIp, Ec2Client client)
+            throws FogbowException {
+
         String groupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + subnetId;
+        String groupDescription = SECURITY_GROUP_DESCRIPTION;
         try {
-            String groupId = AwsV2CloudUtil.createSecurityGroup(this.defaultVpcId, groupName,
-                    SECURITY_GROUP_DESCRIPTION, client);
+            String groupId = AwsV2CloudUtil.createSecurityGroup(vpcId, groupName, groupDescription, client);
 
             AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
-                    .cidrIp(cidr)
+                    .cidrIp(cidrIp)
                     .groupId(groupId)
                     .ipProtocol(ALL_PROTOCOLS)
                     .build();
@@ -157,13 +191,17 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
             AwsV2CloudUtil.createTagsRequest(subnetId, AwsV2CloudUtil.AWS_TAG_GROUP_ID, groupId, client);
         } catch (UnexpectedException e) {
             doDeleteSubnet(subnetId, client);
+            String gatewayId = getGatewayIdAttachedToVpc(vpcId, client);
+            doRollbackAllConfigurationAndDeleteVpc(gatewayId, vpcId, client);
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
     }
 
-    protected void doAssociateRouteTables(String subnetId, Ec2Client client) throws FogbowException {
-        RouteTable routeTable = getRouteTables(client);
+    @VisibleForTesting
+    void doAssociateRouteTables(String subnetId, String vpcId, Ec2Client client) throws FogbowException {
+        RouteTable routeTable = getRouteTables(vpcId, client);
         String routeTableId = routeTable.routeTableId();
+
         AssociateRouteTableRequest request = AssociateRouteTableRequest.builder()
                 .routeTableId(routeTableId)
                 .subnetId(subnetId)
@@ -172,8 +210,23 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
             client.associateRouteTable(request);
         } catch (SdkException e) {
             doDeleteSubnet(subnetId, client);
+            String gatewayId = getGatewayIdAttachedToVpc(vpcId, client);
+            doRollbackAllConfigurationAndDeleteVpc(gatewayId, vpcId, client);
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
+    }
+
+    @VisibleForTesting
+    String getGatewayIdAttachedToVpc(String vpcId, Ec2Client client) throws FogbowException {
+        DescribeInternetGatewaysResponse response = client.describeInternetGateways();
+        for (InternetGateway internetGateway : response.internetGateways()) {
+            for (InternetGatewayAttachment attachment : internetGateway.attachments()) {
+                if (attachment.vpcId().equals(vpcId)) {
+                    return internetGateway.internetGatewayId();
+                }
+            }
+        }
+        throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
 
     protected void doDeleteSubnet(String subnetId, Ec2Client client) throws FogbowException {
@@ -189,18 +242,20 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         }
     }
 
-    protected RouteTable getRouteTables(Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    RouteTable getRouteTables(String vpcId, Ec2Client client) throws FogbowException {
         DescribeRouteTablesResponse response = doDescribeRouteTables(client);
         List<RouteTable> routeTables = response.routeTables();
         for (RouteTable routeTable : routeTables) {
-            if (routeTable.vpcId().equals(this.defaultVpcId)) {
+            if (routeTable.vpcId().equals(vpcId)) {
                 return routeTable;
             }
         }
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
 
-    protected DescribeRouteTablesResponse doDescribeRouteTables(Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    DescribeRouteTablesResponse doDescribeRouteTables(Ec2Client client) throws FogbowException {
         try {
             return client.describeRouteTables();
         } catch (SdkException e) {
@@ -208,7 +263,8 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         }
     }
 
-    protected String doCreateSubnetResquest(String instanceName, CreateSubnetRequest request, Ec2Client client)
+    @VisibleForTesting
+    String doCreateSubnetResquest(String instanceName, CreateSubnetRequest request, Ec2Client client)
             throws FogbowException {
 
         String subnetId = null;
@@ -220,6 +276,168 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
             throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
         }
         return subnetId;
+    }
+
+    @VisibleForTesting
+    String doCreateAndConfigureVpc(String cidr, Ec2Client client) throws FogbowException {
+        CreateVpcRequest request = CreateVpcRequest.builder()
+                .cidrBlock(cidr)
+                .build();
+        try {
+            CreateVpcResponse response = client.createVpc(request);
+            String vpcId = response.vpc().vpcId();
+            doModifyVpcAttributes(vpcId, client);
+            String gatewayId = doCreateInternetGateway(vpcId, client);
+            doAttachInternetGateway(gatewayId, vpcId, client);
+            doCreateRouteTables(cidr, gatewayId, vpcId, client);
+            return vpcId;
+        } catch (SdkException e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
+
+    @VisibleForTesting
+    void doCreateRouteTables(String cidr, String gatewayId, String vpcId, Ec2Client client)
+            throws FogbowException {
+
+        RouteTable routeTable = getRouteTables(vpcId, client);
+        String routerId = routeTable.routeTableId();
+
+        CreateRouteRequest request = CreateRouteRequest.builder()
+                .destinationCidrBlock(DEFAULT_DESTINATION_CIDR)
+                .gatewayId(gatewayId)
+                .routeTableId(routerId)
+                .build();
+        try {
+            client.createRoute(request);
+        } catch (SdkClientException e) {
+            doRollbackAllConfigurationAndDeleteVpc(gatewayId, vpcId, client);
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
+
+    @VisibleForTesting
+    void doRollbackAllConfigurationAndDeleteVpc(String gatewayId, String vpcId, Ec2Client client)
+            throws FogbowException {
+
+        doDetachInternetGateway(gatewayId, vpcId, client);
+        doDeleteInternetGateway(gatewayId, client);
+        doDeleteVpc(vpcId, client);
+    }
+
+    @VisibleForTesting
+    void doDetachInternetGateway(String gatewayId, String vpcId, Ec2Client client) throws FogbowException {
+        DetachInternetGatewayRequest request = DetachInternetGatewayRequest.builder()
+                .internetGatewayId(gatewayId)
+                .vpcId(vpcId)
+                .build();
+        try {
+            client.detachInternetGateway(request);
+        } catch (SdkClientException e) {
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
+
+    @VisibleForTesting
+    void doAttachInternetGateway(String gatewayId, String vpcId, Ec2Client client) throws FogbowException {
+        AttachInternetGatewayRequest request = AttachInternetGatewayRequest.builder()
+                .internetGatewayId(gatewayId)
+                .vpcId(vpcId)
+                .build();
+        try {
+            client.attachInternetGateway(request);
+        } catch (SdkClientException e) {
+            doDeleteInternetGateway(gatewayId, client);
+            doDeleteVpc(vpcId, client);
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
+
+    @VisibleForTesting
+    void doDeleteInternetGateway(String gatewayId, Ec2Client client) throws FogbowException {
+        DeleteInternetGatewayRequest request = DeleteInternetGatewayRequest.builder()
+                .internetGatewayId(gatewayId)
+                .build();
+        try {
+            client.deleteInternetGateway(request);
+        } catch (SdkClientException e) {
+            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, GATEWAY_RESOURCE, gatewayId);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message);
+        }
+    }
+
+    @VisibleForTesting
+    String doCreateInternetGateway(String vpcId, Ec2Client client) throws FogbowException {
+        try {
+            CreateInternetGatewayResponse response = client.createInternetGateway();
+            return response.internetGateway().internetGatewayId();
+        } catch (SdkException e) {
+            doDeleteVpc(vpcId, client);
+            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+        }
+    }
+
+    @VisibleForTesting
+    void doModifyVpcAttributes(String vpcId, Ec2Client client) throws FogbowException {
+        ModifyVpcAttributeRequest[] modifyVpcAttributes = {
+                doEnableDnsHostnames(vpcId),
+                doEnableDnsSupport(vpcId)
+        };
+
+        /*
+         * AWS does not allow two attributes of a VPC to be modified in a single
+         * request. For this, you must send a request for each modification you
+         * make.
+         */
+        List<ModifyVpcAttributeRequest> requests = Arrays.asList(modifyVpcAttributes);
+        for (ModifyVpcAttributeRequest request : requests) {
+            try {
+                client.modifyVpcAttribute(request);
+            } catch (SdkClientException e) {
+                doDeleteVpc(vpcId, client);
+                throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            }
+        }
+    }
+
+    @VisibleForTesting
+    void doDeleteVpc(String vpcId, Ec2Client client) throws FogbowException {
+        DeleteVpcRequest request = DeleteVpcRequest.builder()
+                .vpcId(vpcId)
+                .build();
+        try {
+            client.deleteVpc(request);
+        } catch (SdkClientException e) {
+            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, VPC_RESOURCE, vpcId);
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message);
+        }
+    }
+
+    @VisibleForTesting
+    ModifyVpcAttributeRequest doEnableDnsSupport(String vpcId) {
+        AttributeBooleanValue enableDnsSupport = buildAttributeBooleanValue();
+        return ModifyVpcAttributeRequest.builder()
+                .vpcId(vpcId)
+                .enableDnsSupport(enableDnsSupport)
+                .build();
+    }
+
+    @VisibleForTesting
+    ModifyVpcAttributeRequest doEnableDnsHostnames(String vpcId) {
+        AttributeBooleanValue enableDnsHostnames = buildAttributeBooleanValue();
+        return ModifyVpcAttributeRequest.builder()
+                .vpcId(vpcId)
+                .enableDnsHostnames(enableDnsHostnames)
+                .build();
+    }
+
+    @VisibleForTesting
+    AttributeBooleanValue buildAttributeBooleanValue() {
+        return AttributeBooleanValue.builder()
+                .value(true)
+                .build();
     }
 
 }

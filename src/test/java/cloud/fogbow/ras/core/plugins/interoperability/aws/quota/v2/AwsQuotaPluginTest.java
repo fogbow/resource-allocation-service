@@ -34,7 +34,7 @@ import java.util.Map;
 public class AwsQuotaPluginTest extends BaseUnitTests {
     private static final String CLOUD_NAME = "amazon";
     private static final String FAKE_VOLUME_ID = "fake-volume-id";
-    private static final String FAKE_SUBNET_ID = "fake-subnet-id";
+    private static final String FAKE_VPC_ID = "fake-vpc-id";
     private static final String FLAVOR_LINE_FORMAT = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s";
     private static final int ONE_VALUE = 1;
     private static final String FAKE_PUBLIC_ID = "173.4.1.2";
@@ -97,7 +97,7 @@ public class AwsQuotaPluginTest extends BaseUnitTests {
         ComputeAllocation computeAllocation = new ComputeAllocation(instances, vCPUs, ram);
 
         Mockito.doReturn(expectedQuota.getPublicIps()).when(this.plugin).calculateUsedElasticIp(Mockito.eq(this.client));
-        Mockito.doReturn(expectedQuota.getNetworks()).when(this.plugin).calculateUsedSubnets(Mockito.eq(this.client));
+        Mockito.doReturn(expectedQuota.getNetworks()).when(this.plugin).calculateUsedNetworks(Mockito.eq(this.client));
         Mockito.doReturn(expectedQuota.getStorage()).when(this.plugin).calculateUsedStorage(Mockito.eq(this.client));
         Mockito.doReturn(expectedQuota.getVolumes()).when(this.plugin).calculateUsedVolumes(Mockito.eq(this.client));
         Mockito.doReturn(computeAllocation).when(this.plugin).calculateComputeUsedQuota();
@@ -110,7 +110,7 @@ public class AwsQuotaPluginTest extends BaseUnitTests {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).calculateUsedStorage(Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).calculateUsedVolumes(Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).calculateUsedElasticIp(Mockito.eq(this.client));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).calculateUsedSubnets(Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).calculateUsedNetworks(Mockito.eq(this.client));
 
         Assert.assertEquals(expectedQuota, usedQuota);
     }
@@ -161,28 +161,46 @@ public class AwsQuotaPluginTest extends BaseUnitTests {
         Assert.assertEquals(TestUtils.DISK_VALUE, volumesUsage);
     }
 
-    // test case: When calling the calculateUsedSubnets method, it must verify that
-    // returned the expected values.
+    // test case: When calling the calculateUsedVolumes method, it must verify
+    // that returned the expected values.
     @Test
-    public void testCalculateUsedSubnets() throws Exception {
+    public void testCalculateUsedVolumes() throws Exception {
         // set up
-        List<Subnet> subnets = this.buildSubnetsCollection();
+        List<Volume> volumes = this.buildVolumesCollection();
 
-        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder().build();
-        DescribeSubnetsResponse response = DescribeSubnetsResponse.builder().subnets(subnets).build();
+        DescribeVolumesResponse response = DescribeVolumesResponse.builder()
+                .volumes(volumes)
+                .build();
 
-        PowerMockito.mockStatic(AwsV2CloudUtil.class);
-        PowerMockito.doReturn(response).when(AwsV2CloudUtil.class, "doDescribeSubnetsRequest",
-                Mockito.eq(request), Mockito.eq(this.client));
+        Mockito.when(this.client.describeVolumes()).thenReturn(response);
 
         // exercise
-        int usedSubnets = this.plugin.calculateUsedSubnets(this.client);
+        int usedVolumes = this.plugin.calculateUsedVolumes(this.client);
 
         // verify
-        PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
-        AwsV2CloudUtil.doDescribeSubnetsRequest(Mockito.eq(request), Mockito.eq(this.client));
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).describeVolumes();
+        Assert.assertEquals(volumes.size(), usedVolumes);
+    }
 
-        Assert.assertEquals(subnets.size(), usedSubnets);
+    // test case: When calling the calculateUsedNetworks method, it must verify that
+    // returned the expected values.
+    @Test
+    public void testCalculateUsedNetworks() throws Exception {
+        // set up
+        List<Vpc> vpcs = this.buildVpcCollection();
+
+        DescribeVpcsResponse response = DescribeVpcsResponse.builder()
+                .vpcs(vpcs)
+                .build();
+
+        Mockito.when(this.client.describeVpcs()).thenReturn(response);
+
+        // exercise
+        int usedVpcs = this.plugin.calculateUsedNetworks(this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).describeVpcs();
+        Assert.assertEquals(vpcs.size(), usedVpcs);
     }
 
     // test case: When calling the calculateUsedElasticIps method, it must verify that
@@ -227,7 +245,7 @@ public class AwsQuotaPluginTest extends BaseUnitTests {
         Assert.assertEquals(computeAllocation.getRam(), totalQuota.getRam());
         Assert.assertEquals(computeAllocation.getInstances(), totalQuota.getInstances());
         Assert.assertEquals(AwsQuotaPlugin.maximumStorage, totalQuota.getStorage());
-        Assert.assertEquals(AwsQuotaPlugin.maximumSubnets, totalQuota.getNetworks());
+        Assert.assertEquals(AwsQuotaPlugin.maximumNetworks, totalQuota.getNetworks());
         Assert.assertEquals(AwsQuotaPlugin.maximumPublicIpAddresses, totalQuota.getPublicIps());
     }
 
@@ -435,12 +453,12 @@ public class AwsQuotaPluginTest extends BaseUnitTests {
         return Arrays.asList(addresses);
     }
 
-    private List<Subnet> buildSubnetsCollection() {
-        Subnet[] subnets = { Subnet.builder()
-                .subnetId(FAKE_SUBNET_ID)
+    private List<Vpc> buildVpcCollection() {
+        Vpc[] vpcs = { Vpc.builder()
+                .vpcId(FAKE_VPC_ID)
                 .build()
         };
-        return Arrays.asList(subnets);
+        return Arrays.asList(vpcs);
     }
 
     private List<Volume> buildVolumesCollection() {

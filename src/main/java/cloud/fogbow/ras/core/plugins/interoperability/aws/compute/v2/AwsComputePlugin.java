@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
@@ -50,6 +51,8 @@ import software.amazon.awssdk.services.ec2.model.InstancePrivateIpAddress;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
+import software.amazon.awssdk.services.ec2.model.Subnet;
+import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.Volume;
 
@@ -82,10 +85,11 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     protected static final String RESOURCE_NAME = "Compute";
     protected static final String STORAGE_REQUIREMENT = "storage";
 	
+    protected static final int DEFAULT_DEVICE_INDEX = 0;
     protected static final int INSTANCES_LAUNCH_NUMBER = 1;
+    protected static final int MAXIMUM_SIZE_ALLOWED = 1;
     protected static final int ONE_GIGABYTE = 1024;
 
-    private String defaultGroupId;
     private String defaultSubnetId;
     private String flavorsFilePath;
     private String region;
@@ -96,7 +100,6 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
         this.defaultSubnetId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SUBNET_ID_KEY);
-        this.defaultGroupId = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_DEFAULT_SECURITY_GROUP_ID_KEY);
         this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
         this.flavors = new TreeSet<AwsHardwareRequirements>();
@@ -107,7 +110,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
-        RunInstancesRequest request = buildRequestInstance(computeOrder, flavor);
+        Subnet subnet = getNetworkSelected(computeOrder, client);
+        RunInstancesRequest request = buildRequestInstance(computeOrder, flavor, subnet);
         return doRequestInstance(computeOrder, flavor, request, client);
     }
 
@@ -272,11 +276,12 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         throw new InstanceNotFoundException(Messages.Exception.IMAGE_NOT_FOUND);
     }
 
-    protected RunInstancesRequest buildRequestInstance(ComputeOrder order, AwsHardwareRequirements flavor) {
+    protected RunInstancesRequest buildRequestInstance(ComputeOrder order, AwsHardwareRequirements flavor, Subnet subnet)
+            throws FogbowException {
+
         String imageId = flavor.getImageId();
         InstanceType instanceType = InstanceType.fromValue(flavor.getName());
-        List<String> subnetIds = getSubnetIdsFrom(order);
-        List<InstanceNetworkInterfaceSpecification> networkInterfaces = loadNetworkInterfaces(subnetIds);
+        InstanceNetworkInterfaceSpecification networkInterface = buildNetworkInterface(subnet);
         String userData = this.launchCommandGenerator.createLaunchCommand(order);
 
         RunInstancesRequest request = RunInstancesRequest.builder()
@@ -284,41 +289,46 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
                 .instanceType(instanceType)
                 .maxCount(INSTANCES_LAUNCH_NUMBER)
                 .minCount(INSTANCES_LAUNCH_NUMBER)
-                .networkInterfaces(networkInterfaces)
+                .networkInterfaces(networkInterface)
                 .userData(userData)
                 .build();
 
         return request;
     }
 	
-    protected List<InstanceNetworkInterfaceSpecification> loadNetworkInterfaces(List<String> subnetIds) {
-        List<InstanceNetworkInterfaceSpecification> networkInterfaces = new ArrayList<>();
-        InstanceNetworkInterfaceSpecification nis;
-        String subnetId;
-        for (int i = 0; i < subnetIds.size(); i++) {
-            subnetId = subnetIds.get(i);
-            nis = buildNetworkInterfaces(subnetId, i);
-            networkInterfaces.add(nis);
-        }
-        return networkInterfaces;
-    }
-	
-    protected InstanceNetworkInterfaceSpecification buildNetworkInterfaces(String subnetId, int deviceIndex) {
+    protected InstanceNetworkInterfaceSpecification buildNetworkInterface(Subnet subnet) throws FogbowException {
+        List<Tag> subnetTags = subnet.tags();
+        String groupId = AwsV2CloudUtil.getGroupIdFrom(subnetTags);
+        String subnetId = subnet.subnetId();
+
         InstanceNetworkInterfaceSpecification networkInterface = InstanceNetworkInterfaceSpecification.builder()
                 .subnetId(subnetId)
-                .deviceIndex(deviceIndex)
-                .groups(this.defaultGroupId)
+                .deviceIndex(DEFAULT_DEVICE_INDEX)
+                .groups(groupId)
                 .build();
 
         return networkInterface;
     }
-	
-    protected List<String> getSubnetIdsFrom(ComputeOrder computeOrder) {
-        List<String> subnetIds = new ArrayList<String>();
-        // Only the first network from the network's list can get a public ip for now.
-        subnetIds.addAll(computeOrder.getNetworkIds());
-        subnetIds.add(this.defaultSubnetId);
-        return subnetIds;
+
+    protected Subnet getNetworkSelected(ComputeOrder order, Ec2Client client) throws FogbowException {
+        List<String> networkIds = order.getNetworkIds();
+        String subnetId = selectNetworkId(networkIds);
+        return AwsV2CloudUtil.getSubnetById(subnetId, client);
+    }
+
+    protected String selectNetworkId(List<String> networkIdList) throws FogbowException {
+        String networkId = this.defaultSubnetId;
+        if (!networkIdList.isEmpty()) {
+            checkNetworkIdListIntegrity(networkIdList);
+            networkId = networkIdList.listIterator().next();
+        }
+        return networkId;
+    }
+
+    protected void checkNetworkIdListIntegrity(List<String> networkIdList) throws FogbowException {
+        if (networkIdList.size() > MAXIMUM_SIZE_ALLOWED) {
+            throw new InvalidParameterException(Messages.Exception.MANY_NETWORKS_NOT_ALLOWED);
+        }
     }
 
     protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)

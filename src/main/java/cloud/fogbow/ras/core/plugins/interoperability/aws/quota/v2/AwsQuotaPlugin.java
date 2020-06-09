@@ -52,7 +52,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     protected static final int ONE_GIGABYTE = 1024;
 
     public static int maximumStorage;
-    public static int maximumSubnets;
+    public static int maximumNetworks;
     public static int maximumPublicIpAddresses;
 
     private Map<String, ComputeAllocation> totalComputeAllocationMap;
@@ -62,11 +62,11 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
 
     public AwsQuotaPlugin(@NotNull String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
+        maximumStorage = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_STORAGE_QUOTA_KEY));
+        maximumNetworks = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_VPC_QUOTA_KEY));
+        maximumPublicIpAddresses = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_ELASTIC_IP_ADDRESSES_QUOTA_KEY));
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
         this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
-        this.maximumStorage = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_STORAGE_QUOTA_KEY));
-        this.maximumSubnets = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_SUBNETS_QUOTA_KEY));
-        this.maximumPublicIpAddresses = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_ELASTIC_IP_ADDRESSES_QUOTA_KEY));
         this.totalComputeAllocationMap = new HashMap<String, ComputeAllocation>();
         this.computeAllocationMap = new HashMap<String, ComputeAllocation>();
     }
@@ -88,7 +88,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
         ComputeAllocation computeAllocation = this.calculateComputeUsedQuota();
         int storage = this.calculateUsedStorage(client);
         int elasticIps = this.calculateUsedElasticIp(client);
-        int subnets = this.calculateUsedSubnets(client);
+        int networks = this.calculateUsedNetworks(client);
         int volumes = this.calculateUsedVolumes(client);
 
         ResourceAllocation allocation = ResourceAllocation.builder()
@@ -97,7 +97,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
                 .instances(computeAllocation.getInstances())
                 .storage(storage)
                 .volumes(volumes)
-                .networks(subnets)
+                .networks(networks)
                 .publicIps(elasticIps)
                 .build();
 
@@ -111,10 +111,9 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    int calculateUsedSubnets(@NotNull Ec2Client client) throws FogbowException {
-        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder().build();
-        DescribeSubnetsResponse response = AwsV2CloudUtil.doDescribeSubnetsRequest(request, client);
-        return response.subnets().size();
+    int calculateUsedNetworks(@NotNull Ec2Client client) throws FogbowException {
+        List<Vpc> vpcs = client.describeVpcs().vpcs();
+        return vpcs.size();
     }
 
     @VisibleForTesting
@@ -141,7 +140,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
                 .instances(computeAllocation.getInstances())
                 .storage(maximumStorage)
                 .volumes(FogbowConstants.UNLIMITED_RESOURCE)
-                .networks(maximumSubnets)
+                .networks(maximumNetworks)
                 .publicIps(maximumPublicIpAddresses)
                 .build();
 

@@ -85,6 +85,7 @@ public class Messages {
         public static final String DISK_OFFERING_COMPATIBLE_NOT_FOUND = "There is not disk offering compatible with volume order size.";
         public static final String DISK_OFFERING_CUSTOMIZED_NOT_FOUND ="There is not disk offering customized in the cloud.";
         public static final String SLEEP_THREAD_INTERRUPTED = "Thread's not able to sleep.";
+        public static final String REMOVING_ORDER_IN_SELECT_STATE_S = "Order [%s] might have left garbage in cloud.";
     }
 
     public static class Info {
@@ -125,7 +126,7 @@ public class Messages {
         public static final String RECEIVING_GET_REQUEST = "Get request for %s %s received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request: %s.";
         public static final String RECEIVING_RESOURCE_S_REQUEST = "Get %s request for provider %s received.";
-        public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
+        public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s list: %d requests recovered so far.";
         public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
         public static final String REQUESTING_GET_ALL_FROM_PROVIDER = "Requesting all images from provider.";
         public static final String REQUESTING_TO_CLOUD = "Requesting to the cloud by the user %s. URL: %s";
@@ -156,6 +157,7 @@ public class Messages {
         public static final String END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR = "End asynchronous delete security group.";
         public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
         public static final String END_ASYNC_INSTANCE_CREATION_S = "End instance (%s) creation.";
+        public static final String ORDER_S_CHANGED_STATE_TO_S = "Order changed %s state to %s.";
     }
 
     public static class Error {

@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.api.http.response;
 
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
@@ -63,21 +62,56 @@ public class InstanceStatus {
     }
 
     public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws UnexpectedException {
+        return mapInstanceStateFromOrderState(orderState, false, false, false);
+    }
+
+    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState,
+          Boolean knowWhetherInstanceIsReadyOrHasFailed, Boolean isReady, Boolean hasFailed) throws UnexpectedException {
         switch(orderState) {
             case OPEN:
             case SELECTED:
             case PENDING:
                 return InstanceState.DISPATCHED;
-            case SPAWNING:
-                return InstanceState.CREATING;
             case FAILED_ON_REQUEST:
                 return InstanceState.ERROR;
+            case SPAWNING:
+                if (knowWhetherInstanceIsReadyOrHasFailed) {
+                    if (isReady) {
+                        return InstanceState.READY;
+                    } else if (hasFailed) {
+                        return InstanceState.FAILED;
+                    } else {
+                        return InstanceState.CREATING;
+                    }
+                } else {
+                    return InstanceState.CREATING;
+                }
             case FULFILLED:
-                return InstanceState.READY;
+                if (knowWhetherInstanceIsReadyOrHasFailed) {
+                    if (isReady) {
+                        return InstanceState.READY;
+                    } else if (hasFailed) {
+                        return InstanceState.FAILED;
+                    } else {
+                        return InstanceState.UNKNOWN;
+                    }
+                } else {
+                    return InstanceState.READY;
+                }
             case FAILED_AFTER_SUCCESSFUL_REQUEST:
                 return InstanceState.FAILED;
             case UNABLE_TO_CHECK_STATUS:
-                return InstanceState.UNKNOWN;
+                if (knowWhetherInstanceIsReadyOrHasFailed) {
+                    if (isReady) {
+                        return InstanceState.READY;
+                    } else if (hasFailed) {
+                        return InstanceState.FAILED;
+                    } else {
+                        return InstanceState.UNKNOWN;
+                    }
+                } else {
+                    return InstanceState.UNKNOWN;
+                }
             case ASSIGNED_FOR_DELETION:
             case CHECKING_DELETION:
                 return InstanceState.DELETING;

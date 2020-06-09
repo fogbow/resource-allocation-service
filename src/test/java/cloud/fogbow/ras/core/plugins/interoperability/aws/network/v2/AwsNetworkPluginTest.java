@@ -29,27 +29,49 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AssociateRouteTableRequest;
+import software.amazon.awssdk.services.ec2.model.AttachInternetGatewayRequest;
+import software.amazon.awssdk.services.ec2.model.AttachInternetGatewayResponse;
 import software.amazon.awssdk.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
+import software.amazon.awssdk.services.ec2.model.CreateInternetGatewayResponse;
+import software.amazon.awssdk.services.ec2.model.CreateRouteRequest;
+import software.amazon.awssdk.services.ec2.model.CreateRouteResponse;
 import software.amazon.awssdk.services.ec2.model.CreateSubnetRequest;
 import software.amazon.awssdk.services.ec2.model.CreateSubnetResponse;
+import software.amazon.awssdk.services.ec2.model.CreateVpcRequest;
+import software.amazon.awssdk.services.ec2.model.CreateVpcResponse;
+import software.amazon.awssdk.services.ec2.model.DeleteInternetGatewayRequest;
+import software.amazon.awssdk.services.ec2.model.DeleteInternetGatewayResponse;
 import software.amazon.awssdk.services.ec2.model.DeleteSubnetRequest;
 import software.amazon.awssdk.services.ec2.model.DeleteSubnetResponse;
+import software.amazon.awssdk.services.ec2.model.DeleteVpcRequest;
+import software.amazon.awssdk.services.ec2.model.DeleteVpcResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeInternetGatewaysResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
+import software.amazon.awssdk.services.ec2.model.DetachInternetGatewayRequest;
+import software.amazon.awssdk.services.ec2.model.DetachInternetGatewayResponse;
+import software.amazon.awssdk.services.ec2.model.InternetGateway;
+import software.amazon.awssdk.services.ec2.model.InternetGatewayAttachment;
+import software.amazon.awssdk.services.ec2.model.ModifyVpcAttributeRequest;
+import software.amazon.awssdk.services.ec2.model.ModifyVpcAttributeResponse;
 import software.amazon.awssdk.services.ec2.model.Route;
 import software.amazon.awssdk.services.ec2.model.RouteTable;
 import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.Vpc;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
 public class AwsNetworkPluginTest extends BaseUnitTests {
 
+    private static final String ANOTHER_VPC_ID = "another-vpc-id";
     private static final String ANY_VALUE = "anything";
     private static final String CLOUD_NAME = "amazon";
     private static final String DEFAULT_AVAILABILITY_ZONE = "sa-east-1a";
     private static final String DEFAULT_CIDR_DESTINATION = "0.0.0.0/0";
     private static final String FAKE_CIDR_ADDRESS = "1.0.1.0/28";
+    private static final String FAKE_GATEWAY_ID = "fake-gateway-id";
     private static final String FAKE_GROUP_ID = "fake-group-id";
     private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_ROUTE_TABLE_ID = "fake-route-table-id";
@@ -80,15 +102,20 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     public void testRequestInstance() throws FogbowException {
         // set up
         NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        String cidr = order.getCidr();
+
         String vpcId = FAKE_VPC_ID;
+        Mockito.doReturn(vpcId).when(this.plugin).doCreateAndConfigureVpc(Mockito.eq(cidr),
+                Mockito.eq(this.client));
 
         CreateSubnetRequest request = CreateSubnetRequest.builder()
                 .availabilityZone(DEFAULT_AVAILABILITY_ZONE)
-                .cidrBlock(order.getCidr())
+                .cidrBlock(cidr)
                 .vpcId(vpcId)
                 .build();
 
-        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(order),
+        String instanceName = FAKE_INSTANCE_NAME;
+        Mockito.doReturn(TestUtils.FAKE_INSTANCE_ID).when(this.plugin).doRequestInstance(Mockito.eq(instanceName),
                 Mockito.eq(request), Mockito.eq(this.client));
 
         AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
@@ -100,7 +127,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
         AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
 
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(order),
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(Mockito.eq(instanceName),
                 Mockito.eq(request), Mockito.eq(this.client));
     }
     
@@ -217,6 +244,12 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.plugin).doDeleteSubnet(Mockito.eq(subnetId), Mockito.eq(this.client));
 
+        String vpcId = FAKE_VPC_ID;
+        String gatewayId = FAKE_GATEWAY_ID;
+        Mockito.doReturn(gatewayId).when(this.plugin).getGatewayIdAttachedToVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
+        Mockito.doNothing().when(this.plugin).doRollbackAllConfigurationAndDeleteVpc(Mockito.eq(gatewayId),
+                Mockito.eq(vpcId), Mockito.eq(this.client));
+
         // exercise
         plugin.doDeleteInstance(subnetId, this.client);
 
@@ -232,6 +265,10 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSubnet(Mockito.eq(subnetId),
                 Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getGatewayIdAttachedToVpc(Mockito.eq(vpcId),
+                Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doRollbackAllConfigurationAndDeleteVpc(Mockito.eq(gatewayId), Mockito.eq(vpcId), Mockito.eq(this.client));
     }
     
     // test case: When calling the getSubnetFrom method, it must verify that is call
@@ -246,8 +283,9 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         PowerMockito.doReturn(subnet).when(AwsV2CloudUtil.class, TestUtils.GET_SUBNET_BY_ID_METHOD,
                 Mockito.eq(subnetId), Mockito.eq(this.client));
 
+        String vpcId = FAKE_VPC_ID;
         RouteTable routeTable = buildRouteTables();
-        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(client));
+        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(vpcId), Mockito.eq(client));
 
         // exercise
         this.plugin.doGetInstance(subnetId, this.client);
@@ -256,7 +294,8 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AwsV2CloudUtil.getSubnetById(Mockito.eq(subnetId), Mockito.eq(this.client));
         
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getRouteTables(Mockito.eq(client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getRouteTables(Mockito.eq(vpcId),
+                Mockito.eq(client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkInstance(Mockito.eq(subnet),
                 Mockito.eq(routeTable));
     }
@@ -285,28 +324,32 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         NetworkOrder order = this.testUtils.createLocalNetworkOrder();
         String cidr = FAKE_CIDR_ADDRESS;
         String subnetId = FAKE_SUBNET_ID;
+        String vpcId = FAKE_VPC_ID;
 
         CreateSubnetRequest request = CreateSubnetRequest.builder().availabilityZone(DEFAULT_AVAILABILITY_ZONE)
                 .cidrBlock(cidr)
-                .vpcId(FAKE_VPC_ID)
+                .vpcId(vpcId)
                 .build();
 
         Mockito.doReturn(subnetId).when(this.plugin).doCreateSubnetResquest(Mockito.eq(order.getName()),
                 Mockito.eq(request), Mockito.eq(this.client));
-        Mockito.doNothing().when(this.plugin).doAssociateRouteTables(Mockito.eq(subnetId), Mockito.eq(this.client));
-        Mockito.doNothing().when(this.plugin).handleSecurityIssues(Mockito.eq(subnetId), Mockito.eq(cidr),
+        Mockito.doNothing().when(this.plugin).doAssociateRouteTables(Mockito.eq(subnetId), Mockito.eq(vpcId),
                 Mockito.eq(this.client));
+        Mockito.doNothing().when(this.plugin).handleSecurityIssues(Mockito.eq(subnetId), Mockito.eq(vpcId),
+                Mockito.eq(cidr), Mockito.eq(this.client));
+
+        String instanceName = FAKE_INSTANCE_NAME;
 
         // exercise
-        this.plugin.doRequestInstance(order, request, this.client);
+        this.plugin.doRequestInstance(instanceName, request, this.client);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doCreateSubnetResquest(Mockito.eq(order.getName()),
                 Mockito.eq(request), Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doAssociateRouteTables(Mockito.eq(subnetId),
-                Mockito.eq(this.client));
+                Mockito.eq(vpcId), Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).handleSecurityIssues(Mockito.eq(subnetId),
-                Mockito.eq(cidr), Mockito.eq(this.client));
+                Mockito.eq(vpcId), Mockito.eq(cidr), Mockito.eq(this.client));
     }
     
     // test case: When calling the handleSecurityIssues method, it must verify
@@ -340,7 +383,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         
 
         // exercise
-        this.plugin.handleSecurityIssues(subnetId, cidr, this.client);
+        this.plugin.handleSecurityIssues(subnetId, vpcId, cidr, this.client);
 
         // verify
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -383,19 +426,29 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
                 .build();
 
         UnexpectedException exception = new UnexpectedException();
-        PowerMockito.doThrow(exception).when(AwsV2CloudUtil.class, TestUtils.DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD, Mockito.eq(request),
-                Mockito.eq(this.client));
+        PowerMockito.doThrow(exception).when(AwsV2CloudUtil.class, TestUtils.DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD,
+                Mockito.eq(request), Mockito.eq(this.client));
         
         String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
 
+        String gatewayId = FAKE_GATEWAY_ID;
+        Mockito.doReturn(gatewayId).when(this.plugin).getGatewayIdAttachedToVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
+        Mockito.doNothing().when(this.plugin).doRollbackAllConfigurationAndDeleteVpc(Mockito.eq(gatewayId),
+                Mockito.eq(vpcId), Mockito.eq(this.client));
+
         try {
             // exercise
-            this.plugin.handleSecurityIssues(subnetId, cidr, this.client);
+            this.plugin.handleSecurityIssues(subnetId, vpcId, cidr, this.client);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
-            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSubnet(Mockito.eq(subnetId), Mockito.eq(this.client));
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSubnet(Mockito.eq(subnetId),
+                    Mockito.eq(this.client));
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getGatewayIdAttachedToVpc(Mockito.eq(vpcId),
+                    Mockito.eq(this.client));
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                    .doRollbackAllConfigurationAndDeleteVpc(Mockito.eq(gatewayId), Mockito.eq(vpcId), Mockito.eq(this.client));
         }
     }
     
@@ -404,11 +457,12 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     @Test
     public void testDoAssociateRouteTables() throws FogbowException {
         // set up
+        String vpcId = FAKE_VPC_ID;
         String subnetId = FAKE_SUBNET_ID;
         String routeTableId = FAKE_ROUTE_TABLE_ID;
         
         RouteTable routeTable = buildRouteTables();
-        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(this.client));
+        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(vpcId), Mockito.eq(this.client));
         
         AssociateRouteTableRequest request = AssociateRouteTableRequest.builder()
                 .routeTableId(routeTableId )
@@ -416,7 +470,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
                 .build();
         
         // exercise
-        this.plugin.doAssociateRouteTables(subnetId, this.client);
+        this.plugin.doAssociateRouteTables(subnetId, vpcId , this.client);
 
         // verify
         Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).associateRouteTable(Mockito.eq(request));
@@ -428,10 +482,11 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     @Test
     public void testDoAssociateRouteTablesFail() throws FogbowException {
         // set up
+        String vpcId = FAKE_VPC_ID;
         String subnetId = FAKE_SUBNET_ID;
 
         RouteTable routeTable = buildRouteTables();
-        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(this.client));
+        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(vpcId), Mockito.eq(this.client));
 
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).associateRouteTable(Mockito.any(AssociateRouteTableRequest.class));
@@ -439,18 +494,70 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
 
         String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
 
+        String gatewayId = FAKE_GATEWAY_ID;
+        Mockito.doReturn(gatewayId).when(this.plugin).getGatewayIdAttachedToVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
+        Mockito.doNothing().when(this.plugin).doRollbackAllConfigurationAndDeleteVpc(Mockito.eq(gatewayId),
+                Mockito.eq(vpcId), Mockito.eq(this.client));
+
         try {
             // exercise
-            this.plugin.doAssociateRouteTables(subnetId, this.client);
+            this.plugin.doAssociateRouteTables(subnetId, vpcId, this.client);
             Assert.fail();
         } catch (UnexpectedException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSubnet(Mockito.eq(subnetId),
                     Mockito.eq(this.client));
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getGatewayIdAttachedToVpc(Mockito.eq(vpcId),
+                    Mockito.eq(this.client));
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                    .doRollbackAllConfigurationAndDeleteVpc(Mockito.eq(gatewayId), Mockito.eq(vpcId), Mockito.eq(this.client));
         }
     }
     
+    // test case: When calling the getGatewayIdAttachedToVpc method, with a
+    // gateway attachment corresponding to the VPC ID, it must verify that the
+    // gateway ID has been returned.
+    @Test
+    public void testGetGatewayIdAttachedToVpcSuccessfully() throws FogbowException {
+        // set up
+        String vpcId = FAKE_VPC_ID;
+
+        DescribeInternetGatewaysResponse response = buildDescribeInternetGatewaysResponse();
+        Mockito.when(this.client.describeInternetGateways()).thenReturn(response);
+
+        String expected = FAKE_GATEWAY_ID;
+
+        // exercise
+        String gatewayId = this.plugin.getGatewayIdAttachedToVpc(vpcId, this.client);
+
+        // verify
+        Assert.assertEquals(expected, gatewayId);
+    }
+
+    // test case: When calling the getGatewayIdAttachedToVpc method, and not
+    // find a gateway attachment corresponding to the VPC ID, it must verify
+    // than an InstanceNotFoundException has been thrown.
+    @Test
+    public void testGetGatewayIdAttachedToVpcFail() throws FogbowException {
+        // set up
+        String vpcId = ANOTHER_VPC_ID;
+
+        DescribeInternetGatewaysResponse response = buildDescribeInternetGatewaysResponse();
+        Mockito.when(this.client.describeInternetGateways()).thenReturn(response);
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.getGatewayIdAttachedToVpc(vpcId, this.client);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
     // test case: When calling the doDeleteSubnet method, it must verify
     // that is call was successful.
     @Test
@@ -502,8 +609,10 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         DescribeRouteTablesResponse response = buildDescribeRouteTablesResponse();
         Mockito.doReturn(response).when(this.plugin).doDescribeRouteTables(Mockito.eq(this.client));
 
+        String vpcId = FAKE_VPC_ID;
+
         // exercise
-        this.plugin.getRouteTables(this.client);
+        this.plugin.getRouteTables(vpcId , this.client);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDescribeRouteTables(Mockito.eq(this.client));
@@ -517,11 +626,12 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         DescribeRouteTablesResponse response = DescribeRouteTablesResponse.builder().build();
         Mockito.doReturn(response).when(this.plugin).doDescribeRouteTables(Mockito.eq(this.client));
 
+        String vpcId = FAKE_VPC_ID;
         String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
         try {
             // exercise
-            this.plugin.getRouteTables(this.client);
+            this.plugin.getRouteTables(vpcId, this.client);
             Assert.fail();
         } catch (InstanceNotFoundException e) {
             // verify
@@ -620,6 +730,479 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).createSubnet(Mockito.eq(request));
     }
     
+    // test case: When calling the doCreateAndConfigureVpc method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoCreateAndConfigureVpcSuccessfully() throws FogbowException {
+        // set up
+        String cidr = FAKE_CIDR_ADDRESS;
+        String vpcId = FAKE_VPC_ID;
+
+        CreateVpcResponse response = buildCreateVpcResponse();
+        Mockito.when(this.client.createVpc(Mockito.any(CreateVpcRequest.class))).thenReturn(response);
+
+        Mockito.doNothing().when(this.plugin).doModifyVpcAttributes(Mockito.eq(vpcId), Mockito.eq(this.client));
+
+        String gatewayId = FAKE_GATEWAY_ID;
+        Mockito.doReturn(gatewayId).when(this.plugin).doCreateInternetGateway(Mockito.eq(vpcId),
+                Mockito.eq(this.client));
+
+        Mockito.doNothing().when(this.plugin).doAttachInternetGateway(Mockito.eq(gatewayId), Mockito.eq(vpcId),
+                Mockito.eq(this.client));
+        Mockito.doNothing().when(this.plugin).doCreateRouteTables(Mockito.eq(cidr), Mockito.eq(gatewayId),
+                Mockito.eq(vpcId), Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.doCreateAndConfigureVpc(cidr, this.client);
+                // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).createVpc(Mockito.any(CreateVpcRequest.class));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doModifyVpcAttributes(Mockito.eq(vpcId),
+                Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doCreateInternetGateway(Mockito.eq(vpcId),
+                Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doAttachInternetGateway(Mockito.eq(gatewayId),
+                Mockito.eq(vpcId), Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doCreateRouteTables(Mockito.eq(cidr),
+                Mockito.eq(gatewayId), Mockito.eq(vpcId), Mockito.eq(this.client));
+    }
+
+    // test case: When calling the doCreateAndConfigureVpc method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException has
+    // been thrown.
+    @Test
+    public void testDoCreateAndConfigureVpcFail() throws FogbowException {
+        // set up
+        String cidr = FAKE_CIDR_ADDRESS;
+
+        Exception exception = SdkException.builder().build();
+        Mockito.when(this.client.createVpc(Mockito.any(CreateVpcRequest.class))).thenThrow(exception);
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            this.plugin.doCreateAndConfigureVpc(cidr, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: When calling the doCreateRouteTables method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoCreateRouteTablesSuccessfully() throws FogbowException {
+        // set up
+        String cidr = FAKE_CIDR_ADDRESS;
+        String gatewayId = FAKE_GATEWAY_ID;
+        String vpcId = FAKE_VPC_ID;
+
+        RouteTable routeTable = buildRouteTables();
+        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(vpcId),
+                Mockito.eq(this.client));
+
+        CreateRouteResponse response = CreateRouteResponse.builder().build();
+        Mockito.when(this.client.createRoute(Mockito.any(CreateRouteRequest.class))).thenReturn(response);
+
+        // exercise
+        this.plugin.doCreateRouteTables(cidr, gatewayId, vpcId, this.client);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getRouteTables(Mockito.eq(vpcId),
+                Mockito.eq(this.client));
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .createRoute(Mockito.any(CreateRouteRequest.class));
+    }
+
+    // test case: When calling the doCreateRouteTables method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException has
+    // been thrown.
+    @Test
+    public void testDoCreateRouteTablesFail() throws FogbowException {
+        // set up
+        String cidr = FAKE_CIDR_ADDRESS;
+        String gatewayId = FAKE_GATEWAY_ID;
+        String vpcId = FAKE_VPC_ID;
+
+        RouteTable routeTable = buildRouteTables();
+        Mockito.doReturn(routeTable).when(this.plugin).getRouteTables(Mockito.eq(vpcId),
+                Mockito.eq(this.client));
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.when(this.client.createRoute(Mockito.any(CreateRouteRequest.class))).thenThrow(exception);
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        Mockito.doNothing().when(this.plugin).doRollbackAllConfigurationAndDeleteVpc(Mockito.eq(gatewayId),
+                Mockito.eq(vpcId), Mockito.eq(this.client));
+
+        try {
+            // exercise
+            this.plugin.doCreateRouteTables(cidr, gatewayId, vpcId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                    .doRollbackAllConfigurationAndDeleteVpc(Mockito.eq(gatewayId), Mockito.eq(vpcId),
+                    Mockito.eq(this.client));
+        }
+    }
+
+    // test case: When calling the doRollbackAllConfigurationAndDeleteVpc
+    // method, it must verify that is call was successful.
+    @Test
+    public void testDoRollbackAllConfigurationAndDeleteVpcSuccessfully() throws FogbowException {
+        // set up
+        String gatewayId = FAKE_GATEWAY_ID;
+        String vpcId = FAKE_VPC_ID;
+
+        Mockito.doNothing().when(this.plugin).doDetachInternetGateway(Mockito.eq(gatewayId),
+                Mockito.eq(vpcId), Mockito.eq(this.client));
+        Mockito.doNothing().when(this.plugin).doDeleteInternetGateway(Mockito.eq(gatewayId),
+                Mockito.eq(this.client));
+        Mockito.doNothing().when(this.plugin).doDeleteVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.doRollbackAllConfigurationAndDeleteVpc(gatewayId, vpcId, this.client);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDetachInternetGateway(Mockito.eq(gatewayId),
+                Mockito.eq(vpcId), Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInternetGateway(Mockito.eq(gatewayId),
+                Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteVpc(Mockito.eq(vpcId),
+                Mockito.eq(this.client));
+    }
+
+    // test case: When calling the doDetachInternetGateway method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoDetachInternetGatewaySuccessfully() throws FogbowException {
+        // set up
+        String gatewayId = FAKE_GATEWAY_ID;
+        String vpcId = FAKE_VPC_ID;
+
+        DetachInternetGatewayResponse response = DetachInternetGatewayResponse.builder().build();
+        Mockito.when(this.client.detachInternetGateway(Mockito.any(DetachInternetGatewayRequest.class)))
+                .thenReturn(response);
+
+        // exercise
+        this.plugin.doDetachInternetGateway(gatewayId, vpcId, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .detachInternetGateway(Mockito.any(DetachInternetGatewayRequest.class));
+    }
+
+    // test case: When calling the doDetachInternetGateway method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException has
+    // been thrown.
+    @Test
+    public void testDoDetachInternetGatewayFail() throws FogbowException {
+        // set up
+        String gatewayId = FAKE_GATEWAY_ID;
+        String vpcId = FAKE_VPC_ID;
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.when(this.client.detachInternetGateway(Mockito.any(DetachInternetGatewayRequest.class)))
+                .thenThrow(exception);
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        try {
+            // exercise
+            this.plugin.doDetachInternetGateway(gatewayId, vpcId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: When calling the doAttachInternetGateway method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoAttachInternetGatewaySuccessfully() throws FogbowException {
+        // set up
+        String gatewayId = FAKE_GATEWAY_ID;
+        String vpcId = FAKE_VPC_ID;
+
+        AttachInternetGatewayResponse response = AttachInternetGatewayResponse.builder().build();
+        Mockito.when(this.client.attachInternetGateway(Mockito.any(AttachInternetGatewayRequest.class)))
+                .thenReturn(response);
+
+        // exercise
+        this.plugin.doAttachInternetGateway(gatewayId, vpcId, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .attachInternetGateway(Mockito.any(AttachInternetGatewayRequest.class));
+    }
+
+    // test case: When calling the doAttachInternetGateway method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException has
+    // been thrown.
+    @Test
+    public void testDoAttachInternetGatewayFail() throws FogbowException {
+        // set up
+        String gatewayId = FAKE_GATEWAY_ID;
+        String vpcId = FAKE_VPC_ID;
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.when(this.client.attachInternetGateway(Mockito.any(AttachInternetGatewayRequest.class)))
+                .thenThrow(exception);
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        Mockito.doNothing().when(this.plugin).doDeleteInternetGateway(Mockito.eq(gatewayId), Mockito.eq(this.client));
+        Mockito.doNothing().when(this.plugin).doDeleteVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
+
+        try {
+            // exercise
+            this.plugin.doAttachInternetGateway(gatewayId, vpcId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInternetGateway(Mockito.eq(gatewayId),
+                    Mockito.eq(this.client));
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteVpc(Mockito.eq(vpcId),
+                    Mockito.eq(this.client));
+        }
+    }
+
+    // test case: When calling the doDeleteInternetGateway method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoDeleteInternetGatewaySuccessFully() throws FogbowException {
+        // set up
+        String gatewayId = FAKE_GATEWAY_ID;
+
+        DeleteInternetGatewayResponse response = DeleteInternetGatewayResponse.builder().build();
+        Mockito.when(this.client.deleteInternetGateway(Mockito.any(DeleteInternetGatewayRequest.class)))
+                .thenReturn(response);
+
+        // exercise
+        this.plugin.doDeleteInternetGateway(gatewayId, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .deleteInternetGateway(Mockito.any(DeleteInternetGatewayRequest.class));
+    }
+
+    // test case: When calling the doDeleteInternetGateway method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException has
+    // been thrown.
+    @Test
+    public void testDoDeleteInternetGatewayFail() throws FogbowException {
+        // set up
+        String gatewayId = FAKE_GATEWAY_ID;
+
+        SdkClientException exception =  SdkClientException.builder().build();
+        Mockito.when(this.client.deleteInternetGateway(Mockito.any(DeleteInternetGatewayRequest.class)))
+                .thenThrow(exception);
+
+        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+                AwsNetworkPlugin.GATEWAY_RESOURCE, gatewayId);
+
+        try {
+            // exercise
+            this.plugin.doDeleteInternetGateway(gatewayId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: When calling the doCreateInternetGateway method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoCreateInternetGatewaySuccessfully() throws FogbowException {
+        // set up
+        String vpcId = FAKE_VPC_ID;
+
+        CreateInternetGatewayResponse response = buildCreateInternetGatewayResponse();
+        Mockito.when(this.client.createInternetGateway()).thenReturn(response);
+
+        String expected = FAKE_GATEWAY_ID;
+
+        // exercise
+        String gatewayId = this.plugin.doCreateInternetGateway(vpcId, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).createInternetGateway();
+
+        Assert.assertEquals(expected, gatewayId);
+    }
+
+    // test case: When calling the doCreateInternetGateway method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException has
+    // been thrown.
+    @Test
+    public void testDoCreateInternetGatewayFail() throws FogbowException {
+        // set up
+        String vpcId = FAKE_VPC_ID;
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.when(this.client.createInternetGateway()).thenThrow(exception);
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        Mockito.doNothing().when(this.plugin).doDeleteVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
+
+        try {
+            // exercise
+            this.plugin.doCreateInternetGateway(vpcId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                    .doDeleteVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
+        }
+    }
+
+    // test case: When calling the doModifyVpcAttributes method, it must
+    // verify that is call was successful.
+    @Test
+    public void testDoModifyVpcAttributesSuccessfully() throws FogbowException {
+        // set up
+        String vpcId = FAKE_VPC_ID;
+
+        ModifyVpcAttributeResponse response = ModifyVpcAttributeResponse.builder().build();
+        Mockito.when(this.client.modifyVpcAttribute(Mockito.any(ModifyVpcAttributeRequest.class))).thenReturn(response);
+
+        // exercise
+        this.plugin.doModifyVpcAttributes(vpcId, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_TWICE))
+                .modifyVpcAttribute(Mockito.any(ModifyVpcAttributeRequest.class));
+    }
+
+    // test case: When calling the doModifyVpcAttributes method, and an
+    // unexpected error occurs, it must verify if an UnexpectedException
+    // has been thrown.
+    @Test
+    public void testDoModifyVpcAttributesFail() throws FogbowException {
+        // set up
+        String vpcId = FAKE_VPC_ID;
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.when(this.client.modifyVpcAttribute(Mockito.any(ModifyVpcAttributeRequest.class)))
+                .thenThrow(exception);
+
+        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        Mockito.doNothing().when(this.plugin).doDeleteVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
+
+        try {
+            // exercise
+            this.plugin.doModifyVpcAttributes(vpcId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+
+            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                    .doDeleteVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
+        }
+    }
+
+    // test case: When calling the doDeleteVpc method, it must verify that is
+    // call was successful.
+    @Test
+    public void testDoDeleteVpcSuccessfully() throws FogbowException {
+        // set up
+        String vpcId = FAKE_VPC_ID;
+
+        DeleteVpcResponse response = DeleteVpcResponse.builder().build();
+        Mockito.when(this.client.deleteVpc(Mockito.any(DeleteVpcRequest.class)))
+                .thenReturn(response );
+
+        // exercise
+        this.plugin.doDeleteVpc(vpcId, this.client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .deleteVpc(Mockito.any(DeleteVpcRequest.class));
+    }
+
+    // test case: When calling the doDeleteVpc method, and an unexpected error
+    // occurs, it must verify if an UnexpectedException has been thrown.
+    @Test
+    public void testDoDeleteVpcFail() throws FogbowException {
+        // set up
+        String vpcId = FAKE_VPC_ID;
+
+        SdkClientException exception = SdkClientException.builder().build();
+        Mockito.when(this.client.deleteVpc(Mockito.any(DeleteVpcRequest.class)))
+                .thenThrow(exception);
+
+        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+                AwsNetworkPlugin.VPC_RESOURCE, vpcId);
+
+        try {
+            // exercise
+            this.plugin.doDeleteVpc(vpcId, this.client);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    private CreateInternetGatewayResponse buildCreateInternetGatewayResponse() {
+        InternetGateway internetGateway = buildInternetGateway(null);
+
+        CreateInternetGatewayResponse response = CreateInternetGatewayResponse.builder()
+                .internetGateway(internetGateway)
+                .build();
+
+        return response;
+    }
+
+    private CreateVpcResponse buildCreateVpcResponse() {
+        Vpc vpc = Vpc.builder()
+                .vpcId(FAKE_VPC_ID)
+                .build();
+
+        CreateVpcResponse response = CreateVpcResponse.builder()
+                .vpc(vpc)
+                .build();
+
+        return response;
+    }
+
+    private DescribeInternetGatewaysResponse buildDescribeInternetGatewaysResponse() {
+        InternetGatewayAttachment attachment = InternetGatewayAttachment.builder()
+                .vpcId(FAKE_VPC_ID)
+                .build();
+
+        InternetGateway internetGateway = buildInternetGateway(attachment);
+
+        DescribeInternetGatewaysResponse response = DescribeInternetGatewaysResponse.builder()
+                .internetGateways(internetGateway)
+                .build();
+
+        return response;
+    }
+
+    private InternetGateway buildInternetGateway(InternetGatewayAttachment attachment) {
+        InternetGateway internetGateway = InternetGateway.builder()
+                .attachments(attachment)
+                .internetGatewayId(FAKE_GATEWAY_ID)
+                .build();
+
+        return internetGateway;
+    }
+
     private CreateSubnetResponse buildCreateSubnetsResponse() {
         CreateSubnetResponse response = CreateSubnetResponse.builder()
                 .subnet(buildSubnet())
@@ -666,6 +1249,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Subnet subnet = Subnet.builder()
                 .subnetId(FAKE_SUBNET_ID)
                 .tags(tag == null ? buildTags(key, value) : tag)
+                .vpcId(FAKE_VPC_ID)
                 .build();
 
         return subnet;
