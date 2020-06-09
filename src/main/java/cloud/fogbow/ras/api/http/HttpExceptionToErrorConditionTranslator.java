@@ -71,6 +71,9 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /*
+    It should never happen because any Exception must be mapped to a FogbowException.
+     */
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<ExceptionResponse> handleAnyException(Exception ex, WebRequest request) {
 

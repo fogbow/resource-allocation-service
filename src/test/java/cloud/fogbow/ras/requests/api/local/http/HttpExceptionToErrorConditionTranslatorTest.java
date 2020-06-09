@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
+import cloud.fogbow.common.exceptions.DependencyDetectedException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.OnGoingOperationException;
 import cloud.fogbow.ras.requests.api.local.http.util.PojoController;
 import cloud.fogbow.ras.requests.api.local.http.util.PojoService;
 import org.junit.Assert;
@@ -22,10 +24,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(PojoController.class)
+// TODO (chico) - Finish implementation
 public class HttpExceptionToErrorConditionTranslatorTest {
 
     private final String POJO_CONTROLER_REQUEST_SUFIX = "/";
     private final String EXCEPTION_MESSAGE_DEFAULT = "EXCEPTION_MESSAGE_DEFAULT";
+    private final int IT_SHOULD_NEVER_HAPPEN = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
 
     @Autowired
     private MockMvc mockMvc;
@@ -60,6 +64,32 @@ public class HttpExceptionToErrorConditionTranslatorTest {
         String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
         InstanceNotFoundException exceptionThrown = new InstanceNotFoundException(exceptionMessage);
         int statusCodeExpected = HttpStatus.NOT_FOUND.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a DependencyDetectedException,
+    // it must verify if it return a UNSUPPORTED_MEDIA_TYPE status code.
+    @Test
+    public void testTranslationWhenIsDependencyDetectedException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        DependencyDetectedException exceptionThrown = new DependencyDetectedException(exceptionMessage);
+        int statusCodeExpected = IT_SHOULD_NEVER_HAPPEN;
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a OnGoingOperationException,
+    // it must verify if it return a UNSUPPORTED_MEDIA_TYPE status code.
+    @Test
+    public void testTranslationWhenIsOnGoingOperationException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        OnGoingOperationException exceptionThrown = new OnGoingOperationException(exceptionMessage);
+        int statusCodeExpected = IT_SHOULD_NEVER_HAPPEN;
 
         // exercise and verify
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
