@@ -80,7 +80,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         String userData = getUserData(computeOrder);
         VirtualMachineSize virtualMachineSize = getVirtualMachineSize(computeOrder, azureUser);
         String size = virtualMachineSize.name();
-        int diskSize = AzureGeneralPolicy.getDisk(computeOrder);
+        int diskSize = computeOrder.getDisk();
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, name);
 
         AzureCreateVirtualMachineRef virtualMachineRef = AzureCreateVirtualMachineRef.builder()
