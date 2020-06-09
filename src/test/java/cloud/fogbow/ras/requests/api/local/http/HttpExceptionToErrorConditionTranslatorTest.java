@@ -1,67 +1,87 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
-import cloud.fogbow.ras.api.http.CommonKeys;
-import cloud.fogbow.ras.api.http.request.Compute;
-import cloud.fogbow.ras.core.ApplicationFacade;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.ras.requests.api.local.http.util.PojoController;
+import cloud.fogbow.ras.requests.api.local.http.util.PojoService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = Compute.class, secure = false)
-@PrepareForTest(ApplicationFacade.class)
+@RunWith(SpringRunner.class)
+@WebMvcTest(PojoController.class)
 public class HttpExceptionToErrorConditionTranslatorTest {
+
+    private final String POJO_CONTROLER_REQUEST_SUFIX = "/";
+    private final String EXCEPTION_MESSAGE_DEFAULT = "EXCEPTION_MESSAGE_DEFAULT";
 
     @Autowired
     private MockMvc mockMvc;
-    private ApplicationFacade facade;
+    @MockBean
+    private PojoService service;
 
-    private final String computeEndpoint = "/" + Compute.COMPUTE_ENDPOINT;
+    private RequestBuilder requestBuilder;
 
     @Before
     public void setUp() {
-        this.facade = Mockito.spy(ApplicationFacade.class);
-        PowerMockito.mockStatic(ApplicationFacade.class);
-        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        this.requestBuilder = createRequestBuilder();
     }
 
-    //test case:
+    // test case: When any request is performed and throws a FogbowException,
+    // it must verify if it return a UNSUPPORTED_MEDIA_TYPE status code.
     @Test
-    public void testHttpExceptionToErrorConditionTranslator() {
-        // TODO
+    public void testTranslationWhenIsFogbowException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        FogbowException exceptionThrown = new FogbowException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a InstanceNotFoundException,
+    // it must verify if it return a NOT_FOUND status code.
+    @Test
+    public void testTranslationWhenIsInstanceNotFoundException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        InstanceNotFoundException exceptionThrown = new InstanceNotFoundException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.NOT_FOUND.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    private <T extends Exception> void checkExceptionToCodeResponse(T exception, int statusCodeExpected)
+            throws Exception {
+
         //set up
+        Mockito.doThrow(exception).when(this.service).throwException();
 
         //exercise
+        MvcResult result = this.mockMvc.perform(this.requestBuilder).andReturn();
 
         //verify
+        MockHttpServletResponse response = result.getResponse();
+        Assert.assertEquals(statusCodeExpected, response.getStatus());
+        Assert.assertTrue(response.getContentAsString().contains(EXCEPTION_MESSAGE_DEFAULT));
     }
 
-    private RequestBuilder createRequestBuilder(String urlTemplate, HttpHeaders headers) {
-        return MockMvcRequestBuilders.get(urlTemplate)
-                .headers(headers)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON);
+    private RequestBuilder createRequestBuilder() {
+        return MockMvcRequestBuilders.get(POJO_CONTROLER_REQUEST_SUFIX);
     }
 
-    private HttpHeaders getHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        String fakeUserToken = "fake-access-id";
-        headers.set(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, fakeUserToken);
-        return headers;
-    }
 }
