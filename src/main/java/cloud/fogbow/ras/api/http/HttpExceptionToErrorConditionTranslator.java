@@ -27,7 +27,8 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
         return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(InvalidParameterException.class)
+    // TODO(chico) - Check with team
+    @ExceptionHandler({InvalidParameterException.class, ConfigurationErrorException.class})
     public final ResponseEntity<ExceptionResponse> handleInvalidParameterException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
@@ -56,7 +57,8 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @ExceptionHandler(UnavailableProviderException.class)
+    // TODO(chico) - Check with team
+    @ExceptionHandler({UnavailableProviderException.class, RemoteCommunicationException.class})
     public final ResponseEntity<ExceptionResponse> handleUnavailableProviderException(
             Exception ex, WebRequest request) {
 

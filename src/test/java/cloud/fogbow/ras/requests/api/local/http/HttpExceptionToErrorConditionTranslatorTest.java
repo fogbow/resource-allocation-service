@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(PojoController.class)
-// TODO (chico) - Finish implementation
 public class HttpExceptionToErrorConditionTranslatorTest {
 
     private final String POJO_CONTROLLER_REQUEST_SUFIX = "/";
@@ -38,6 +37,71 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     @Before
     public void setUp() {
         this.requestBuilder = createRequestBuilder();
+    }
+
+    // test case: When any request is performed and throws a NoAvailableResourcesException,
+    // it must verify if it return a NOT_ACCEPTABLE status code.
+    @Test
+    public void testTranslationWhenIsNoAvailableResourcesException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        NoAvailableResourcesException exceptionThrown = new NoAvailableResourcesException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.NOT_ACCEPTABLE.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a QuotaExceededException,
+    // it must verify if it return a CONFLICT status code.
+    @Test
+    public void testTranslationWhenIsQuotaExceededException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        QuotaExceededException exceptionThrown = new QuotaExceededException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.CONFLICT.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a ConfigurationErrorException,
+    // it must verify if it return a BAD_REQUEST status code.
+    @Test
+    public void testTranslationWhenIsConfigurationErrorException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        ConfigurationErrorException exceptionThrown = new ConfigurationErrorException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.BAD_REQUEST.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a InvalidParameterException,
+    // it must verify if it return a BAD_REQUEST status code.
+    @Test
+    public void testTranslationWhenIsInvalidParameterException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        InvalidParameterException exceptionThrown = new InvalidParameterException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.BAD_REQUEST.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a UnauthenticatedUserException,
+    // it must verify if it return a UNAUTHORIZED status code.
+    @Test
+    public void testTranslationWhenIsUnauthenticatedUserException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        UnauthenticatedUserException exceptionThrown = new UnauthenticatedUserException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.UNAUTHORIZED.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
     }
 
     // test case: When any request is performed and throws a UnexpectedException,
@@ -113,6 +177,19 @@ public class HttpExceptionToErrorConditionTranslatorTest {
         String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
         DependencyDetectedException exceptionThrown = new DependencyDetectedException(exceptionMessage);
         int statusCodeExpected = IT_SHOULD_NEVER_HAPPEN;
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws a RemoteCommunicationException,
+    // it must verify if it return a GATEWAY_TIMEOUT status code.
+    @Test
+    public void testTranslationWhenIsRemoteCommunicationException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        RemoteCommunicationException exceptionThrown = new RemoteCommunicationException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.GATEWAY_TIMEOUT.value();
 
         // exercise and verify
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
