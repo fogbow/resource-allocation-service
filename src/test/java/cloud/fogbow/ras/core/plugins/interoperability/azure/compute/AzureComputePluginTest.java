@@ -175,9 +175,11 @@ public class AzureComputePluginTest {
         // set up
         String imageId = "imageId";
         String orderName = "orderName";
+        int diskSize = 1;
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
         Mockito.when(computeOrder.getImageId()).thenReturn(imageId);
         Mockito.when(computeOrder.getName()).thenReturn(orderName);
+        Mockito.when(computeOrder.getDisk()).thenReturn(diskSize);
 
         String resourceName = AzureTestUtils.RESOURCE_NAME;
         PowerMockito.mockStatic(AzureGeneralUtil.class);
@@ -201,9 +203,6 @@ public class AzureComputePluginTest {
 
         String userData = "userData";
         Mockito.doReturn(userData).when(this.azureComputePlugin).getUserData(Mockito.eq(computeOrder));
-
-        int diskSize = 1;
-        PowerMockito.doReturn(diskSize).when(AzureGeneralPolicy.class, "getDisk", Mockito.eq(computeOrder));
 
         String virtualMachineSizeName = "virtualMachineSizeName";
         VirtualMachineSize virtualMachineSize = Mockito.mock(VirtualMachineSize.class);
