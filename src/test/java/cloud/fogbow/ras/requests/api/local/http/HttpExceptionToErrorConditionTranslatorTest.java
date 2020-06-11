@@ -1,16 +1,18 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.ras.requests.api.local.http.util.PojoController;
-import cloud.fogbow.ras.requests.api.local.http.util.PojoService;
+import cloud.fogbow.ras.requests.api.local.http.util.TestController;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -19,8 +21,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-@RunWith(SpringRunner.class)
-@WebMvcTest(PojoController.class)
+@PowerMockIgnore({"javax.management.*"})
+@PrepareForTest({TestController.Mock.class})
+@RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(SpringRunner.class)
+@WebMvcTest(TestController.class)
 public class HttpExceptionToErrorConditionTranslatorTest {
 
     private final String POJO_CONTROLLER_REQUEST_SUFIX = "/";
@@ -29,8 +34,6 @@ public class HttpExceptionToErrorConditionTranslatorTest {
 
     @Autowired
     private MockMvc mockMvc;
-    @MockBean
-    private PojoService service;
 
     private RequestBuilder requestBuilder;
 
@@ -66,13 +69,13 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     }
 
     // test case: When any request is performed and throws a ConfigurationErrorException,
-    // it must verify if it return a BAD_REQUEST status code.
+    // it must verify if it return a UNSUPPORTED_MEDIA_TYPE status code.
     @Test
     public void testTranslationWhenIsConfigurationErrorException() throws Exception {
         // set up
         String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
         ConfigurationErrorException exceptionThrown = new ConfigurationErrorException(exceptionMessage);
-        int statusCodeExpected = HttpStatus.BAD_REQUEST.value();
+        int statusCodeExpected = IT_SHOULD_NEVER_HAPPEN;
 
         // exercise and verify
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
@@ -212,7 +215,8 @@ public class HttpExceptionToErrorConditionTranslatorTest {
             throws Exception {
 
         //set up
-        Mockito.doThrow(exception).when(this.service).throwException();
+        PowerMockito.mockStatic(TestController.Mock.class);
+        PowerMockito.when(TestController.Mock.class, "throwException").thenThrow(exception);
 
         //exercise
         MvcResult result = this.mockMvc.perform(this.requestBuilder).andReturn();
