@@ -1,6 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent;
 
-import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
@@ -106,7 +108,7 @@ public class RemoteFacade {
         return cloudConnector.getAllImages(systemUser);
     }
 
-    public List<String> getCloudNames(String requestingProvider, SystemUser systemUser) throws UnauthorizedRequestException {
+    public List<String> getCloudNames(String requestingProvider, SystemUser systemUser) throws FogbowException {
         // The user has already been authenticated by the requesting provider.
         RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
         this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
