@@ -5,6 +5,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
@@ -68,10 +69,10 @@ public class AzurePublicIPAddressOperationSDKTest {
         Mockito.doNothing().when(this.operation).doAssociateNetworkSecurityGroupAsync(Mockito.eq(azure),
                 Mockito.eq(instanceId), Mockito.eq(networkInterface));
 
-        Runnable doOnComplete = Mockito.mock(Runnable.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         // exercise
-        this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable, doOnComplete);
+        this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable, finishCreationCallbacks);
 
         // verify
         Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
@@ -82,7 +83,7 @@ public class AzurePublicIPAddressOperationSDKTest {
                 .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.INFO, Messages.Info.SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
-        Mockito.verify(doOnComplete, Mockito.times(TestUtils.RUN_ONCE)).run();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 
     // test case: When calling the subscribeAssociatePublicIPAddress method and the
@@ -96,13 +97,15 @@ public class AzurePublicIPAddressOperationSDKTest {
 
         Observable observable = AzureTestUtils.createSimpleObservableFail();
 
-        Runnable doOnComplete = Mockito.mock(Runnable.class);
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
         // exercise
-        this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable, doOnComplete);
+        this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable, finishCreationCallbacks);
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 
     // test case: When calling the doAssociateNetworkSecurityGroupAsync method,

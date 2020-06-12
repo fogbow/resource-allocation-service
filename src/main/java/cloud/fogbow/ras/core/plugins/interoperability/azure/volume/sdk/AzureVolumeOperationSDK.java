@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk;
 
 import java.util.concurrent.ExecutorService;
 
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -25,19 +26,24 @@ public class AzureVolumeOperationSDK {
         this.scheduler = Schedulers.from(executor);
     }
     
-    public void subscribeCreateDisk(Observable<Indexable> observable, Runnable doOnComplete) {
-        setCreateDiskBehaviour(observable, doOnComplete)
+    public void subscribeCreateDisk(Observable<Indexable> observable,
+                                    AsyncInstanceCreationManager.Callbacks finishCreationCallback) {
+
+        setCreateDiskBehaviour(observable, finishCreationCallback)
         .subscribeOn(this.scheduler)
         .subscribe();
     }
 
     @VisibleForTesting
-    Observable<Indexable> setCreateDiskBehaviour(Observable<Indexable> observable, Runnable doOnComplete) {
+    Observable<Indexable> setCreateDiskBehaviour(Observable<Indexable> observable,
+                                                 AsyncInstanceCreationManager.Callbacks finishCreationCallback) {
+
         return observable.onErrorReturn((error -> {
+            finishCreationCallback.runOnError();
             LOGGER.error(Messages.Error.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR, error);
             return null;
         })).doOnCompleted(() -> {
-            doOnComplete.run();
+            finishCreationCallback.runOnComplete();
             LOGGER.info(Messages.Info.END_CREATE_DISK_ASYNC_BEHAVIOUR);
         });
     }

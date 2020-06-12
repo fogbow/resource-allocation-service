@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -92,7 +91,7 @@ public class AzureStateMapperTest {
         // verify
         Assert.assertEquals(InstanceState.READY, instanceState);
     }
-    
+
     // test case: When calling the map method with a volume resource type and failed
     // state, it must verify than it returns the failed instance state.
     @Test
@@ -148,6 +147,34 @@ public class AzureStateMapperTest {
 
         // verify
         Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
+    }
+
+    // test case: When calling the map method with a network resource type and failed
+    // state, it must verify than it returns the failed instance state.
+    @Test
+    public void testMapSuccessfullyWhenNetworkAndIsFailed() {
+        // set up
+        ResourceType resourceType = ResourceType.NETWORK;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.FAILED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
+    }
+
+    // test case: When calling the map method with a network resource type and creating
+    // state, it must verify than it returns the failed instance state.
+    @Test
+    public void testMapSuccessfullyWhenNetworkAndIsCreating() {
+        // set up
+        ResourceType resourceType = ResourceType.NETWORK;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.CREATING_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.CREATING, instanceState);
     }
 
     // test case: When calling the map method with a attachment resource type and

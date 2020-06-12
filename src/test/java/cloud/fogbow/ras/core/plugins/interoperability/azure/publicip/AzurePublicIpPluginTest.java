@@ -16,11 +16,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressOperationSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk.AzurePublicIPAddressSDK;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
-
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.*;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.network.NetworkInterface;
@@ -29,7 +25,6 @@ import com.microsoft.azure.management.network.PublicIPAddress;
 import com.microsoft.azure.management.network.PublicIPAddresses;
 import com.microsoft.azure.management.network.implementation.PublicIPAddressInner;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +33,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
 import rx.Completable;
 import rx.Observable;
 
@@ -307,6 +301,8 @@ public class AzurePublicIpPluginTest {
                 Mockito.anyString(), Mockito.anyString());
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteInstance(Mockito.eq(azure),
                 Mockito.eq(resourceId), Mockito.eq(virtualMachineId));
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).endInstanceCreation(Mockito.eq(instanceId));
     }
 
     // test case: When calling the deleteInstance method, without the default
@@ -343,6 +339,8 @@ public class AzurePublicIpPluginTest {
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteResourceGroup(Mockito.eq(azure),
                 Mockito.eq(resourceName), Mockito.anyString());
+        String instanceId = AzureGeneralUtil.defineInstanceId(resourceName);
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).endInstanceCreation(Mockito.eq(instanceId));
     }
 
     // test case: When calling the doDeleteResourceGroup method, it must verify
@@ -773,11 +771,13 @@ public class AzurePublicIpPluginTest {
         PowerMockito.doReturn(observable).when(AzurePublicIPAddressSDK.class, "associatePublicIPAddressAsync",
                 Mockito.eq(networkInterface), Mockito.eq(publicIPAddressCreatable));
 
-        Runnable doOnComplete = Mockito.mock(Runnable.class);
-        Mockito.doReturn(doOnComplete).when(this.plugin).startInstanceCreation(Mockito.eq(instanceId));
+        AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
+        Mockito.doReturn(finishCreationCallbacks).when(this.plugin).startInstanceCreation(Mockito.eq(instanceId));
 
         Mockito.doNothing().when(this.operation).subscribeAssociatePublicIPAddress(Mockito.eq(azure),
-                Mockito.anyString(), Mockito.eq(observable), Mockito.eq(doOnComplete));
+                Mockito.anyString(), Mockito.eq(observable), Mockito.eq(finishCreationCallbacks));
+
+        Mockito.doNothing().when(this.plugin).waitAndCheckForInstanceCreationFailed(Mockito.eq(instanceId));
 
         // exercise
         this.plugin.doRequestInstance(azure, virtualMachineId, publicIPAddressCreatable);
@@ -792,9 +792,11 @@ public class AzurePublicIpPluginTest {
         AzurePublicIPAddressSDK.associatePublicIPAddressAsync(Mockito.eq(networkInterface),
                 Mockito.eq(publicIPAddressCreatable));
 
-        Mockito.verify(this.operation, Mockito.timeout(TestUtils.RUN_ONCE))
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .waitAndCheckForInstanceCreationFailed(Mockito.eq(instanceId));
+        Mockito.verify(this.operation, Mockito.times(TestUtils.RUN_ONCE))
                 .subscribeAssociatePublicIPAddress(Mockito.eq(azure), Mockito.anyString(),
-                        Mockito.eq(observable), Mockito.eq(doOnComplete));
+                        Mockito.eq(observable), Mockito.eq(finishCreationCallbacks));
     }
 
     // test case: When calling the doGetVirtualMachineSDK method, it must verify
