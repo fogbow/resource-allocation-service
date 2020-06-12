@@ -56,7 +56,7 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @ExceptionHandler(UnavailableProviderException.class)
+    @ExceptionHandler({UnavailableProviderException.class, RemoteCommunicationException.class})
     public final ResponseEntity<ExceptionResponse> handleUnavailableProviderException(
             Exception ex, WebRequest request) {
 
@@ -71,6 +71,9 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /*
+    It should never happen because any Exception must be mapped to a FogbowException.
+     */
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<ExceptionResponse> handleAnyException(Exception ex, WebRequest request) {
 
