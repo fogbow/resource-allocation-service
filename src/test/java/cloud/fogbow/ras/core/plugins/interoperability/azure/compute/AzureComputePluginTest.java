@@ -211,7 +211,7 @@ public class AzureComputePluginTest {
         Mockito.doReturn(virtualMachineSize).when(this.azureComputePlugin)
                 .getVirtualMachineSize(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
 
-        Mockito.doReturn("").when(this.azureComputePlugin)
+        Mockito.doReturn(TestUtils.EMPTY_STRING).when(this.azureComputePlugin)
                 .doRequestInstance(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 
         Map tags = Collections.singletonMap(AzureConstants.TAG_NAME, orderName);
