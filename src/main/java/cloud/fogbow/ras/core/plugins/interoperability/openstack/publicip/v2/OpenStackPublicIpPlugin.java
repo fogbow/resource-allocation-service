@@ -39,6 +39,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2.GetS
 public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackPublicIpPlugin.class);
+    private static final int SSH_DEFAULT_PORT = 22;
 
     private Properties properties;
     private OpenStackHttpClient client;
@@ -233,9 +234,12 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
 
         for (String etherType : etherTypes) {
             CreateSecurityGroupRuleRequest request = new CreateSecurityGroupRuleRequest.Builder()
+                    .securityGroupId(securityGroupId)
                     .direction(OpenStackConstants.INGRESS_DIRECTION)
                     .etherType(etherType)
-                    .securityGroupId(securityGroupId)
+                    .minPort(SSH_DEFAULT_PORT)
+                    .maxPort(SSH_DEFAULT_PORT)
+                    .protocol(OpenStackConstants.TCP_PROTOCOL)
                     .build();
 
             doPostRequestFromCloud(request, cloudUser);

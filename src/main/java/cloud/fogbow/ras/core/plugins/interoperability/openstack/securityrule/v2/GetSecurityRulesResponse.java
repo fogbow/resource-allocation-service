@@ -34,21 +34,21 @@ import java.util.List;
  */
 public class GetSecurityRulesResponse {
     @SerializedName(OpenStackConstants.Network.SECURITY_GROUP_RULES_KEY_JSON)
-    private List<SecurityRules> securityRules;
+    private List<SecurityGroupRule> securityGroupRules;
 
     public static GetSecurityRulesResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, GetSecurityRulesResponse.class);
     }
 
-    public class SecurityRules {
+    public class SecurityGroupRule {
         @SerializedName(OpenStackConstants.Network.ID_KEY_JSON)
         private String id;
         @SerializedName(OpenStackConstants.Network.REMOTE_IP_PREFIX_KEY_JSON)
         private String cidr;
         @SerializedName(OpenStackConstants.Network.MIN_PORT_KEY_JSON)
-        private int portFrom;
+        private Integer portFrom;
         @SerializedName(OpenStackConstants.Network.MAX_PORT_KEY_JSON)
-        private int portTo;
+        private Integer portTo;
         @SerializedName(OpenStackConstants.Network.DIRECTION_KEY_JSON)
         private String direction;
         @SerializedName(OpenStackConstants.Network.ETHER_TYPE_KEY_JSON)
@@ -64,11 +64,11 @@ public class GetSecurityRulesResponse {
             return this.cidr;
         }
 
-        public int getPortFrom() {
+        public Integer getPortFrom() {
             return this.portFrom;
         }
 
-        public int getPortTo() {
+        public Integer getPortTo() {
             return this.portTo;
         }
 
@@ -85,7 +85,7 @@ public class GetSecurityRulesResponse {
         }
     }
 
-    public List<SecurityRules> getSecurityRules() {
-        return this.securityRules;
+    public List<SecurityGroupRule> getSecurityGroupRules() {
+        return this.securityGroupRules;
     }
 }

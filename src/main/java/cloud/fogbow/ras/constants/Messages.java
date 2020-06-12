@@ -41,6 +41,7 @@ public class Messages {
         public static final String RESOURCE_TYPE_NOT_COMPATIBLE_S = "Resource type not compatible with %s request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
         public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
+        public static final String SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND = "There is no security group with name: %s.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER = "Signalling provider %s is not the provider %s.";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";

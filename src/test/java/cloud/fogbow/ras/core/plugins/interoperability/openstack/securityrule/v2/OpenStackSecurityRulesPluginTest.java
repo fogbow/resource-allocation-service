@@ -1,14 +1,35 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
+import cloud.fogbow.common.util.CidrUtils;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.api.parameters.SecurityRule.Direction;
+import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
+import cloud.fogbow.ras.api.parameters.SecurityRule.Protocol;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -16,22 +37,9 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
-import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import org.apache.http.client.HttpResponseException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.BDDMockito;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityGroupsResponse.SecurityGroup;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityRulesResponse.SecurityGroupRule;
 
 @PrepareForTest({
         CreateSecurityRuleResponse.class,
@@ -43,281 +51,423 @@ import java.util.Properties;
 })
 public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
 
-    private static final int FAKE_PORT_FROM = 1024;
-    private static final int FAKE_PORT_TO = 2048;
-    
-    private static final String ANY_STRING = "any-string";
-    private static final String ANY_URL = "http://localhost:8007";
-    private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
-    private static final String DEFAULT_NETWORK_URL = "http://localhost:0000";
-    private static final String INGRESS_TRAFFIC = "ingress";
-    private static final String SECURITY_RULE_ID = "securityRuleId";
-    private static final String SECURITY_GROUP_ID = "securityGroupId";
+    private static final String NETWORK_PREFIX_ENDPOINT = "https://mycloud.domain:9696";
+    private static final String QUERY_SECURITY_GROUP_ID = "?security_group_id=";
+    private static final String QUERY_SECURITY_GROUP_NAME = "?name=";
+    private static final String SECURITY_GROUPS_JSON_FORMAT = "{\"security_groups\":[{\"id\":\"%s\"}]}";
     private static final String SECURITY_GROUP_NAME = "securityGroupName";
 
-    private static final String FAKE_ETHERTYPE = "IPv4";
-    private static final String FAKE_TOKEN_VALUE = "fake-token-value";
-    private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String FAKE_NAME = "fake-name";
-    private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String MAP_METHOD = "map";
-    private static final String PROTOCOL_ANY = "ANY";
-    private static final String PROTOCOL_ICMP = "ICMP";
-    private static final String PROTOCOL_TCP = "TCP";
-    private static final String PROTOCOL_UDP = "UDP";
-
-
+    private NetworkOrder majorOrder;
+    private OpenStackHttpClient client;
     private OpenStackSecurityRulePlugin plugin;
     private OpenStackV3User cloudUser;
-    private Properties properties;
-    private OpenStackHttpClient clientMock;
-    private NetworkOrder majorOrder;
 
     @Before
     public void setUp() throws UnexpectedException {
+        String confFilePath = HomeDir.getPath()
+                + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + TestUtils.DEFAULT_CLOUD_NAME + File.separator
+                + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+
         this.testUtils.mockReadOrdersFromDataBase();
-        String confFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
-                + TestUtils.DEFAULT_CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-
-        this.properties = Mockito.mock(Properties.class);
-        Mockito.when(this.properties.get(NETWORK_NEUTRONV2_URL_KEY)).thenReturn(DEFAULT_NETWORK_URL);
-
-        PowerMockito.mockStatic(PropertiesUtil.class);
-        BDDMockito.when(PropertiesUtil.readProperties(Mockito.eq(confFilePath))).thenReturn(properties);
-
+        this.client = Mockito.mock(OpenStackHttpClient.class);
         this.plugin = Mockito.spy(new OpenStackSecurityRulePlugin(confFilePath));
+        this.plugin.setClient(this.client);
 
-        this.clientMock = Mockito.mock(OpenStackHttpClient.class);
-        this.plugin.setClient(this.clientMock);
-        this.cloudUser = new OpenStackV3User(FAKE_USER_ID, FAKE_NAME, FAKE_TOKEN_VALUE, FAKE_PROJECT_ID);
-
-        this.majorOrder = testUtils.createNetworkOrder(testUtils.getLocalMemberId(), testUtils.FAKE_REMOTE_MEMBER_ID);
+        this.majorOrder = this.testUtils.createLocalNetworkOrder();
+        this.cloudUser = this.testUtils.createOpenStackUser();
     }
 
-    // test case: When requesting an security rule instance it should perform only one http request and
-    // should use the auxiliary methods without throwing any exceptions.
+    // test case: When calling the requestSecurityRule method, it must verify if the
+    // call was successful.
     @Test
-    public void testRequestSecurityRule() throws Exception {
+    public void testRequestSecurityRuleSuccessfully() throws Exception {
         // set up
-        Mockito.doReturn(SECURITY_GROUP_NAME).when(this.plugin)
-                .retrieveSecurityGroupName(Mockito.eq(majorOrder));
+        String securityGroupName = SECURITY_GROUP_NAME;
+        Mockito.doReturn(securityGroupName).when(this.plugin)
+                .retrieveSecurityGroupName(Mockito.eq(this.majorOrder));
 
-        Mockito.doReturn(SECURITY_GROUP_ID).when(this.plugin).
-                retrieveSecurityGroupId(Mockito.anyString(), Mockito.eq(cloudUser));
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        Mockito.doReturn(securityGroupId).when(this.plugin)
+                .retrieveSecurityGroupId(Mockito.eq(securityGroupName), Mockito.eq(this.cloudUser));
 
-        Mockito.doReturn(ANY_STRING).when(this.plugin)
-                .doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.eq(this.cloudUser));
+        String securityRuleId = TestUtils.FAKE_SECURITY_RULE_ID;
+        Mockito.doReturn(securityRuleId).when(this.plugin)
+                .doRequestSecurityRule(Mockito.any(CreateSecurityRuleRequest.class),
+                Mockito.eq(this.cloudUser));
 
-        CreateSecurityRuleResponse createSecurityRuleResponseMock = Mockito.mock(CreateSecurityRuleResponse.class);
-        Mockito.when(createSecurityRuleResponseMock.getId()).thenReturn(ANY_STRING);
-
-        PowerMockito.mockStatic(CreateSecurityRuleResponse.class);
-        BDDMockito.when(CreateSecurityRuleResponse.fromJson(Mockito.eq(ANY_STRING)))
-                .thenReturn(createSecurityRuleResponseMock);
-
-        SecurityRule securityRule = createEmptySecurityRule();
+        SecurityRule securityRule = createSecurityRule();
 
         // exercise
-        this.plugin.requestSecurityRule(securityRule, majorOrder, this.cloudUser);
+        this.plugin.requestSecurityRule(securityRule, this.majorOrder, this.cloudUser);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .retrieveSecurityGroupName(Mockito.eq(majorOrder));
+                .retrieveSecurityGroupName(Mockito.eq(this.majorOrder));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .retrieveSecurityGroupId(Mockito.anyString(), Mockito.eq(cloudUser));
+                .retrieveSecurityGroupId(Mockito.eq(securityGroupName), Mockito.eq(this.cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.eq(cloudUser));
+                .buildCreateSecurityRuleRequest(Mockito.eq(securityGroupId), Mockito.eq(securityRule));
 
-        PowerMockito.verifyStatic(CreateSecurityRuleResponse.class);
-        CreateSecurityRuleResponse.fromJson(Mockito.eq(ANY_STRING));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doRequestSecurityRule(Mockito.any(CreateSecurityRuleRequest.class),
+                Mockito.eq(this.cloudUser));
     }
 
-    // test case: Check if the getInstance method will perform only one call and and return the user
-    // the appropriate information
+    // test case: When calling the getSecurityRules method, it must verify if the
+    // call was successful.
     @Test
-    public void testGetSecurityRules() throws FogbowException {
+    public void testGetSecurityRulesSuccessfully() throws FogbowException {
         // set up
-        Mockito.doReturn(SECURITY_GROUP_NAME).when(this.plugin)
-                .retrieveSecurityGroupName(Mockito.eq(majorOrder));
+        String securityGroupName = SECURITY_GROUP_NAME;
+        Mockito.doReturn(securityGroupName).when(this.plugin)
+                .retrieveSecurityGroupName(Mockito.eq(this.majorOrder));
 
-        Mockito.doReturn(SECURITY_GROUP_ID).when(this.plugin)
-                .retrieveSecurityGroupId(Mockito.anyString(), Mockito.eq(cloudUser));
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        Mockito.doReturn(securityGroupId).when(this.plugin)
+                .retrieveSecurityGroupId(Mockito.eq(securityGroupName), Mockito.eq(this.cloudUser));
 
-        Mockito.doReturn(ANY_STRING).when(this.plugin)
-                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+        GetSecurityRulesResponse response = Mockito.mock(GetSecurityRulesResponse.class);
+        Mockito.doReturn(response).when(this.plugin)
+                .doGetSecurityRules(Mockito.eq(securityGroupId), Mockito.eq(this.cloudUser));
 
-        Mockito.doReturn(new ArrayList<SecurityRuleInstance>()).when(this.plugin)
-                .getSecurityRulesFromJson(Mockito.anyString());
+        List<SecurityRuleInstance> securityRuleInstances = Mockito.mock(List.class);
+        Mockito.doReturn(securityRuleInstances).when(this.plugin).getSecurityRuleInstances(Mockito.any());
 
         // exercise
-        this.plugin.getSecurityRules(majorOrder, cloudUser);
+        this.plugin.getSecurityRules(this.majorOrder, this.cloudUser);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .retrieveSecurityGroupName(Mockito.eq(majorOrder));
+                .retrieveSecurityGroupName(Mockito.eq(this.majorOrder));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .retrieveSecurityGroupId(Mockito.anyString(), Mockito.eq(cloudUser));
+                .retrieveSecurityGroupId(Mockito.eq(securityGroupName), Mockito.eq(this.cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+                .doGetSecurityRules(Mockito.eq(securityGroupId), Mockito.eq(this.cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .getSecurityRulesFromJson(Mockito.anyString());
+                .getSecurityRuleInstances(Mockito.eq(response));
     }
 
-    // test case: Check if the method makes the expected calls
+    // test case: When calling the deleteSecurityRule method, it must verify if the
+    // call was successful.
     @Test
-    public void testDeleteSecurityRule() throws FogbowException {
+    public void testDeleteSecurityRuleSuccessfully() throws FogbowException {
         // set up
         Mockito.doNothing().when(this.plugin)
-                .doDeleteRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+                .doDeleteRequest(Mockito.anyString(), Mockito.eq(this.cloudUser));
+
+        String securityRuleId = TestUtils.FAKE_SECURITY_RULE_ID;
 
         // exercise
-        this.plugin.deleteSecurityRule(SECURITY_RULE_ID, cloudUser);
+        this.plugin.deleteSecurityRule(securityRuleId, this.cloudUser);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .doDeleteRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+                .doDeleteRequest(Mockito.anyString(), Mockito.eq(this.cloudUser));
     }
 
-    // test case: when calling doDeleteRequest() method, it must verify that the
+    // test case: When calling the doDeleteRequest method, it must verify if the
     // call was successful.
     @Test
-    public void testDoDeleteSuccessfully() throws Exception {
+    public void testDoDeleteRequestSuccessfully() throws Exception {
+        // set up
+        String securityRuleId = TestUtils.FAKE_SECURITY_RULE_ID;
+        String endpoint = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + securityRuleId;
+
         // exercise
-        this.plugin.doDeleteRequest(ANY_URL, cloudUser);
+        this.plugin.doDeleteRequest(endpoint, this.cloudUser);
 
         // verify
-        Mockito.verify(this.clientMock, Mockito.times(TestUtils.RUN_ONCE))
-                .doDeleteRequest(Mockito.anyString(), Mockito.any());
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .doDeleteRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
     }
 
-    // test case: when doDeleteRequest() request fails, it must
-    // call OpenStackHttpToFogbowExceptionMapper.map(e)
+    // test case: When calling the doDeleteRequest method with an invalid security
+    // rule ID endpoint, it must verify if an InstanceNotFoundException has been
+    // thrown.
     @Test
-    public void testDoDeleteUnsuccessfully() throws Exception {
+    public void testDoDeleteRequestFail() throws Exception {
         // set up
-        HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
-        Mockito.doThrow(exception).when(this.clientMock)
-                .doDeleteRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+        String securityRuleId = TestUtils.ANY_VALUE;
+        String endpoint = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + securityRuleId;
 
+        String message = Messages.Exception.NULL_VALUE_RETURNED;
+        HttpResponseException responseException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, message);
+        Mockito.doThrow(responseException).when(this.client)
+                .doDeleteRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
+
+        InstanceNotFoundException expectedException = new InstanceNotFoundException(message);
         PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+        PowerMockito.doThrow(expectedException).when(OpenStackHttpToFogbowExceptionMapper.class, "map",
+                Mockito.eq(responseException));
 
-        // exercise
         try {
-            this.plugin.doDeleteRequest(ANY_URL, cloudUser);
+            // exercise
+            this.plugin.doDeleteRequest(endpoint, this.cloudUser);
             Assert.fail();
-        } catch (FogbowException e) {
+        } catch (InstanceNotFoundException e) {
             // verify
-            Assert.assertEquals(exception.getMessage(), e.getMessage());
-
             PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(exception));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(responseException));
         }
     }
 
-    // test case: when calling doPostRequest() method, it must verify that the
+    // test case: When calling doPostRequest method, it must verify if the
     // call was successful.
     @Test
-    public void testDoPostRequest() throws Exception {
+    public void testDoPostRequestSuccessfully() throws Exception {
+        // set up
+        String endpoint = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT;
+
+        String bodyContent = TestUtils.ANY_VALUE;
+
         // exercise
-        this.plugin.doPostRequest(ANY_URL, ANY_STRING, cloudUser);
+        this.plugin.doPostRequest(endpoint, bodyContent, this.cloudUser);
 
         // verify
-        Mockito.verify(this.clientMock, Mockito.times(TestUtils.RUN_ONCE))
-                .doPostRequest(ANY_URL, ANY_STRING, cloudUser);
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .doPostRequest(Mockito.eq(endpoint), Mockito.eq(bodyContent), Mockito.eq(this.cloudUser));
     }
 
-    // test case: when doPostRequest() request fails, it must
-    // call OpenStackHttpToFogbowExceptionMapper.map(e)
+    // test case: When calling the doPostRequest method and an error occurs, it must
+    // verify if an UnexpectedException has been thrown.
     @Test
-    public void testDoPostUnsuccessfully() throws Exception {
+    public void testDoPostRequestFail() throws Exception {
         // set up
-        HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
-        Mockito.doThrow(exception).when(this.clientMock)
-                .doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.eq(cloudUser));
+        String endpoint = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT;
 
+        String bodyContent = TestUtils.ANY_VALUE;
+
+        String message = Messages.Exception.UNEXPECTED_ERROR;
+        HttpResponseException responseException = new HttpResponseException(HttpStatus.SC_INTERNAL_SERVER_ERROR, message);
+        Mockito.doThrow(responseException).when(this.client)
+                .doPostRequest(Mockito.eq(endpoint), Mockito.eq(bodyContent), Mockito.eq(this.cloudUser));
+
+        UnexpectedException expectedException = new UnexpectedException(message);
         PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+        PowerMockito.doThrow(expectedException).when(OpenStackHttpToFogbowExceptionMapper.class, "map",
+                Mockito.eq(responseException));
 
         // exercise
         try {
-            this.plugin.doPostRequest(ANY_URL, ANY_STRING, cloudUser);
+            this.plugin.doPostRequest(endpoint, bodyContent, cloudUser);
             Assert.fail();
-        } catch (FogbowException e) {
+        } catch (UnexpectedException e) {
             // verify
-            Assert.assertEquals(exception.getMessage(), e.getMessage());
-
             PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(exception));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(responseException));
         }
     }
 
-    // test case: when calling doGetRequest() method, it must verify that the
+    // test case: When calling doGetRequest method, it must verify if the
     // call was successful.
     @Test
-    public void testDoGetSuccessfully() throws Exception {
+    public void testDoGetRequestSuccessfully() throws Exception {
+        // set up
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String endpoint = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT
+                + QUERY_SECURITY_GROUP_ID
+                + securityGroupId;
+
         // exercise
-        this.plugin.doGetRequest(ANY_URL, cloudUser);
+        this.plugin.doGetRequest(endpoint, this.cloudUser);
 
         // verify
-        Mockito.verify(this.clientMock, Mockito.times(TestUtils.RUN_ONCE))
-                .doGetRequest(Mockito.anyString(), Mockito.any());
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
     }
 
-    // test case: when doGetRequest() request fails, it must
-    // call OpenStackHttpToFogbowExceptionMapper.map(e)
+    // test case: When calling the doDeleteRequest method with an invalid security
+    // group ID endpoint, it must verify if an InstanceNotFoundException has been
+    // thrown.
     @Test
-    public void testDoGetUnsuccessfully() throws Exception {
+    public void testDoGetRequestFail() throws Exception {
         // set up
-        HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
-        Mockito.doThrow(exception).when(this.clientMock)
-                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+        String securityGroupId = TestUtils.ANY_VALUE;
+        String endpoint = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT
+                + QUERY_SECURITY_GROUP_ID
+                + securityGroupId;
 
+        String message = Messages.Exception.NULL_VALUE_RETURNED;
+        HttpResponseException responseException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, message);
+        Mockito.doThrow(responseException).when(this.client)
+                .doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
+
+        InstanceNotFoundException expectedException = new InstanceNotFoundException(message);
         PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
+        PowerMockito.doThrow(expectedException).when(OpenStackHttpToFogbowExceptionMapper.class, "map",
+                Mockito.eq(responseException));
 
         // exercise
         try {
-            this.plugin.doGetRequest(ANY_URL, cloudUser);
+            this.plugin.doGetRequest(endpoint, this.cloudUser);
             Assert.fail();
-        } catch (FogbowException e) {
+        } catch (InstanceNotFoundException e) {
             // verify
-            Assert.assertEquals(exception.getMessage(), e.getMessage());
-
             PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(exception));
+            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(responseException));
         }
     }
 
-    // test case: given a NetworkOrder it should return the appropriate group name
+    // test case: When calling doGetRequest method, it must verify if returned the
+    // expected instance.
     @Test
-    public void testRetrieveSecurityGroupNameWithNetworkOrder()
-            throws cloud.fogbow.common.exceptions.InvalidParameterException {
+    public void testGetSecurityRuleInstancesSuccessfully() throws FogbowException {
+        // set up
+        GetSecurityRulesResponse response = generateGetSecurityRulesResponse();
+        SecurityRuleInstance expectedInstance = createSecurityRuleInstance();
+
+        // exercise
+        List<SecurityRuleInstance> instances = this.plugin.getSecurityRuleInstances(response);
+
+        // verify
+        Assert.assertEquals(expectedInstance, instances.listIterator().next());
+    }
+
+    // test case: When calling doGetSecurityRules method, it must verify if the
+    // call was successful.
+    @Test
+    public void testDoGetSecurityRulesSuccessfully() throws Exception {
+        // set up
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String endpoint = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT
+                + QUERY_SECURITY_GROUP_ID
+                + securityGroupId;
+
+        Mockito.doReturn(endpoint).when(this.plugin)
+                .buildQueryEndpointBySecurityGroupId(Mockito.eq(securityGroupId));
+
+        String responseJson = TestUtils.ANY_VALUE;
+        Mockito.doReturn(responseJson).when(this.plugin)
+                .doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
+
+        GetSecurityRulesResponse response = Mockito.mock(GetSecurityRulesResponse.class);
+        PowerMockito.mockStatic(GetSecurityRulesResponse.class);
+        PowerMockito.doReturn(response).when(GetSecurityRulesResponse.class, "fromJson",
+                Mockito.eq(responseJson));
+
+        // exercise
+        this.plugin.doGetSecurityRules(securityGroupId, this.cloudUser);
+
+        // verify
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .buildQueryEndpointBySecurityGroupId(Mockito.eq(securityGroupId));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
+
+        PowerMockito.verifyStatic(GetSecurityRulesResponse.class, Mockito.times(TestUtils.RUN_ONCE));
+        GetSecurityRulesResponse.fromJson(Mockito.eq(responseJson));
+    }
+
+    // test case: When calling buildQueryEndpointBySecurityGroupId method, it must
+    // verify if returned the expected endpoint.
+    @Test
+    public void testBuildQueryEndpointBySecurityGroupIdSuccessfully() {
+        // set up
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+
+        String expected = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT
+                + QUERY_SECURITY_GROUP_ID
+                + securityGroupId;
+
+        // exercise
+        String endpoint = this.plugin.buildQueryEndpointBySecurityGroupId(securityGroupId);
+
+        // verify
+        Assert.assertEquals(expected, endpoint);
+    }
+
+    // test case: When calling doRequestSecurityRule method, it must verify if the
+    // call was successful.
+    @Test
+    public void testDoRequestSecurityRule() throws Exception {
+        // set up
+        String endpoint = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT;
+
+        String requestJson = TestUtils.ANY_VALUE;
+        CreateSecurityRuleRequest request = Mockito.mock(CreateSecurityRuleRequest.class);
+        Mockito.when(request.toJson()).thenReturn(requestJson);
+
+        String responseJson = TestUtils.ANY_VALUE;
+        Mockito.doReturn(responseJson).when(this.plugin).doPostRequest(Mockito.eq(endpoint),
+                Mockito.eq(requestJson), Mockito.eq(this.cloudUser));
+
+        String securityRuleId = TestUtils.FAKE_SECURITY_RULE_ID;
+        CreateSecurityRuleResponse response = Mockito.mock(CreateSecurityRuleResponse.class);
+        Mockito.when(response.getId()).thenReturn(securityRuleId);
+
+        PowerMockito.mockStatic(CreateSecurityRuleResponse.class);
+        PowerMockito.doReturn(response).when(CreateSecurityRuleResponse.class, "fromJson",
+                Mockito.eq(responseJson));
+
+        // exercise
+        this.plugin.doRequestSecurityRule(request, this.cloudUser);
+
+        // verify
+        Mockito.verify(request, Mockito.times(TestUtils.RUN_ONCE)).toJson();
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doPostRequest(Mockito.eq(endpoint), Mockito.eq(requestJson),
+                Mockito.eq(this.cloudUser));
+
+        PowerMockito.verifyStatic(CreateSecurityRuleResponse.class, Mockito.times(TestUtils.RUN_ONCE));
+        CreateSecurityRuleResponse.fromJson(Mockito.eq(responseJson));
+
+        Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).getId();
+    }
+
+    // test case: When calling retrieveSecurityGroupName method with a network
+    // order, it must verify if the appropriate security group name was returned.
+    @Test
+    public void testRetrieveSecurityGroupNameWithNetworkOrder() throws FogbowException {
         // setup
-        NetworkOrder networkOrder = testUtils.createLocalNetworkOrder();
-        String expectedGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + networkOrder.getInstanceId();
+        NetworkOrder networkOrder = this.testUtils.createLocalNetworkOrder();
         NetworkOrder spyNetworkOrder = Mockito.spy(networkOrder);
+        String expectedGroupName = SystemConstants.PN_SECURITY_GROUP_PREFIX + networkOrder.getInstanceId();
 
         // exercise
         String actualGroupName = this.plugin.retrieveSecurityGroupName(spyNetworkOrder);
 
         // verify
-        Mockito.verify(spyNetworkOrder, Mockito.times((testUtils.RUN_ONCE))).getType();
-        Mockito.verify(spyNetworkOrder, Mockito.times((testUtils.RUN_ONCE))).getInstanceId();
+        Mockito.verify(spyNetworkOrder, Mockito.times((TestUtils.RUN_ONCE))).getType();
+        Mockito.verify(spyNetworkOrder, Mockito.times((TestUtils.RUN_ONCE))).getInstanceId();
         Assert.assertEquals(expectedGroupName, actualGroupName);
     }
 
-    // test case: given a PublicIpOrder it should return the appropriate group name
+    // test case: When calling retrieveSecurityGroupName method with a public IP
+    // order, it must verify if the appropriate security group name was returned.
     @Test
-    public void testRetrieveSecurityGroupNameWithPublicIpOrder()
-            throws cloud.fogbow.common.exceptions.InvalidParameterException {
+    public void testRetrieveSecurityGroupNameWithPublicIpOrder() throws FogbowException {
         // setup
-        PublicIpOrder publicIpOrder = testUtils.createLocalPublicIpOrder(ANY_STRING);
+        String computeOrderId = TestUtils.FAKE_COMPUTE_ID;
+        PublicIpOrder publicIpOrder = this.testUtils.createLocalPublicIpOrder(computeOrderId);
         String expectedGroupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + publicIpOrder.getInstanceId();
         PublicIpOrder spyPublicIpOrder = Mockito.spy(publicIpOrder);
 
@@ -325,192 +475,420 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
         String actualGroupName = this.plugin.retrieveSecurityGroupName(spyPublicIpOrder);
 
         // verify
-        Mockito.verify(spyPublicIpOrder, Mockito.times((testUtils.RUN_ONCE))).getType();
-        Mockito.verify(spyPublicIpOrder, Mockito.times((testUtils.RUN_ONCE))).getInstanceId();
+        Mockito.verify(spyPublicIpOrder, Mockito.times((TestUtils.RUN_ONCE))).getType();
+        Mockito.verify(spyPublicIpOrder, Mockito.times((TestUtils.RUN_ONCE))).getInstanceId();
         Assert.assertEquals(expectedGroupName, actualGroupName);
     }
 
-    // test case: given a unsupported Order it should throw InvalidParameterException
-    @Test(expected = InvalidParameterException.class)
-    public void testRetrieveSecurityGroupNameWithInvalidOrder() throws InvalidParameterException {
-        // setup
-        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
-
-        // exercise
-        this.plugin.retrieveSecurityGroupName(computeOrder);
-        Assert.fail();
-    }
-
-    // test case: given a security rule name retrieveSecurityGroupId() should return its id
+    // test case: When calling the doPostRequest method with an unsupported order,
+    // it must verify if an InvalidParameterException has been thrown.
     @Test
-    public void testRetrieveSecurityGroupIdSuccessful() throws FogbowException {
+    public void testRetrieveSecurityGroupNameWithInvalidOrder() throws FogbowException {
         // setup
-        Mockito.doReturn(ANY_STRING).when(this.plugin).doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
+        ComputeOrder order = testUtils.createLocalComputeOrder();
+        String expected = String.format(Messages.Exception.INVALID_PARAMETER_S, order.getType());
 
-        String[] groupsIds = {SECURITY_GROUP_ID};
-        GetSecurityGroupsResponse response =
-                createMockedSecurityGroupList(Arrays.asList(groupsIds));
-        PowerMockito.mockStatic(GetSecurityGroupsResponse.class);
-        BDDMockito.when(GetSecurityGroupsResponse.fromJson(Mockito.anyString()))
-                .thenReturn(response);
-
-        // exercise
-        this.plugin.retrieveSecurityGroupId(SECURITY_GROUP_NAME, cloudUser);
-
-        // verify
-        Mockito.verify(plugin, Mockito.times(testUtils.RUN_ONCE))
-                .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
-
-        PowerMockito.verifyStatic();
-        GetSecurityGroupsResponse.fromJson(Mockito.anyString());
-    }
-
-    // test case: given a security rule name and the request return many ids,
-    // retrieveSecurityGroupId() should throw an exception
-    @Test
-    public void testRetrieveSecurityGroupIdUnsuccessful() throws FogbowException {
-        // setup
-        Mockito.doReturn(ANY_STRING).when(this.plugin).doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
-
-        String[] groupsIds = {SECURITY_GROUP_ID, SECURITY_GROUP_ID};
-        GetSecurityGroupsResponse response =
-                createMockedSecurityGroupList(Arrays.asList(groupsIds));
-        PowerMockito.mockStatic(GetSecurityGroupsResponse.class);
-        BDDMockito.when(GetSecurityGroupsResponse.fromJson(Mockito.anyString()))
-                .thenReturn(response);
-
-        String expectedExceptionMessage =
-                String.format(Messages.Exception.MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED, SECURITY_GROUP_NAME);
-
-        // exercise
         try {
-            this.plugin.retrieveSecurityGroupId(SECURITY_GROUP_NAME, cloudUser);
+            // exercise
+            this.plugin.retrieveSecurityGroupName(order);
             Assert.fail();
-        } catch (FogbowException e) {
-            Assert.assertEquals(expectedExceptionMessage, e.getMessage());
-
-            Mockito.verify(plugin, Mockito.times(testUtils.RUN_ONCE))
-                    .doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser));
-
-            PowerMockito.verifyStatic();
-            GetSecurityGroupsResponse.fromJson(Mockito.anyString());
+        } catch (InvalidParameterException e) {
+            Assert.assertEquals(expected, e.getMessage());
         }
     }
 
-    // test case: when calling testGetSecurityRulesFromJson() method, it
-    // must verify that the call was successful.
+    // test case: When calling retrieveSecurityGroupId method, it must verify if the
+    // call was successful.
     @Test
-    public void testGetSecurityRulesFromJson() throws FogbowException {
+    public void testRetrieveSecurityGroupIdSuccessfully() throws FogbowException {
         // setup
-        GetSecurityRulesResponse securityRulesResponseMock = createSecurityRulesResponseMock();
+        String securityGroupName = SECURITY_GROUP_NAME;
+        String endpoint = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT
+                + OpenStackConstants.QUERY_NAME
+                + securityGroupName;
 
-        PowerMockito.mockStatic(GetSecurityRulesResponse.class);
-        BDDMockito.when(GetSecurityRulesResponse.fromJson(Mockito.anyString()))
-                .thenReturn(securityRulesResponseMock);
+        Mockito.doReturn(endpoint).when(this.plugin)
+                .buildQueryEndpointBySecurityGroupName(Mockito.eq(securityGroupName));
 
-        Mockito.doReturn(SecurityRule.Protocol.ANY).when(plugin).defineRuleProtocol(Mockito.any());
+        String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String responseJson = String.format(SECURITY_GROUPS_JSON_FORMAT , securityGroupId);
+        Mockito.doReturn(responseJson).when(this.plugin)
+                .doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
+
+        Mockito.doReturn(securityGroupId).when(this.plugin)
+                .getSecurityGroupId(Mockito.any(), Mockito.eq(securityGroupName));
 
         // exercise
-        List<SecurityRuleInstance> rules = plugin.getSecurityRulesFromJson(ANY_STRING);
+        this.plugin.retrieveSecurityGroupId(securityGroupName, this.cloudUser);
 
         // verify
-        Assert.assertEquals(testUtils.FAKE_INSTANCE_ID, rules.get(0).getId());
-        PowerMockito.verifyStatic(GetSecurityRulesResponse.class);
-        GetSecurityRulesResponse.fromJson(Mockito.anyString());
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .buildQueryEndpointBySecurityGroupName(Mockito.eq(securityGroupName));
 
-        Mockito.verify(securityRulesResponseMock, Mockito.times(testUtils.RUN_ONCE)).getSecurityRules();
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doGetRequest(Mockito.anyString(), Mockito.eq(this.cloudUser));
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .getSecurityGroupId(Mockito.any(), Mockito.eq(securityGroupName));
     }
 
-    // test case: when given securityRules with protocols set, it should the Protocol value
+    // test case: When calling getSecurityGroupId method, it must verify if returned
+    // the expected ID.
     @Test
-    public void testDefineRuleProtocolSuccessful() throws FogbowException {
-        // setup
-        GetSecurityRulesResponse.SecurityRules tcpSecurityRule = createMockedSecurityRulesWithProtocol(PROTOCOL_TCP);
-        GetSecurityRulesResponse.SecurityRules udpSecurityRule = createMockedSecurityRulesWithProtocol(PROTOCOL_UDP);
-        GetSecurityRulesResponse.SecurityRules icmpSecurityRule = createMockedSecurityRulesWithProtocol(PROTOCOL_ICMP);
-        GetSecurityRulesResponse.SecurityRules anySecurityRule = createMockedSecurityRulesWithProtocol(null);
+    public void testgetSecurityGroupIdSuccessfully() throws FogbowException {
+        // set up
+        String securityGroupName = SECURITY_GROUP_NAME;
+        String expectedId = TestUtils.FAKE_SECURITY_GROUP_ID;
+        String rersponseJson = String.format(SECURITY_GROUPS_JSON_FORMAT, expectedId);
+        GetSecurityGroupsResponse response = GetSecurityGroupsResponse.fromJson(rersponseJson);
+
+        Mockito.doNothing().when(this.plugin).checkSecurityGroupsListIntegrity(Mockito.anyList(),
+                Mockito.eq(securityGroupName));
 
         // exercise
-        SecurityRule.Protocol tcpProtocol = plugin.defineRuleProtocol(tcpSecurityRule);
-        SecurityRule.Protocol udpProtocol = plugin.defineRuleProtocol(udpSecurityRule);
-        SecurityRule.Protocol icmpProtocol = plugin.defineRuleProtocol(icmpSecurityRule);
-        SecurityRule.Protocol anyProtocol = plugin.defineRuleProtocol(anySecurityRule);
+        String securityGroupId = this.plugin.getSecurityGroupId(response, securityGroupName);
 
         // verify
-        Assert.assertEquals(SecurityRule.Protocol.TCP, tcpProtocol);
-        Assert.assertEquals(SecurityRule.Protocol.UDP, udpProtocol);
-        Assert.assertEquals(SecurityRule.Protocol.ICMP, icmpProtocol);
-        Assert.assertEquals(SecurityRule.Protocol.ANY, anyProtocol);
+        Assert.assertEquals(expectedId, securityGroupId);
     }
 
-    // test case: when given an unsupported protocol, it should throw an exception
-    @Test(expected = FogbowException.class)
-    public void testDefineRuleProtocolUnsuccessful() throws FogbowException {
-        // setup
-        String nonExistingProtocol = "its-very-unlikelly-that-this-protocol-is-gonna-exist";
-        GetSecurityRulesResponse.SecurityRules tcpSecurityRule = createMockedSecurityRulesWithProtocol(nonExistingProtocol);
+    // test case: When calling checkSecurityGroupsListIntegrity method with an empty
+    // security group list, it must verify if an InvalidParameterException has been
+    // thrown.
+    @Test
+    public void testCheckSecurityGroupsListIntegrityThrowsInstanceNotFoundException()
+            throws FogbowException {
+        // set up
+        String securityGroupName = SECURITY_GROUP_NAME;
+        List<SecurityGroup> securityGroupsList = new ArrayList<SecurityGroup>();
 
-        // verify
-        plugin.defineRuleProtocol(tcpSecurityRule);
-        Assert.fail();
-    }
-
-    private GetSecurityGroupsResponse createMockedSecurityGroupList(List<String> groupIds) {
-        GetSecurityGroupsResponse response = Mockito.mock(GetSecurityGroupsResponse.class);
-
-        List<GetSecurityGroupsResponse.SecurityGroup> securityGroups = new ArrayList();
-        for (String groupId : groupIds) {
-            securityGroups.add(createMockedSecurityGroup(groupId));
+        String expectedMessage = String
+                .format(Messages.Exception.SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND, securityGroupName);
+        try {
+            // exercise
+            this.plugin.checkSecurityGroupsListIntegrity(securityGroupsList, securityGroupName);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expectedMessage, e.getMessage());
         }
-        Mockito.when(response.getSecurityGroups()).thenReturn(securityGroups);
-        return response;
     }
 
-    private GetSecurityGroupsResponse.SecurityGroup createMockedSecurityGroup(String id) {
-        GetSecurityGroupsResponse.SecurityGroup securityGroupMock =
-                Mockito.mock(GetSecurityGroupsResponse.SecurityGroup.class);
-        Mockito.when(securityGroupMock.getId()).thenReturn(id);
-        return securityGroupMock;
+    // test case: When calling checkSecurityGroupsListIntegrity method with a
+    // security group list containing more than one element, it must verify if an
+    // UnexpectedException has been thrown.
+    @Test
+    public void testCheckSecurityGroupsListIntegrityThrowsUnexpectedException()
+            throws FogbowException {
+        // set up
+        String securityGroupName = SECURITY_GROUP_NAME;
+        SecurityGroup securityGroup1 = Mockito.mock(SecurityGroup.class);
+        SecurityGroup securityGroup2 = Mockito.mock(SecurityGroup.class);
+        SecurityGroup[] securityGroups = { securityGroup1, securityGroup2 };
+        List<SecurityGroup> securityGroupList = Arrays.asList(securityGroups);
+
+        String expectedMessage = String
+                .format(Messages.Exception.MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED, securityGroupName);
+        try {
+            // exercise
+            this.plugin.checkSecurityGroupsListIntegrity(securityGroupList, securityGroupName);
+            Assert.fail();
+        } catch (UnexpectedException e) {
+            // verify
+            Assert.assertEquals(expectedMessage, e.getMessage());
+        }
     }
 
-    private SecurityRule createEmptySecurityRule() {
-        String CIDR = "0.0.0.0/0";
-        int portFrom = 0;
-        int portTo = 0;
-        return new SecurityRule(SecurityRule.Direction.OUT, portFrom, portTo, CIDR, SecurityRule.EtherType.IPv4, SecurityRule.Protocol.TCP);
+    // test case: When calling buildQueryEndpointBySecurityGroupName method, it must
+    // verify if returned the expected endpoint.
+    @Test
+    public void testbuildQueryEndpointBySecurityGroupNameSuccessfully() {
+        // set up
+        String securityGroupName = SECURITY_GROUP_NAME;
+
+        String expected = NETWORK_PREFIX_ENDPOINT
+                + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT
+                + QUERY_SECURITY_GROUP_NAME
+                + securityGroupName;
+
+        // exercise
+        String endpoint = this.plugin.buildQueryEndpointBySecurityGroupName(securityGroupName);
+
+        // verify
+        Assert.assertEquals(expected, endpoint);
     }
 
-    private GetSecurityRulesResponse createSecurityRulesResponseMock() {
-        GetSecurityRulesResponse.SecurityRules securityRule = createMockedSecurityRulesWithProtocol(PROTOCOL_TCP);
+    // test case: When calling the defineProtocol method with a valid parameter, it
+    // must verify if returned the corresponding protocol.
+    @Test
+    public void testDefineProtocolWithAValidParameter() throws FogbowException {
+        // set up
+        Protocol expected = Protocol.UDP;
+        String protocolStr = expected.toString();
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getProtocol()).thenReturn(protocolStr);
 
-        List<GetSecurityRulesResponse.SecurityRules> securityRules = new ArrayList<>();
-        securityRules.add(securityRule);
+        // exercise
+        Protocol protocol = this.plugin.defineProtocol(securityGroupRule);
 
-        GetSecurityRulesResponse response = Mockito.mock(GetSecurityRulesResponse.class);
-        Mockito.when(response.getSecurityRules()).thenReturn(securityRules);
-
-        return response;
+        // verify
+        Assert.assertEquals(expected, protocol);
     }
 
-    private GetSecurityRulesResponse.SecurityRules createMockedSecurityRulesWithProtocol(String protocol) {
-        return createMockedSecurityRules(
-                testUtils.FAKE_INSTANCE_ID, INGRESS_TRAFFIC, FAKE_PORT_FROM, FAKE_PORT_TO,
-                testUtils.FAKE_CIDR, FAKE_ETHERTYPE, protocol);
+    // test case: When calling the defineProtocol method with an invalid parameter,
+    // it must verify if returned the protocol ANY.
+    @Test
+    public void testDefineProtocolWithAnInvalidParameter() throws FogbowException {
+        // set up
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Protocol expected = Protocol.ANY;
+
+        // exercise
+        Protocol protocol = this.plugin.defineProtocol(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, protocol);
     }
 
-    private GetSecurityRulesResponse.SecurityRules createMockedSecurityRules(String id, String direction,
-            int portFrom, int portTo, String cidr, String etherType, String protocol) {
-        GetSecurityRulesResponse.SecurityRules securityRules =
-                Mockito.mock(GetSecurityRulesResponse.SecurityRules.class);
+    // test case: When calling the defineCIDR method with a valid IPV4 address, it
+    // must verify if returned the corresponding CIDR.
+    @Test
+    public void testDefineCIDRWithAValidIPV4Address() {
+        // set up
+        String expected = "192.168.0.1/24";
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getEtherType()).thenReturn(EtherType.IPv4.toString());
+        Mockito.when(securityGroupRule.getCidr()).thenReturn(expected);
 
-        Mockito.when(securityRules.getId()).thenReturn(id);
-        Mockito.when(securityRules.getDirection()).thenReturn(direction);
-        Mockito.when(securityRules.getPortFrom()).thenReturn(portFrom);
-        Mockito.when(securityRules.getPortTo()).thenReturn(portTo);
-        Mockito.when(securityRules.getCidr()).thenReturn(cidr);
-        Mockito.when(securityRules.getEtherType()).thenReturn(etherType);
-        Mockito.when(securityRules.getProtocol()).thenReturn(protocol);
+        // exercise
+        String cidr = this.plugin.defineCIDR(securityGroupRule);
 
-        return securityRules;
+        // verify
+        Assert.assertEquals(expected, cidr);
     }
+
+    // test case: When calling the defineCIDR method with a valid IPV6 address, it
+    // must verify if returned the corresponding CIDR.
+    @Test
+    public void testDefineCIDRWithAValidIPV6Address() {
+        // set up
+        String expected = "2002::1234:abcd:ffff:c0a8:101/64";
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getEtherType()).thenReturn(EtherType.IPv6.toString());
+        Mockito.when(securityGroupRule.getCidr()).thenReturn(expected);
+
+        // exercise
+        String cidr = this.plugin.defineCIDR(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, cidr);
+    }
+
+    // test case: When calling the defineCIDR method with an invalid IPV4 parameter,
+    // it must verify if returned the default IPV4 CIDR.
+    @Test
+    public void testDefineCIDRWithAnIvalidIPV4Parameter() {
+        // set up
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getEtherType()).thenReturn(EtherType.IPv4.toString());
+
+        String expected = CidrUtils.DEFAULT_IPV4_CIDR;
+
+        // exercise
+        String cidr = this.plugin.defineCIDR(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, cidr);
+    }
+
+    // test case: When calling the defineCIDR method with an invalid IPV6 parameter,
+    // it must verify if returned the default IPV6 CIDR.
+    @Test
+    public void testDefineCIDRWithAnIvalidIPV6Parameter() {
+        // set up
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getEtherType()).thenReturn(EtherType.IPv6.toString());
+
+        String expected = CidrUtils.DEFAULT_IPV6_CIDR;
+
+        // exercise
+        String cidr = this.plugin.defineCIDR(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, cidr);
+    }
+
+    // test case: When calling the defineEtherType method with a valid IPV4 ether
+    // type, it must verify if returned the expected value.
+    @Test
+    public void testDefineEtherTypeWithIPV4Value() {
+        // set up
+        EtherType expected = EtherType.IPv4;
+        String etherTypeStr = expected.toString();
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getEtherType()).thenReturn(etherTypeStr);
+
+        // exercise
+        EtherType etherType = this.plugin.defineEtherType(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, etherType);
+    }
+
+    // test case: When calling the defineEtherType method with a valid IPV6 ether
+    // type, it must verify if returned the expected value.
+    @Test
+    public void testDefineEtherTypeWithIPV6Value() {
+        // set up
+        EtherType expected = EtherType.IPv6;
+        String etherTypeStr = expected.toString();
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getEtherType()).thenReturn(etherTypeStr);
+
+        // exercise
+        EtherType etherType = this.plugin.defineEtherType(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, etherType);
+    }
+
+    // test case: When calling the definePortTo method with a valid parameter, it
+    // must verify if returned the corresponding value.
+    @Test
+    public void testDefinePortToWithAValidValue() {
+        // set up
+        Integer expected = 8080;
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getPortTo()).thenReturn(expected);
+
+        // exercise
+        Integer port = this.plugin.definePortTo(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, port);
+    }
+
+    // test case: When calling the definePortFrom method with an invalid parameter, it
+    // must verify if returned the maximum port range.
+    @Test
+    public void testDefinePortToWithAInvalidValue() {
+        // set up
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getPortTo()).thenReturn(null);
+
+        Integer expected = OpenStackSecurityRulePlugin.MAXIMUM_PORT_RANGE;
+
+        // exercise
+        Integer port = this.plugin.definePortTo(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, port);
+    }
+
+    // test case: When calling the definePortFrom method with a valid parameter, it
+    // must verify if returned the corresponding value.
+    @Test
+    public void testDefinePortFromWithAValidValue() {
+        // set up
+        Integer expected = 8080;
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getPortFrom()).thenReturn(expected);
+
+        // exercise
+        Integer port = this.plugin.definePortFrom(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, port);
+    }
+
+    // test case: When calling the definePortFrom method with an invalid parameter, it
+    // must verify if returned the minimum port range.
+    @Test
+    public void testDefinePortFromWithAInalidValue() {
+        // set up
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getPortFrom()).thenReturn(null);
+
+        Integer expected = OpenStackSecurityRulePlugin.MINIMUM_PORT_RANGE;
+
+        // exercise
+        Integer port = this.plugin.definePortFrom(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, port);
+    }
+
+    // test case: When calling the defineDirection method with an ingress parameter,
+    // it must verify if returned the direction IN.
+    @Test
+    public void testDefineDirectionWithIngressParameter() {
+        // set up
+        String directionStr = "ingress";
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getDirection()).thenReturn(directionStr);
+
+        Direction expected = Direction.IN;
+
+        // exercise
+        Direction direction = this.plugin.defineDirection(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, direction);
+    }
+
+    // test case: When calling the defineDirection method with an egress parameter,
+    // it must verify if returned the direction OUT.
+    @Test
+    public void testDefineDirectionWithEgressParameter() {
+        // set up
+        String directionStr = "egress";
+        SecurityGroupRule securityGroupRule = Mockito.mock(SecurityGroupRule.class);
+        Mockito.when(securityGroupRule.getDirection()).thenReturn(directionStr);
+
+        Direction expected = Direction.OUT;
+
+        // exercise
+        Direction direction = this.plugin.defineDirection(securityGroupRule);
+
+        // verify
+        Assert.assertEquals(expected, direction);
+    }
+
+    private SecurityRuleInstance createSecurityRuleInstance() {
+        String id = TestUtils.FAKE_SECURITY_RULE_ID;
+        Direction direction = Direction.IN;
+        int portFrom = OpenStackSecurityRulePlugin.MINIMUM_PORT_RANGE;
+        int portTo = OpenStackSecurityRulePlugin.MAXIMUM_PORT_RANGE;
+        String cidr = TestUtils.DEFAULT_CIDR;
+        EtherType etherType = EtherType.IPv4;
+        Protocol protocol = Protocol.TCP;
+        return new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
+    }
+    private SecurityRule createSecurityRule() {
+        Direction direction = Direction.IN;
+        String cidr = TestUtils.DEFAULT_CIDR;
+        int portFrom = OpenStackSecurityRulePlugin.MINIMUM_PORT_RANGE;
+        int portTo = OpenStackSecurityRulePlugin.MAXIMUM_PORT_RANGE;
+        EtherType etherType = EtherType.IPv4;
+        Protocol protocol = Protocol.TCP;
+        return new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
+    }
+
+    private GetSecurityRulesResponse generateGetSecurityRulesResponse() {
+        String json = "{\"security_group_rules\": [{"
+                + " \"id\": \"fake-security-rule-id\", "
+                + " \"remote_ip_prefix\": null,"
+                + " \"port_range_min\": 0,"
+                + " \"port_range_max\": 65535,"
+                + " \"direction\": \"ingress\","
+                + " \"ethertype\": \"IPv4\","
+                + " \"protocol\": \"tcp\""
+                + "}]}";
+
+        return GetSecurityRulesResponse.fromJson(json);
+    }
+
 }
