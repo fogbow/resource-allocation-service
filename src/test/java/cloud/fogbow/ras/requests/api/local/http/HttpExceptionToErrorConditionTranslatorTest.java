@@ -28,9 +28,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @WebMvcTest(TestController.class)
 public class HttpExceptionToErrorConditionTranslatorTest {
 
-    private final String POJO_CONTROLLER_REQUEST_SUFIX = "/";
+    private final String TEST_CONTROLLER_REQUEST_SUFFIX = "/";
     private final String EXCEPTION_MESSAGE_DEFAULT = "EXCEPTION_MESSAGE_DEFAULT";
-    private final int IT_SHOULD_NEVER_HAPPEN = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
 
     @Autowired
     private MockMvc mockMvc;
@@ -176,7 +175,7 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     }
 
     private RequestBuilder createRequestBuilder() {
-        return MockMvcRequestBuilders.get(POJO_CONTROLLER_REQUEST_SUFIX);
+        return MockMvcRequestBuilders.get(TEST_CONTROLLER_REQUEST_SUFFIX);
     }
 
 }
