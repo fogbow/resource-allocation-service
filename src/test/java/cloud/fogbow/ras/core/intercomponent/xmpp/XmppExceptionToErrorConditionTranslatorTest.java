@@ -48,6 +48,19 @@ public class XmppExceptionToErrorConditionTranslatorTest {
     }
 
     // test case: checks if "updateErrorCondition" sets PacketError condition to
+    // conflict when the exception is equal to ConfigurationErrorException
+    @Test
+    public void testUpdateErrorWhenConfigurationErrorException() {
+        // set up
+        IQ response = new IQ();
+        Throwable e = new ConfigurationErrorException();
+        // exercise
+        XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
+        // verify
+        Assert.assertEquals(response.getError().getCondition(), PacketError.Condition.conflict);
+    }
+
+    // test case: checks if "updateErrorCondition" sets PacketError condition to
     // item_not_found when the exception is equal to InstanceNotFoundException
     @Test
     public void testUpdateErrorWhenInstanceNotFoundException() {

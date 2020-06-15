@@ -12,7 +12,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
     private final String providerId = "providerId";
     private final String messageError = "message-error";
 
-    //test case: checks if "handleError" is properly forwading "UnauthorizedRequestException" from
+    //test case: checks if "handleError" is properly forwarding "UnauthorizedRequestException" from
     //"throwException" when the packet error condition is equals to "forbidden". In addition, it checks
     //if its message error is correct
     @Test
@@ -36,7 +36,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwading "UnauthenticatedUserException" from
+    //test case: checks if "handleError" is properly forwarding "UnauthenticatedUserException" from
     //"throwException" when the packet error condition is equals to "not_authorized". In addition, it checks
     //if its message error is correct
     @Test
@@ -60,7 +60,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwading "InvalidParameterExceptionException" from
+    //test case: checks if "handleError" is properly forwarding "InvalidParameterException" from
     //"throwException" when the packet error condition is equals to "bad_request". In addition, it checks
     //if its message error is correct
     @Test
@@ -84,7 +84,31 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwading "InstanceNotFoundException" from
+    //test case: checks if "handleError" is properly forwarding "ConfigurationErrorException" from
+    //"throwException" when the packet error condition is equals to "conflict". In addition, it checks
+    //if its message error is correct
+    @Test
+    public void testHandleErrorThrowsConfigurationErrorException() {
+        //set up
+        IQ iq = new IQ();
+        PacketError packetError = new PacketError(PacketError.Condition.conflict, null, this.messageError);
+        iq.setError(packetError);
+
+        try {
+            //exercise
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
+            //verify: if some exception occurred
+            Assert.fail();
+        } catch (ConfigurationErrorException e) {
+            //verify: if the message is correct
+            Assert.assertEquals(this.messageError, e.getMessage());
+        } catch (Throwable e) {
+            //verify: if some exception different from the expected exception occurred
+            Assert.fail();
+        }
+    }
+
+    //test case: checks if "handleError" is properly forwarding "InstanceNotFoundException" from
     //"throwException" when the packet error condition is equals to "item_not_found". In addition, it checks
     //if its message error is correct
     @Test
@@ -112,7 +136,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
     //"throwException" when the packet error condition is equals to "not_acceptable". In addition, it checks
     //if its message error is correct
     @Test
-    public void testHandleErrorThrowsUnaceptableOperationException() {
+    public void testHandleErrorThrowsUnacceptableOperationException() {
         //set up
         IQ iq = new IQ();
         PacketError packetError = new PacketError(PacketError.Condition.not_acceptable, null, this.messageError);
@@ -132,7 +156,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwading "UnavailableProviderException" from
+    //test case: checks if "handleError" is properly forwarding "UnavailableProviderException" from
     //"throwException" when the packet error condition is equals to "remote_server_not_found". In addition, it checks
     //if its message error is correct
     @Test
@@ -156,7 +180,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwading "UnexpectedException" from
+    //test case: checks if "handleError" is properly forwarding "UnexpectedException" from
     //"throwException" when the packet error condition is equals to "internal_server_error". In addition, it checks
     //if its message error is correct
     @Test
@@ -180,7 +204,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwading "Exception" from
+    //test case: checks if "handleError" is properly forwarding "Exception" from
     //"throwException" when the packet error condition is not equals to any switch case attribute.
     //In addition, it checks if its message error is correct
     @Test
@@ -205,7 +229,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwading "UnavailableProviderException" when the response is null
+    //test case: checks if "handleError" is properly forwarding "UnavailableProviderException" when the response is null
     @Test
     public void testHandleErrorThrowsUnavailableProviderExceptionWhenResponseIsNull() throws Exception {
         try {
