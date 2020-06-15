@@ -26,7 +26,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(TestController.class)
-public class HttpExceptionToErrorConditionTranslatorTest {
+public class FogbowExceptionToHttpErrorConditionTranslatorTest {
 
     private final String TEST_CONTROLLER_REQUEST_SUFFIX = "/";
     private final String EXCEPTION_MESSAGE_DEFAULT = "EXCEPTION_MESSAGE_DEFAULT";
