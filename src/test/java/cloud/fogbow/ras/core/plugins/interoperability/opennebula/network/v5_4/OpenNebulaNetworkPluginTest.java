@@ -96,7 +96,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getCreateNetworkReserveRequest with valid network order and virtual network,
 	// the plugin should create and return the respective CreateNetworkReserveRequest
 	@Test
-	public void testGetCreateNetworkReserveRequest() throws InvalidParameterException, NoAvailableResourcesException {
+	public void testGetCreateNetworkReserveRequest() throws InvalidParameterException, UnacceptableOperationException {
 		// set up
 		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(FAKE_CIDR_ADDRESS).getInfo();
 		String firstAddress = subnetInfo.getLowAddress();
@@ -152,7 +152,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	// cidr, the plugin should return the address range id where the new network reservation should
 	// be made.
 	@Test
-	public void testGetAddressRangeId() throws NoAvailableResourcesException {
+	public void testGetAddressRangeId() throws UnacceptableOperationException {
 		// set up
 		Mockito.when(this.virtualNetwork.xpath(Mockito.eq(String.format(ADDRESS_RANGE_ID_PATH_FORMAT, ONE_VALUE))))
 				.thenReturn(String.valueOf(ONE_VALUE));
@@ -166,7 +166,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	}
 
 	// test case: when invoking getAddressRangeId with a null address range index (meaning no address range fits
-	// the order) the plugin should throw a NoAvailableResourcesException.
+	// the order) the plugin should throw a UnacceptableOperationException.
 	@Test
 	public void testGetAddressRangeIdFail() {
 		// set up
@@ -176,7 +176,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		try {
 			this.plugin.getAddressRangeId(this.virtualNetwork, null, FAKE_CIDR_ADDRESS);
 			Assert.fail();
-		} catch (NoAvailableResourcesException e) {
+		} catch (UnacceptableOperationException e) {
 			// verify
 			Assert.assertEquals(expectedMessage, e.getMessage());
 		}

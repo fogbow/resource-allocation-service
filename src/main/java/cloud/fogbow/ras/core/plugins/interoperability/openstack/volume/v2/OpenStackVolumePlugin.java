@@ -15,7 +15,7 @@ import com.google.gson.JsonSyntaxException;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -185,7 +185,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         }
 
         String message = Messages.Exception.UNABLE_TO_MATCH_REQUIREMENTS;
-        throw new NoAvailableResourcesException(message);
+        throw new UnacceptableOperationException(message);
     }
     
     protected GetAllTypesResponse doGetAllTypesResponseFrom(String json) throws UnexpectedException {

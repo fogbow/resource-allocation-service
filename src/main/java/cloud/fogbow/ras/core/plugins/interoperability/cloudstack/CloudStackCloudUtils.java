@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.*;
@@ -103,7 +104,7 @@ public class CloudStackCloudUtils {
                 client, cloudStackUrl, jobId, cloudStackUser);
         while(response.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
             if (countTries >= MAX_TRIES) {
-                throw new CloudStackTimeoutException(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
+                throw new UnavailableProviderException(String.format(Messages.Exception.JOB_TIMEOUT, jobId));
             }
             sleepThread();
             response = getAsyncJobResponse(client, cloudStackUrl, jobId, cloudStackUser);
@@ -149,13 +150,5 @@ public class CloudStackCloudUtils {
         } catch (InterruptedException e) {
             LOGGER.warn(Messages.Warn.SLEEP_THREAD_INTERRUPTED, e);
         }
-    }
-
-    public static class CloudStackTimeoutException extends FogbowException {
-
-        public CloudStackTimeoutException(String message) {
-            super(message);
-        }
-
     }
 }

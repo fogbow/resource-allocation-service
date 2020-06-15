@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -162,7 +162,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
             LOGGER.warn(Messages.Warn.DISK_OFFERING_CUSTOMIZED_NOT_FOUND);
         }
 
-        throw new NoAvailableResourcesException();
+        throw new UnacceptableOperationException();
     }
 
     @NotNull

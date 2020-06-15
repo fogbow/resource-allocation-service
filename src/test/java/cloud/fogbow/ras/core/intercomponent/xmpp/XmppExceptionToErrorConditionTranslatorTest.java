@@ -61,25 +61,12 @@ public class XmppExceptionToErrorConditionTranslatorTest {
     }
 
     // test case: checks if "updateErrorCondition" sets PacketError condition to
-    // conflict when the exception is equal to QuotaExceededException
-    @Test
-    public void testUpdateErrorWhenQuotaExceededException() {
-        // set up
-        IQ response = new IQ();
-        Throwable e = new QuotaExceededException();
-        // exercise
-        XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
-        // verify
-        Assert.assertEquals(response.getError().getCondition(), PacketError.Condition.conflict);
-    }
-
-    // test case: checks if "updateErrorCondition" sets PacketError condition to
-    // not_acceptable when the exception is equal to NoAvailableResourcesException
+    // not_acceptable when the exception is equal to UnacceptableOperationException
     @Test
     public void testUpdateErrorWhenNoAvailableResourcesException() {
         // set up
         IQ response = new IQ();
-        Throwable e = new NoAvailableResourcesException();
+        Throwable e = new UnacceptableOperationException();
         // exercise
         XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         // verify

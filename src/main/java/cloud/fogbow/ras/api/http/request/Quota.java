@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.api.http.request;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,10 +40,12 @@ public class Quota {
         @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
         @PathVariable String cloudName,
         @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
-        @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) throws Exception{
+        @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_RESOURCE_S_REQUEST, QUOTA_SUFFIX_ENDPOINT, providerId));
-            ResourceQuota resourceQuota = ApplicationFacade.getInstance().getResourceQuota(providerId, cloudName, systemUserToken);
+            ResourceQuota resourceQuota = ApplicationFacade.getInstance().getResourceQuota(providerId, cloudName,
+                    systemUserToken);
             return new ResponseEntity<>(resourceQuota, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);

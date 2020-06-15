@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -285,7 +286,7 @@ public class CloudStackCloudUtilsTest {
         mockSleepThread();
 
         // verify
-        this.expectedException.expect(CloudStackCloudUtils.CloudStackTimeoutException.class);
+        this.expectedException.expect(UnavailableProviderException.class);
 
         // exercise
         try {

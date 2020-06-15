@@ -15,8 +15,6 @@ import cloud.fogbow.as.core.util.AuthenticationUtil;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
@@ -125,7 +123,7 @@ public class ApplicationFacade {
                 return cloudNames;
             } catch (Throwable e) {
                 LOGGER.error(e.toString(), e);
-                throw new RemoteCommunicationException(e.getMessage(), e);
+                throw new FogbowException(e.getMessage(), e);
             }
         }
     }

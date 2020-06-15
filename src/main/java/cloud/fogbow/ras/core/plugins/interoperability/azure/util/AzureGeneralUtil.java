@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.constants.AzureConstants;
-import cloud.fogbow.common.exceptions.QuotaExceededException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 
@@ -36,7 +36,7 @@ public interface AzureGeneralUtil {
     static String defineResourceGroupName(Azure azure, String regionName, String resourceName, String defaultResourceGroupName) {
         try {
             return AzureResourceGroupOperationUtil.createResourceGroup(azure, regionName, resourceName);
-        } catch (QuotaExceededException e) {
+        } catch (UnacceptableOperationException e) {
             LOGGER.warn(String.format(Messages.Warn.RESOURCE_CREATION_FAILED_S, e));
         }
         LOGGER.info(Messages.Info.CHANGE_TO_DEFAULT_RESOURCE_GROUP);

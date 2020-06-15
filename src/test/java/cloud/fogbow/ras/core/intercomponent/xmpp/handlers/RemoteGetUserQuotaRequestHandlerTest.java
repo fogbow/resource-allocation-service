@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
+import cloud.fogbow.common.constants.Messages;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
@@ -92,7 +93,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
     public void testUpdateResponseWhenExceptionIsThrown() throws Exception {
         Mockito.when(this.remoteFacade
                 .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any()))
-                .thenThrow(new RemoteCommunicationException());
+                .thenThrow(new FogbowException(Messages.Exception.REMOTE_COMMUNICATION));
 
         IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUser());
         iq.setFrom(REQUESTING_MEMBER);

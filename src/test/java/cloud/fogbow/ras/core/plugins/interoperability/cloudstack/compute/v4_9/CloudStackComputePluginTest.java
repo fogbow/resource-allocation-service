@@ -350,7 +350,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     }
 
     // test case: calling the getServiceOffering method and there are not services offerings
-    // , it must verify if It a NoAvailableResourcesException has been thrown.
+    // , it must verify if It a UnacceptableOperationException has been thrown.
     @Test
     public void testGetServiceOfferingFail() throws FogbowException {
         // set up
@@ -368,7 +368,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
 
         // verify
-        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(
                 Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
 
@@ -378,7 +378,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
 
     // test case: calling the getServiceOffering method and the order capabilities(memory and cpu)
     // does not matchs with the services offerings existing, it must verify if
-    // a NoAvailableResourcesException has been thrown.
+    // a UnacceptableOperationException has been thrown.
     @Test
     public void testGetServiceOfferingWithoutMatching() throws FogbowException {
         // set up
@@ -402,7 +402,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .when(this.plugin).getServiceOfferings(Mockito.eq(cloudStackUser));
 
         // verify
-        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(
                 Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
 
@@ -503,7 +503,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the requestInstance method with occcurs an exception in the
-    // getServiceOffering, it must verify if a NoAvailableResourcesException was threw and
+    // getServiceOffering, it must verify if a UnacceptableOperationException was threw and
     // it was interrupted the method execution.
     @Test
     public void testRequestInstanceFailOnServiceOffering() throws FogbowException {
@@ -515,14 +515,14 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(networksIds).when(this.plugin)
                 .normalizeNetworksID(Mockito.any(ComputeOrder.class));
 
-        Mockito.doThrow(new NoAvailableResourcesException()).when(this.plugin).getServiceOffering(
+        Mockito.doThrow(new UnacceptableOperationException()).when(this.plugin).getServiceOffering(
                 Mockito.eq(order) , Mockito.any(CloudStackUser.class));
 
         // exercise
         try {
             this.plugin.requestInstance(order, cloudStackUser);
             Assert.fail();
-        } catch (NoAvailableResourcesException e) {
+        } catch (UnacceptableOperationException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(TestUtils.NEVER_RUN))
                     .getDiskOffering(Mockito.any(ComputeOrder.class), Mockito.eq(cloudStackUser));
@@ -531,7 +531,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the requestInstance method with occcurs an exception in the
-    // getDiskOffering, it must verify if a NoAvailableResourcesException was threw and
+    // getDiskOffering, it must verify if a UnacceptableOperationException was threw and
     // it was interrupted the method execution.
     @Test
     public void testRequestInstanceFailOnDiskOffering() throws FogbowException {
@@ -548,13 +548,13 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(serviceOffering).when(this.plugin).getServiceOffering(
                 Mockito.eq(order) , Mockito.any(CloudStackUser.class));
 
-        Mockito.doThrow(new NoAvailableResourcesException()).when(this.plugin).getDiskOffering(
+        Mockito.doThrow(new UnacceptableOperationException()).when(this.plugin).getDiskOffering(
                 Mockito.eq(order), Mockito.eq(cloudStackUser));
 
         // exercise
         try {
             this.plugin.requestInstance(order, cloudStackUser);
-        } catch (NoAvailableResourcesException e) {
+        } catch (UnacceptableOperationException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                     .getServiceOffering(Mockito.eq(order), Mockito.eq(cloudStackUser));
@@ -1142,7 +1142,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(diskOfferings).when(getAllDiskOfferingsResponse).getDiskOfferings();
 
         // verify
-        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(
                 Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
 
@@ -1166,7 +1166,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(diskOfferings).when(getAllDiskOfferingsResponse).getDiskOfferings();
 
         // verify
-        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(
                 Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
 

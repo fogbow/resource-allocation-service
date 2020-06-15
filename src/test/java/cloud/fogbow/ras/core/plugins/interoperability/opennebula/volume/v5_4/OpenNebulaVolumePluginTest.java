@@ -164,7 +164,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 	// the plugin should call getDataStoreId to discover where to store the volume and then allocate
 	// the new volume with the request template.
 	@Test
-	public void testDoRequestInstance() throws UnexpectedException, InvalidParameterException, NoAvailableResourcesException {
+	public void testDoRequestInstance() throws UnexpectedException, InvalidParameterException, UnacceptableOperationException {
 		// set up
 		int datastoreId = Integer.parseInt(STRING_VALUE_ONE);
 		CreateVolumeRequest createVolumeRequest = Mockito.spy(this.createVolumeRequest(this.volumeOrder));
@@ -194,7 +194,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		try {
 			this.plugin.doRequestInstance(createVolumeRequest, this.client);
 			Assert.fail();
-		} catch (NoAvailableResourcesException e) {
+		} catch (UnacceptableOperationException e) {
 			Assert.assertEquals(e.getMessage(), "No available resources.");
 		}
 

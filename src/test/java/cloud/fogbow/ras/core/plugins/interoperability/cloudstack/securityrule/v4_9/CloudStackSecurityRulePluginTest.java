@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -266,7 +267,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         String errorMessage = "error";
         PowerMockito.when(CloudStackCloudUtils.waitForResult(Mockito.eq(this.client),
                 Mockito.eq(this.cloudStackUrl), Mockito.eq(jobId), Mockito.eq(this.cloudStackUser)))
-                .thenThrow(new CloudStackCloudUtils.CloudStackTimeoutException(errorMessage));
+                .thenThrow(new UnavailableProviderException(errorMessage));
 
         CloudStackQueryAsyncJobResponse responseAsync = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
         String securityGroupId = "securityId";
@@ -279,7 +280,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
                 Mockito.eq(securityGroupId), Mockito.eq(this.cloudStackUser));
 
         // verify
-        this.expectedException.expect(CloudStackCloudUtils.CloudStackTimeoutException.class);
+        this.expectedException.expect(UnavailableProviderException.class);
         this.expectedException.expectMessage(errorMessage);
 
         // exercise

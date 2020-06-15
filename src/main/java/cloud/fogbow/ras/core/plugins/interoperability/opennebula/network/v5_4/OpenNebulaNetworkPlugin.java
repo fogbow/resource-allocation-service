@@ -183,12 +183,12 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	}
 
 	protected String getAddressRangeId(VirtualNetwork virtualNetwork, Integer addressRangeIndex, String cidr)
-			throws NoAvailableResourcesException {
+			throws UnacceptableOperationException {
 
 		if (addressRangeIndex != null) {
 			return virtualNetwork.xpath(String.format(ADDRESS_RANGE_ID_PATH_FORMAT, addressRangeIndex));
 		} else {
-			throw new NoAvailableResourcesException(String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE,
+			throw new UnacceptableOperationException(String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE,
 					cidr));
 		}
 	}
@@ -213,7 +213,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	}
 
 	protected CreateNetworkReserveRequest getCreateNetworkReserveRequest(NetworkOrder networkOrder, VirtualNetwork virtualNetwork)
-			throws InvalidParameterException, NoAvailableResourcesException {
+			throws InvalidParameterException, UnacceptableOperationException {
 		String cidr = networkOrder.getCidr();
 		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(cidr).getInfo();
 

@@ -27,12 +27,12 @@ public class XmppErrorConditionToExceptionTranslator {
                 throw new InvalidParameterException(message);
             case item_not_found:
                 throw new InstanceNotFoundException(message);
-            case conflict:
-                throw new QuotaExceededException(message);
             case not_acceptable:
-                throw new NoAvailableResourcesException(message);
+                throw new UnacceptableOperationException(message);
             case remote_server_not_found:
                 throw new UnavailableProviderException(message);
+            case conflict:
+                throw new ConfigurationErrorException(message);
             case internal_server_error:
                 throw new UnexpectedException(message);
             default:

@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
@@ -154,7 +154,7 @@ public class AzureVirtualMachineOperationSDK {
                         .comparingInt(VirtualMachineSize::memoryInMB)
                         .thenComparingInt(VirtualMachineSize::numberOfCores))
                 .findFirst()
-                .orElseThrow(NoAvailableResourcesException::new);
+                .orElseThrow(UnacceptableOperationException::new);
 
         return firstVirtualMachineSize;
     }
@@ -204,7 +204,7 @@ public class AzureVirtualMachineOperationSDK {
         return virtualMachineSizes.stream()
                 .filter((virtualMachineSize) -> virtualMachineSizeWanted.equals(virtualMachineSize.name()))
                 .findFirst()
-                .orElseThrow(NoAvailableResourcesException::new);
+                .orElseThrow(UnacceptableOperationException::new);
     }
 
     @VisibleForTesting

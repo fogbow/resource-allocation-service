@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
+import cloud.fogbow.common.constants.Messages;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -106,7 +107,7 @@ public class RemoteGetInstanceRequestHandlerTest {
         String orderId = order.getId();
 
         Mockito.when(this.remoteFacade.getResourceInstance(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(orderId),
-                Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE))).thenThrow(new RemoteCommunicationException());
+                Mockito.eq(systemUser), Mockito.eq(ResourceType.COMPUTE))).thenThrow(new FogbowException(Messages.Exception.REMOTE_COMMUNICATION));
 
         IQ iq = RemoteGetInstanceRequest.marshal(order);
         iq.setFrom(REQUESTING_MEMBER);

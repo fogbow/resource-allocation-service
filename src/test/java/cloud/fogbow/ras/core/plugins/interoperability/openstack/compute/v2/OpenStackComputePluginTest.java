@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -158,9 +158,9 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 .getBestFlavor(Mockito.eq(computeOrder), Mockito.eq(this.cloudUser));
     }
 
-    // test case: when a order is given, no flavor will match the order so a NoAvailableResourcesException
+    // test case: when a order is given, no flavor will match the order so a UnacceptableOperationException
     // will be thrown
-    @Test(expected = NoAvailableResourcesException.class)
+    @Test(expected = UnacceptableOperationException.class)
     public void testFindSmallestFlavorWhenNoResourceAvailable() throws FogbowException {
         // setup
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();

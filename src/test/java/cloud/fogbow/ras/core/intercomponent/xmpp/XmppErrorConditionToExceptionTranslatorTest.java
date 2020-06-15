@@ -108,35 +108,11 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwading "QuotaExceededException" from
-    //"throwException" when the packet error condition is equals to "conflict". In addition, it checks
-    //if its message error is correct
-    @Test
-    public void testHandleErrorThrowsQuotaExceededException() {
-        //set up
-        IQ iq = new IQ();
-        PacketError packetError = new PacketError(PacketError.Condition.conflict, null, this.messageError);
-        iq.setError(packetError);
-
-        try {
-            //exercise
-            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
-            //verify: if some exception occurred
-            Assert.fail();
-        } catch (QuotaExceededException e) {
-            //verify: if the message is correct
-            Assert.assertEquals(this.messageError, e.getMessage());
-        } catch (Throwable e) {
-            //verify: if some exception different from the expected exception occurred
-            Assert.fail();
-        }
-    }
-
-    //test case: checks if "handleError" is properly forwading "NoAvailableResourcesException" from
+    //test case: checks if "handleError" is properly forwarding "UnacceptableOperationException" from
     //"throwException" when the packet error condition is equals to "not_acceptable". In addition, it checks
     //if its message error is correct
     @Test
-    public void testHandleErrorThrowsNoAvailableResourcesException() {
+    public void testHandleErrorThrowsUnaceptableOperationException() {
         //set up
         IQ iq = new IQ();
         PacketError packetError = new PacketError(PacketError.Condition.not_acceptable, null, this.messageError);
@@ -147,7 +123,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
             XmppErrorConditionToExceptionTranslator.handleError(iq, providerId);
             //verify: if some exception occurred
             Assert.fail();
-        } catch (NoAvailableResourcesException e) {
+        } catch (UnacceptableOperationException e) {
             //verify: if the message is correct
             Assert.assertEquals(this.messageError, e.getMessage());
         } catch (Throwable e) {

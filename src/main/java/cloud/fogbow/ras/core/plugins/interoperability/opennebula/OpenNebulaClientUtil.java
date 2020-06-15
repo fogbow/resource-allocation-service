@@ -21,8 +21,7 @@ import org.opennebula.client.vnet.VirtualNetworkPool;
 
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
-import cloud.fogbow.common.exceptions.QuotaExceededException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
@@ -239,7 +238,7 @@ public class OpenNebulaClientUtil {
 	}
 
 	public static String allocateVirtualMachine(Client client, String template)
-			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
+			throws UnacceptableOperationException, InvalidParameterException {
 		
 		OneResponse response = VirtualMachine.allocate(client, template);
 		if (response.isError()) {
@@ -247,11 +246,11 @@ public class OpenNebulaClientUtil {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE, template));
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 			if (message.contains(FIELD_RESPONSE_LIMIT) && message.contains(FIELD_RESPONSE_QUOTA)) {
-				throw new QuotaExceededException();
+				throw new UnacceptableOperationException();
 			}
 			if ((message.contains(RESPONSE_NOT_ENOUGH_FREE_MEMORY))
 					|| (message.contains(RESPONSE_NO_SPACE_LEFT_ON_DEVICE))) {
-				throw new NoAvailableResourcesException();
+				throw new UnacceptableOperationException();
 			}
 			throw new InvalidParameterException(message);
 		}

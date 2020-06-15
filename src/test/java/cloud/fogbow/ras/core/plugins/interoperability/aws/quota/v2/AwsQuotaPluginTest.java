@@ -23,6 +23,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
+import javax.ws.rs.InternalServerErrorException;
 import java.io.File;
 import java.nio.file.NoSuchFileException;
 import java.util.Arrays;

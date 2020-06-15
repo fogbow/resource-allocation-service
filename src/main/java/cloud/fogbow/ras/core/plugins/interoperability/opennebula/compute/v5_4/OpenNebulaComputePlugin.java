@@ -104,7 +104,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	protected String doRequestInstance(Client client, CreateComputeRequest request)
-			throws InvalidParameterException, NoAvailableResourcesException, QuotaExceededException {
+			throws InvalidParameterException, UnacceptableOperationException {
 
 		String template = request.getVirtualMachine().marshalTemplate();
 		String instanceId = OpenNebulaClientUtil.allocateVirtualMachine(client, template);
@@ -134,7 +134,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	protected CreateComputeRequest getCreateComputeRequest(Client client, ComputeOrder computeOrder)
-			throws UnexpectedException, NoAvailableResourcesException {
+			throws UnexpectedException, UnacceptableOperationException {
 		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
 				ConfigurationPropertyDefaults.SSH_COMMON_USER);
 
@@ -202,7 +202,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@VisibleForTesting
 	HardwareRequirements getFlavor(Client client, ComputeOrder computeOrder)
-			throws NoAvailableResourcesException, UnexpectedException {
+			throws UnacceptableOperationException, UnexpectedException {
 
 		int disk = getFlavorDisk(client, computeOrder);
 		int cpu = getFlavorVcpu(computeOrder);
@@ -223,7 +223,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	@VisibleForTesting
-	int getFlavorDisk(Client client, ComputeOrder computeOrder) throws UnexpectedException, NoAvailableResourcesException {
+	int getFlavorDisk(Client client, ComputeOrder computeOrder) throws UnexpectedException, UnacceptableOperationException {
 		String imageId = computeOrder.getImageId();
 		int minimumImageSize = getMinimumImageSize(client, imageId);
 		int diskInGb = computeOrder.getDisk();
@@ -233,18 +233,18 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 		int disk = convertDiskSizeToMb(diskInGb);
 		if (disk < minimumImageSize) {
-			throw new NoAvailableResourcesException();
+			throw new UnacceptableOperationException();
 		}
 		return disk;
 	}
 
 	@VisibleForTesting
 	int getMinimumImageSize(Client client, String imageId)
-			throws UnexpectedException, NoAvailableResourcesException {
+			throws UnexpectedException, UnacceptableOperationException {
 
 		Map<String, String> imagesSizeMap = this.getImagesSizes(client);
 		String minimumImageSizeStr = Optional.ofNullable(imagesSizeMap.get(imageId))
-				.orElseThrow(() -> new NoAvailableResourcesException(Messages.Exception.IMAGE_NOT_FOUND));
+				.orElseThrow(() -> new UnacceptableOperationException(Messages.Exception.IMAGE_NOT_FOUND));
 
 		return Integer.parseInt(minimumImageSizeStr);
 	}

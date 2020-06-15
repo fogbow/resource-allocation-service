@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
+import cloud.fogbow.common.exceptions.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,12 +19,7 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import cloud.fogbow.common.exceptions.ConfigurationErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -741,7 +737,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the findSmallestFlavor method, with a null response,
-    // it must verify if an NoAvailableResourcesException has been thrown.
+    // it must verify if an UnacceptableOperationException has been thrown.
     @Test
     public void testFindSmallestFlavorFail() throws FogbowException {
         // set up
@@ -760,7 +756,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
             // exercise
             this.plugin.findSmallestFlavor(order, cloudUser);
             Assert.fail();
-        } catch (NoAvailableResourcesException e) {
+        } catch (UnacceptableOperationException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

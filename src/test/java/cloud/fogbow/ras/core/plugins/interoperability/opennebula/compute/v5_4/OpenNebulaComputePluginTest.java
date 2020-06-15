@@ -143,7 +143,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// the plugin should create the base64 script using the appropriate launch command generator; create
 	// the network ids list; and, find an appropriate 'flavor' for the order.
 	@Test
-	public void testGetCreateRequestInstance() throws UnexpectedException, NoAvailableResourcesException {
+	public void testGetCreateRequestInstance() throws UnexpectedException, UnacceptableOperationException {
 		// set up
 		LaunchCommandGenerator launchCommandGenerator = Mockito.mock(LaunchCommandGenerator.class);
 		this.plugin.setLaunchCommandGenerator(launchCommandGenerator);
@@ -165,7 +165,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking the doRequestInstance method with valid client and create compute
 	// request, the plugin should allocate a new virtual machine in ONe and return its instance id.
 	@Test
-	public void testDoRequestInstance() throws InvalidParameterException, NoAvailableResourcesException, QuotaExceededException {
+	public void testDoRequestInstance() throws InvalidParameterException, UnacceptableOperationException {
 		// set up
 		CreateComputeRequest createComputeRequest = Mockito.spy(this.getCreateComputeRequest());
 		Mockito.when(OpenNebulaClientUtil.allocateVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
@@ -214,7 +214,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getFlavorDisk with valid compute order and disk bigger than minimum
 	// disk required by ONE image, the plugin should return the disk required by user in MegaBytes.
 	@Test
-	public void testGetFlavorDiskSuccessfully() throws UnexpectedException, NoAvailableResourcesException {
+	public void testGetFlavorDiskSuccessfully() throws UnexpectedException, UnacceptableOperationException {
 		// set up
 		int diskInGb = 2;
 		int diskExpected = diskInGb * OpenNebulaComputePlugin.ONE_GIGABYTE_IN_MEGABYTES;
@@ -299,7 +299,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// , the plugin should return the disk with disk value based on minimum disk required by ONE image.
 	@Test
 	public void testGetFlavorDiskSuccessfullyWhenNotUserNotSpecifyDisk()
-			throws UnexpectedException, NoAvailableResourcesException {
+			throws UnexpectedException, UnacceptableOperationException {
 
 		// set up
 		int minimumDisk = 1024;
@@ -318,9 +318,9 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	}
 
 	// test case: when invoking getFlavorDisk with valid compute order and disk smaller than minimum
-	// disk required by ONE image, the plugin should throws a NoAvailableResourcesException.
+	// disk required by ONE image, the plugin should throws a UnacceptableOperationException.
 	@Test
-	public void testGetFlavorDiskFail() throws UnexpectedException, NoAvailableResourcesException {
+	public void testGetFlavorDiskFail() throws UnexpectedException, UnacceptableOperationException {
 		// set up
 		int diskInGb = 2;
 		int diskExpected = diskInGb * OpenNebulaComputePlugin.ONE_GIGABYTE_IN_MEGABYTES;
@@ -333,7 +333,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 				Mockito.eq(this.client), Mockito.eq(imageId));
 
 		// verify
-		this.expectedException.expect(NoAvailableResourcesException.class);
+		this.expectedException.expect(UnacceptableOperationException.class);
 
 		// exercise
 		this.plugin.getFlavorDisk(this.client, computeOrder);
@@ -342,7 +342,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getValue with valid compute order, the plugin
 	// should return an appropriate flavor.
 	@Test
-	public void testGetFlavorSuccessfully() throws UnexpectedException, NoAvailableResourcesException {
+	public void testGetFlavorSuccessfully() throws UnexpectedException, UnacceptableOperationException {
 		// set up
 		int diskExpected = 1;
 		int cpuExpected = 2;
@@ -364,17 +364,17 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getValue with invalid compute order and throws a exception, the plugin
 	// should rethrow the same exception threw.
 	@Test
-	public void testGetFlavorFail() throws UnexpectedException, NoAvailableResourcesException {
+	public void testGetFlavorFail() throws UnexpectedException, UnacceptableOperationException {
 		// set up
 		int cpuExpected = 2;
 		int memoryExpected = 3;
 		Mockito.doReturn(memoryExpected).when(this.plugin).getFlavorRam(Mockito.eq(this.computeOrder));
 		Mockito.doReturn(cpuExpected).when(this.plugin).getFlavorVcpu(Mockito.eq(this.computeOrder));
-		Mockito.doThrow(new NoAvailableResourcesException()).when(this.plugin).getFlavorDisk(
+		Mockito.doThrow(new UnacceptableOperationException()).when(this.plugin).getFlavorDisk(
 				Mockito.eq(this.client), Mockito.eq(this.computeOrder));
 
 		// verify
-		this.expectedException.expect(NoAvailableResourcesException.class);
+		this.expectedException.expect(UnacceptableOperationException.class);
 
 		// exercise
 		this.plugin.getFlavor(this.client, this.computeOrder);
@@ -383,7 +383,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getMinimumImageSize and it can find an image in the list, the plugin
 	@Test
 	public void testGetMinimumImageSizeSuccessfully()
-			throws UnexpectedException, NoAvailableResourcesException {
+			throws UnexpectedException, UnacceptableOperationException {
 
 		// set up
 		String image = "image";
@@ -407,7 +407,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// should throw a NoAvailableResourceException.
 	@Test
 	public void testGetMinimumImageSizeFail()
-			throws UnexpectedException, NoAvailableResourcesException {
+			throws UnexpectedException, UnacceptableOperationException {
 
 		// set up
 		Map<String, String> images = new HashMap<>();
@@ -416,7 +416,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		Mockito.doReturn(images).when(this.plugin).getImagesSizes(Mockito.eq(this.client));
 
 		// verify
-		this.expectedException.expect(NoAvailableResourcesException.class);
+		this.expectedException.expect(UnacceptableOperationException.class);
 		this.expectedException.expectMessage(Messages.Exception.IMAGE_NOT_FOUND);
 
 		// exercise
