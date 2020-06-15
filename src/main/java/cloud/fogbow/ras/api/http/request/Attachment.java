@@ -31,8 +31,6 @@ public class Attachment {
 
     private final Logger LOGGER = Logger.getLogger(Attachment.class);
 
-    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
-
     @RequestMapping(method = RequestMethod.POST)
     @ApiOperation(value = ApiDocumentation.Attachment.CREATE_OPERATION)
     public ResponseEntity<ResourceId> createAttachment(

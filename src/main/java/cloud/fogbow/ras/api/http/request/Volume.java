@@ -34,8 +34,6 @@ public class Volume {
 
     private final Logger LOGGER = Logger.getLogger(Volume.class);
 
-    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
-
     @ApiOperation(value = ApiDocumentation.Volume.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ResourceId> createVolume(

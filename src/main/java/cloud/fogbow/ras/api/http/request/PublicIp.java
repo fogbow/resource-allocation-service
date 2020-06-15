@@ -39,8 +39,6 @@ public class PublicIp {
 
     private final Logger LOGGER = Logger.getLogger(PublicIp.class);
 
-    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
-
     @ApiOperation(value = ApiDocumentation.PublicIp.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ResourceId> createPublicIp(
