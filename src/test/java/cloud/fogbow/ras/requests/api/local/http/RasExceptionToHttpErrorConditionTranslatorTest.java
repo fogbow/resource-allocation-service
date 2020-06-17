@@ -21,12 +21,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+// TODO(chico) - It must be migrated to Common Project; It is related to issue #487.
 @PowerMockIgnore({"javax.management.*"})
 @PrepareForTest({TestController.Mock.class})
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(TestController.class)
-public class FogbowExceptionToHttpErrorConditionTranslatorTest {
+public class RasExceptionToHttpErrorConditionTranslatorTest {
 
     private final String TEST_CONTROLLER_REQUEST_SUFFIX = "/";
     private final String EXCEPTION_MESSAGE_DEFAULT = "EXCEPTION_MESSAGE_DEFAULT";
