@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.image;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
@@ -41,7 +41,7 @@ public class AzureImageOperationTest extends AzureTestUtils {
     // test case: When calling getImages method with all secondary method
     // mocked, it must return the right map of ImageSummary
     @Test
-    public void testGetImagesSuccessfully() throws UnexpectedException {
+    public void testGetImagesSuccessfully() throws InternalServerErrorException {
         // set up
         VirtualMachinePublisher publisher = createPublisher(AZURE_SELECTED_PUBLISHER);
         PagedList<VirtualMachinePublisher> publishers = (PagedList<VirtualMachinePublisher>) Mockito.mock(PagedList.class);
@@ -74,7 +74,7 @@ public class AzureImageOperationTest extends AzureTestUtils {
         Assert.assertTrue(images.containsValue(expectedImage));
     }
 
-    // test case: When calling getImages method if a UnexpectedException is thrown
+    // test case: When calling getImages method if a InternalServerErrorException is thrown
     // when creating a id, the failed image must be not in the image map
     @Test
     public void testGetImagesFailedId() throws Exception {
@@ -106,7 +106,7 @@ public class AzureImageOperationTest extends AzureTestUtils {
         ImageSummary failedImage;
         failedImage = AzureImageOperationUtil.buildImageSummaryBy(publisher.name(), offer.name(), sku2.name());
 
-        PowerMockito.doThrow(new UnexpectedException())
+        PowerMockito.doThrow(new InternalServerErrorException())
                 .when(AzureImageOperationUtil.class, "encode", Mockito.eq(failedImage.getId()));
 
         // exercise

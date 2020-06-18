@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
@@ -51,7 +51,7 @@ public class AttachmentJobStatusResponseTest {
     // test case: When calling the fromJson method with error json response,
     // it must verify if It returns the rigth CloudStackErrorResponse.
     @Test
-    public void testFromJsonFail() throws IOException, UnexpectedException {
+    public void testFromJsonFail() throws IOException, InternalServerErrorException {
         // set up
         String errorText = "anyString";
         int jobStatus = CloudStackCloudUtils.JOB_STATUS_FAILURE;
@@ -70,9 +70,9 @@ public class AttachmentJobStatusResponseTest {
     }
 
     // test case: When calling the getErrorResponse method with no error json response,
-    // it must verify if It throws an UnexpectedException.
+    // it must verify if It throws an InternalServerErrorException.
     @Test
-    public void testGetErrorResponseFail() throws IOException, UnexpectedException {
+    public void testGetErrorResponseFail() throws IOException, InternalServerErrorException {
         // set up
         int jobStatus = CloudStackCloudUtils.JOB_STATUS_COMPLETE;
         String attachmentJobStatusResponseJson = CloudstackTestUtils.createAttachmentJobStatusResponseJson(
@@ -82,7 +82,7 @@ public class AttachmentJobStatusResponseTest {
                 AttachmentJobStatusResponse.fromJson(attachmentJobStatusResponseJson);
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
         this.expectedException.expectMessage(
                 String.format(Messages.Exception.UNEXPECTED_OPERATION_S, NO_FAILURE_EXCEPTION_MESSAGE));
 

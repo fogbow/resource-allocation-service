@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
@@ -26,12 +26,12 @@ public class RemoteGetOrderRequest implements RemoteRequest<Order> {
     public Order send() throws Exception {
 
         IQ iq = marshal(this.order);
-        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.SENDING_MSG_S, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvider());
         Order order = unmarshalOrder(response);
-        LOGGER.debug(Messages.Info.SUCCESS);
+        LOGGER.debug(Messages.Log.SUCCESS);
         return order;
     }
 
@@ -49,7 +49,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Order> {
         return iq;
     }
 
-    private Order unmarshalOrder(IQ response) throws UnexpectedException {
+    private Order unmarshalOrder(IQ response) throws InternalServerErrorException {
 
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String orderStr = queryElement.element(IqElement.ORDER.toString()).getText();
@@ -60,7 +60,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Order> {
         try {
             order = (Order) new Gson().fromJson(orderStr, Class.forName(orderClassName));
         } catch (Exception e) {
-            throw new UnexpectedException(e.getMessage());
+            throw new InternalServerErrorException(e.getMessage());
         }
 
         return order;

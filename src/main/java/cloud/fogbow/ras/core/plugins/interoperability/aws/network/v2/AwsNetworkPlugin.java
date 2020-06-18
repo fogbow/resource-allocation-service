@@ -4,13 +4,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -74,7 +74,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
 
     @Override
     public String requestInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String instanceName = networkOrder.getName();
         String cidr = networkOrder.getCidr();
@@ -91,7 +91,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
 
     @Override
     public NetworkInstance getInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String subnetId = networkOrder.getInstanceId();
         return doGetInstance(subnetId, client);
@@ -99,7 +99,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
 
     @Override
     public void deleteInstance(NetworkOrder networkOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String subnetId = networkOrder.getInstanceId();
         doDeleteInstance(subnetId, client);
@@ -189,11 +189,11 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
 
             AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(request, client);
             AwsV2CloudUtil.createTagsRequest(subnetId, AwsV2CloudUtil.AWS_TAG_GROUP_ID, groupId, client);
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             doDeleteSubnet(subnetId, client);
             String gatewayId = getGatewayIdAttachedToVpc(vpcId, client);
             doRollbackAllConfigurationAndDeleteVpc(gatewayId, vpcId, client);
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -212,7 +212,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
             doDeleteSubnet(subnetId, client);
             String gatewayId = getGatewayIdAttachedToVpc(vpcId, client);
             doRollbackAllConfigurationAndDeleteVpc(gatewayId, vpcId, client);
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -236,9 +236,8 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         try {
             client.deleteSubnet(request);
         } catch (SdkException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SUBNET_RESOURCE, subnetId);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message);
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, SUBNET_RESOURCE, subnetId), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S, SUBNET_RESOURCE, subnetId));
         }
     }
 
@@ -259,7 +258,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         try {
             return client.describeRouteTables();
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -273,7 +272,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
             subnetId = response.subnet().subnetId();
             AwsV2CloudUtil.createTagsRequest(subnetId, AwsV2CloudUtil.AWS_TAG_NAME, instanceName, client);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
         return subnetId;
     }
@@ -292,7 +291,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
             doCreateRouteTables(cidr, gatewayId, vpcId, client);
             return vpcId;
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -312,7 +311,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
             client.createRoute(request);
         } catch (SdkClientException e) {
             doRollbackAllConfigurationAndDeleteVpc(gatewayId, vpcId, client);
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -334,7 +333,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         try {
             client.detachInternetGateway(request);
         } catch (SdkClientException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -349,7 +348,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         } catch (SdkClientException e) {
             doDeleteInternetGateway(gatewayId, client);
             doDeleteVpc(vpcId, client);
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -361,9 +360,8 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         try {
             client.deleteInternetGateway(request);
         } catch (SdkClientException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, GATEWAY_RESOURCE, gatewayId);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message);
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, GATEWAY_RESOURCE, gatewayId), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S, GATEWAY_RESOURCE, gatewayId));
         }
     }
 
@@ -374,7 +372,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
             return response.internetGateway().internetGatewayId();
         } catch (SdkException e) {
             doDeleteVpc(vpcId, client);
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -396,7 +394,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
                 client.modifyVpcAttribute(request);
             } catch (SdkClientException e) {
                 doDeleteVpc(vpcId, client);
-                throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+                throw new InternalServerErrorException(e.getMessage());
             }
         }
     }
@@ -409,9 +407,8 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         try {
             client.deleteVpc(request);
         } catch (SdkClientException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, VPC_RESOURCE, vpcId);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message);
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, VPC_RESOURCE, vpcId), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S, VPC_RESOURCE, vpcId));
         }
     }
 

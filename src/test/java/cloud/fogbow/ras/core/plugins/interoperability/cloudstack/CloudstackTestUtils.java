@@ -1,13 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpResponseException;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 
@@ -460,13 +459,13 @@ public class CloudstackTestUtils {
         return rootPath + CLOUDSTACK_RESOURCE_PATH;
     }
 
-    public static void ignoringCloudStackUrl() throws InvalidParameterException {
+    public static void ignoringCloudStackUrl() throws InternalServerErrorException {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
                 Mockito.anyString())).thenCallRealMethod();
     }
 
-    public static HttpResponseException createBadRequestHttpResponse() {
-        return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
+    public static InvalidParameterException createInvalidParameterException() {
+        return new InvalidParameterException(BAD_REQUEST_MSG);
     }
 }

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +17,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -249,7 +249,7 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the revokeEgressRule method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testRevokeEgressRuleFail() throws FogbowException {
         // set up
@@ -263,13 +263,13 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
         Mockito.doThrow(exception).when(this.client)
                 .revokeSecurityGroupEgress(Mockito.any(RevokeSecurityGroupEgressRequest.class));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.revokeEgressRule(groupId, rule, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -303,7 +303,7 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the revokeIngressRule method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testRevokeIngressRuleFail() throws FogbowException {
         // set up
@@ -317,13 +317,13 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
         Mockito.doThrow(exception).when(this.client)
                 .revokeSecurityGroupIngress(Mockito.any(RevokeSecurityGroupIngressRequest.class));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.revokeIngressRule(groupId, rule, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -538,7 +538,7 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doDescribeSecurityGroupsRequest method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoDescribeSecurityGroupsRequestFail() throws FogbowException {
      // set up
@@ -548,12 +548,12 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).describeSecurityGroups(Mockito.eq(request));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
         try {
             // exercise
             this.plugin.doDescribeSecurityGroupsRequest(request, client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -627,7 +627,7 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the addEgressRule method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testAddEgressRuleFail() throws FogbowException {
         // set up
@@ -642,13 +642,13 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).authorizeSecurityGroupEgress(Mockito.eq(request));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.addEgressRule(groupId, ipPermission, client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -679,7 +679,7 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the addIngressRule method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testAddIngressRuleFail() throws FogbowException {
         // set up
@@ -694,13 +694,13 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).authorizeSecurityGroupIngress(Mockito.eq(request));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.addIngressRule(groupId, ipPermission, client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -853,7 +853,7 @@ public class AwsSecurityRulePluginTest extends BaseUnitTests {
         // set up
         String cidrIp = TestUtils.ANY_VALUE;
         
-        String expected = String.format(Messages.Exception.INVALID_CIDR_FORMAT, cidrIp);
+        String expected = String.format(Messages.Exception.INVALID_CIDR_FORMAT_S, cidrIp);
 
         try {
             // exercise

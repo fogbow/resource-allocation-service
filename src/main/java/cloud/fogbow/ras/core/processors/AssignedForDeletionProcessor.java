@@ -58,12 +58,12 @@ public class AssignedForDeletionProcessor implements Runnable {
                 Thread.sleep(this.sleepTime);
             }
         } catch (InterruptedException e) {
-            LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
+            LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
             throw e;
         } catch (FogbowException e) {
             LOGGER.error(e.getMessage(), e);
         } catch (Throwable e) {
-            LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
+            LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
         }
     }
 
@@ -92,7 +92,7 @@ public class AssignedForDeletionProcessor implements Runnable {
             if (order.isProviderRemote(this.localProviderId)) {
                 // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
                 OrderStateTransitioner.transition(order, OrderState.PENDING);
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
+                LOGGER.error(Messages.Log.UNEXPECTED_ERROR);
                 return;
             }
             try {

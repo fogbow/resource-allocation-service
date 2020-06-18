@@ -2,8 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -43,7 +42,7 @@ public class CloudStackImagePluginTest extends BaseUnitTests {
     private String cloudStackUrl;
 
     @Before
-    public void setUp() throws UnexpectedException, InvalidParameterException {
+    public void setUp() throws InternalServerErrorException  {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
@@ -85,7 +84,7 @@ public class CloudStackImagePluginTest extends BaseUnitTests {
     // it must verify if It returns a FogbowException.
     @Test(expected = FogbowException.class)
     public void testGetAllImagesFail() throws FogbowException {
-        Mockito.doThrow(new FogbowException()).when(this.plugin)
+        Mockito.doThrow(new FogbowException("")).when(this.plugin)
                 .buildImagesSummary(Mockito.any(), Mockito.eq(this.cloudStackUser));
 
         // exercise
@@ -138,7 +137,7 @@ public class CloudStackImagePluginTest extends BaseUnitTests {
     public void testBuildImagesSummaryFail() throws FogbowException {
         // set up
         GetAllImagesRequest request = Mockito.mock(GetAllImagesRequest.class);
-        Mockito.doThrow(new FogbowException()).when(this.plugin).doDescribeImagesRequest(
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).doDescribeImagesRequest(
                 Mockito.eq(request), Mockito.eq(this.cloudStackUser));
 
         // exercise
@@ -179,7 +178,7 @@ public class CloudStackImagePluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -219,7 +218,7 @@ public class CloudStackImagePluginTest extends BaseUnitTests {
     @Test(expected = FogbowException.class)
     public void testGetImageFail() throws FogbowException {
         // set up
-        Mockito.doThrow(new FogbowException()).when(this.plugin).buildImageInstance(Mockito.any(),
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).buildImageInstance(Mockito.any(),
                 Mockito.eq(this.cloudStackUser));
 
         // exercise
@@ -281,7 +280,7 @@ public class CloudStackImagePluginTest extends BaseUnitTests {
         // set up
         GetAllImagesRequest request = Mockito.mock(GetAllImagesRequest.class);
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin).doDescribeImagesRequest(
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).doDescribeImagesRequest(
                 Mockito.eq(request), Mockito.eq(this.cloudStackUser));
 
         // exercise

@@ -1,13 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
 
 public class AttachVolumeRequest extends CloudStackRequest {
     
-    protected AttachVolumeRequest(Builder builder) throws InvalidParameterException {
+    protected AttachVolumeRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
         addParameter(ID_KEY_JSON, builder.id);
         addParameter(VIRTUAL_MACHINE_ID_KEY_JSON, builder.virtualMachineId);
@@ -38,7 +38,7 @@ public class AttachVolumeRequest extends CloudStackRequest {
             return this;
         }
 
-        public AttachVolumeRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public AttachVolumeRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new AttachVolumeRequest(this);
         }

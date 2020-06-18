@@ -3,13 +3,13 @@ package cloud.fogbow.ras.core.cloudconnector;
 import java.sql.Timestamp;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.core.models.orders.*;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
@@ -71,16 +71,16 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public String requestInstance(Order order) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, REQUEST_INSTANCE_OPERATION, order));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, REQUEST_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         String response = null;
         try {
             response = doRequestInstance(order, cloudUser);
-            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, response));
+            LOGGER.debug(String.format(Messages.Log.RESPONSE_RECEIVED_S, response));
         } catch (Throwable e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
         } finally {
@@ -92,16 +92,16 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public void deleteInstance(Order order) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, DELETE_INSTANCE_OPERATION, order));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, DELETE_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         String response = null;
         try {
             doDeleteInstance(order, cloudUser);
-            LOGGER.debug(Messages.Info.SUCCESS);
+            LOGGER.debug(Messages.Log.SUCCESS);
         } catch (Throwable e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
         } finally {
@@ -111,20 +111,20 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public OrderInstance getInstance(Order order) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_INSTANCE_OPERATION, order));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, GET_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         String auditableResponse = null;
         OrderInstance instance = null;
         try {
             instance = doGetInstance(order, cloudUser);
-            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, instance));
+            LOGGER.debug(String.format(Messages.Log.RESPONSE_RECEIVED_S, instance));
             instance.setState(InstanceStatus.mapInstanceStateFromOrderState(order.getOrderState(),
                     true, instance.isReady(), instance.hasFailed()));
             auditableResponse = instance.toString();
         } catch (Throwable e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -136,18 +136,18 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public Quota getUserQuota(SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_QUOTA_OPERATION, systemUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, GET_QUOTA_OPERATION, systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         String auditableResponse = null;
         Quota quota = null;
         try {
             quota = this.quotaPlugin.getUserQuota(cloudUser);
-            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, quota));
+            LOGGER.debug(String.format(Messages.Log.RESPONSE_RECEIVED_S, quota));
             auditableResponse = quota.toString();
         } catch (Throwable e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -159,18 +159,18 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public List<ImageSummary> getAllImages(SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_ALL_IMAGES_OPERATION, systemUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, GET_ALL_IMAGES_OPERATION, systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         List<ImageSummary> images = null;
         String auditableResponse = null;
         try {
             images = doGetAllImages(cloudUser);
-            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, images));
+            LOGGER.debug(String.format(Messages.Log.RESPONSE_RECEIVED_S, images));
             auditableResponse = images.toString();
         } catch (Throwable e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -182,18 +182,18 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_IMAGE_OPERATION, systemUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, GET_IMAGE_OPERATION, systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         ImageInstance imageInstance = null;
         String auditableResponse = null;
         try {
             imageInstance = doGetImage(imageId, cloudUser);
-            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, imageInstance));
+            LOGGER.debug(String.format(Messages.Log.RESPONSE_RECEIVED_S, imageInstance));
             auditableResponse = imageInstance.toString();
         } catch (Throwable e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -205,18 +205,18 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public List<SecurityRuleInstance> getAllSecurityRules(Order order, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, GET_ALL_SECURITY_RULES_OPERATION, order));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, GET_ALL_SECURITY_RULES_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         List<SecurityRuleInstance> securityRuleInstances = null;
         String auditableResponse = null;
         try {
             securityRuleInstances = doGetAllSecurityRules(order, cloudUser);
-            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, securityRuleInstances));
+            LOGGER.debug(String.format(Messages.Log.RESPONSE_RECEIVED_S, securityRuleInstances));
             auditableResponse = securityRuleInstances.toString();
         } catch (Throwable e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             auditableResponse = e.getClass().getName();
             throw e;
         } finally {
@@ -228,16 +228,16 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public String requestSecurityRule(Order order, SecurityRule securityRule, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, REQUEST_SECURITY_RULES_OPERATION, order));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, REQUEST_SECURITY_RULES_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         String response = null;
         try {
             response = doRequestSecurityRule(order, securityRule, cloudUser);
-            LOGGER.debug(String.format(Messages.Info.RESPONSE_RECEIVED, response));
+            LOGGER.debug(String.format(Messages.Log.RESPONSE_RECEIVED_S, response));
         } catch (Throwable e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e + e.getMessage()));
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
         } finally {
@@ -249,14 +249,14 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Info.MAPPING_USER_OP, DELETE_SECURITY_RULE_OPERATION, securityRuleId));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, DELETE_SECURITY_RULE_OPERATION, securityRuleId));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
-        LOGGER.debug(String.format(Messages.Info.MAPPED_USER, cloudUser));
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         String response = null;
         try {
             doDeleteSecurityRule(securityRuleId, cloudUser);
-            LOGGER.debug(Messages.Info.SUCCESS);
+            LOGGER.debug(Messages.Log.SUCCESS);
         } catch (Throwable e) {
             response = e.getClass().getName();
             throw e;
@@ -270,7 +270,7 @@ public class LocalCloudConnector implements CloudConnector {
         OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
         instanceId = plugin.requestInstance(order, cloudUser);
         if (instanceId == null) {
-            throw new UnexpectedException(Messages.Exception.NULL_VALUE_RETURNED);
+            throw new InternalServerErrorException(Messages.Exception.NULL_VALUE_RETURNED);
         }
         return instanceId;
     }
@@ -288,7 +288,7 @@ public class LocalCloudConnector implements CloudConnector {
             // This may happen if the RAS crashed after the instance was deleted, but before the new state
             // is updated in stable storage, or if the instance has been deleted directly in the cloud
             // without the intervention of the RAS.
-            LOGGER.warn(String.format(Messages.Warn.INSTANCE_S_ALREADY_DELETED_S, order.getId()));
+            LOGGER.warn(String.format(Messages.Log.INSTANCE_S_ALREADY_DELETED, order.getId()));
             throw e;
         }
     }
@@ -345,7 +345,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     protected OrderPlugin checkOrderCastingAndSetPlugin(Order order, ResourceType resourceType)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
         OrderPlugin plugin;
         boolean orderTypeMatch = false;
 
@@ -373,10 +373,10 @@ public class LocalCloudConnector implements CloudConnector {
                 plugin = this.publicIpPlugin;
                 break;
             default:
-                throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType()));
+                throw new InternalServerErrorException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE_S, order.getType()));
         }
         if (!orderTypeMatch) {
-            throw new UnexpectedException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
+            throw new InternalServerErrorException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
         }
         return plugin;
     }
@@ -386,7 +386,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     protected void auditRequest(Operation operation, ResourceType resourceType, SystemUser systemUser,
-                              String response) throws UnexpectedException {
+                              String response) throws InternalServerErrorException {
         if (this.auditRequestsOn) {
             String userId = null, identityProviderId = null;
             if (systemUser != null) {

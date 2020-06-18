@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
@@ -90,7 +90,7 @@ public class CloseOrderAtRemoteRequesterHandlerTest {
     public void testWhenThrowsException() throws FogbowException {
         // set up
         String orderId = createOrder();
-        Mockito.doThrow(new UnexpectedException()).when(this.remoteFacade).
+        Mockito.doThrow(new InternalServerErrorException()).when(this.remoteFacade).
                 closeOrderAtRemoteRequester(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.order.getId()));
 
         IQ iq = CloseOrderAtRemoteProviderRequest.marshall(this.order);

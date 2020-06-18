@@ -1,12 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 public class GetAllServiceOfferingsRequest extends CloudStackRequest {
     protected static final String LIST_SERVICE_OFFERINGS_COMMAND = "listServiceOfferings";
 
-    protected GetAllServiceOfferingsRequest(Builder builder) throws InvalidParameterException {
+    protected GetAllServiceOfferingsRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
     }
 
@@ -23,7 +23,7 @@ public class GetAllServiceOfferingsRequest extends CloudStackRequest {
     public static class Builder {
         private String cloudStackUrl;
 
-        public GetAllServiceOfferingsRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public GetAllServiceOfferingsRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new GetAllServiceOfferingsRequest(this);
         }

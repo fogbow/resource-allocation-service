@@ -57,14 +57,14 @@ public class GetAllDiskOfferingsResponseTest {
 
     // test case: create GetAllDiskOfferingsResponse from error Cloudstack Json Response
     @Test
-    public void testGetAllDiskOfferingsResponseUnexpectedJson() throws IOException {
+    public void testGetAllDiskOfferingsResponseUnexpectedJson() throws IOException, FogbowException {
         // set up
         String errorText = "anyString";
         int errorCode = HttpStatus.SC_BAD_REQUEST;
         String json = CloudstackTestUtils.createGetAllDiskOfferingsErrorResponseJson(errorCode, errorText);
 
         // verify
-        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(errorText);
 
         // exercise

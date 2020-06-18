@@ -133,13 +133,13 @@ public class HttpExceptionToErrorConditionTranslatorTest {
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
     }
 
-    // test case: When any request is performed and throws a UnexpectedException,
+    // test case: When any request is performed and throws a InternalServerErrorException,
     // it must verify if it return a INTERNAL_SERVER_ERROR status code.
     @Test
     public void testTranslationWhenIsUnexpectedException() throws Exception {
         // set up
         String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
-        UnexpectedException exceptionThrown = new UnexpectedException(exceptionMessage);
+        InternalServerErrorException exceptionThrown = new InternalServerErrorException(exceptionMessage);
         int statusCodeExpected = HttpStatus.INTERNAL_SERVER_ERROR.value();
 
         // exercise and verify

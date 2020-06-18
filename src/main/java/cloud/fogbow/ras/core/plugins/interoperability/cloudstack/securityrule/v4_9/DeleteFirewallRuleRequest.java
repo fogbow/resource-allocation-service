@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.DELETE_FIREWALL_RULE_COMMAND;
@@ -13,7 +13,7 @@ import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.Emula
  */
 public class DeleteFirewallRuleRequest extends CloudStackRequest {
 
-    protected DeleteFirewallRuleRequest(Builder builder) throws InvalidParameterException {
+    protected DeleteFirewallRuleRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
         addParameter(ID_KEY_JSON, builder.ruleId);
     }
@@ -32,7 +32,7 @@ public class DeleteFirewallRuleRequest extends CloudStackRequest {
             return this;
         }
 
-        DeleteFirewallRuleRequest build(String cloudStackUrl) throws InvalidParameterException {
+        DeleteFirewallRuleRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new DeleteFirewallRuleRequest(this);
         }

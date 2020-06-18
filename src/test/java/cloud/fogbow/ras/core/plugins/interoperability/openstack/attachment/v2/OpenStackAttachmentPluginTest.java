@@ -3,6 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.attachment.v2;
 import java.io.File;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -12,11 +14,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -28,7 +28,7 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 
-@PrepareForTest({ DatabaseManager.class, GetAttachmentResponse.class, OpenStackCloudUtils.class, OpenStackHttpToFogbowExceptionMapper.class })
+@PrepareForTest({ DatabaseManager.class, GetAttachmentResponse.class, OpenStackCloudUtils.class, HttpErrorConditionToFogbowExceptionMapper.class })
 public class OpenStackAttachmentPluginTest extends BaseUnitTests {
 
     private static final String FAKE_JSON_REQUEST = "{\"volumeAttachment\":{\"volumeId\":\"fake-volume-id\",\"device\":\"fake-device\"}}";
@@ -48,7 +48,7 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
     private OpenStackHttpClient client;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
         this.client = Mockito.mock(OpenStackHttpClient.class);
 
@@ -157,7 +157,7 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
 
     // test case: When calling the getInstance method and an unexpected error
     // occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoGetInstanceFail() throws Exception {
         // set up
@@ -165,11 +165,8 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         String endpoint = generateEndpoint(cloudUser.getProjectId(), TestUtils.FAKE_COMPUTE_ID,
                 TestUtils.FAKE_VOLUME_ID);
 
-        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(MESSAGE_STATUS_CODE);
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser))).thenThrow(expectedException);
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
         try {
             // exercise
@@ -177,8 +174,7 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -203,18 +199,18 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doGetAttachmentResponseFrom method with a JSON
-    // malformed, it must verify that a UnexpectedException was throw.
+    // malformed, it must verify that a InternalServerErrorException was throw.
     @Test
     public void testDoGetAttachmentResponseFromJsonMalformed() {
         // set up
         String json = JSON_MALFORMED;
-        String expected = Messages.Error.UNABLE_TO_GET_ATTACHMENT_INSTANCE;
+        String expected = Messages.Log.UNABLE_TO_GET_ATTACHMENT_INSTANCE;
 
         try {
             // exercise
             this.plugin.doGetAttachmentResponseFrom(json);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -222,7 +218,7 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
     
     // test case: When calling the doDeleteInstance method and an unexpected error
     // occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoDeleteInstanceFail() throws Exception {
         // set up
@@ -230,12 +226,9 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         String endpoint = generateEndpoint(cloudUser.getProjectId(), TestUtils.FAKE_COMPUTE_ID,
                 TestUtils.FAKE_VOLUME_ID);
 
-        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doDeleteRequest(Mockito.eq(endpoint),
                 Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
         try {
             // exercise
@@ -243,8 +236,7 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -269,7 +261,7 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
     
     // test case: When calling the doRequestInstance method and an unexpected error
     // occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoRequestInstanceFail() throws Exception {
         // set up
@@ -277,21 +269,17 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         String jsonRequest = FAKE_JSON_REQUEST;
         String endpoint = generateEndpoint(cloudUser.getProjectId(), TestUtils.FAKE_COMPUTE_ID,
                 TestUtils.FAKE_VOLUME_ID);
-        
-        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+
+        FogbowException expectedException = new FogbowException(MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint), Mockito.eq(jsonRequest),
                 Mockito.eq(cloudUser));
 
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
-        
         try {
             // exercise
             this.plugin.doRequestInstance(endpoint, jsonRequest, cloudUser);
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -320,18 +308,18 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doCreateAttachmentResponseFrom method with a JSON
-    // malformed, it must verify that a UnexpectedException was throw.
+    // malformed, it must verify that a InternalServerErrorException was throw.
     @Test
     public void testdoCreateAttachmentResponseFromJsonMalformed() {
         // set up
         String json = JSON_MALFORMED;
-        String expected = Messages.Error.UNABLE_TO_CREATE_ATTACHMENT;
+        String expected = Messages.Log.UNABLE_TO_CREATE_ATTACHMENT;
 
         try {
             // exercise
             this.plugin.doCreateAttachmentResponseFrom(json);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.DISASSOCIATE_IP_ADDRESS_COMMAND;
@@ -13,7 +13,7 @@ import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.ID_KEY_
  */	
 public class DisassociateIpAddressRequest extends CloudStackRequest {
 
-	protected DisassociateIpAddressRequest(Builder builder) throws InvalidParameterException {
+	protected DisassociateIpAddressRequest(Builder builder) throws InternalServerErrorException {
 		super(builder.cloudStackUrl);
 		addParameter(ID_KEY_JSON, builder.id);
 	}
@@ -32,7 +32,7 @@ public class DisassociateIpAddressRequest extends CloudStackRequest {
 	        return this;
 	    }
     	
-        public DisassociateIpAddressRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public DisassociateIpAddressRequest build(String cloudStackUrl) throws InternalServerErrorException {
 			this.cloudStackUrl = cloudStackUrl;
             return new DisassociateIpAddressRequest(this);
         }

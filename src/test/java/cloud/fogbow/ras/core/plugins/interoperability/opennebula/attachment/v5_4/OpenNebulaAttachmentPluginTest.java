@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,7 +16,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -197,7 +197,7 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
 
         String fakeVolumeId = this.attachmentOrder.getVolumeId();
         String computeId = this.attachmentOrder.getComputeId();
-        String expectedMessage = String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME, fakeVolumeId,
+        String expectedMessage = String.format(Messages.Log.ERROR_WHILE_ATTACHING_VOLUME_S_WITH_RESPONSE_S, fakeVolumeId,
                 VIRTUAL_MACHINE_CONTENT);
 
         try {
@@ -317,7 +317,7 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
     }
 
     // test case: When calling the doDeleteInstance method, with an invalid
-    // attachmentOrder or cloudUser, an UnexpectedException will occur
+    // attachmentOrder or cloudUser, an InternalServerErrorException will occur
     @Test
     public void testDoDeleteInstanceFail() throws FogbowException {
         // set up
@@ -325,7 +325,7 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
         String computeId = this.attachmentOrder.getComputeId();
         int imageId = Integer.parseInt(volumeId);
 
-        String expectedMessage = String.format(Messages.Error.ERROR_WHILE_DETACHING_VOLUME, imageId,
+        String expectedMessage = String.format(Messages.Log.ERROR_WHILE_DETACHING_VOLUME_S, imageId,
                 VIRTUAL_MACHINE_CONTENT);
 
         Mockito.when(this.virtualMachine.diskDetach(imageId)).thenReturn(this.response);
@@ -335,7 +335,7 @@ public class OpenNebulaAttachmentPluginTest extends OpenNebulaBaseTests {
             // exercise
             this.plugin.doDeleteInstance(this.client, computeId, volumeId);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(e.getMessage(), expectedMessage);
         }

@@ -49,7 +49,7 @@ public class AwsV2StateMapper {
 			case BUSY_STATE:
 				return InstanceState.BUSY;
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, ATTACHMENT_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, ATTACHMENT_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case COMPUTE:
@@ -63,7 +63,7 @@ public class AwsV2StateMapper {
 			case STOPPING_STATE:
 				return InstanceState.BUSY;
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, COMPUTE_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, COMPUTE_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case NETWORK:
@@ -75,7 +75,7 @@ public class AwsV2StateMapper {
 				return InstanceState.BUSY;
 			case UNKNOWN_TO_SDK_VERSION_STATE:
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, NETWORK_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case PUBLIC_IP:
@@ -87,7 +87,7 @@ public class AwsV2StateMapper {
 			case ERROR_STATE:
 				return InstanceState.FAILED;
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, PUBLIC_IP_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, PUBLIC_IP_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case VOLUME:
@@ -103,7 +103,7 @@ public class AwsV2StateMapper {
 			case ERROR_STATE:
 				return InstanceState.FAILED;
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, VOLUME_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, VOLUME_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case IMAGE:
@@ -121,11 +121,11 @@ public class AwsV2StateMapper {
 			case INVALID_STATE:
 			case UNKNOWN_TO_SDK_VERSION_STATE:
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, IMAGE_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, IMAGE_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		default:
-			LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
+			LOGGER.error(Messages.Log.INSTANCE_TYPE_NOT_DEFINED);
 			return InstanceState.INCONSISTENT;
 		}
 	}

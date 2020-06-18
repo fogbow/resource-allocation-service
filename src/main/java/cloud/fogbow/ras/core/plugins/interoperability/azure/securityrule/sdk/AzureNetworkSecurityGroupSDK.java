@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.microsoft.azure.management.network.NetworkSecurityGroups;
@@ -14,14 +14,14 @@ import static com.microsoft.azure.management.network.NetworkSecurityRule.UpdateD
 public class AzureNetworkSecurityGroupSDK {
 
     public static Optional<NetworkSecurityGroup> getNetworkSecurityGroup(Azure azure, String networkSecurityGroupId)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
 
         try {
             NetworkSecurityGroups securityGroupsSDK = getNetworkSecurityGroupsSDK(azure);
             NetworkSecurityGroup networkSecurityGroup = securityGroupsSDK.getById(networkSecurityGroupId);
             return Optional.ofNullable(networkSecurityGroup);
         } catch (RuntimeException e) {
-            throw new UnexpectedException(e.getMessage(), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -55,12 +55,12 @@ public class AzureNetworkSecurityGroupSDK {
     }
 
     public static void deleteNetworkSecurityRule(NetworkSecurityGroup networkSecurityGroup, String securityRuleName)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
 
         try {
             networkSecurityGroup.update().withoutRule(securityRuleName).apply();
         } catch (RuntimeException e) {
-            throw new UnexpectedException(e.getMessage(), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 

@@ -29,7 +29,7 @@ public class OrderController {
     private Map<String, List<String>> orderDependencies;
     private String localProviderId;
 
-    public OrderController() throws UnexpectedException {
+    public OrderController() throws InternalServerErrorException {
         this.orderHolders = SharedOrderHolders.getInstance();
         this.orderDependencies = new ConcurrentHashMap<>();
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
@@ -47,7 +47,7 @@ public class OrderController {
     }
 
     public String activateOrder(Order order) throws FogbowException {
-        LOGGER.info(Messages.Info.ACTIVATING_NEW_REQUEST);
+        LOGGER.info(Messages.Log.ACTIVATING_NEW_REQUEST);
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         ChainedList<Order> openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -55,8 +55,8 @@ public class OrderController {
         synchronized (activeOrdersMap) {
             String orderId = order.getId();
             if (activeOrdersMap.containsKey(orderId)) {
-                String message = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, orderId);
-                throw new UnexpectedException(message);
+                String message = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED_S, orderId);
+                throw new InternalServerErrorException(message);
             }
 
             order.setOrderState(OrderState.OPEN);
@@ -74,14 +74,14 @@ public class OrderController {
         }
     }
 
-    public void closeOrder(Order order) throws UnexpectedException {
+    public void closeOrder(Order order) throws InternalServerErrorException {
         synchronized (order) {
             if (order.isRequesterRemote(this.localProviderId)) {
                 try {
                     this.notifyRequesterToCloseOrder(order);
                 } catch (Exception e) {
-                    String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER, order.getRequester(), order.getId());
-                    LOGGER.warn(message, e);
+                    LOGGER.warn(String.format(Messages.Log.UNABLE_TO_NOTIFY_REQUESTING_PROVIDER_S_S, order.getRequester(),
+                            order.getId()), e);
                     return;
                 }
             }
@@ -98,8 +98,8 @@ public class OrderController {
                 if (activeOrdersMap.containsKey(order.getId())) {
                     activeOrdersMap.remove(order.getId());
                 } else {
-                    String message = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
-                    throw new UnexpectedException(message);
+                    String message = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST_S, order.getId());
+                    throw new InternalServerErrorException(message);
                 }
             }
 
@@ -117,10 +117,10 @@ public class OrderController {
             OrderState orderState = order.getOrderState();
             if (orderState.equals(OrderState.CHECKING_DELETION) ||
                     order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION)) {
-                throw new UnacceptableOperationException(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
+                throw new UnacceptableOperationException(Messages.Exception.DELETE_OPERATION_ALREADY_ONGOING);
             }
             if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
-                throw new UnacceptableOperationException(String.format(Messages.Exception.DEPENDENCY_DETECTED,
+                throw new UnacceptableOperationException(String.format(Messages.Exception.DEPENDENCY_DETECTED_S_S,
                         order.getId(), this.orderDependencies.get(order.getId())));
             }
             if (order.getOrderState().equals(OrderState.SELECTED)) {
@@ -128,7 +128,7 @@ public class OrderController {
                 // It means that there might be some "garbage" left in the cloud. The Fogbow node admin should
                 // take the required actions to remove such garbage. The log below can help in identifying this
                 // kind of problem.
-                LOGGER.warn(String.format(Messages.Warn.REMOVING_ORDER_IN_SELECT_STATE_S, order.toString()));
+                LOGGER.warn(String.format(Messages.Log.REMOVING_ORDER_IN_SELECT_STATE_S, order.toString()));
             }
             if (order.isProviderRemote(this.localProviderId)) {
                 try {
@@ -143,7 +143,7 @@ public class OrderController {
                     // Here we do not know whether the deleteOrder() has been executed or not at the remote site.
                     // We return to the user as if deletion is on its way and try to figure out what is going on in
                     // the RemoteOrdersStateSynchronization processor.
-                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER);
+                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
                     throw e;
                 }
             } else {
@@ -173,7 +173,7 @@ public class OrderController {
     }
 
     public Allocation getUserAllocation(String providerId, String cloudName, SystemUser systemUser, ResourceType resourceType)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
 
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
@@ -201,7 +201,7 @@ public class OrderController {
                 List<PublicIpOrder> publicIpOrders = castOrders(filteredOrders);
                 return getUserPublicIpAllocation(publicIpOrders);
             default:
-                throw new UnexpectedException(Messages.Exception.RESOURCE_TYPE_NOT_IMPLEMENTED);
+                throw new InternalServerErrorException(Messages.Exception.RESOURCE_TYPE_NOT_IMPLEMENTED);
         }
     }
 
@@ -242,7 +242,7 @@ public class OrderController {
 
     ;
 
-    public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws UnexpectedException {
+    public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws InternalServerErrorException {
         List<InstanceStatus> instanceStatusList = new ArrayList<>();
         List<Order> allOrders = getAllOrders(systemUser, resourceType);
 
@@ -316,7 +316,7 @@ public class OrderController {
         return requestedOrders;
     }
 
-    public void updateOrderDependencies(Order order, Operation operation) throws UnexpectedException {
+    public void updateOrderDependencies(Order order, Operation operation) throws InternalServerErrorException {
         synchronized (order) {
             List<String> dependentOrderIds = new LinkedList<>();
 
@@ -347,13 +347,13 @@ public class OrderController {
                     deleteOrderDependency(order.getId(), dependentOrderIds);
                     break;
                 default:
-                    throw new UnexpectedException(String.format(Messages.Exception.UNEXPECTED_OPERATION_S, operation));
+                    throw new InternalServerErrorException(String.format(Messages.Exception.UNEXPECTED_OPERATION_S, operation));
             }
         }
     }
 
     @VisibleForTesting
-    void updateAllOrdersDependencies() throws UnexpectedException {
+    void updateAllOrdersDependencies() throws InternalServerErrorException {
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
         Collection<Order> allOrders = activeOrdersMap.values();
@@ -466,10 +466,10 @@ public class OrderController {
                     if (currentList.remove(orderId)) {
                         this.orderDependencies.put(dependentOrderId, currentList);
                     } else {
-                        LOGGER.error(String.format(Messages.Error.COULD_NOT_FIND_DEPENDENCY_S_S, dependentOrderId, orderId));
+                        LOGGER.error(String.format(Messages.Log.COULD_NOT_FIND_DEPENDENCY_S_S, dependentOrderId, orderId));
                     }
                 } else {
-                    LOGGER.error(String.format(Messages.Error.COULD_NOT_FIND_DEPENDENCY_S_S, dependentOrderId, orderId));
+                    LOGGER.error(String.format(Messages.Log.COULD_NOT_FIND_DEPENDENCY_S_S, dependentOrderId, orderId));
                 }
             }
         }
@@ -508,7 +508,7 @@ public class OrderController {
             closeOrderAtRemoteProviderRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 

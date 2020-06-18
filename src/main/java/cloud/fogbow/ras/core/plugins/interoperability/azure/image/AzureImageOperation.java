@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.image;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureImageOperationUtil;
@@ -35,7 +35,7 @@ public class AzureImageOperation {
         return azure.virtualMachineImages().publishers().listByRegion(this.region);
     }
 
-    public Map<String, ImageSummary> getImages(Azure azure, List<String> publishers) throws UnexpectedException {
+    public Map<String, ImageSummary> getImages(Azure azure, List<String> publishers) throws InternalServerErrorException {
         Map<String, ImageSummary> images = new HashMap<>();
 
         for (VirtualMachinePublisher publisher : this.getPublishers(azure)) {
@@ -50,8 +50,8 @@ public class AzureImageOperation {
 
                         try {
                             id = AzureImageOperationUtil.encode(imageSummary.getId());
-                        } catch (UnexpectedException ex) {
-                            LOGGER.debug(String.format(Messages.Error.ERROR_WHILE_LOADING_IMAGE_S, imageSummary.getName()));
+                        } catch (InternalServerErrorException ex) {
+                            LOGGER.debug(String.format(Messages.Log.ERROR_WHILE_LOADING_IMAGE_S, imageSummary.getName()));
                             continue;
                         }
 

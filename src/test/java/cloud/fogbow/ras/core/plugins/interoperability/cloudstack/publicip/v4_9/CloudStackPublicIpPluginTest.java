@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -58,7 +58,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     private String cloudStackUrl;
 
     @Before
-    public void setUp() throws UnexpectedException, InvalidParameterException {
+    public void setUp() throws InternalServerErrorException, InvalidParameterException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
@@ -87,7 +87,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.when(publicIpOrder.getComputeId()).thenReturn(computeIdExpected);
         String jobId = "jobId";
 
-        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
+        String messageExpected = String.format(Messages.Log.ASYNCHRONOUS_PUBLIC_IP_STATE_S,
                 instanceIdExpected, AsyncRequestInstanceState.StateType.ASSOCIATING_IP_ADDRESS);
 
         // verify before
@@ -135,7 +135,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         PublicIpOrder publicIpOrder = Mockito.mock(PublicIpOrder.class);
         Mockito.when(publicIpOrder.getId()).thenReturn(instanceIdExpected);
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin).
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).
                 requestIpAddressAssociation(Mockito.any(), Mockito.any());
 
         // verify
@@ -184,7 +184,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -231,7 +231,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -277,7 +277,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         asyncRequestInstanceStateReady.setIpInstanceId(ipAddressId);
         this.asyncRequestInstanceStateMapMocked.put(instanceId, asyncRequestInstanceStateReady);
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin).
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).
                 requestDisassociateIpAddress(Mockito.any(), Mockito.any());
 
         // verify
@@ -343,7 +343,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         // set up
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
 
-        String messageExpected = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
+        String messageExpected = String.format(Messages.Log.ASYNCHRONOUS_PUBLIC_IP_STATE_S,
                 asyncRequestInstanceState.getOrderInstanceId(),
                 AsyncRequestInstanceState.StateType.READY);
 
@@ -376,7 +376,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         AsyncRequestInstanceState asyncRequestInstanceState = new AsyncRequestInstanceState(null, null , null);
         String createFirewallRuleJobId = "jobId";
 
-        String messageExpexted = String.format(Messages.Info.ASYNCHRONOUS_PUBLIC_IP_STATE,
+        String messageExpexted = String.format(Messages.Log.ASYNCHRONOUS_PUBLIC_IP_STATE_S,
                 asyncRequestInstanceState.getOrderInstanceId(),
                 AsyncRequestInstanceState.StateType.CREATING_FIREWALL_RULE);
 
@@ -408,7 +408,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -458,7 +458,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(), Mockito.any(), Mockito.any())).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -628,7 +628,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(SuccessfulAssociateIpAddressResponse.class);
         PowerMockito.when(SuccessfulAssociateIpAddressResponse.fromJson(Mockito.eq(jsonResponse))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -651,7 +651,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.when(SuccessfulAssociateIpAddressResponse.fromJson(Mockito.eq(jsonResponse))).
                 thenReturn(response);
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin).doEnableStaticNat(
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).doEnableStaticNat(
                 Mockito.eq(response), Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser));
 
         // verify
@@ -754,7 +754,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Mockito.when(asyncRequestInstanceState.getState()).thenReturn(state);
         String jsonResponse = "jsonResponse";
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin).doCreatingFirewallOperation(
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).doCreatingFirewallOperation(
                 Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser), Mockito.eq(jsonResponse));
 
         // verify
@@ -792,7 +792,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
-    // and job status is unknown, it must verify if It returns null.
+    // and job status is unknown, it must verify if it returns null.
     @Test
     public void testBuildCurrentPublicIpInstanceFailWhenUnexpected() throws FogbowException {
         // set up
@@ -821,7 +821,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertNull(publicIpInstance);
-        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_JOB_STATUS);
+        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Log.UNEXPECTED_JOB_STATUS);
     }
 
     // test case: When calling the buildCurrentPublicIpInstance method with secondary methods mocked
@@ -838,7 +838,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackQueryJobResult.getQueryJobResult(
                 Mockito.eq(this.client), Mockito.eq(this.cloudStackUrl),
                 Mockito.eq(jobId), Mockito.eq(this.cloudStackUser))).
-                thenThrow(new FogbowException());
+                thenThrow(new FogbowException(""));
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -875,7 +875,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(jsonResponse))).
                 thenReturn(response);
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin)
+        Mockito.doThrow(new FogbowException("")).when(this.plugin)
                 .doDeleteInstance(Mockito.any(), Mockito.any());
 
         // exercise
@@ -884,7 +884,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, publicIpInstance.getCloudState());
-        String errorExpected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+        String errorExpected = String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S,
                 PUBLIC_IP_RESOURCE, publicIpOrder.getInstanceId());
         this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, errorExpected);
     }
@@ -983,7 +983,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackQueryAsyncJobResponse.fromJson(Mockito.eq(jsonResponse))).
                 thenReturn(response);
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin).buildNextOperationPublicIpInstance(
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).buildNextOperationPublicIpInstance(
                 Mockito.eq(asyncRequestInstanceState), Mockito.eq(this.cloudStackUser), Mockito.eq(jsonResponse));
 
         // exercise
@@ -992,7 +992,7 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(CloudStackStateMapper.FAILURE_STATUS, publicIpInstance.getCloudState());
-        String errorExpected = Messages.Error.ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP;
+        String errorExpected = Messages.Log.ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP;
         this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, errorExpected);
     }
 

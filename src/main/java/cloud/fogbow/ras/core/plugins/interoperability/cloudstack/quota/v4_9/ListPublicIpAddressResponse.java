@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class ListPublicIpAddressResponse {
     @SerializedName(LIST_PUBLIC_IP_ADDRESSES_JSON_KEY)
     private ListPublicIpAddressesResponse response;
 
-    public static ListPublicIpAddressResponse fromJson(String json) throws HttpResponseException {
+    public static ListPublicIpAddressResponse fromJson(String json) throws FogbowException {
         ListPublicIpAddressResponse listPublicIpAddressResponse = GsonHolder.getInstance().fromJson(json, ListPublicIpAddressResponse.class);
         listPublicIpAddressResponse.response.checkErrorExistence();
         return listPublicIpAddressResponse;

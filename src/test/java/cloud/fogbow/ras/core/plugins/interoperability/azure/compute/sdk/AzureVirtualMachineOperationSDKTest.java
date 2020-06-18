@@ -6,7 +6,7 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
@@ -391,7 +391,7 @@ public class AzureVirtualMachineOperationSDKTest {
         this.operation.subscribeCreateVirtualMachine(virtualMachineObservable, finishCreationCallbacks);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VM_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_CREATE_VM_ASYNC_BEHAVIOUR);
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 
@@ -430,7 +430,7 @@ public class AzureVirtualMachineOperationSDKTest {
         this.operation.subscribeCreateVirtualMachine(virtualMachineObservable, finishCreationCallbacks);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_VM_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_CREATE_VM_ASYNC_BEHAVIOUR);
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
@@ -748,7 +748,7 @@ public class AzureVirtualMachineOperationSDKTest {
         this.operation.subscribeDeleteVirtualMachine(completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VM_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_VM_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeDeleteVirtualMachine method and the
@@ -763,7 +763,7 @@ public class AzureVirtualMachineOperationSDKTest {
         this.operation.subscribeDeleteVirtualMachine(completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VM_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_VM_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteDiskCompletable method and the
@@ -791,7 +791,7 @@ public class AzureVirtualMachineOperationSDKTest {
         // verify
         this.loggerAssert
                 .assertEqualsInOrder(Level.DEBUG, expectedMessage)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_DISK_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteDiskCompletable method and the
@@ -819,7 +819,7 @@ public class AzureVirtualMachineOperationSDKTest {
         // verify
         this.loggerAssert
                 .assertEqualsInOrder(Level.DEBUG, expectedMessage)
-                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteNicCompletable method and the
@@ -847,7 +847,7 @@ public class AzureVirtualMachineOperationSDKTest {
         // verify
         this.loggerAssert
                 .assertEqualsInOrder(Level.DEBUG, expectedMessage)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_NIC_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_NIC_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteNicCompletable method and the
@@ -875,7 +875,7 @@ public class AzureVirtualMachineOperationSDKTest {
         // verify
         this.loggerAssert
                 .assertEqualsInOrder(Level.DEBUG, expectedMessage)
-                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_NIC_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_NIC_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteVirtualMachineCompletable method and
@@ -900,7 +900,7 @@ public class AzureVirtualMachineOperationSDKTest {
         // verify
         this.loggerAssert
                 .assertEqualsInOrder(Level.DEBUG, expectedMessage)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VM_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_VM_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteVirtualMachineCompletable method and
@@ -925,7 +925,7 @@ public class AzureVirtualMachineOperationSDKTest {
         // verify
         this.loggerAssert
                 .assertEqualsInOrder(Level.DEBUG, expectedMessage)
-                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VM_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_VM_ASYNC_BEHAVIOUR);
     }
 
     private PagedList<VirtualMachineSize> getVirtualMachineSizesMock() {

@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +14,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.HomeDir;
@@ -112,8 +112,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 	
     // test case: When calling the getPublicKey method with a null Public Key File
-    // Path, it must throw an UnexpectedException.
-    @Test(expected = UnexpectedException.class) // verify
+    // Path, it must throw an InternalServerErrorException.
+    @Test(expected = InternalServerErrorException.class) // verify
     public void testGetPublicKeyThrowsUnexpectedException() throws Exception {
         // set up
         ServiceAsymmetricKeysHolder sakHolder = mockServiceAsymmetricKeysHolder();
@@ -1508,20 +1508,20 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
     
     // test case: When calling the checkEmbeddedOrdersConsistency method with a
-    // resource type not supported, it must throws an UnexpectedException.
+    // resource type not supported, it must throws an InternalServerErrorException.
     @Test
     public void testCheckEmbeddedOrdersConsistencyWithUnsupportedResourceType() throws FogbowException {
         // set up
         Order order = Mockito.mock(Order.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.INVALID_RESOURCE);
 
-        String expected = String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType());
+        String expected = String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE_S, order.getType());
 
         try {
             // exercise
             this.facade.checkEmbeddedOrdersConsistency(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -1667,7 +1667,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         PublicIpOrder mainOrder = this.testUtils.createLocalPublicIpOrder(embeddedOrder.getId());
         mainOrder.setCloudName(ANY_VALUE);
 
-        String expected = Messages.Exception.CLOUD_NAMES_DONT_MATCH;
+        String expected = Messages.Exception.CLOUD_NAMES_DO_NOT_MATCH;
 
         try {
             // exercise

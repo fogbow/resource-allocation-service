@@ -17,7 +17,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.api.parameters.SecurityRule.Direction;
@@ -307,7 +307,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
     }
     
     // test case: When calling the updateSecurityGroup method with a invalid
-    // template, it must verify that an UnexpectedException has been thrown.
+    // template, it must verify that an InternalServerErrorException has been thrown.
     @Test
     public void testUpdateSecurityGroupFail() throws FogbowException {
         // set up
@@ -318,13 +318,13 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         Mockito.when(securityGroup.update(Mockito.eq(template))).thenReturn(response);
         Mockito.when(response.isError()).thenReturn(true);
 
-        String expected = String.format(Messages.Error.ERROR_WHILE_UPDATING_SECURITY_GROUPS, template);
+        String expected = String.format(Messages.Log.ERROR_WHILE_UPDATING_SECURITY_GROUPS_S, template);
 
         try {
             // exercise
             this.plugin.updateSecurityGroup(securityGroup, template);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -475,13 +475,13 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
         Mockito.when(virtualNetwork.xpath(OpenNebulaSecurityRulePlugin.SECURITY_GROUPS_PATH)).thenReturn(content);
         
-        String expected = Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED;
+        String expected = Messages.Log.CONTENT_SECURITY_GROUP_NOT_DEFINED;
 
         try {
             // exercise
             this.plugin.getSecurityGroupContentFrom(virtualNetwork);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -497,13 +497,13 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
         Mockito.when(virtualNetwork.xpath(OpenNebulaSecurityRulePlugin.SECURITY_GROUPS_PATH)).thenReturn(content);
         
-        String expected = Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED;
+        String expected = Messages.Log.CONTENT_SECURITY_GROUP_NOT_DEFINED;
 
         try {
             // exercise
             this.plugin.getSecurityGroupContentFrom(virtualNetwork);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

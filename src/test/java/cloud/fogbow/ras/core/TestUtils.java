@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
@@ -94,7 +94,7 @@ public class TestUtils {
     public static final String MAP_METHOD = "map";
     public static final String MESSAGE_STATUS_CODE = "Internal server error.";
 
-    public void cleanList(ChainedList<Order> list) {
+    public void cleanList(ChainedList<Order> list) throws InternalServerErrorException {
         list.resetPointer();
         Order order = null;
         do {
@@ -229,7 +229,7 @@ public class TestUtils {
         return systemUser;
     }
 
-    public void mockReadOrdersFromDataBase() throws UnexpectedException {
+    public void mockReadOrdersFromDataBase() throws InternalServerErrorException {
                 mockReadOrdersFromDataBase(new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
                         new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
                         new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
@@ -250,7 +250,7 @@ public class TestUtils {
                                            SynchronizedDoublyLinkedList<Order> failedOnRequestList,
                                            SynchronizedDoublyLinkedList<Order> unableToCheckRequestList,
                                            SynchronizedDoublyLinkedList<Order> assignedForDeletionRequestList)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
 
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
         Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(openList);
@@ -303,7 +303,7 @@ public class TestUtils {
         return remoteCloudConnector;
     }
 
-    public List<Order> populateFedNetDbWithState(OrderState state, int size, RecoveryService service) throws UnexpectedException {
+    public List<Order> populateFedNetDbWithState(OrderState state, int size, RecoveryService service) throws InternalServerErrorException {
         List<Order> orders = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             Order order = createComputeOrder(FAKE_REMOTE_MEMBER_ID, FAKE_REMOTE_MEMBER_ID);
@@ -314,8 +314,8 @@ public class TestUtils {
         return orders;
     }
 
-    public HttpResponseException getHttpInternalServerErrorResponseException() {
-        return new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+    public InternalServerErrorException getInternalServerErrorException() {
+        return new InternalServerErrorException(MESSAGE_STATUS_CODE);
     }
     
     /*

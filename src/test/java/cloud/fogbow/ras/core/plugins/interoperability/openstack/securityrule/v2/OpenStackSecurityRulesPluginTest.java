@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -18,13 +20,11 @@ import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.CidrUtils;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.api.parameters.SecurityRule.Direction;
@@ -46,7 +46,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.
         DatabaseManager.class,
         GetSecurityGroupsResponse.class,
         GetSecurityRulesResponse.class,
-        OpenStackHttpToFogbowExceptionMapper.class,
+        HttpErrorConditionToFogbowExceptionMapper.class,
         PropertiesUtil.class,
 })
 public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
@@ -63,7 +63,7 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
     private OpenStackV3User cloudUser;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         String confFilePath = HomeDir.getPath()
                 + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + TestUtils.DEFAULT_CLOUD_NAME + File.separator
@@ -205,14 +205,9 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
                 + securityRuleId;
 
         String message = Messages.Exception.NULL_VALUE_RETURNED;
-        HttpResponseException responseException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, message);
-        Mockito.doThrow(responseException).when(this.client)
+        InstanceNotFoundException exception = new InstanceNotFoundException(message);
+        Mockito.doThrow(exception).when(this.client)
                 .doDeleteRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
-
-        InstanceNotFoundException expectedException = new InstanceNotFoundException(message);
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doThrow(expectedException).when(OpenStackHttpToFogbowExceptionMapper.class, "map",
-                Mockito.eq(responseException));
 
         try {
             // exercise
@@ -220,8 +215,7 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (InstanceNotFoundException e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(responseException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
 
@@ -245,7 +239,7 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doPostRequest method and an error occurs, it must
-    // verify if an UnexpectedException has been thrown.
+    // verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoPostRequestFail() throws Exception {
         // set up
@@ -256,23 +250,17 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
         String bodyContent = TestUtils.ANY_VALUE;
 
         String message = Messages.Exception.UNEXPECTED_ERROR;
-        HttpResponseException responseException = new HttpResponseException(HttpStatus.SC_INTERNAL_SERVER_ERROR, message);
+        InternalServerErrorException responseException = new InternalServerErrorException(message);
         Mockito.doThrow(responseException).when(this.client)
                 .doPostRequest(Mockito.eq(endpoint), Mockito.eq(bodyContent), Mockito.eq(this.cloudUser));
-
-        UnexpectedException expectedException = new UnexpectedException(message);
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doThrow(expectedException).when(OpenStackHttpToFogbowExceptionMapper.class, "map",
-                Mockito.eq(responseException));
 
         // exercise
         try {
             this.plugin.doPostRequest(endpoint, bodyContent, cloudUser);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(responseException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
 
@@ -310,14 +298,9 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
                 + securityGroupId;
 
         String message = Messages.Exception.NULL_VALUE_RETURNED;
-        HttpResponseException responseException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, message);
-        Mockito.doThrow(responseException).when(this.client)
+        InstanceNotFoundException exception = new InstanceNotFoundException(message);
+        Mockito.doThrow(exception).when(this.client)
                 .doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser));
-
-        InstanceNotFoundException expectedException = new InstanceNotFoundException(message);
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doThrow(expectedException).when(OpenStackHttpToFogbowExceptionMapper.class, "map",
-                Mockito.eq(responseException));
 
         // exercise
         try {
@@ -325,8 +308,7 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (InstanceNotFoundException e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(responseException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
 
@@ -565,7 +547,7 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
         List<SecurityGroup> securityGroupsList = new ArrayList<SecurityGroup>();
 
         String expectedMessage = String
-                .format(Messages.Exception.SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND, securityGroupName);
+                .format(Messages.Exception.SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND_S, securityGroupName);
         try {
             // exercise
             this.plugin.checkSecurityGroupsListIntegrity(securityGroupsList, securityGroupName);
@@ -578,7 +560,7 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
 
     // test case: When calling checkSecurityGroupsListIntegrity method with a
     // security group list containing more than one element, it must verify if an
-    // UnexpectedException has been thrown.
+    // InternalServerErrorException has been thrown.
     @Test
     public void testCheckSecurityGroupsListIntegrityThrowsUnexpectedException()
             throws FogbowException {
@@ -590,12 +572,12 @@ public class OpenStackSecurityRulesPluginTest extends BaseUnitTests {
         List<SecurityGroup> securityGroupList = Arrays.asList(securityGroups);
 
         String expectedMessage = String
-                .format(Messages.Exception.MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED, securityGroupName);
+                .format(Messages.Exception.MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED_S, securityGroupName);
         try {
             // exercise
             this.plugin.checkSecurityGroupsListIntegrity(securityGroupList, securityGroupName);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expectedMessage, e.getMessage());
         }

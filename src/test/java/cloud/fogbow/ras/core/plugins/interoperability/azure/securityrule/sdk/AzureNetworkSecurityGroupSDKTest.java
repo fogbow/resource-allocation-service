@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.securityrule.sdk;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.core.TestUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
@@ -39,7 +39,7 @@ public class AzureNetworkSecurityGroupSDKTest extends TestUtils {
     // test case: When calling getNetworkSecurityGroup with mocked methods,
     // it must verify if all variables are created and the result is as expected.
     @Test
-    public void testGetNetworkSecurityGroupSuccessfully() throws UnexpectedException {
+    public void testGetNetworkSecurityGroupSuccessfully() throws InternalServerErrorException {
         // set up
         PowerMockito.mockStatic(AzureNetworkSecurityGroupSDK.class);
         String networkSecurityGroupId = "network-security-group-id";
@@ -70,9 +70,9 @@ public class AzureNetworkSecurityGroupSDKTest extends TestUtils {
     }
 
     // test case: When calling getNetworkSecurityGroup and a RuntimeException happens
-    // it must verify if a UnexpectedException is rethrow.
+    // it must verify if a InternalServerErrorException is rethrow.
     @Test
-    public void testGetNetworkSecurityGroupFail() throws UnexpectedException {
+    public void testGetNetworkSecurityGroupFail() throws InternalServerErrorException {
         // set up
         PowerMockito.mockStatic(AzureNetworkSecurityGroupSDK.class);
         String networkSecurityGroupId = "network-security-group-id";
@@ -88,7 +88,7 @@ public class AzureNetworkSecurityGroupSDKTest extends TestUtils {
                 Mockito.eq(networkSecurityGroupId))).thenCallRealMethod();
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         AzureNetworkSecurityGroupSDK.getNetworkSecurityGroup(azure, networkSecurityGroupId);
@@ -287,7 +287,7 @@ public class AzureNetworkSecurityGroupSDKTest extends TestUtils {
     }
 
     // test case: When calling deleteNetworkSecurityRule and a RuntimeException is thrown,
-    // it must verify if a UnexpectedException is rethrow
+    // it must verify if a InternalServerErrorException is rethrow
     @Test
     public void testDeleteNetworkSecurityRuleFail() throws Exception {
         // set up
@@ -301,7 +301,7 @@ public class AzureNetworkSecurityGroupSDKTest extends TestUtils {
                 Mockito.eq(securityRuleName)).thenCallRealMethod();
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         AzureNetworkSecurityGroupSDK.deleteNetworkSecurityRule(networkSecurityGroup, securityRuleName);

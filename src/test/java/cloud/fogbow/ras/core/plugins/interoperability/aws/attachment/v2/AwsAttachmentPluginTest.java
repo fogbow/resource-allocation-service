@@ -13,7 +13,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
@@ -240,7 +240,7 @@ public class AwsAttachmentPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doDeleteInstance method, and an unexpected error
-    // occurs, it should check if an UnexpectedException has been thrown.
+    // occurs, it should check if an InternalServerErrorException has been thrown.
     @Test
     public void testDoDeleteInstanceFail() {
         // set up
@@ -252,13 +252,13 @@ public class AwsAttachmentPluginTest extends BaseUnitTests {
 
         Mockito.when(this.client.detachVolume(Mockito.eq(request))).thenThrow(SdkClientException.class);
 
-        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+        String expected = String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S,
                 AwsAttachmentPlugin.RESOURCE_NAME, volumeId);
         try {
             // exercise
             this.plugin.doDeleteInstance(volumeId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -334,7 +334,7 @@ public class AwsAttachmentPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doRequestInstance method, and an unexpected error
-    // occurs, it should check if an UnexpectedException has been thrown.
+    // occurs, it should check if an InternalServerErrorException has been thrown.
     @Test
     public void testDoRequestInstanceFail() throws FogbowException {
         // set up
@@ -343,13 +343,13 @@ public class AwsAttachmentPluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.when(this.client.attachVolume(request)).thenThrow(exception);
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.doRequestInstance(request, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

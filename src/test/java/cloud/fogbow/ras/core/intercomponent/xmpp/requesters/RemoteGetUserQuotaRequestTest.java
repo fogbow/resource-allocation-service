@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
@@ -107,9 +107,9 @@ public class RemoteGetUserQuotaRequestTest {
         this.remoteGetUserQuotaRequest.send();
     }
 
-    //test case: checks if "send" is properly forwading UnexpectedException thrown by
+    //test case: checks if "send" is properly forwading InternalServerErrorException thrown by
     //"getUserQuotaFromResponse" when the user quota class name from the IQ response is undefined (wrong or not found)
-    @Test(expected = UnexpectedException.class)
+    @Test(expected = InternalServerErrorException.class)
     public void testSendWhenImageClassIsUndefined() throws Exception {
         //set up
         IQ iqResponse = getQuotaIQResponseWithWrongClass(this.quota);

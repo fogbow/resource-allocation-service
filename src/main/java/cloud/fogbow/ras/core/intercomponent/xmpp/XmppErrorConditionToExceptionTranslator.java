@@ -9,7 +9,7 @@ public class XmppErrorConditionToExceptionTranslator {
 
     public static void handleError(IQ response, String providerId) throws Exception {
         if (response == null) {
-            throw new UnavailableProviderException(String.format(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER, providerId));
+            throw new UnavailableProviderException(String.format(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S, providerId));
         } else if (response.getError() != null) {
             PacketError.Condition condition = response.getError().getCondition();
             String message = response.getError().getText();
@@ -34,7 +34,7 @@ public class XmppErrorConditionToExceptionTranslator {
             case conflict:
                 throw new ConfigurationErrorException(message);
             case internal_server_error:
-                throw new UnexpectedException(message);
+                throw new InternalServerErrorException(message);
             default:
                 throw new Exception(message);
         }

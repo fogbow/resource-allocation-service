@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -30,12 +30,12 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
     @Override
     public Quota send() throws Exception {
         IQ iq = marshal(this.provider, this.cloudName, this.systemUser);
-        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.SENDING_MSG_S, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
         Quota quota = unmarshalUserQuota(response);
-        LOGGER.debug(Messages.Info.SUCCESS);
+        LOGGER.debug(Messages.Log.SUCCESS);
         return quota;
     }
 
@@ -55,7 +55,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         return iq;
     }
 
-    private Quota unmarshalUserQuota(IQ response) throws UnexpectedException {
+    private Quota unmarshalUserQuota(IQ response) throws InternalServerErrorException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String quotaStr = queryElement.element(IqElement.USER_QUOTA.toString()).getText();
 
@@ -65,7 +65,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         try {
             quota = (Quota) new Gson().fromJson(quotaStr, Class.forName(instanceClassName));
         } catch (Exception e) {
-            throw new UnexpectedException(e.getMessage());
+            throw new InternalServerErrorException(e.getMessage());
         }
 
         return quota;

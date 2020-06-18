@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.attachment;
 import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.SystemConstants;

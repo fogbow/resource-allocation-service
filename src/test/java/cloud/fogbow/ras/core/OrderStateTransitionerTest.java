@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -23,7 +23,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     private MockUtil mockUtil = new MockUtil();
 
     @After
-    public void tearDown() {
+    public void tearDown() throws InternalServerErrorException {
         SharedOrderHolders instance = SharedOrderHolders.getInstance();
 
         // Clearing the lists if we are not mocking them
@@ -68,7 +68,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     // be changed to the Spawning state, removed from the open orders list, and added to the spawning
     // orders list.
     @Test
-    public void testDoTransitionToChangeOrderStateOpenToSpawning() throws UnexpectedException {
+    public void testDoTransitionToChangeOrderStateOpenToSpawning() throws InternalServerErrorException {
         // set up
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
@@ -95,8 +95,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
     // test case: When calling the transition() method and the origin list of the 'Order' is Null,
     // an unexpected exception is thrown.
-    @Test(expected = UnexpectedException.class) // verify
-    public void testOriginListCannotBeFound() throws UnexpectedException {
+    @Test(expected = InternalServerErrorException.class) // verify
+    public void testOriginListCannotBeFound() throws InternalServerErrorException {
 
         // set up
         OrderState originState = OrderState.OPEN;
@@ -118,8 +118,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
     // test case: When calling the transition() method and the destination list of the 'Order' is
     // Null, an unexpected exception is thrown.
-    @Test(expected = UnexpectedException.class) // verify
-    public void testDestinationListCannotBeFound() throws UnexpectedException {
+    @Test(expected = InternalServerErrorException.class) // verify
+    public void testDestinationListCannotBeFound() throws InternalServerErrorException {
 
         // set up
         OrderState originState = OrderState.OPEN;

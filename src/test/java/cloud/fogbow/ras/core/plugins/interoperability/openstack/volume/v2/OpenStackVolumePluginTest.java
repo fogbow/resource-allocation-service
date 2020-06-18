@@ -6,6 +6,7 @@ import java.util.Map;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
+import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -16,11 +17,10 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -31,7 +31,7 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 
-@PrepareForTest({ DatabaseManager.class, OpenStackCloudUtils.class, OpenStackHttpToFogbowExceptionMapper.class })
+@PrepareForTest({ DatabaseManager.class, OpenStackCloudUtils.class, HttpErrorConditionToFogbowExceptionMapper.class })
 public class OpenStackVolumePluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
@@ -262,7 +262,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     
     // test case: When calling the doDeleteInstance method and an unexpected error
     // occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoDeleteInstanceFail() throws Exception {
         // set up
@@ -270,12 +270,9 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackConstants.VOLUMES_ENDPOINT,
                 TestUtils.FAKE_INSTANCE_ID);
 
-        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doDeleteRequest(Mockito.eq(endpoint),
                 Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
         try {
             // exercise
@@ -283,8 +280,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -335,7 +331,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     
     // test case: When calling the doRequestInstance method and an unexpected error
     // occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoRequestInstanceFail() throws Exception {
         // set up
@@ -344,12 +340,9 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackConstants.VOLUMES_ENDPOINT,
                 TestUtils.FAKE_INSTANCE_ID);
 
-        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint),
                 Mockito.eq(jsonRequest), Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
         try {
             // exercise
@@ -357,8 +350,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -386,18 +378,18 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doGetVolumeResponseFrom method with a JSON
-    // malformed, it must verify that a UnexpectedException was throw.
+    // malformed, it must verify that a InternalServerErrorException was throw.
     @Test
     public void testDoGetVolumeResponseFromJsonMalformed() {
         // set up
         String json = JSON_MALFORMED;
-        String expected = Messages.Error.ERROR_WHILE_GETTING_VOLUME_INSTANCE;
+        String expected = Messages.Exception.ERROR_WHILE_GETTING_VOLUME_INSTANCE;
 
         try {
             // exercise
             this.plugin.doGetVolumeResponseFrom(json);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -405,7 +397,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     
     // test case: When calling the doGetResponseFromCloud method and an unexpected error
     // occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoGetResponseFromCloudFail() throws Exception {
         // set up
@@ -413,20 +405,16 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackConstants.VOLUMES_ENDPOINT,
                 TestUtils.FAKE_INSTANCE_ID);
 
-        HttpResponseException expectedException = new HttpResponseException(ERROR_STATUS_CODE, MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doGetRequest(Mockito.eq(endpoint), Mockito.eq(cloudUser));
 
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
-        
         try {
             // exercise
             this.plugin.doGetResponseFromCloud(endpoint, cloudUser);
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -489,18 +477,18 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doGetAllTypesResponseFrom method with a JSON
-    // malformed, it must verify that a UnexpectedException was throw.
+    // malformed, it must verify that a InternalServerErrorException was throw.
     @Test
     public void testDoGetAllTypesResponseFromJsonMalformed() {
         // set up
         String json = JSON_MALFORMED;
-        String expected = Messages.Error.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS;
+        String expected = Messages.Exception.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS;
 
         try {
             // exercise
             this.plugin.doGetAllTypesResponseFrom(json);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

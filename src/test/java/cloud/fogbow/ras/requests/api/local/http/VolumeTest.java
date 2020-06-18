@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.request.Volume;
@@ -268,7 +268,7 @@ public class VolumeTest {
         return headers;
     }
 
-    private VolumeOrder createVolumeOrder() throws InvalidParameterException, UnexpectedException {
+    private VolumeOrder createVolumeOrder() throws InvalidParameterException, InternalServerErrorException {
         SystemUser systemUser = new SystemUser(FAKE_ID, FAKE_NAME, "token-provider"
         );
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());

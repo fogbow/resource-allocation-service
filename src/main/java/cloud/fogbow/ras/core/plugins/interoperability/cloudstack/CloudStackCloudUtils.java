@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.*;
 import cloud.fogbow.ras.constants.Messages;
@@ -46,14 +46,10 @@ public class CloudStackCloudUtils {
     @NotNull
     public static String doRequest(@NotNull CloudStackHttpClient cloudStackHttpClient,
                                    String url,
-                                   @NotNull CloudStackUser cloudStackUser) throws HttpResponseException {
+                                   @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
-        try {
-            LOGGER.debug(String.format(Messages.Info.REQUESTING_TO_CLOUD, cloudStackUser.getId(), url));
-            return cloudStackHttpClient.doGetRequest(url, cloudStackUser);
-        } catch (FogbowException e) {
-            throw new HttpResponseException(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-        }
+        LOGGER.debug(String.format(Messages.Log.REQUESTING_TO_CLOUD_S_S, cloudStackUser.getId(), url));
+        return cloudStackHttpClient.doGetRequest(url, cloudStackUser);
     }
 
     // TODO(chico) - Cloudstack compute must use this methods.
@@ -69,14 +65,10 @@ public class CloudStackCloudUtils {
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
-        try {
-            String jsonResponse = CloudStackCloudUtils.doRequest(
+        String jsonResponse = CloudStackCloudUtils.doRequest(
                     httpClient, uriRequest.toString(), cloudStackUser);
-            GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
-            return response.getDiskOfferings();
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+        return response.getDiskOfferings();
     }
 
     public static String generateInstanceName() {
@@ -126,7 +118,7 @@ public class CloudStackCloudUtils {
             case CloudStackQueryJobResult.FAILURE:
                 throw new FogbowException(String.format(Messages.Exception.JOB_HAS_FAILED, jobId));
             default:
-                throw new UnexpectedException(Messages.Error.UNEXPECTED_JOB_STATUS);
+                throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_JOB_STATUS);
         }
     }
 
@@ -148,7 +140,7 @@ public class CloudStackCloudUtils {
         try {
             Thread.sleep(ONE_SECOND_IN_MILIS);
         } catch (InterruptedException e) {
-            LOGGER.warn(Messages.Warn.SLEEP_THREAD_INTERRUPTED, e);
+            LOGGER.warn(Messages.Log.SLEEP_THREAD_INTERRUPTED, e);
         }
     }
 }

@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.volume;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
@@ -109,7 +109,7 @@ public class EmulatedCloudVolumePlugin implements VolumePlugin<CloudUser> {
         return emulatedVolume;
     }
 
-    protected VolumeInstance getInstanceFromJson(String json) throws UnexpectedException {
+    protected VolumeInstance getInstanceFromJson(String json) throws InternalServerErrorException {
         try {
             GetVolumeResponse getVolumeResponse = GetVolumeResponse.fromJson(json);
             String id = getVolumeResponse.getId();
@@ -118,9 +118,8 @@ public class EmulatedCloudVolumePlugin implements VolumePlugin<CloudUser> {
             String status = getVolumeResponse.getStatus();
             return new VolumeInstance(id, status, name, size);
         } catch (Exception e) {
-            String message = Messages.Error.ERROR_WHILE_GETTING_VOLUME_INSTANCE;
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
+            LOGGER.error(Messages.Log.ERROR_WHILE_GETTING_VOLUME_INSTANCE, e);
+            throw new InternalServerErrorException(Messages.Exception.ERROR_WHILE_GETTING_VOLUME_INSTANCE);
         }
     }
 }

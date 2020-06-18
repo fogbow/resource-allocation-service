@@ -1,10 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -39,7 +39,7 @@ public class GetVirtualMachineResponse {
         return virtualMachinesResponse.virtualMachines;
     }
 
-    public static GetVirtualMachineResponse fromJson(String json) throws HttpResponseException {
+    public static GetVirtualMachineResponse fromJson(String json) throws FogbowException {
         GetVirtualMachineResponse getVirtualMachineResponse =
                 GsonHolder.getInstance().fromJson(json, GetVirtualMachineResponse.class);
         getVirtualMachineResponse.virtualMachinesResponse.checkErrorExistence();

@@ -145,12 +145,11 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return networkInstance;
 	}
 
-	protected void doDeleteInstance(VirtualNetwork virtualNetwork) throws UnexpectedException {
+	protected void doDeleteInstance(VirtualNetwork virtualNetwork) throws InternalServerErrorException {
 		OneResponse response = virtualNetwork.delete();
 		if (response.isError()) {
-			String message = String.format(
-					Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, VIRTUAL_NETWORK_RESOURCE, response.getMessage());
-			throw new UnexpectedException(message);
+			throw new InternalServerErrorException(String.format(
+					Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S, VIRTUAL_NETWORK_RESOURCE, response.getMessage()));
 		}
 	}
 
@@ -188,7 +187,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		if (addressRangeIndex != null) {
 			return virtualNetwork.xpath(String.format(ADDRESS_RANGE_ID_PATH_FORMAT, addressRangeIndex));
 		} else {
-			throw new UnacceptableOperationException(String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE,
+			throw new UnacceptableOperationException(String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE_S,
 					cidr));
 		}
 	}
@@ -302,7 +301,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	protected void deleteSecurityGroup(SecurityGroup securityGroup) {
 		OneResponse response = securityGroup.delete();
 		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SECURITY_GROUP_RESOURCE, response.getMessage()));
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, SECURITY_GROUP_RESOURCE, response.getMessage()));
 		}
 	}
 
@@ -313,7 +312,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		String securityGroupIdsStr = virtualNetwork.xpath(VNET_TEMPLATE_SECURITY_GROUPS_PATH);
 
 		if (securityGroupIdsStr == null || securityGroupIdsStr.isEmpty()) {
-			LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED);
+			LOGGER.warn(Messages.Log.CONTENT_SECURITY_GROUP_NOT_DEFINED);
 			return securityGroup;
 		}
 
@@ -356,7 +355,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		try {
 			return Integer.parseInt(number);
 		} catch (NumberFormatException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
 			throw new InvalidParameterException();
 		}
 	}

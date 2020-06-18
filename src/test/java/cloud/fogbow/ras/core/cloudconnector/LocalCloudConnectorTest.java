@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.*;
 import org.junit.Assert;
 import org.junit.Before;
@@ -9,7 +10,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
@@ -88,7 +88,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
     
     // test case: When invoking the requestInstance method with a compute order and
-    // returning a null instance ID, it must throw an UnexpectedException and call
+    // returning a null instance ID, it must throw an InternalServerErrorException and call
     // the auditRequest method confirming its requested operation and resource type.
     @Test
     public void testRequestInstanceFailWithComputeOrder() throws FogbowException {
@@ -104,7 +104,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
             // exercise
             this.localCloudConnector.requestInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
@@ -114,7 +114,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
     
     // test case: When invoking the requestInstance method with a volume order and
-    // returning a null instance ID, it must throw an UnexpectedException and call
+    // returning a null instance ID, it must throw an InternalServerErrorException and call
     // the auditRequest method confirming its requested operation and resource type.
     @Test
     public void testRequestInstanceFailWithVolumeOrder() throws FogbowException {
@@ -130,7 +130,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
             // exercise
             this.localCloudConnector.requestInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
@@ -140,7 +140,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
     
     // test case: When invoking the requestInstance method with an attachment order
-    // and returning a null instance ID, it must throw an UnexpectedException and
+    // and returning a null instance ID, it must throw an InternalServerErrorException and
     // call the auditRequest method confirming its requested operation and resource
     // type.
     @Test
@@ -158,7 +158,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
             // exercise
             this.localCloudConnector.requestInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
@@ -168,7 +168,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
     
     // test case: When invoking the requestInstance method with a network order and
-    // returning a null instance ID, it must throw an UnexpectedException and call
+    // returning a null instance ID, it must throw an InternalServerErrorException and call
     // the auditRequest method confirming its requested operation and resource type.
     @Test
     public void testRequestInstanceFailWithNetworkOrder() throws FogbowException {
@@ -184,7 +184,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
             // exercise
             this.localCloudConnector.requestInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
@@ -194,7 +194,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
     
     // test case: When invoking the requestInstance method with a public IP order
-    // and returning a null instance ID, it must throw an UnexpectedException and
+    // and returning a null instance ID, it must throw an InternalServerErrorException and
     // call the auditRequest method confirming its requested operation and resource
     // type.
     @Test
@@ -211,7 +211,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
             // exercise
             this.localCloudConnector.requestInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
@@ -1120,20 +1120,20 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     
     // test case: When invoking the createEmptyInstance method with an order
     // containing an invalid resource type for this context, it must throw an
-    // UnexpectedException.
+    // InternalServerErrorException.
     @Test
     public void testCreateEmptyInstanceWithInvalidResource() {
         // set up
         Order order = Mockito.mock(Order.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.INVALID_RESOURCE);
         
-        String expected = Messages.Exception.UNSUPPORTED_REQUEST_TYPE;
+        String expected = Messages.Exception.UNSUPPORTED_REQUEST_TYPE_S;
 
         try {
             // exercise
             EmptyOrderInstanceGenerator.createEmptyInstance(order);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -1141,7 +1141,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     
     // test case: When invoking the checkOrderCastingAndSetPlugin method with an
     // order without resource type defined and a resource type valid, it must throw
-    // an UnexpectedException.
+    // an InternalServerErrorException.
     @Test
     public void testCheckOrderCastingAndSetPluginWithAnOrderWithouResourceType() {
         // set up
@@ -1152,7 +1152,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
             // exercise
             this.localCloudConnector.checkOrderCastingAndSetPlugin(order, ResourceType.COMPUTE);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -1160,18 +1160,18 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     
     // test case: When invoking the checkOrderCastingAndSetPlugin method with an
     // order without resource type defined and an invalid resource type for this
-    // context, it must throw an UnexpectedException too.
+    // context, it must throw an InternalServerErrorException too.
     @Test
     public void CheckOrderCastingAndSetPluginWithAnInvalidResourceType() {
         // set up
         Order order = Mockito.mock(Order.class);
-        String expected = String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType());
+        String expected = String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE_S, order.getType());
         
         try {
             // exercise
             this.localCloudConnector.checkOrderCastingAndSetPlugin(order, ResourceType.INVALID_RESOURCE);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

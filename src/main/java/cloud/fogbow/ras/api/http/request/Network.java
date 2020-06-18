@@ -49,11 +49,11 @@ public class Network {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_CREATE_REQUEST_S, ORDER_CONTROLLER_TYPE));
             String networkId = ApplicationFacade.getInstance().createNetwork(network.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(networkId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -70,7 +70,7 @@ public class Network {
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.NETWORK);
             return new ResponseEntity<>(networkInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -85,11 +85,11 @@ public class Network {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, networkId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, networkId));
             NetworkInstance networkInstance = ApplicationFacade.getInstance().getNetwork(networkId, systemUserToken);
             return new ResponseEntity<>(networkInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -104,11 +104,11 @@ public class Network {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, networkId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_DELETE_REQUEST_S_S, ORDER_CONTROLLER_TYPE, networkId));
             ApplicationFacade.getInstance().deleteNetwork(networkId, systemUserToken);
             return new ResponseEntity<Boolean>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -125,12 +125,12 @@ public class Network {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, SECURITY_RULE_NAME));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_CREATE_REQUEST_S, SECURITY_RULE_NAME));
             String ruleId = ApplicationFacade.getInstance().createSecurityRule(networkId, securityRule,
                     systemUserToken, ResourceType.NETWORK);
             return new ResponseEntity<>(new ResourceId(ruleId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -145,12 +145,12 @@ public class Network {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, SECURITY_RULE_NAME));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_ALL_REQUEST_S, SECURITY_RULE_NAME));
             List<SecurityRuleInstance> securityRuleInstances = ApplicationFacade.getInstance().
                     getAllSecurityRules(networkId, systemUserToken, ResourceType.NETWORK);
             return new ResponseEntity<>(securityRuleInstances, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -167,12 +167,12 @@ public class Network {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, SECURITY_RULE_NAME, ruleId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_DELETE_REQUEST_S_S, SECURITY_RULE_NAME, ruleId));
             ApplicationFacade.getInstance().deleteSecurityRule(networkId, ruleId, systemUserToken,
                     ResourceType.NETWORK);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -189,12 +189,12 @@ public class Network {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_RESOURCE_S_REQUEST, NETWORK_ALLOCATION_RESOURCE, providerId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_RESOURCE_S_REQUEST_S, NETWORK_ALLOCATION_RESOURCE, providerId));
             NetworkAllocation networkAllocation =
                     ApplicationFacade.getInstance().getNetworkAllocation(providerId, cloudName, systemUserToken);
             return new ResponseEntity<>(networkAllocation, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }

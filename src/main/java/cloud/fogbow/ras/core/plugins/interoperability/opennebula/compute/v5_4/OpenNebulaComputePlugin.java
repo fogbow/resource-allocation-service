@@ -98,7 +98,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);
 		if (response.isError()) {
-			throw new UnexpectedException(String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeOrder.getInstanceId(),
+			throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_VM_S_S, computeOrder.getInstanceId(),
 					response.getMessage()));
 		}
 	}
@@ -134,7 +134,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	protected CreateComputeRequest getCreateComputeRequest(Client client, ComputeOrder computeOrder)
-			throws UnexpectedException, UnacceptableOperationException {
+			throws InternalServerErrorException, UnacceptableOperationException {
 		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
 				ConfigurationPropertyDefaults.SSH_COMMON_USER);
 
@@ -202,7 +202,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@VisibleForTesting
 	HardwareRequirements getFlavor(Client client, ComputeOrder computeOrder)
-			throws UnacceptableOperationException, UnexpectedException {
+			throws UnacceptableOperationException, InternalServerErrorException {
 
 		int disk = getFlavorDisk(client, computeOrder);
 		int cpu = getFlavorVcpu(computeOrder);
@@ -223,7 +223,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
 	@VisibleForTesting
-	int getFlavorDisk(Client client, ComputeOrder computeOrder) throws UnexpectedException, UnacceptableOperationException {
+	int getFlavorDisk(Client client, ComputeOrder computeOrder) throws InternalServerErrorException, UnacceptableOperationException {
 		String imageId = computeOrder.getImageId();
 		int minimumImageSize = getMinimumImageSize(client, imageId);
 		int diskInGb = computeOrder.getDisk();
@@ -240,7 +240,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@VisibleForTesting
 	int getMinimumImageSize(Client client, String imageId)
-			throws UnexpectedException, UnacceptableOperationException {
+			throws InternalServerErrorException, UnacceptableOperationException {
 
 		Map<String, String> imagesSizeMap = this.getImagesSizes(client);
 		String minimumImageSizeStr = Optional.ofNullable(imagesSizeMap.get(imageId))
@@ -259,7 +259,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return diskSizeInGb * ONE_GIGABYTE_IN_MEGABYTES;
 	}
 
-	protected Map<String, String> getImagesSizes(Client client) throws UnexpectedException {
+	protected Map<String, String> getImagesSizes(Client client) throws InternalServerErrorException {
 		Map<String, String> imagesSizeMap = new HashMap<>();
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		for (Image image : imagePool) {

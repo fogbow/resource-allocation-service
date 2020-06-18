@@ -10,7 +10,7 @@ import org.mockito.stubbing.Answer;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -34,7 +34,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     private Thread thread;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
         this.testUtils.mockLocalCloudConnectorFromFactory();
 
@@ -49,7 +49,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws InternalServerErrorException {
         if (this.thread != null) {
             this.thread.interrupt();
         }

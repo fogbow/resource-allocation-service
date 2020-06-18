@@ -170,7 +170,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	@Test
 	public void testGetAddressRangeIdFail() {
 		// set up
-		String expectedMessage = String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE, FAKE_CIDR_ADDRESS);
+		String expectedMessage = String.format(Messages.Exception.UNABLE_TO_CREATE_NETWORK_RESERVE_S, FAKE_CIDR_ADDRESS);
 
 		// exercise
 		try {
@@ -423,7 +423,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	// test case: when calling doDeleteInstance with a valid ONe virtual network, the plugin
 	// should delete it
 	@Test
-	public void testDoDeleteInstance() throws UnexpectedException {
+	public void testDoDeleteInstance() throws InternalServerErrorException {
 	    // set up
 		OneResponse response = Mockito.mock(OneResponse.class);
 
@@ -444,7 +444,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 	public void testDoDeleteInstanceFail() {
 		// set up
 		OneResponse response = Mockito.mock(OneResponse.class);
-		String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, VIRTUAL_NETWORK_RESOURCE, ID_VALUE_ZERO);
+		String message = String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, VIRTUAL_NETWORK_RESOURCE, ID_VALUE_ZERO);
 
 		Mockito.when(response.isError()).thenReturn(true);
 		Mockito.when(response.getMessage()).thenReturn(ID_VALUE_ZERO);
@@ -454,7 +454,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		try {
 			this.plugin.doDeleteInstance(this.virtualNetwork);
 			Assert.fail();
-		} catch (UnexpectedException e) {
+		} catch (InternalServerErrorException e) {
 		    Assert.assertEquals(message, e.getMessage());
 		}
 

@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import org.junit.Assert;
@@ -95,7 +95,7 @@ public class AzureImageOperationUtilTest {
     // test case: When calling encodeImageId method with mocked methods,
     // it must verify if it returns the a new encoded id
     @Test
-    public void testEncodeImageIdSuccessfully() throws UnexpectedException {
+    public void testEncodeImageIdSuccessfully() throws InternalServerErrorException {
         // set up
         String id = "publisher@#offer@#sku";
 
@@ -107,9 +107,9 @@ public class AzureImageOperationUtilTest {
     }
 
     // test case: When calling encodeImageId method and a UnsupportedEncodingException
-    // occurs, it must verify if it rethrow a UnexpectedException
+    // occurs, it must verify if it rethrow a InternalServerErrorException
     @Test
-    public void testEncodeImageIdFail() throws UnsupportedEncodingException, UnexpectedException {
+    public void testEncodeImageIdFail() throws UnsupportedEncodingException, InternalServerErrorException {
         // set up
         PowerMockito.mockStatic(URLEncoder.class);
         String separator = AzureImageOperationUtil.IMAGE_SUMMARY_ID_SEPARATOR;
@@ -122,7 +122,7 @@ public class AzureImageOperationUtilTest {
                 .thenThrow(new UnsupportedEncodingException(message));
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
         this.expectedException.expectMessage(message);
 
         // exercise
@@ -132,7 +132,7 @@ public class AzureImageOperationUtilTest {
     // test case: When calling decodeImageId method with mocked methods,
     // it must verify if it returns the right decoded id
     @Test
-    public void testDecodeImageIdSuccessfully() throws UnexpectedException, UnsupportedEncodingException {
+    public void testDecodeImageIdSuccessfully() throws InternalServerErrorException, UnsupportedEncodingException {
         // set up
         String separator = AzureImageOperationUtil.IMAGE_SUMMARY_ID_SEPARATOR;
         String expectedId = "publisher" + separator + "offer" + separator + "sku";
@@ -148,9 +148,9 @@ public class AzureImageOperationUtilTest {
     }
 
     // test case: When calling decodeImageId method and a UnsupportedEncodingException
-    // occurs, it must verify if it rethrow a UnexpectedException
+    // occurs, it must verify if it rethrow a InternalServerErrorException
     @Test
-    public void testDecodeImageIdFail() throws UnsupportedEncodingException, UnexpectedException {
+    public void testDecodeImageIdFail() throws UnsupportedEncodingException, InternalServerErrorException {
         // set up
         PowerMockito.mockStatic(URLDecoder.class);
         String id = "AfsfsDFfggH==";
@@ -160,7 +160,7 @@ public class AzureImageOperationUtilTest {
                 .thenThrow(new UnsupportedEncodingException(message));
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
         this.expectedException.expectMessage(message);
 
         // exercise
@@ -170,7 +170,7 @@ public class AzureImageOperationUtilTest {
     // test case: When encoding a value, if this value is decoded
     // the initial value should be return
     @Test
-    public void testEncodeDecodeSuccessfully() throws UnexpectedException {
+    public void testEncodeDecodeSuccessfully() throws InternalServerErrorException {
         // set up
         String separator = AzureImageOperationUtil.IMAGE_SUMMARY_ID_SEPARATOR;
         String expectedId = "publisher" + separator + "offer" + separator + "sku";

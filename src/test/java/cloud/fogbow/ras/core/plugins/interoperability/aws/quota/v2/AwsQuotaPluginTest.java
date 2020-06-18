@@ -416,7 +416,7 @@ public class AwsQuotaPluginTest extends BaseUnitTests {
         Mockito.doReturn(TestUtils.ANY_VALUE).when(this.plugin).getFlavorsFilePath();
 
         NoSuchFileException exception = new NoSuchFileException(TestUtils.ANY_VALUE);
-        String expected = String.format(Messages.Error.ERROR_MESSAGE, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise

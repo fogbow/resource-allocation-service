@@ -16,11 +16,10 @@ import com.google.gson.JsonSyntaxException;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -99,11 +98,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     }
 
     protected void doDeleteInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
-        try {
-            this.client.doDeleteRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        this.client.doDeleteRequest(endpoint, cloudUser);
     }
     
     protected VolumeInstance doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
@@ -123,22 +118,16 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     protected GetVolumeResponse doRequestInstance(String endpoint, String jsonRequest, OpenStackV3User cloudUser)
             throws FogbowException {
         
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String jsonResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
         return doGetVolumeResponseFrom(jsonResponse);
     }
 
-    protected GetVolumeResponse doGetVolumeResponseFrom(String jsonResponse) throws UnexpectedException {
+    protected GetVolumeResponse doGetVolumeResponseFrom(String jsonResponse) throws InternalServerErrorException {
         try {
             return GetVolumeResponse.fromJson(jsonResponse);
         } catch (JsonSyntaxException e) {
-            String message = Messages.Error.ERROR_WHILE_GETTING_VOLUME_INSTANCE;
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
+            LOGGER.error(Messages.Log.ERROR_WHILE_GETTING_VOLUME_INSTANCE, e);
+            throw new InternalServerErrorException(Messages.Exception.ERROR_WHILE_GETTING_VOLUME_INSTANCE);
         }
     }
     
@@ -188,23 +177,17 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         throw new UnacceptableOperationException(message);
     }
     
-    protected GetAllTypesResponse doGetAllTypesResponseFrom(String json) throws UnexpectedException {
+    protected GetAllTypesResponse doGetAllTypesResponseFrom(String json) throws InternalServerErrorException {
         try {
             return GetAllTypesResponse.fromJson(json);
         } catch (Exception e) {
-            String message = Messages.Error.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS;
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
+            LOGGER.error(Messages.Log.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS, e);
+            throw new InternalServerErrorException(Messages.Exception.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS);
         }
     }
 
     protected String doGetResponseFromCloud(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         return jsonResponse;
     }
 

@@ -30,16 +30,16 @@ public class AsyncInstanceCreationManager {
     Suggestion: Use "finishCreationCallbacks" as attribute name.
     */
     public Callbacks startCreation(String instanceId) {
-        LOGGER.debug(String.format(Messages.Info.START_ASYNC_INSTANCE_CREATION_S, instanceId));
+        LOGGER.debug(String.format(Messages.Log.START_ASYNC_INSTANCE_CREATION_S, instanceId));
         defineAsCreating(instanceId);
         return new Callbacks().builder()
                 .doOnComplete(() -> {
                     defineAsCreated(instanceId);
-                    LOGGER.debug(String.format(Messages.Info.END_ASYNC_INSTANCE_CREATION_S, instanceId));
+                    LOGGER.debug(String.format(Messages.Log.END_ASYNC_INSTANCE_CREATION_S, instanceId));
                 })
                 .doOnError(() -> {
                     defineAsFailed(instanceId);
-                    LOGGER.debug(String.format(Messages.Error.ERROR_ASYNC_INSTANCE_CREATION_S, instanceId));
+                    LOGGER.debug(String.format(Messages.Log.ERROR_ASYNC_INSTANCE_CREATION_S, instanceId));
                 }).build();
     }
 

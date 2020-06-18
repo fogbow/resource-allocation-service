@@ -24,11 +24,11 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
     @Override
     public Void send() throws Exception {
         IQ iq = RemoteCreateOrderRequest.marshal(this.order);
-        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.SENDING_MSG_S, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvider());
-        LOGGER.debug(Messages.Info.SUCCESS);
+        LOGGER.debug(Messages.Log.SUCCESS);
         return null;
     }
 

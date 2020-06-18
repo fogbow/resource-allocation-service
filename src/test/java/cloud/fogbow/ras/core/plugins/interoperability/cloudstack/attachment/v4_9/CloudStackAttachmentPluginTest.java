@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -51,7 +51,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     private String cloudStackUrl;
 
     @Before
-    public void setUp() throws InvalidParameterException, UnexpectedException {
+    public void setUp() throws InvalidParameterException, InternalServerErrorException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
@@ -105,7 +105,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     @Test(expected = FogbowException.class)
     public void testRequestInstanceFail() throws FogbowException {
         // set up
-        Mockito.doThrow(new FogbowException()).when(this.plugin)
+        Mockito.doThrow(new FogbowException("")).when(this.plugin)
                 .doRequestInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
 
         this.plugin.requestInstance(this.attachmentOrder, this.cloudStackUser);
@@ -149,7 +149,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(cloudStackUser))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -192,7 +192,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     @Test(expected = FogbowException.class)
     public void testGetInstanceFail() throws FogbowException {
         // set up
-        Mockito.doThrow(new FogbowException()).when(this.plugin).doGetInstance(
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).doGetInstance(
                 Mockito.eq(this.attachmentOrder), Mockito.any(), Mockito.eq(this.cloudStackUser));
 
         this.plugin.getInstance(this.attachmentOrder, this.cloudStackUser);
@@ -240,7 +240,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(cloudStackUser))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -261,7 +261,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     // test case: When calling the loadInstanceByJobStatus method with status complete,
     // it must verify if It returns a complete AttachmentInstance.
     @Test
-    public void testLoadInstanceByJobStatusWithCompleteInstance() throws UnexpectedException {
+    public void testLoadInstanceByJobStatusWithCompleteInstance() throws InternalServerErrorException {
         // set up
         String attachmentInstanceId = "id";
         Integer deviceIdExpected = 1;
@@ -296,7 +296,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     // test case: When calling the loadInstanceByJobStatus method with status pending,
     // it must verify if It returns a pending AttachmentInstance.
     @Test
-    public void testLoadInstanceByJobStatusWithPendingInstance() throws UnexpectedException {
+    public void testLoadInstanceByJobStatusWithPendingInstance() throws InternalServerErrorException {
         // set up
         String attachmentInstanceId = "id";
 
@@ -316,7 +316,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     // test case: When calling the loadInstanceByJobStatus method with status failed,
     // it must verify if It returns a failed AttachmentInstance.
     @Test
-    public void testLoadInstanceByJobStatusWithFailedInstance() throws UnexpectedException {
+    public void testLoadInstanceByJobStatusWithFailedInstance() throws InternalServerErrorException {
         // set up
         String attachmentInstanceId = "id";
 
@@ -338,7 +338,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     // test case: When calling the loadInstanceByJobStatus method with unknown status code,
     // it must verify if It returns an
     @Test
-    public void testLoadInstanceByJobStatusFail() throws UnexpectedException {
+    public void testLoadInstanceByJobStatusFail() throws InternalServerErrorException {
         // set up
         String attachmentInstanceId = "id";
 
@@ -347,8 +347,8 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         Mockito.when(response.getJobStatus()).thenReturn(jobStatusUnknown);
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
-        this.expectedException.expectMessage(Messages.Error.UNEXPECTED_JOB_STATUS);
+        this.expectedException.expect(InternalServerErrorException.class);
+        this.expectedException.expectMessage(Messages.Exception.UNEXPECTED_JOB_STATUS);
 
         // exercise
         this.plugin.loadInstanceByJobStatus(attachmentInstanceId, response);
@@ -356,7 +356,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
     // test case: When calling the logFailure method, it must verify if It shows the error log expected.
     @Test
-    public void testLogFailureSuccessfully() throws IOException, UnexpectedException {
+    public void testLogFailureSuccessfully() throws IOException, InternalServerErrorException {
         // set up
         int errorCode = 0;
         String errorText = "anything";
@@ -366,7 +366,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
         String msgFailed = String.format(CloudStackAttachmentPlugin.FAILED_ATTACH_ERROR_MESSAGE,
                 errorCode, errorText);
-        String msgError = String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, msgFailed);
+        String msgError = String.format(Messages.Log.ERROR_WHILE_ATTACHING_VOLUME_GENERAL_S, msgFailed);
 
         // verify
         this.plugin.logFailure(response);
@@ -375,16 +375,16 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, msgError);
     }
 
-    // test case: When calling the logFailure method and occurs an UnexpectedException,
+    // test case: When calling the logFailure method and occurs an InternalServerErrorException,
     // it must verify if It shows the warn log expected;
     @Test
-    public void testLogFailureFail() throws UnexpectedException {
+    public void testLogFailureFail() throws InternalServerErrorException {
         // set up
         AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
-        Mockito.when(response.getErrorResponse()).thenThrow(new UnexpectedException());
+        Mockito.when(response.getErrorResponse()).thenThrow(new InternalServerErrorException());
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // verify
         this.plugin.logFailure(response);
@@ -414,13 +414,13 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
                 .doDeleteInstance(Mockito.argThat(matcher), Mockito.eq(this.cloudStackUser));
     }
 
-    // test case: When calling the deleteInstance method and occurs an FogbowException,
-    // it must verify if It returns an FogbowException.
+    // test case: When calling the deleteInstance method and occurs a FogbowException,
+    // it must verify if It returns a FogbowException.
 
     @Test(expected = FogbowException.class)
     public void testDeleteInstanceFail() throws FogbowException {
         // set up
-        Mockito.doThrow(new FogbowException()).when(this.plugin)
+        Mockito.doThrow(new FogbowException("")).when(this.plugin)
                 .doDeleteInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
 
         this.plugin.deleteInstance(this.attachmentOrder, this.cloudStackUser);
@@ -462,7 +462,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.any(
                 CloudStackHttpClient.class), Mockito.anyString(), Mockito.eq(this.cloudStackUser)))
-                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                .thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -488,7 +488,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(DetachVolumeResponse.class);
         PowerMockito.when(DetachVolumeResponse.fromJson(Mockito.eq(responseStr))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);

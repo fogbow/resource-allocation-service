@@ -49,16 +49,16 @@ public class AzurePublicIPAddressOperationSDK {
             Observable<NetworkInterface> observable, AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
 
         return observable.doOnNext(nic -> {
-            LOGGER.info(Messages.Info.FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
             doAssociateNetworkSecurityGroupAsync(azure, resourceName, nic);
-            LOGGER.info(Messages.Info.SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR);
         }).onErrorReturn(error -> {
             finishCreationCallbacks.runOnError();
-            LOGGER.error(Messages.Error.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
+            LOGGER.error(Messages.Log.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
             return null;
         }).doOnCompleted(() -> {
             finishCreationCallbacks.runOnComplete();
-            LOGGER.info(Messages.Info.END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
         });
     }
 
@@ -88,11 +88,11 @@ public class AzurePublicIPAddressOperationSDK {
             String resourceName, NetworkInterface nic, Observable<NetworkInterface> observable) {
 
         return observable.onErrorReturn(error -> {
-            LOGGER.error(Messages.Error.ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR, error);
+            LOGGER.error(Messages.Log.ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR, error);
             doDisassociateAndDeletePublicIPAddressAsync(azure, resourceName, nic);
             return null;
         }).doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
         });
     }
 
@@ -139,13 +139,13 @@ public class AzurePublicIPAddressOperationSDK {
             Observable<NetworkInterface> observable, Completable completable) {
 
         return observable.doOnNext(nic -> {
-            LOGGER.info(Messages.Info.FIRST_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.FIRST_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
             subscribeDeletePublicIPAddressAsync(completable);
         }).onErrorReturn(error -> {
-            LOGGER.error(Messages.Error.ERROR_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
+            LOGGER.error(Messages.Log.ERROR_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
             return null;
         }).doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
         });
     }
 
@@ -158,9 +158,9 @@ public class AzurePublicIPAddressOperationSDK {
     @VisibleForTesting
     Completable setDeletePublicIPAddressBehaviour(Completable completable) {
         return completable.doOnError(error -> {
-            LOGGER.error(Messages.Error.ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
+            LOGGER.error(Messages.Log.ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
         }).doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR);
         });
     }
 
@@ -173,13 +173,13 @@ public class AzurePublicIPAddressOperationSDK {
     @VisibleForTesting
     Observable setDisassociateAndDeleteResourcesBehaviour(Observable observable, Completable completable) {
         return observable.doOnNext(step -> {
-            LOGGER.info(Messages.Info.FIRST_STEP_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.FIRST_STEP_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
             subscribeDeleteResources(completable);
         }).onErrorReturn(error -> {
-            LOGGER.error(Messages.Error.ERROR_DETACH_RESOURCES_ASYNC_BEHAVIOUR, (Throwable) error);
+            LOGGER.error(Messages.Log.ERROR_DETACH_RESOURCES_ASYNC_BEHAVIOUR, (Throwable) error);
             return null;
         }).doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
         });
     }
 
@@ -193,9 +193,9 @@ public class AzurePublicIPAddressOperationSDK {
     @VisibleForTesting
     Completable setDeleteResourcesBehaviour(Completable completable) {
         return completable.doOnError(error -> {
-            LOGGER.error(Messages.Error.ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR, error);
+            LOGGER.error(Messages.Log.ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR, error);
         }).doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
         });
     }
 

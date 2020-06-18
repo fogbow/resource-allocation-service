@@ -9,7 +9,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
@@ -34,7 +34,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     private Thread thread;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
         this.testUtils.mockLocalCloudConnectorFromFactory();
 
@@ -53,7 +53,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws InternalServerErrorException {
         if (this.thread != null) {
             this.thread.interrupt();
         }
@@ -186,7 +186,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         Mockito.verify(this.processor, Mockito.times(1)).processUnableToCheckStatusOrder(order);
     }
 
-    // test case: Check the throw of UnexpectedException when running the thread in
+    // test case: Check the throw of InternalServerErrorException when running the thread in
     // the UnableToCheckStatusProcessor, while running a local order.
     @Test
     public void testRunProcessLocalOrderThrowsUnexpectedException() throws Exception {
@@ -196,7 +196,7 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         order.setOrderState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
         this.unableToCheckStatus.addItem(order);
 
-        Mockito.doThrow(new UnexpectedException()).when(this.processor).processUnableToCheckStatusOrder(order);
+        Mockito.doThrow(new InternalServerErrorException()).when(this.processor).processUnableToCheckStatusOrder(order);
 
         // exercise
         this.thread = new Thread(this.processor);

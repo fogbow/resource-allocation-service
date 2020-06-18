@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.HomeDir;
@@ -242,7 +243,7 @@ public class AzureComputePluginTest {
     // test case: When calling the getUserData method, it must verify that is
     // call was successful.
     @Test
-    public void testGetUserDataSuccessfully() {
+    public void testGetUserDataSuccessfully() throws InternalServerErrorException {
         // set up
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
 
@@ -283,7 +284,7 @@ public class AzureComputePluginTest {
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
         AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
-        Mockito.doThrow(new FogbowException()).when(this.azureVirtualMachineOperation)
+        Mockito.doThrow(new FogbowException("")).when(this.azureVirtualMachineOperation)
                 .doCreateInstance(Mockito.eq(azureCreateVirtualMachineRef), Mockito.eq(finishCreationCallbacks),
                 Mockito.eq(this.azureUser));
 

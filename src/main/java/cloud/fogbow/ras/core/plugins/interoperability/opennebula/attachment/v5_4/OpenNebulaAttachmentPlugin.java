@@ -5,6 +5,7 @@ import java.util.Properties;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import cloud.fogbow.common.exceptions.*;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -14,11 +15,7 @@ import org.opennebula.client.vm.VirtualMachine;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
@@ -124,7 +121,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
         VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
         OneResponse response = virtualMachine.diskAttach(template);
         if (response.isError()) {
-            String message = String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME, imageId, response.getMessage());
+            String message = String.format(Messages.Log.ERROR_WHILE_ATTACHING_VOLUME_S_WITH_RESPONSE_S, imageId, response.getMessage());
             LOGGER.error(message);
             throw new InvalidParameterException(message);
         }
@@ -151,9 +148,9 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
         int diskId = Integer.parseInt(instanceId);
         OneResponse response = virtualMachine.diskDetach(diskId);
         if (response.isError()) {
-            String message = String.format(Messages.Error.ERROR_WHILE_DETACHING_VOLUME, diskId, response.getMessage());
+            String message = String.format(Messages.Log.ERROR_WHILE_DETACHING_VOLUME_S, diskId, response.getMessage());
             LOGGER.error(message);
-            throw new UnexpectedException(message);
+            throw new InternalServerErrorException(message);
         }
     }
 

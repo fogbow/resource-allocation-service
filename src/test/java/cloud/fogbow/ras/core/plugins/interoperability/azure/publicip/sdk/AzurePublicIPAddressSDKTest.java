@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,7 +23,6 @@ import com.microsoft.azure.management.network.PublicIPAddresses;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
@@ -326,7 +326,7 @@ public class AzurePublicIPAddressSDKTest {
     }
 
     // test case: When calling the getNetworkSecurityGroupFrom method and an
-    // unexpected error occurs, it must verify than an UnexpectedException has been
+    // unexpected error occurs, it must verify than an InternalServerErrorException has been
     // thrown.
     @Test
     public void testGetNetworkSecurityGroupFromNetworkInterfaceFail() throws Exception {
@@ -338,7 +338,7 @@ public class AzurePublicIPAddressSDKTest {
         Mockito.when(networkInterface.getNetworkSecurityGroup()).thenThrow(new RuntimeException());
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         AzurePublicIPAddressSDK.getNetworkSecurityGroupFrom(networkInterface);
@@ -364,7 +364,7 @@ public class AzurePublicIPAddressSDKTest {
     }
 
     // test case: When calling the getPrimaryNetworkInterfaceFrom method and an
-    // unexpected error occurs, it must verify than an UnexpectedException has been
+    // unexpected error occurs, it must verify than an InternalServerErrorException has been
     // thrown.
     @Test
     public void testGetPrimaryNetworkInterfaceFromVirtualMachineFail() throws Exception {
@@ -376,7 +376,7 @@ public class AzurePublicIPAddressSDKTest {
         Mockito.when(virtualMachine.getPrimaryNetworkInterface()).thenThrow(new RuntimeException());
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         AzurePublicIPAddressSDK.getPrimaryNetworkInterfaceFrom(virtualMachine);
@@ -410,7 +410,7 @@ public class AzurePublicIPAddressSDKTest {
     }
 
     // test case: When calling the getPublicIpAddress method and an unexpected error
-    // occurs, it must verify than an UnexpectedException has been thrown.
+    // occurs, it must verify than an InternalServerErrorException has been thrown.
     @Test
     public void testGetPublicIpAddressFail() throws Exception {
         // set up
@@ -426,7 +426,7 @@ public class AzurePublicIPAddressSDKTest {
         Mockito.when(publicIPAddresses.getById(Mockito.eq(resourceId))).thenThrow(new RuntimeException());
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         AzurePublicIPAddressSDK.getPublicIpAddress(azure, resourceId);

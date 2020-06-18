@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
@@ -253,7 +253,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         try {
             //exercise
             AwsV2CloudUtil.doAuthorizeSecurityGroupIngress(request, this.client);
-        } catch (UnexpectedException ex) { }
+        } catch (InternalServerErrorException ex) { }
         //verify
         Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).authorizeSecurityGroupIngress(Mockito.eq(request));
         PowerMockito.verifyStatic(AwsV2CloudUtil.class, Mockito.times(TestUtils.RUN_ONCE));
@@ -463,7 +463,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     }
     
     // test case: When calling the doDescribeAddressesRequests method, and an error
-    // occurs during the request, an UnexpectedException will be thrown.
+    // occurs during the request, an InternalServerErrorException will be thrown.
     @Test
     public void testDoDescribeAddressesRequestsFail() throws Exception {
         // set up
@@ -476,13 +476,13 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).describeAddresses(Mockito.eq(request));
         
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             AwsV2CloudUtil.doDescribeAddressesRequests(request, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -603,7 +603,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     }
     
     // test case: When calling the doDescribeSubnetsRequest method, and an error
-    // occurs during the request, an UnexpectedException will be thrown.
+    // occurs during the request, an InternalServerErrorException will be thrown.
     @Test
     public void testDoDescribeSubnetsRequestFail() throws Exception {
         // set up
@@ -616,13 +616,13 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).describeSubnets(Mockito.eq(request));
         
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             AwsV2CloudUtil.doDescribeSubnetsRequest(request, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -647,7 +647,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
     }
     
     // test case: When calling the getGroupIdFrom method with a collection of tags
-    // without a group ID, an UnexpectedException will be thrown.
+    // without a group ID, an InternalServerErrorException will be thrown.
     @Test
     public void testGetGroupIdFromTagsFail() throws FogbowException {
         // set up
@@ -661,7 +661,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
             // exercise
             AwsV2CloudUtil.getGroupIdFrom(Arrays.asList(tags));
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

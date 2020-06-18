@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Volume.*;
 
@@ -38,7 +38,7 @@ public class DeleteVolumeResponse {
         private boolean success;
     }
 
-    public static DeleteVolumeResponse fromJson(String json) throws HttpResponseException {
+    public static DeleteVolumeResponse fromJson(String json) throws FogbowException {
         DeleteVolumeResponse deleteVolumeResponse =
                 GsonHolder.getInstance().fromJson(json, DeleteVolumeResponse.class);
         deleteVolumeResponse.response.checkErrorExistence();

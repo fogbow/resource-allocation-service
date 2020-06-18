@@ -40,11 +40,11 @@ public class AzureVolumeOperationSDK {
 
         return observable.onErrorReturn((error -> {
             finishCreationCallback.runOnError();
-            LOGGER.error(Messages.Error.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR, error);
+            LOGGER.error(Messages.Log.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR, error);
             return null;
         })).doOnCompleted(() -> {
             finishCreationCallback.runOnComplete();
-            LOGGER.info(Messages.Info.END_CREATE_DISK_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_CREATE_DISK_ASYNC_BEHAVIOUR);
         });
     }
     
@@ -57,9 +57,9 @@ public class AzureVolumeOperationSDK {
     @VisibleForTesting
     Completable setDeleteDiskBehaviour(Completable completable) {
         return completable.doOnError((error -> {
-            LOGGER.error(Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
+            LOGGER.error(Messages.Log.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
         })).doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_DELETE_DISK_ASYNC_BEHAVIOUR);
         });
     }
 	

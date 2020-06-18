@@ -84,7 +84,7 @@ public class OpenStackStateMapper {
                         return InstanceState.BUSY;
                     case UNKNOWN_STATUS:
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, openStackState, COMPUTE_PLUGIN));
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, openStackState, COMPUTE_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case NETWORK:
@@ -98,7 +98,7 @@ public class OpenStackStateMapper {
                     case DOWN_STATUS:
                         return InstanceState.BUSY;
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, openStackState, NETWORK_PLUGIN));
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, openStackState, NETWORK_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case VOLUME:
@@ -127,7 +127,7 @@ public class OpenStackStateMapper {
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, openStackState, VOLUME_PLUGIN));
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, openStackState, VOLUME_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case ATTACHMENT:
@@ -143,7 +143,7 @@ public class OpenStackStateMapper {
                         return InstanceState.BUSY;
                 }
             default:
-                LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
+                LOGGER.error(Messages.Log.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;
         }
     }

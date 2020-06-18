@@ -43,7 +43,7 @@ public class AzureVolumeOperationSDKTest {
         this.operation.subscribeCreateDisk(observable, finishCreationCallback);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_DISK_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_CREATE_DISK_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeCreateDisk method and the
@@ -60,7 +60,7 @@ public class AzureVolumeOperationSDKTest {
         this.operation.subscribeCreateDisk(observable, finishCreationCallback);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeDeleteDisk method and the completable
@@ -74,7 +74,7 @@ public class AzureVolumeOperationSDKTest {
         this.operation.subscribeDeleteDisk(completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_DISK_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeDeleteDisk method and the completable
@@ -88,7 +88,7 @@ public class AzureVolumeOperationSDKTest {
         this.operation.subscribeDeleteDisk(completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
     }
 
 }

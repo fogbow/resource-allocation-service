@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.processors;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -10,7 +11,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -41,7 +41,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private Thread thread;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
         this.testUtils.mockLocalCloudConnectorFromFactory();
 
@@ -62,7 +62,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws InternalServerErrorException {
         if (this.thread != null) {
             this.thread.interrupt();
         }
@@ -291,7 +291,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Mockito.verify(this.processor, Mockito.times(1)).processSpawningOrder(order);
     }
     
-    // test case: Check the throw of UnexpectedException when running the thread in
+    // test case: Check the throw of InternalServerErrorException when running the thread in
     // the SpawningProcessor, while running a local order.
     @Test
     public void testRunProcessLocalOrderThrowsUnexpectedException() throws InterruptedException, FogbowException {
@@ -301,7 +301,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
-        Mockito.doThrow(new UnexpectedException()).when(this.processor).processSpawningOrder(order);
+        Mockito.doThrow(new InternalServerErrorException()).when(this.processor).processSpawningOrder(order);
 
         // exercise
         this.thread = new Thread(this.processor);

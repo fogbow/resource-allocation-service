@@ -125,8 +125,8 @@ public class AzureGeneralUtilTest {
                 Mockito.eq(resourceName));
 
         this.loggerAssert
-                .assertEqualsInOrder(Level.WARN, String.format(Messages.Warn.RESOURCE_CREATION_FAILED_S, exception))
-                .assertEqualsInOrder(Level.INFO, Messages.Info.CHANGE_TO_DEFAULT_RESOURCE_GROUP);
+                .assertEqualsInOrder(Level.WARN, String.format(Messages.Log.RESOURCE_CREATION_FAILED_S, exception))
+                .assertEqualsInOrder(Level.INFO, Messages.Log.CHANGE_TO_DEFAULT_RESOURCE_GROUP);
 
         Assert.assertEquals(defaultResourceGroupName, resourceGroupName);
     }

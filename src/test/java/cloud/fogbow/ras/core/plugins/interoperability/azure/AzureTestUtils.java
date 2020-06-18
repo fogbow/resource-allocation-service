@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure;
 
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import org.apache.log4j.Logger;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;

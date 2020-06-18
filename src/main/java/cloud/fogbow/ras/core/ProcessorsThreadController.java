@@ -82,7 +82,7 @@ public class ProcessorsThreadController {
      * operation require a new thread to run, you should start this thread at this method.
      */
     public void startRasThreads() {
-        LOGGER.info(Messages.Info.STARTING_THREADS);
+        LOGGER.info(Messages.Log.STARTING_THREADS);
         this.openProcessorThread.start();
         this.spawningProcessorThread.start();
         this.fulfilledProcessorThread.start();

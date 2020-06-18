@@ -5,6 +5,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
@@ -34,7 +35,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.google.gson.Gson;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.request.Network;
@@ -551,7 +551,7 @@ public class NetworkTest {
         return headers;
     }
 
-    private NetworkOrder createNetworkOrder() throws UnexpectedException {
+    private NetworkOrder createNetworkOrder() throws InternalServerErrorException {
         String userId = FAKE_USER_ID;
         String userName = FAKE_USER_NAME;
         String identityProviderId = FAKE_IDENTITY_PROVIDER_ID;

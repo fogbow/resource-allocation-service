@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager;
@@ -38,7 +38,7 @@ public interface AzureAsync<T extends OrderInstance> {
     It must be used in the getInstance method context; It returns the current Creating Instance Status.
      */
     @Nullable
-    default T getCreatingInstance(String instanceId) throws UnexpectedException {
+    default T getCreatingInstance(String instanceId) throws InternalServerErrorException {
         Status currentStatus = this.asyncInstanceCreation.getStatus(instanceId);
         boolean isInstanceCreationFinished = currentStatus == null;
         if (isInstanceCreationFinished) {
@@ -54,7 +54,7 @@ public interface AzureAsync<T extends OrderInstance> {
                 creatingInstance.setCloudState(AzureStateMapper.FAILED_STATE);
                 break;
             default:
-                throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
+                throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_ERROR);
         }
 
         return creatingInstance;
@@ -68,11 +68,11 @@ public interface AzureAsync<T extends OrderInstance> {
         try {
             Thread.sleep(SLEEP_TIME);
         } catch (InterruptedException e) {
-            LOGGER.warn(Messages.Warn.SLEEP_THREAD_INTERRUPTED);
+            LOGGER.warn(Messages.Log.SLEEP_THREAD_INTERRUPTED);
         } finally {
             Status status = this.asyncInstanceCreation.getStatus(instanceId);
             if (status == Status.FAILED) {
-                throw new FogbowException(Messages.Error.ERROR_ON_REQUEST_ASYNC_PLUGIN);
+                throw new FogbowException(Messages.Log.ERROR_ON_REQUEST_ASYNC_PLUGIN);
             }
         }
     }

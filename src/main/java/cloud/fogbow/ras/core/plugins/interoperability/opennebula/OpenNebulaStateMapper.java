@@ -49,7 +49,7 @@ public class OpenNebulaStateMapper {
                     case COMPUTE_FAILURE_STATE:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, COMPUTE_PLUGIN));
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, COMPUTE_PLUGIN));
                         return InstanceState.BUSY;
                 }
             case VOLUME:
@@ -61,7 +61,7 @@ public class OpenNebulaStateMapper {
                     case USED_STATE:
                         return InstanceState.BUSY;
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, VOLUME_PLUGIN));
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, VOLUME_PLUGIN));
                         return InstanceState.BUSY;
                 }
             case ATTACHMENT:
@@ -73,7 +73,7 @@ public class OpenNebulaStateMapper {
                     case DEFAULT_ERROR_STATE:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, ATTACHMENT_PLUGIN));
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, ATTACHMENT_PLUGIN));
                         return InstanceState.BUSY;
                 }
             case NETWORK:
@@ -83,7 +83,7 @@ public class OpenNebulaStateMapper {
                     case DEFAULT_ERROR_STATE:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, NETWORK_PLUGIN));
                         return InstanceState.BUSY;
                 }
             case PUBLIC_IP:
@@ -93,11 +93,11 @@ public class OpenNebulaStateMapper {
                     case DEFAULT_ERROR_STATE:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, PUBLIC_IP_PLUGIN));
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, PUBLIC_IP_PLUGIN));
                         return InstanceState.BUSY;
                 }
             default:
-                LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
+                LOGGER.error(Messages.Log.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;
         }
     }
@@ -113,11 +113,11 @@ public class OpenNebulaStateMapper {
                     case IMAGE_ERROR_STATE:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, IMAGE_PLUGIN));
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, IMAGE_PLUGIN));
                         return InstanceState.BUSY;
                 }
             default:
-                LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
+                LOGGER.error(Messages.Log.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;
         }
     }

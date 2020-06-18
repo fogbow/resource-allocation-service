@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
@@ -49,7 +49,7 @@ public class AzureAsyncTest {
     // test case: When calling the endInstanceCreation method,
     // it must verify if It returns null to the CreatingInstance.
     @Test
-    public void testEndInstanceCreationSuccessfully() throws UnexpectedException {
+    public void testEndInstanceCreationSuccessfully() throws InternalServerErrorException {
         // set up
         String instanceId = TestUtils.ANY_VALUE;
 
@@ -72,7 +72,7 @@ public class AzureAsyncTest {
     // test case: When calling the getCreatingInstance method when it starts instance creation,
     // it must verify if It return instanceState Creating.
     @Test
-    public void testGetCreatingInstanceSuccessfullyWhenIsCreating() throws UnexpectedException {
+    public void testGetCreatingInstanceSuccessfullyWhenIsCreating() throws InternalServerErrorException {
         // set up
         String instanceId = TestUtils.ANY_VALUE;
 
@@ -88,7 +88,7 @@ public class AzureAsyncTest {
     // test case: When calling the getCreatingInstance method when it ends instance creation,
     // it must verify if It return instance null.
     @Test
-    public void testGetCreatingInstanceSuccessfullyWhenIsNull() throws UnexpectedException {
+    public void testGetCreatingInstanceSuccessfullyWhenIsNull() throws InternalServerErrorException {
         // set up
         String instanceId = TestUtils.ANY_VALUE;
 
@@ -105,7 +105,7 @@ public class AzureAsyncTest {
     // test case: When calling the getCreatingInstance method when it occurs a fail at instance creation,
     // it must verify if It return instanceState Failed.
     @Test
-    public void testGetCreatingInstanceSuccessfullyWhenIsFailed() throws UnexpectedException {
+    public void testGetCreatingInstanceSuccessfullyWhenIsFailed() throws InternalServerErrorException {
         // set up
         String instanceId = TestUtils.ANY_VALUE;
 
@@ -192,7 +192,7 @@ public class AzureAsyncTest {
         }
 
         // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Warn.SLEEP_THREAD_INTERRUPTED);
+        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Log.SLEEP_THREAD_INTERRUPTED);
     }
 
     private class AzureWrapper implements AzureAsync<OrderInstance> {

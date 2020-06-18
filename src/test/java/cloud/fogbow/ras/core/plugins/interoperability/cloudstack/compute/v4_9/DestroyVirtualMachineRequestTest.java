@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -14,7 +14,7 @@ public class    DestroyVirtualMachineRequestTest {
 
     // test case: create DestroyVirtualMachineRequestUrl successfully
     @Test
-    public void testDestroyVirtualMachineRequestUrl() throws InvalidParameterException {
+    public void testDestroyVirtualMachineRequestUrl() throws InternalServerErrorException {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
@@ -44,8 +44,8 @@ public class    DestroyVirtualMachineRequestTest {
     }
 
     // test case: trying create DestroyVirtualMachineRequest but it occur an error
-    @Test(expected = InvalidParameterException.class)
-    public void testCreateDestroyVirtualMachineRequestWithError() throws InvalidParameterException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testCreateDestroyVirtualMachineRequestWithError() throws InternalServerErrorException {
         // exercise and verify
         new DestroyVirtualMachineRequest.Builder().build(null);
     }

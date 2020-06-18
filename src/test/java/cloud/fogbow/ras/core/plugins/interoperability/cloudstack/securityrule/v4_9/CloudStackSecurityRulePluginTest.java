@@ -2,9 +2,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v
 
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -56,7 +56,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     private String cloudStackUrl;
 
     @Before
-    public void setUp() throws UnexpectedException, InvalidParameterException {
+    public void setUp() throws InternalServerErrorException, InvalidParameterException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
@@ -141,7 +141,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackPublicIpPlugin.getPublicIpId(Mockito.eq(orderIdExpected)))
                 .thenReturn(publicIpExpected);
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin)
+        Mockito.doThrow(new FogbowException("")).when(this.plugin)
                 .doRequestInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
 
         // verify
@@ -223,7 +223,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.eq(this.client), Mockito.eq(url), Mockito.eq(this.cloudStackUser)))
-                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                .thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -401,15 +401,15 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doGetSecurityRules method with not recognized order,
-    // it must verify if It throws an UnexpectedException.
+    // it must verify if It throws an InternalServerErrorException.
     @Test
     public void testDoGetSecurityRulesFail() throws FogbowException {
         // set up
         Order order = Mockito.mock(Order.class);
         Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
 
-        this.expectedException.expect(UnexpectedException.class);
-        String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, order.getType());
+        this.expectedException.expect(InternalServerErrorException.class);
+        String errorMsg = String.format(Messages.Log.INVALID_LIST_SECURITY_RULE_TYPE_S, order.getType());
         this.expectedException.expectMessage(errorMsg);
 
         // exercise
@@ -466,7 +466,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
-                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                .thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
@@ -674,7 +674,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         // set up
         String securityRuleId = "securityRuleId";
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin).doDeleteInstance(
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).doDeleteInstance(
                 Mockito.any(), Mockito.eq(this.cloudStackUser));
 
         // verify
@@ -725,7 +725,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser)))
-                .thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                .thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -762,7 +762,7 @@ public class CloudStackSecurityRulePluginTest extends BaseUnitTests {
 
         PowerMockito.when(CloudStackCloudUtils.waitForResult(Mockito.eq(this.client),
                 Mockito.eq(this.cloudStackUrl), Mockito.eq(jobId), Mockito.eq(this.cloudStackUser)))
-                .thenThrow(new FogbowException());
+                .thenThrow(new FogbowException(""));
 
         // verify
         this.expectedException.expect(FogbowException.class);

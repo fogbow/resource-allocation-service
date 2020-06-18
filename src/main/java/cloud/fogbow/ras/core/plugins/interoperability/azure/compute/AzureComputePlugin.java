@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.compute;
 
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -66,7 +67,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String name = computeOrder.getName();
         String regionName = this.defaultRegionName;
         String resourceName = AzureGeneralUtil.generateResourceName();
@@ -101,7 +102,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     }
 
     @VisibleForTesting
-    String getUserData(ComputeOrder computeOrder) {
+    String getUserData(ComputeOrder computeOrder) throws InternalServerErrorException {
         return this.launchCommandGenerator.createLaunchCommand(computeOrder);
     }
 
@@ -165,7 +166,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     @Override
     public ComputeInstance getInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
         String instanceId = computeOrder.getInstanceId();
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, instanceId));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
         ComputeInstance creatingInstance = getCreatingInstance(instanceId);
         if (creatingInstance != null) {
@@ -208,7 +209,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     public void deleteInstance(ComputeOrder computeOrder, AzureUser azureUser)
             throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
         String instanceId = computeOrder.getInstanceId();
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         this.azureVirtualMachineOperation.doDeleteInstance(azureUser, resourceName);

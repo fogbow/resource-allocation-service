@@ -16,7 +16,7 @@ import com.microsoft.azure.management.compute.Disks;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import rx.Completable;
@@ -80,7 +80,7 @@ public class AzureVolumeSDKTest {
     }
     
     // test case: When calling the buildDeleteDiskCompletable method and an
-    // unexpected error occurs, it must verify than an UnexpectedException has been
+    // unexpected error occurs, it must verify than an InternalServerErrorException has been
     // thrown.
     @Test
     public void testBuildDeleteDiskCompletableFail() throws Exception {
@@ -95,7 +95,7 @@ public class AzureVolumeSDKTest {
         Mockito.when(disks.deleteByIdAsync(resourceId)).thenThrow(new RuntimeException());
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         AzureVolumeSDK.buildDeleteDiskCompletable(azure, resourceId);
@@ -128,7 +128,7 @@ public class AzureVolumeSDKTest {
     }
     
     // test case: When calling the getDisk method and an unexpected error occurs, it
-    // must verify than an UnexpectedException has been thrown.
+    // must verify than an InternalServerErrorException has been thrown.
     @Test
     public void testGetDiskFail() throws Exception {
         // set up
@@ -142,7 +142,7 @@ public class AzureVolumeSDKTest {
         Mockito.when(disks.getById(resourceId)).thenThrow(new RuntimeException());
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         AzureVolumeSDK.getDisk(azure, resourceId);

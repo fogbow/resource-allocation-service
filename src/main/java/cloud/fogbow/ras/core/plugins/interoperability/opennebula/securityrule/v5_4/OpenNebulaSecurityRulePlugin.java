@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import cloud.fogbow.common.exceptions.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
@@ -13,11 +14,7 @@ import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -222,9 +219,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     protected void updateSecurityGroup(SecurityGroup securityGroup, String template) throws FogbowException {
         OneResponse response = securityGroup.update(template);
         if (response.isError()) {
-            String message = String.format(Messages.Error.ERROR_WHILE_UPDATING_SECURITY_GROUPS, template);
+            String message = String.format(Messages.Log.ERROR_WHILE_UPDATING_SECURITY_GROUPS_S, template);
             LOGGER.error(message);
-            throw new UnexpectedException(message);
+            throw new InternalServerErrorException(message);
         }
     }
 
@@ -342,8 +339,8 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     protected String getSecurityGroupContentFrom(VirtualNetwork virtualNetwork) throws FogbowException {
         String content = virtualNetwork.xpath(SECURITY_GROUPS_PATH);
         if (content == null || content.isEmpty()) {
-            String message = Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED;
-            throw new UnexpectedException(message);
+            String message = Messages.Log.CONTENT_SECURITY_GROUP_NOT_DEFINED;
+            throw new InternalServerErrorException(message);
         }
         return content;
     }

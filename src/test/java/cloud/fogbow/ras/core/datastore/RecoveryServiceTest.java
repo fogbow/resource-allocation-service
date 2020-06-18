@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.datastore;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -74,7 +74,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     private Order computeOrder;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
 
         // mocking databaseManager
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
@@ -138,7 +138,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
     // test case: Adding a new compute order to database and checking with a query.
     @Test
-    public void testAddComputeOrder() throws UnexpectedException {
+    public void testAddComputeOrder() throws InternalServerErrorException {
         // set up
         Map<String, String> attributes = new HashMap<>();
         attributes.put(PROVIDER_KEY, FAKE_TOKEN_PROVIDER);
@@ -165,7 +165,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     // test case: Adding a new open compute order to database and checking that there is one element in open state
     // and there is no elements in pending state. After set the order state to pending, check reverse situation.
     @Test
-    public void testAddComputeOrderSettingState() throws UnexpectedException {
+    public void testAddComputeOrderSettingState() throws InternalServerErrorException {
         // set up
         SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
@@ -201,7 +201,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
     //// test case: Adding orders of all types and checking the method readOrders
     @Test
-    public void testAddOrdersOfAllTypes() throws UnexpectedException {
+    public void testAddOrdersOfAllTypes() throws InternalServerErrorException {
         // set up
         SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
@@ -240,8 +240,8 @@ public class RecoveryServiceTest extends BaseUnitTests {
     }
 
     // test case: Adding the same order twice and checking the exception
-    @Test(expected = UnexpectedException.class)
-    public void testSaveExistentOrder() throws UnexpectedException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testSaveExistentOrder() throws InternalServerErrorException {
         // set up
         SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
@@ -257,8 +257,8 @@ public class RecoveryServiceTest extends BaseUnitTests {
     }
 
     // test case: Call the update method of a non-existent order and checking the exception
-    @Test(expected = UnexpectedException.class)
-    public void testUpdateNonExistentOrder() throws UnexpectedException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testUpdateNonExistentOrder() throws InternalServerErrorException {
         // set up
         SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
@@ -274,7 +274,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
     //test case: test if the save operation works as expected by saving some objects and comparing the list returned by db.
     @Test
-    public void testSaveOperation() throws UnexpectedException{
+    public void testSaveOperation() throws InternalServerErrorException {
         // setup //exercise
         List<Order> expectedFulfilledOrders = testUtils.populateFedNetDbWithState(OrderState.FULFILLED, ORDERS_AMOUNT, recoveryService);
         List<Order> expectedOpenedOrders = testUtils.populateFedNetDbWithState(OrderState.OPEN, ORDERS_AMOUNT, recoveryService);

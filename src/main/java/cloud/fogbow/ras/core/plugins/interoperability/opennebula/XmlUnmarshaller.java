@@ -33,7 +33,7 @@ public class XmlUnmarshaller {
 			InputSource source = new InputSource(new StringReader(xml));
 			this.document = builder.parse(source);
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_RESPONSE_BODY);
+			LOGGER.error(Messages.Log.ERROR_WHILE_CREATING_RESPONSE_BODY);
 		}
 	}
 
@@ -54,7 +54,7 @@ public class XmlUnmarshaller {
 				return true;
 			}
 		} catch (XPathExpressionException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
+			LOGGER.error(String.format(Messages.Log.UNABLE_TO_LOAD_FLAVOURS, e), e);
 		}
 		return false;
 	}
@@ -69,7 +69,7 @@ public class XmlUnmarshaller {
 				 contextList.add(nodes.item(i).getTextContent());
 			 }
 		} catch (XPathExpressionException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e), e);
+			LOGGER.error(String.format(Messages.Log.UNABLE_TO_LOAD_FLAVOURS, e), e);
 		}
 		return contextList;
 	}

@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -29,12 +29,12 @@ public class RemoteGetCloudNamesRequest implements RemoteRequest<List<String>> {
     @Override
     public List<String> send() throws Exception {
         IQ iq = RemoteGetCloudNamesRequest.marshal(this.provider, this.systemUser);
-        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.SENDING_MSG_S, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
 
-        LOGGER.debug(Messages.Info.SUCCESS);
+        LOGGER.debug(Messages.Log.SUCCESS);
         return unmarshalImages(response);
     }
 
@@ -51,7 +51,7 @@ public class RemoteGetCloudNamesRequest implements RemoteRequest<List<String>> {
         return iq;
     }
 
-    private List<String> unmarshalImages(IQ response) throws UnexpectedException {
+    private List<String> unmarshalImages(IQ response) throws InternalServerErrorException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String listStr = queryElement.element(IqElement.CLOUD_NAMES_LIST.toString()).getText();
 
@@ -62,7 +62,7 @@ public class RemoteGetCloudNamesRequest implements RemoteRequest<List<String>> {
         try {
             cloudNamesList = (List<String>) new Gson().fromJson(listStr, Class.forName(instanceClassName));
         } catch (Exception e) {
-            throw new UnexpectedException(e.getMessage());
+            throw new InternalServerErrorException(e.getMessage());
         }
 
         return cloudNamesList;

@@ -56,7 +56,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
 
     @Override
     public ResourceQuota getUserQuota(@NotNull CloudUser cloudUser) throws FogbowException {
-        LOGGER.info(Messages.Info.GETTING_QUOTA);
+        LOGGER.info(Messages.Log.GETTING_QUOTA);
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
         User user = OpenNebulaClientUtil.getUser(userPool, cloudUser.getId());
@@ -142,7 +142,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
         try {
             converted = (int) Math.round(Double.parseDouble(number));
         } catch (NumberFormatException e) {
-            LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e));
+            LOGGER.error(String.format(Messages.Log.UNABLE_TO_LOAD_FLAVOURS, e));
         }
         return converted;
     }

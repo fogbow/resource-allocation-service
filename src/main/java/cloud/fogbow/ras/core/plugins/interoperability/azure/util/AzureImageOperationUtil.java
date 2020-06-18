@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
 import org.apache.commons.lang3.StringUtils;
@@ -59,22 +59,22 @@ public class AzureImageOperationUtil {
         return StringUtils.join(list, IMAGE_SUMMARY_NAME_SEPARATOR);
     }
 
-    public static String encode(String id) throws UnexpectedException {
+    public static String encode(String id) throws InternalServerErrorException {
         String encodedId = Base64.getEncoder().encodeToString(id.getBytes());
 
         try {
             return URLEncoder.encode(encodedId, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException ex) {
-            throw new UnexpectedException(ex.getMessage());
+            throw new InternalServerErrorException(ex.getMessage());
         }
     }
 
-    public static String decode(String encodedId) throws UnexpectedException {
+    public static String decode(String encodedId) throws InternalServerErrorException {
         try {
             String decodedId = URLDecoder.decode(encodedId, StandardCharsets.UTF_8.toString());
             return new String(Base64.getDecoder().decode(decodedId));
         } catch (UnsupportedEncodingException ex) {
-            throw new UnexpectedException(ex.getMessage());
+            throw new InternalServerErrorException(ex.getMessage());
         }
     }
 }

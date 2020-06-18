@@ -2,6 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
 import java.io.File;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -16,7 +18,6 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -31,7 +32,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUt
     GetVolumeQuotasResponse.class, 
     GetNetworkQuotasResponse.class, 
     OpenStackCloudUtils.class,
-    OpenStackHttpToFogbowExceptionMapper.class
+    HttpErrorConditionToFogbowExceptionMapper.class
 })
 public class OpenStackQuotaPluginTest extends BaseUnitTests {
 
@@ -361,11 +362,11 @@ public class OpenStackQuotaPluginTest extends BaseUnitTests {
     
     // test case: When calling the doGetQuota method and the server returns an
     // error, it must verify that the expected exception has been thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testDoGetQuotaFail() throws HttpResponseException, FogbowException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testDoGetQuotaFail() throws FogbowException {
         // set up
         String endpoint = FAKE_COMPUTE_ENDPOINT;
-        HttpResponseException exception = new HttpResponseException(HttpStatus.SC_BAD_REQUEST, TestUtils.ANY_VALUE);
+        InternalServerErrorException exception = new InternalServerErrorException(TestUtils.ANY_VALUE);
         Mockito.when(this.client.doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.cloudUser))).thenThrow(exception);
 
         this.plugin.doGetQuota(endpoint, this.cloudUser);
