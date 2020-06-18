@@ -21,16 +21,16 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+// TODO(chico) - It must be migrated to Common Project; It is related to issue #487.
 @PowerMockIgnore({"javax.management.*"})
 @PrepareForTest({TestController.Mock.class})
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(TestController.class)
-public class HttpExceptionToErrorConditionTranslatorTest {
+public class RasExceptionToHttpErrorConditionTranslatorTest {
 
-    private final String POJO_CONTROLLER_REQUEST_SUFIX = "/";
+    private final String TEST_CONTROLLER_REQUEST_SUFFIX = "/";
     private final String EXCEPTION_MESSAGE_DEFAULT = "EXCEPTION_MESSAGE_DEFAULT";
-    private final int IT_SHOULD_NEVER_HAPPEN = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
 
     @Autowired
     private MockMvc mockMvc;
@@ -176,7 +176,7 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     }
 
     private RequestBuilder createRequestBuilder() {
-        return MockMvcRequestBuilders.get(POJO_CONTROLLER_REQUEST_SUFIX);
+        return MockMvcRequestBuilders.get(TEST_CONTROLLER_REQUEST_SUFFIX);
     }
 
 }

@@ -110,7 +110,7 @@ public class AzureGeneralUtilTest {
         String resourceName = AzureTestUtils.RESOURCE_NAME;
         String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
 
-        Exception exception =new UnacceptableOperationException(Messages.Exception.RESOURCE_GROUP_LIMIT_EXCEEDED);
+        Exception exception = new UnacceptableOperationException(Messages.Exception.RESOURCE_GROUP_LIMIT_EXCEEDED);
         PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
         PowerMockito.doThrow(exception).when(AzureResourceGroupOperationUtil.class, "createResourceGroup",
                 Mockito.eq(azure), Mockito.eq(regionName), Mockito.eq(resourceName));
