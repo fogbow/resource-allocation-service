@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.api.http.response;
 
+import cloud.fogbow.ras.constants.ApiDocumentation;
 import io.swagger.annotations.ApiModelProperty;
 
 public class OrderInstance extends Instance {
@@ -11,6 +12,8 @@ public class OrderInstance extends Instance {
     private boolean isReady;
     @ApiModelProperty(position = 6)
     private boolean hasFailed;
+    @ApiModelProperty(position = 7, example = ApiDocumentation.Model.FAULT_MSG, notes = ApiDocumentation.Model.FAULT_MSG_NOTE)
+    private String faultMessage;
 
     public OrderInstance(String id) {
         super(id);
@@ -21,6 +24,12 @@ public class OrderInstance extends Instance {
     public OrderInstance(String id, String cloudState) {
         this(id);
         this.cloudState = cloudState;
+    }
+
+    public OrderInstance(String id, String cloudState, String faultMessage) {
+        this(id);
+        this.cloudState = cloudState;
+        this.faultMessage = faultMessage;
     }
 
     public InstanceState getState() {
@@ -41,6 +50,14 @@ public class OrderInstance extends Instance {
 
     public boolean isReady() {
         return isReady;
+    }
+
+    public String getFaultMessage() {
+        return faultMessage;
+    }
+
+    public void setFaultMessage(String faultMessage) {
+        this.faultMessage = faultMessage;
     }
 
     public void setReady() {

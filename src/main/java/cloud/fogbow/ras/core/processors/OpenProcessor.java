@@ -95,6 +95,7 @@ public class OpenProcessor implements Runnable {
                 }
             } catch (Exception e) {
                 order.setInstanceId(null);
+                order.setFaultMessage(e.getMessage());
                 if (order.isProviderLocal(this.localProviderId)) {
                     OrderStateTransitioner.transition(order, OrderState.FAILED_ON_REQUEST);
                 } else {

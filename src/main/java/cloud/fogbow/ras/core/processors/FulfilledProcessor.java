@@ -105,6 +105,7 @@ public class FulfilledProcessor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
                 throw e1;
             } catch (Exception e2) {
+                order.setFaultMessage(e2.getMessage());
                 LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e2));
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }

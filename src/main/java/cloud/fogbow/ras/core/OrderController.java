@@ -383,6 +383,18 @@ public class OrderController {
             case VOLUME:
                 break;
         }
+        if (instance.getClass().isInstance(OrderInstance.class)) {
+            OrderInstance orderInstance = (OrderInstance) instance;
+            if (order.getFaultMessage() == null) {
+                if (orderInstance.getFaultMessage() == null) {
+                    orderInstance.setFaultMessage("");
+                } else {
+                    order.setFaultMessage(orderInstance.getFaultMessage());
+                }
+            } else {
+                orderInstance.setFaultMessage(order.getFaultMessage());
+            }
+        }
         // Setting instance common fields that come from the order object
         instance.setProvider(order.getProvider());
         instance.setCloudName(order.getCloudName());

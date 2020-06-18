@@ -137,6 +137,8 @@ public class ApiDocumentation {
                 "\"extraUserDataFileType\":\"SHELL_SCRIPT\", " +
                 "\"tag\": \"my-user-data-tag\" }]";
         public static final String USER_DATA_NOTE = "(a script that is executed by cloudinit when the compute is booted up";
+        public static final String FAULT_MSG = "Image not found.";
+        public static final String FAULT_MSG_NOTE = "(a message describing the fault, if the instance is faulty)";
         public static final String NETWORK_IDS = "[\"13310a2c-5df3-4a0e-a1ee-202125583ffa\", \"3c6931f1-71be-4cea-af8b-0566605cc869\"]";
         public static final String NETWORK_IDS_NOTE = "(the list of network IDs to which the compute will be attached)";
         public static final String COMPUTE_REQUIREMENTS = "{\"sgx\": \"true\", \"gpgpu\": \"true\"}";
@@ -152,15 +154,6 @@ public class ApiDocumentation {
         public static final String IMAGE_NAME = "ubuntu-16.04";
         public static final String INSTANCE_ID = "9632af26-72ee-461a-99a9-1e5d59076a98";
         public static final String INSTANCE_NAME = "instance name";
-        public static final String INSTANCE_ID2 = "13310a2c-5df3-4a0e-a1ee-202125583ffa";
-        public static final String IMAGE_LIST = "\"images\": [\n" +
-                "    { \"id\": \"f1d97fdd-19af-45d1-bb91-f6a92183875f\", \"name\": \"fedora-27\"},\n" +
-                "    { \"id\": \"670f78c3-5d50-4600-90bb-d01820fddb8d\", \"name\": \"ubuntu-16.04\"},\n" +
-                "    { \"id\": \"2ee823a2-6a36-4aeb-9a74-715960b2fcea\", \"name\": \"centos6\"},\n" +
-                "    { \"id\": \"b6de0caa-680b-4f5b-851b-11e53eed1733\", \"name\": \"opensuse-42.3\"},\n" +
-                "    { \"id\": \"54b4f5dd-7a11-46bd-8d6f-1d702051c900\", \"name\": \"debian\"}\n" +
-                "]";
-        public static final String IMAGE_LIST_NOTE = "(the list of IDs and names of the images that are available to the user.)";
         public static final String NETWORKS = "";
         public static final String IP_ADDRESSES = "[\n" +
                 "    \"10.11.4.94\",\n" +

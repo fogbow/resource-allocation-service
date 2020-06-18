@@ -61,6 +61,7 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
 
     @Override
     public void updateFromRemote(PublicIpOrder remoteOrder) {
+        this.setFaultMessage(remoteOrder.getFaultMessage());
     }
 
 }

@@ -181,5 +181,6 @@ public class ComputeOrder extends Order<ComputeOrder> {
     @Override
     public void updateFromRemote(ComputeOrder remoteOrder) {
         this.setActualAllocation(remoteOrder.getActualAllocation());
+        this.setFaultMessage(remoteOrder.getFaultMessage());
     }
 }

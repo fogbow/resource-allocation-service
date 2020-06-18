@@ -95,6 +95,8 @@ public class AttachmentOrder extends Order<AttachmentOrder> {
     }
 
     @Override
-    public void updateFromRemote(AttachmentOrder remoteOrder) { }
+    public void updateFromRemote(AttachmentOrder remoteOrder) {
+        this.setFaultMessage(remoteOrder.getFaultMessage());
+    }
 
 }

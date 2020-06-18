@@ -18,7 +18,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUt
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -344,6 +343,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         String openStackState = getComputeResponse.getStatus();
         String instanceId = getComputeResponse.getId();
         String hostName = getComputeResponse.getName();
+        String faultMessage = getComputeResponse.getFaultMessage();
 
         Map<String, GetComputeResponse.Address[]> addressesContainer = getComputeResponse.getAddresses();
         List<String> ipAddresses = new ArrayList<>();
@@ -356,7 +356,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
             }
         }
 
-        return new ComputeInstance(instanceId, openStackState, hostName, ipAddresses);
+        return new ComputeInstance(instanceId, openStackState, hostName, ipAddresses, faultMessage);
     }
 
     protected String doGetRequest(String endpoint, OpenStackV3User clouUser) throws FogbowException {
