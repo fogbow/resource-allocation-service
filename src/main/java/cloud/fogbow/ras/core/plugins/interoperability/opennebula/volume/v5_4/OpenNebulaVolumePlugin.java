@@ -120,13 +120,13 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	}
 
 	protected String doRequestInstance(CreateVolumeRequest createVolumeRequest, Client client)
-			throws NoAvailableResourcesException, UnexpectedException, InvalidParameterException {
+			throws UnacceptableOperationException, UnexpectedException, InvalidParameterException {
 		VolumeImage volumeImage = createVolumeRequest.getVolumeImage();
 
 		String template = volumeImage.marshalTemplate();
 		Integer datastoreId = this.getDataStoreId(client, volumeImage.getSize());
 		if (datastoreId == null) {
-			throw new NoAvailableResourcesException();
+			throw new UnacceptableOperationException();
 		}
 
 		return OpenNebulaClientUtil.allocateImage(client, template, datastoreId);

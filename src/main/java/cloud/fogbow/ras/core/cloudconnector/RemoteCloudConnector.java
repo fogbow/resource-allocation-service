@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
@@ -27,19 +27,19 @@ public class RemoteCloudConnector implements CloudConnector {
         this.cloudName = cloudName;
     }
 
-    public Order getRemoteOrder(Order localOrder) throws RemoteCommunicationException {
+    public Order getRemoteOrder(Order localOrder) throws FogbowException {
         try {
             RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(localOrder);
             Order remoteOrder = remoteGetOrderRequest.send();
             return remoteOrder;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 
     @Override
-    public String requestInstance(Order order) throws RemoteCommunicationException {
+    public String requestInstance(Order order) throws FogbowException {
         try {
             RemoteCreateOrderRequest remoteCreateOrderRequest = new RemoteCreateOrderRequest(order);
             remoteCreateOrderRequest.send();
@@ -48,12 +48,12 @@ public class RemoteCloudConnector implements CloudConnector {
             return null;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 
     @Override
-    public void deleteInstance(Order order) throws RemoteCommunicationException, InstanceNotFoundException {
+    public void deleteInstance(Order order) throws FogbowException, InstanceNotFoundException {
         try {
             RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
             remoteDeleteOrderRequest.send();
@@ -63,12 +63,12 @@ public class RemoteCloudConnector implements CloudConnector {
         } catch (Exception e) {
             String exceptionMessage = e.getMessage();
             LOGGER.error(exceptionMessage, e);
-            throw new RemoteCommunicationException(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage, e);
         }
     }
 
     @Override
-    public OrderInstance getInstance(Order order) throws RemoteCommunicationException, InstanceNotFoundException {
+    public OrderInstance getInstance(Order order) throws FogbowException, InstanceNotFoundException {
         try {
             RemoteGetInstanceRequest remoteGetInstanceRequest = new RemoteGetInstanceRequest(order);
             OrderInstance instance = remoteGetInstanceRequest.send();
@@ -78,12 +78,12 @@ public class RemoteCloudConnector implements CloudConnector {
             throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 
     @Override
-    public Quota getUserQuota(SystemUser systemUser) throws RemoteCommunicationException {
+    public Quota getUserQuota(SystemUser systemUser) throws FogbowException {
         try {
             RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationProvider,
                     this.cloudName, systemUser);
@@ -91,12 +91,12 @@ public class RemoteCloudConnector implements CloudConnector {
             return quota;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 
     @Override
-    public List<ImageSummary> getAllImages(SystemUser systemUser) throws RemoteCommunicationException {
+    public List<ImageSummary> getAllImages(SystemUser systemUser) throws FogbowException {
         try {
             RemoteGetAllImagesRequest remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(this.destinationProvider,
                     this.cloudName, systemUser);
@@ -104,12 +104,12 @@ public class RemoteCloudConnector implements CloudConnector {
             return imagesSummaryList;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 
     @Override
-    public ImageInstance getImage(String imageId, SystemUser systemUser) throws RemoteCommunicationException {
+    public ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException {
         try {
             RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationProvider,
                     this.cloudName, imageId, systemUser);
@@ -117,26 +117,26 @@ public class RemoteCloudConnector implements CloudConnector {
             return imageInstance;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 
     @Override
     public List<SecurityRuleInstance> getAllSecurityRules(Order order, SystemUser systemUser)
-            throws RemoteCommunicationException {
+            throws FogbowException {
         try {
             RemoteGetAllSecurityRuleRequest remoteGetAllSecurityRuleRequest =
                     new RemoteGetAllSecurityRuleRequest(this.destinationProvider, order.getId(), systemUser);
             return remoteGetAllSecurityRuleRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 
     @Override
     public String requestSecurityRule(Order order, SecurityRule securityRule, SystemUser systemUser)
-            throws RemoteCommunicationException {
+            throws FogbowException {
         try {
             RemoteCreateSecurityRuleRequest remoteCreateSecurityRuleRequest = new RemoteCreateSecurityRuleRequest(
                     securityRule, systemUser, this.destinationProvider, order);
@@ -144,19 +144,19 @@ public class RemoteCloudConnector implements CloudConnector {
             return null;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws RemoteCommunicationException {
+    public void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException {
         try {
             RemoteDeleteSecurityRuleRequest remoteDeleteSecurityRuleRequest = new RemoteDeleteSecurityRuleRequest(
                     this.destinationProvider, this.cloudName, securityRuleId, systemUser);
             remoteDeleteSecurityRuleRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 }

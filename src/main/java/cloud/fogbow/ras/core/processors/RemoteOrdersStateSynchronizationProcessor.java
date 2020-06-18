@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.processors;
 
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
@@ -92,7 +92,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                     order.updateFromRemote(remoteOrder);
                     order.setOrderState(remoteOrder.getOrderState());
                 }
-            } catch (RemoteCommunicationException e) {
+            } catch (FogbowException e) {
                 LOGGER.warn(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
             }
         }

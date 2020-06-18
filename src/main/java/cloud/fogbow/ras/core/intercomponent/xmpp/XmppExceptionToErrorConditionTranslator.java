@@ -32,16 +32,15 @@ public class XmppExceptionToErrorConditionTranslator {
             return PacketError.Condition.bad_request;
         } else if (e.getClass() == InstanceNotFoundException.class) {
             return PacketError.Condition.item_not_found;
-        } else if (e.getClass() == QuotaExceededException.class) {
-            return PacketError.Condition.conflict;
-        } else if (e.getClass() == NoAvailableResourcesException.class) {
+        } else if (e.getClass() == UnacceptableOperationException.class) {
             return PacketError.Condition.not_acceptable;
         } else if (e.getClass() == UnavailableProviderException.class) {
             return PacketError.Condition.remote_server_not_found;
+        } else if (e.getClass() == ConfigurationErrorException.class) {
+            return PacketError.Condition.conflict;
         } else if (e.getClass() == UnexpectedException.class) {
             return PacketError.Condition.internal_server_error;
-        } else {
-            return PacketError.Condition.undefined_condition;
         }
+        return PacketError.Condition.undefined_condition;
     }
 }

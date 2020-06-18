@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -9,7 +10,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import cloud.fogbow.common.exceptions.QuotaExceededException;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
 
@@ -26,7 +26,7 @@ public class AzureResourceGroupOperationUtilTest {
     public ExpectedException expectedException = ExpectedException.none();
 
     // test case: When calling the createResourceGroup method and an unexpected
-    // error occurs, it must verify than a QuotaExceededException has been
+    // error occurs, it must verify than a UnacceptableOperationException has been
     // thrown.
     @Test
     public void testCreateResourceGroupFail() throws Exception {
@@ -40,7 +40,7 @@ public class AzureResourceGroupOperationUtilTest {
                 Mockito.eq(azure), Mockito.eq(regionName), Mockito.eq(resourceGroupName));
 
         // verify
-        this.expectedException.expect(QuotaExceededException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
 
         // exercise
         AzureResourceGroupOperationUtil.createResourceGroup(azure, regionName, resourceGroupName);

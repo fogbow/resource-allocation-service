@@ -20,7 +20,7 @@ import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -344,7 +344,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
                 return hardwareRequirements;
             }
         }
-        throw new NoAvailableResourcesException(Messages.Exception.NO_MATCHING_FLAVOR);
+        throw new UnacceptableOperationException(Messages.Exception.NO_MATCHING_FLAVOR);
     }
 
     /**

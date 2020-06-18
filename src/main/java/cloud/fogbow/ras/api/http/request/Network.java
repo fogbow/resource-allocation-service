@@ -39,8 +39,6 @@ public class Network {
 
     private final Logger LOGGER = Logger.getLogger(Network.class);
 
-    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
-
     @ApiOperation(value = ApiDocumentation.Network.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ResourceId> createNetwork(

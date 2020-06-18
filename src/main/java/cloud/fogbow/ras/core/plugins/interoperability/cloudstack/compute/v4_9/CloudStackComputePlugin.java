@@ -188,7 +188,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             }
         }
 
-        throw new NoAvailableResourcesException(
+        throw new UnacceptableOperationException(
                 Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
     }
 
@@ -254,7 +254,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             }
         }
 
-        throw new NoAvailableResourcesException(
+        throw new UnacceptableOperationException(
                 Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
     }
 

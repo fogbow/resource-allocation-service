@@ -269,7 +269,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.activateOrder(remoteOrder);
         Assert.assertEquals(OrderState.OPEN, remoteOrder.getOrderState());
 
-        Mockito.doThrow(new RemoteCommunicationException())
+        Mockito.doThrow(new FogbowException())
                 .when(this.ordersController).notifyRequesterToCloseOrder(Mockito.eq(remoteOrder));
 
         String warnMessageException = String.format(
@@ -305,7 +305,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Creates an order with dependencies and attempt to delete
     // it must throw an DependencyDetectedException.
-    @Test(expected = DependencyDetectedException.class) // verify
+    @Test(expected = UnacceptableOperationException.class) // verify
     public void testDeleteOrderWithoutRemovingDependenciesFirst() throws FogbowException {
         // set up
         ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
@@ -411,8 +411,8 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.activateOrder(computeOrder);
 
         RemoteCloudConnector remoteCloudConnector = this.testUtils.mockRemoteCloudConnectorFromFactory();
-        RemoteCommunicationException remoteCommunicationException = new RemoteCommunicationException();
-        Mockito.doThrow(remoteCommunicationException).when(remoteCloudConnector)
+        FogbowException fogbowException = new FogbowException();
+        Mockito.doThrow(fogbowException).when(remoteCloudConnector)
                 .deleteInstance(Mockito.eq(computeOrder));
 
         try {
@@ -960,7 +960,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     // test case: when try to delete an order in state checking_deletion,
-    // it must raise an OnGoingOperationException.
+    // it must raise an UnacceptableOperationException.
     @Test
     public void testDeleteOrderStateCheckingDeletion()
             throws Exception {
@@ -970,7 +970,7 @@ public class OrderControllerTest extends BaseUnitTests {
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
-        this.expectedException.expect(OnGoingOperationException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
 
         // exercise
@@ -978,7 +978,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     // test case: when try to delete an order in state assigned_for_delection,
-    // it must raise an OnGoingOperationException.
+    // it must raise an UnacceptableOperationException.
     @Test
     public void testDeleteOrderStateAssignedForDeletion()
             throws Exception {
@@ -988,7 +988,7 @@ public class OrderControllerTest extends BaseUnitTests {
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
-        this.expectedException.expect(OnGoingOperationException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
 
         // exercise
@@ -1047,9 +1047,9 @@ public class OrderControllerTest extends BaseUnitTests {
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
         computeOrder.setProvider(TestUtils.ANY_VALUE);
 
-        RemoteCommunicationException remoteCommunicationException = new RemoteCommunicationException();
+        FogbowException fogbowException = new FogbowException();
         RemoteCloudConnector removeCloudConnector = Mockito.mock(RemoteCloudConnector.class);
-        Mockito.doThrow(remoteCommunicationException).when(removeCloudConnector).deleteInstance(Mockito.eq(computeOrder));
+        Mockito.doThrow(fogbowException).when(removeCloudConnector).deleteInstance(Mockito.eq(computeOrder));
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(
@@ -1068,8 +1068,8 @@ public class OrderControllerTest extends BaseUnitTests {
             Assert.fail();
         } catch (FogbowException e) {
             // verify
-            Assert.assertEquals(remoteCommunicationException.getCause(), e.getCause());
-            Assert.assertEquals(remoteCommunicationException.getMessage(), e.getMessage());
+            Assert.assertEquals(fogbowException.getCause(), e.getCause());
+            Assert.assertEquals(fogbowException.getMessage(), e.getMessage());
 
             this.openOrdersList.resetPointer();
             order = this.openOrdersList.getNext();

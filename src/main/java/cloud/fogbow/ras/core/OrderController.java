@@ -117,10 +117,10 @@ public class OrderController {
             OrderState orderState = order.getOrderState();
             if (orderState.equals(OrderState.CHECKING_DELETION) ||
                     order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION)) {
-                throw new OnGoingOperationException(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
+                throw new UnacceptableOperationException(Messages.Error.DELETE_OPERATION_ALREADY_ONGOING);
             }
             if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
-                throw new DependencyDetectedException(String.format(Messages.Exception.DEPENDENCY_DETECTED,
+                throw new UnacceptableOperationException(String.format(Messages.Exception.DEPENDENCY_DETECTED,
                         order.getId(), this.orderDependencies.get(order.getId())));
             }
             if (order.getOrderState().equals(OrderState.SELECTED)) {
@@ -502,13 +502,13 @@ public class OrderController {
         return false;
     }
 
-    protected void notifyRequesterToCloseOrder(Order order) throws RemoteCommunicationException {
+    protected void notifyRequesterToCloseOrder(Order order) throws FogbowException {
         try {
             CloseOrderAtRemoteProviderRequest closeOrderAtRemoteProviderRequest = new CloseOrderAtRemoteProviderRequest(order);
             closeOrderAtRemoteProviderRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new RemoteCommunicationException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage(), e);
         }
     }
 

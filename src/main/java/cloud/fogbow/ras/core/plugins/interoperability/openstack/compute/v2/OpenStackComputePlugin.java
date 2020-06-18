@@ -247,7 +247,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
             throws FogbowException {
         HardwareRequirements bestFlavor = getBestFlavor(computeOrder, cloudUser);
         if (bestFlavor == null) {
-            throw new NoAvailableResourcesException();
+            throw new UnacceptableOperationException();
         }
         return bestFlavor;
     }

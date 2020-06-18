@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v
 import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.CidrUtils;
@@ -153,7 +154,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
             try {
                 return CloudStackCloudUtils.waitForResult(
                         this.client, this.cloudStackUrl, response.getJobId(), cloudStackUser);
-            } catch (CloudStackCloudUtils.CloudStackTimeoutException e) {
+            } catch (UnavailableProviderException e) {
                 CloudStackQueryAsyncJobResponse asyncJobResponse = CloudStackCloudUtils.getAsyncJobResponse(
                         this.client, this.cloudStackUrl, response.getJobId(), cloudStackUser);
                 deleteSecurityRule(asyncJobResponse.getJobInstanceId(), cloudStackUser);

@@ -34,8 +34,6 @@ public class Compute {
 
     private final Logger LOGGER = Logger.getLogger(Compute.class);
 
-    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
-
     @ApiOperation(value = ApiDocumentation.Compute.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ResourceId> createCompute(

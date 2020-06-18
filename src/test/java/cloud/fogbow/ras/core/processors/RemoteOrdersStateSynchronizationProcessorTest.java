@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.processors;
 
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
@@ -51,8 +51,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
     // test case: When calling the processRemoteProviderOrder method with remote FULFILLED order,
     // it must verify if It set the remote value at the same order.
     @Test
-    public void testProcessRemoteProviderOrderSuccessfullyWhenIsRemoteOrder()
-            throws UnexpectedException, RemoteCommunicationException {
+    public void testProcessRemoteProviderOrderSuccessfullyWhenIsRemoteOrder() throws FogbowException {
 
         // set up
         Order order = Mockito.mock(Order.class);
@@ -77,9 +76,9 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
     }
 
     // test case: When calling the processRemoteProviderOrder method with remote order and
-    // it throws an RemoteCommunicationException, it must verify if It logs an info message.
+    // it throws an FogbowException, it must verify if It logs an info message.
     @Test
-    public void testProcessRemoteProviderOrderFail() throws UnexpectedException, RemoteCommunicationException {
+    public void testProcessRemoteProviderOrderFail() throws FogbowException {
 
         // set up
         Order order = Mockito.spy(this.testUtils.createRemoteOrder(TestUtils.ANY_VALUE));
@@ -87,8 +86,8 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
 
         RemoteCloudConnector remoteCloudConnector = this.testUtils.mockRemoteCloudConnectorFromFactory();
         String errorMessageException = TestUtils.ANY_VALUE;
-        RemoteCommunicationException exceptionExpected = new RemoteCommunicationException(errorMessageException);
-        Mockito.when(remoteCloudConnector.getRemoteOrder(Mockito.eq(order))).thenThrow(exceptionExpected);
+        FogbowException fogbowException = new FogbowException(errorMessageException);
+        Mockito.when(remoteCloudConnector.getRemoteOrder(Mockito.eq(order))).thenThrow(fogbowException);
 
         String infoMessageExpected = String.format(Messages.Exception.GENERIC_EXCEPTION, errorMessageException);
 
@@ -102,8 +101,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
     // test case: When calling the processRemoteProviderOrder method with local FULFILLED order,
     // it must verify if It do not do anything and continue the loop.
     @Test
-    public void testProcessRemoteProviderOrderSuccessfullyWhenIsLocalOrderAndFulfilled()
-            throws UnexpectedException, RemoteCommunicationException {
+    public void testProcessRemoteProviderOrderSuccessfullyWhenIsLocalOrderAndFulfilled() throws FogbowException {
 
         // set up
         Order order = Mockito.spy(this.testUtils.createLocalOrder(TestUtils.LOCAL_MEMBER_ID));
@@ -124,8 +122,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
     // test case: When calling the processRemoteProviderOrder method with remote FAILED_ON_REQUEST order,
     // it must verify if It do not do anything and continue the loop.
     @Test
-    public void testProcessRemoteProviderOrderSuccessfullyWhenIsRemoteOrderFailed()
-            throws UnexpectedException, RemoteCommunicationException {
+    public void testProcessRemoteProviderOrderSuccessfullyWhenIsRemoteOrderFailed() throws FogbowException {
 
         // set up
         Order order = Mockito.spy(this.testUtils.createLocalOrder(TestUtils.ANY_VALUE));
@@ -146,7 +143,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
     // it must verify if It do not do anything and continue the loop.
     @Test
     public void testProcessRemoteProviderOrderSuccessfullyWhenIsRemoteOrderAssignedForDelection()
-            throws UnexpectedException, RemoteCommunicationException {
+            throws FogbowException {
 
         // set up
         Order order = Mockito.spy(this.testUtils.createLocalOrder(TestUtils.ANY_VALUE));

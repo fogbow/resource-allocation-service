@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -15,7 +16,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
@@ -459,7 +459,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the findVolumeTypeId method with requirements that do
-    // not match cloud volume types, a NoAvailableResourcesException must be thrown.
+    // not match cloud volume types, a UnacceptableOperationException must be thrown.
     @Test
     public void testFindVolumeTypeIdNoMatchRequirements() throws FogbowException {
         // set up
@@ -478,7 +478,7 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
             // exercise
             this.plugin.findVolumeTypeId(requirements, projectId, cloudUser);
             Assert.fail();
-        } catch (NoAvailableResourcesException e) {
+        } catch (UnacceptableOperationException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getPrefixEndpoint(Mockito.eq(projectId));
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetResponseFromCloud(Mockito.eq(endpoint),

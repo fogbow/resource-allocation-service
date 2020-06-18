@@ -13,7 +13,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
@@ -176,8 +175,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     
     // test case: When calling the getCloudNames method from a remote member and
     // remote communication is not set, it must throw a
-    // RemoteCommunicationException.
-    @Test(expected = RemoteCommunicationException.class) // verify
+    // FogbowException.
+    @Test(expected = FogbowException.class) // verify
     public void testGetCloudNamesWithRemoteMemberThrowsAnException() throws FogbowException {
         // set up
         String remoteMember = TestUtils.FAKE_REMOTE_MEMBER_ID;

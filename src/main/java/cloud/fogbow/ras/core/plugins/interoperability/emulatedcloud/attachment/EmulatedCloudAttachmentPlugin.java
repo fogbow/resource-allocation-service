@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.attachment;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
@@ -37,7 +37,7 @@ public class EmulatedCloudAttachmentPlugin implements AttachmentPlugin<CloudUser
         try {
             EmulatedCloudUtils.saveFileContent(newAttachmentPath, attachment.toJson());
         } catch (IOException e) {
-            throw new NoAvailableResourcesException(e.getMessage());
+            throw new UnacceptableOperationException(e.getMessage());
         }
 
         return instanceId;

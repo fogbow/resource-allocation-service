@@ -21,16 +21,16 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+// TODO(chico) - It must be migrated to Common Project; It is related to issue #487.
 @PowerMockIgnore({"javax.management.*"})
 @PrepareForTest({TestController.Mock.class})
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(TestController.class)
-public class HttpExceptionToErrorConditionTranslatorTest {
+public class RasExceptionToHttpErrorConditionTranslatorTest {
 
-    private final String POJO_CONTROLLER_REQUEST_SUFIX = "/";
+    private final String TEST_CONTROLLER_REQUEST_SUFFIX = "/";
     private final String EXCEPTION_MESSAGE_DEFAULT = "EXCEPTION_MESSAGE_DEFAULT";
-    private final int IT_SHOULD_NEVER_HAPPEN = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
 
     @Autowired
     private MockMvc mockMvc;
@@ -40,45 +40,6 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     @Before
     public void setUp() {
         this.requestBuilder = createRequestBuilder();
-    }
-
-    // test case: When any request is performed and throws a NoAvailableResourcesException,
-    // it must verify if it return a NOT_ACCEPTABLE status code.
-    @Test
-    public void testTranslationWhenIsNoAvailableResourcesException() throws Exception {
-        // set up
-        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
-        NoAvailableResourcesException exceptionThrown = new NoAvailableResourcesException(exceptionMessage);
-        int statusCodeExpected = HttpStatus.NOT_ACCEPTABLE.value();
-
-        // exercise and verify
-        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
-    }
-
-    // test case: When any request is performed and throws a QuotaExceededException,
-    // it must verify if it return a CONFLICT status code.
-    @Test
-    public void testTranslationWhenIsQuotaExceededException() throws Exception {
-        // set up
-        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
-        QuotaExceededException exceptionThrown = new QuotaExceededException(exceptionMessage);
-        int statusCodeExpected = HttpStatus.CONFLICT.value();
-
-        // exercise and verify
-        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
-    }
-
-    // test case: When any request is performed and throws a ConfigurationErrorException,
-    // it must verify if it return a UNSUPPORTED_MEDIA_TYPE status code.
-    @Test
-    public void testTranslationWhenIsConfigurationErrorException() throws Exception {
-        // set up
-        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
-        ConfigurationErrorException exceptionThrown = new ConfigurationErrorException(exceptionMessage);
-        int statusCodeExpected = IT_SHOULD_NEVER_HAPPEN;
-
-        // exercise and verify
-        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
     }
 
     // test case: When any request is performed and throws a InvalidParameterException,
@@ -107,27 +68,14 @@ public class HttpExceptionToErrorConditionTranslatorTest {
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
     }
 
-    // test case: When any request is performed and throws a UnexpectedException,
-    // it must verify if it return a GATEWAY_TIMEOUT status code.
-    @Test
-    public void testTranslationWhenIsUnexpectedException() throws Exception {
-        // set up
-        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
-        UnexpectedException exceptionThrown = new UnexpectedException(exceptionMessage);
-        int statusCodeExpected = HttpStatus.INTERNAL_SERVER_ERROR.value();
-
-        // exercise and verify
-        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
-    }
-
     // test case: When any request is performed and throws a UnavailableProviderException,
-    // it must verify if it return a GATEWAY_TIMEOUT status code.
+    // it must verify if it return a SERVICE_UNAVAILABLE status code.
     @Test
     public void testTranslationWhenIsUnavailableProviderException() throws Exception {
         // set up
         String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
         UnavailableProviderException exceptionThrown = new UnavailableProviderException(exceptionMessage);
-        int statusCodeExpected = HttpStatus.GATEWAY_TIMEOUT.value();
+        int statusCodeExpected = HttpStatus.SERVICE_UNAVAILABLE.value();
 
         // exercise and verify
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
@@ -146,19 +94,6 @@ public class HttpExceptionToErrorConditionTranslatorTest {
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
     }
 
-    // test case: When any request is performed and throws a FogbowException,
-    // it must verify if it return a UNSUPPORTED_MEDIA_TYPE status code.
-    @Test
-    public void testTranslationWhenIsFogbowException() throws Exception {
-        // set up
-        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
-        FogbowException exceptionThrown = new FogbowException(exceptionMessage);
-        int statusCodeExpected = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
-
-        // exercise and verify
-        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
-    }
-
     // test case: When any request is performed and throws a InstanceNotFoundException,
     // it must verify if it return a NOT_FOUND status code.
     @Test
@@ -172,40 +107,53 @@ public class HttpExceptionToErrorConditionTranslatorTest {
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
     }
 
-    // test case: When any request is performed and throws a DependencyDetectedException,
-    // it must verify if it return a UNSUPPORTED_MEDIA_TYPE status code.
+    // test case: When any request is performed and throws a ConfigurationErrorException,
+    // it must verify if it return a CONFLICT status code.
     @Test
-    public void testTranslationWhenIsDependencyDetectedException() throws Exception {
+    public void testTranslationWhenIsConfigurationErrorException() throws Exception {
         // set up
         String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
-        DependencyDetectedException exceptionThrown = new DependencyDetectedException(exceptionMessage);
-        int statusCodeExpected = IT_SHOULD_NEVER_HAPPEN;
+        ConfigurationErrorException exceptionThrown = new ConfigurationErrorException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.CONFLICT.value();
 
         // exercise and verify
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
     }
 
-    // test case: When any request is performed and throws a RemoteCommunicationException,
-    // it must verify if it return a GATEWAY_TIMEOUT status code.
+    // test case: When any request is performed and throws a UnacceptableOperationException,
+    // it must verify if it return a NOT_ACCEPTABLE status code.
     @Test
-    public void testTranslationWhenIsRemoteCommunicationException() throws Exception {
+    public void testTranslationWhenIsUnacceptableOperationException() throws Exception {
         // set up
         String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
-        RemoteCommunicationException exceptionThrown = new RemoteCommunicationException(exceptionMessage);
-        int statusCodeExpected = HttpStatus.GATEWAY_TIMEOUT.value();
+        UnacceptableOperationException exceptionThrown = new UnacceptableOperationException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.NOT_ACCEPTABLE.value();
 
         // exercise and verify
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
     }
 
-    // test case: When any request is performed and throws a OnGoingOperationException,
-    // it must verify if it return a UNSUPPORTED_MEDIA_TYPE status code.
+    // test case: When any request is performed and throws a UnexpectedException,
+    // it must verify if it return a INTERNAL_SERVER_ERROR status code.
     @Test
-    public void testTranslationWhenIsOnGoingOperationException() throws Exception {
+    public void testTranslationWhenIsUnexpectedException() throws Exception {
         // set up
         String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
-        OnGoingOperationException exceptionThrown = new OnGoingOperationException(exceptionMessage);
-        int statusCodeExpected = IT_SHOULD_NEVER_HAPPEN;
+        UnexpectedException exceptionThrown = new UnexpectedException(exceptionMessage);
+        int statusCodeExpected = HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+        // exercise and verify
+        checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
+    }
+
+    // test case: When any request is performed and throws any Exception,
+    // it must verify if it return a UNSUPPORTED_MEDIA_TYPE status code.
+    @Test
+    public void testTranslationWhenIsFogbowException() throws Exception {
+        // set up
+        String exceptionMessage = EXCEPTION_MESSAGE_DEFAULT;
+        Exception exceptionThrown = new Exception(exceptionMessage);
+        int statusCodeExpected = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
 
         // exercise and verify
         checkExceptionToCodeResponse(exceptionThrown, statusCodeExpected);
@@ -228,7 +176,7 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     }
 
     private RequestBuilder createRequestBuilder() {
-        return MockMvcRequestBuilders.get(POJO_CONTROLLER_REQUEST_SUFIX);
+        return MockMvcRequestBuilders.get(TEST_CONTROLLER_REQUEST_SUFFIX);
     }
 
 }

@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -603,7 +603,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the buildCreateVolumeRequest method with secondary methods mocked and
-    // there is no disk offering found, it must verify if It throws a NoAvailableResourcesException.
+    // there is no disk offering found, it must verify if It throws a UnacceptableOperationException.
     @Test
     public void testBuildCreateVolumeRequestFail() throws FogbowException {
         // set up
@@ -627,7 +627,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                 Mockito.eq(disksOfferingFilted));
 
         // verify
-        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
 
         // exercise
         this.plugin.buildCreateVolumeRequest(volumeOrder, this.cloudStackUser);

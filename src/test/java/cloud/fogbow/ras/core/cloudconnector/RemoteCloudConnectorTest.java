@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
@@ -74,7 +73,7 @@ public class RemoteCloudConnectorTest extends TestUtils {
         XmppErrorConditionToExceptionTranslator.handleError(Mockito.eq(IQResponse), Mockito.eq(order.getProvider()));
 
         // verify
-        this.expectedException.expect(RemoteCommunicationException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(exceptionMessageExpected);
 
         // exercise

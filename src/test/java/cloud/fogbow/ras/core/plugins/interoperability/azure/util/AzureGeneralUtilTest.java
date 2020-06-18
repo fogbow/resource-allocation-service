@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
 import cloud.fogbow.common.constants.AzureConstants;
-import cloud.fogbow.common.exceptions.QuotaExceededException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.LoggerAssert;
@@ -110,7 +110,7 @@ public class AzureGeneralUtilTest {
         String resourceName = AzureTestUtils.RESOURCE_NAME;
         String defaultResourceGroupName = AzureTestUtils.DEFAULT_RESOURCE_GROUP_NAME;
 
-        Exception exception =new QuotaExceededException(Messages.Exception.RESOURCE_GROUP_LIMIT_EXCEEDED);
+        Exception exception = new UnacceptableOperationException(Messages.Exception.RESOURCE_GROUP_LIMIT_EXCEEDED);
         PowerMockito.mockStatic(AzureResourceGroupOperationUtil.class);
         PowerMockito.doThrow(exception).when(AzureResourceGroupOperationUtil.class, "createResourceGroup",
                 Mockito.eq(azure), Mockito.eq(regionName), Mockito.eq(resourceName));

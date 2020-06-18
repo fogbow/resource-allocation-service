@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.AzureClientCacheManager;
@@ -235,7 +235,7 @@ public class AzureVirtualMachineOperationSDKTest {
     }
 
     // test case: When calling the findVirtualMachineSize method and does not find the virtual machine size,
-    // it must verify if It throws a NoAvailableResourcesException exception.
+    // it must verify if It throws a UnacceptableOperationException exception.
     @Test
     public void testFindVirtualMachineSizeFail() throws FogbowException {
         // set up
@@ -257,7 +257,7 @@ public class AzureVirtualMachineOperationSDKTest {
                 .thenReturn(virtualMachines);
 
         // verify
-        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
 
         // exercise
         this.operation.findVirtualMachineSize(virtualMachineSizeExpected, regionName, azure);
@@ -304,7 +304,7 @@ public class AzureVirtualMachineOperationSDKTest {
     }
 
     // test case: When calling the findVirtualMachineSize method with any virtual machine size name that
-    // fits in the requirements, it must verify if It throws a NoAvailableResourcesException.
+    // fits in the requirements, it must verify if It throws a UnacceptableOperationException.
     @Test
     public void testFindVirtualMachineSizeFailWhenSizeThatNotFits() throws Exception {
         // set up
@@ -330,7 +330,7 @@ public class AzureVirtualMachineOperationSDKTest {
                 .thenReturn(virtualMachines);
 
         // verify
-        this.expectedException.expect(NoAvailableResourcesException.class);
+        this.expectedException.expect(UnacceptableOperationException.class);
 
         // exercise
         this.operation.findVirtualMachineSize(memory, vcpu, regionName, this.azureUser);
