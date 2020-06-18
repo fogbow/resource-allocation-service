@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
@@ -12,7 +12,7 @@ public class GetVolumeRequestTest {
 
     // test case: create GetVolumeRequestUrl successfully
     @Test
-    public void testGetVolumeRequestRequestUrl() throws InvalidParameterException {
+    public void testGetVolumeRequestRequestUrl() throws InternalServerErrorException {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
@@ -48,8 +48,8 @@ public class GetVolumeRequestTest {
     }
 
     // test case: trying create GetVolumeRequestRequest but it occur an error
-    @Test(expected = InvalidParameterException.class)
-    public void testCreateGetVolumeRequestRequestWithError() throws InvalidParameterException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testCreateGetVolumeRequestRequestWithError() throws InternalServerErrorException {
         // exercise and verify
         new GetVolumeRequest.Builder().build(null);
     }

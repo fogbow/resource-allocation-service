@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.ASSOCIATE_IP_ADDRESS_RESPONSE_KEY_JSON;
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.JOB_ID_KEY_JSON;
@@ -27,7 +26,7 @@ public class AssociateIpAddressAsyncJobIdResponse {
         return this.response.getJobId();
     }
 
-    public static AssociateIpAddressAsyncJobIdResponse fromJson(String json) throws HttpResponseException {
+    public static AssociateIpAddressAsyncJobIdResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, AssociateIpAddressAsyncJobIdResponse.class);
     }
 

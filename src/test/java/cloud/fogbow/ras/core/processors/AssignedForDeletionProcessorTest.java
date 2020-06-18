@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.Messages;
@@ -37,7 +37,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
     private LoggerAssert loggerTestChecking = new LoggerAssert(AssignedForDeletionProcessor.class);
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
 
         this.orderController = Mockito.spy(new OrderController());
@@ -84,7 +84,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         Assert.assertNotNull(this.activeOrdersMap.get(order.getId()));
         Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertEquals(order, this.remoteOrderList.getNext());
-        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
+        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
     }
 
     // test case: When calling the processAssignedForDeletionOrder method
@@ -177,7 +177,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
 
         LocalCloudConnector localCloudConnector = this.testUtils.mockLocalCloudConnectorFromFactory();
-        FogbowException fogbowException = new FogbowException();
+        FogbowException fogbowException = new FogbowException("");
         Mockito.doThrow(fogbowException).when(localCloudConnector).deleteInstance(Mockito.eq(order));
 
         // exercise
@@ -198,10 +198,10 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.processor.assignForDeletion();
 
         // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
+        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
     }
 
-    // test case: When calling the assignForDeletion method and throws an UnexpectedException
+    // test case: When calling the assignForDeletion method and throws an InternalServerErrorException
     // it must verify if It logs an error message.
     @Test
     public void testAssignForDeletionFailWhenThrowsUnexpectedException() throws FogbowException, InterruptedException {
@@ -210,8 +210,8 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.assignedForDeletionOrderList.addItem(order);
 
         String errorMessage = TestUtils.ANY_VALUE;
-        UnexpectedException unexpectedException = new UnexpectedException(errorMessage);
-        Mockito.doThrow(unexpectedException).when(this.processor).processAssignedForDeletionOrder(Mockito.eq(order));
+        InternalServerErrorException internalServerErrorException = new InternalServerErrorException(errorMessage);
+        Mockito.doThrow(internalServerErrorException).when(this.processor).processAssignedForDeletionOrder(Mockito.eq(order));
 
         // exercise
         this.processor.assignForDeletion();

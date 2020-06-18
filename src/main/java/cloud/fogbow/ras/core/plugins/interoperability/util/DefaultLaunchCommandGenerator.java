@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.util;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
@@ -36,7 +37,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     }
 
     @Override
-    public String createLaunchCommand(ComputeOrder order) {
+    public String createLaunchCommand(ComputeOrder order) throws InternalServerErrorException {
         CloudInitUserDataBuilder cloudInitUserDataBuilder = CloudInitUserDataBuilder.start();
         try {
             // Here, we need to instantiate the FileReader, because, once we read this file, the stream goes to the end
@@ -75,7 +76,8 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     }
 
     protected void addExtraUserData(CloudInitUserDataBuilder cloudInitUserDataBuilder, String extraUserDataFileContent,
-                                    CloudInitUserDataBuilder.FileType extraUserDataFileType) {
+                                    CloudInitUserDataBuilder.FileType extraUserDataFileType)
+            throws InternalServerErrorException {
 
         if (extraUserDataFileContent != null && extraUserDataFileType != null) {
             String lineSeparator = "\n";
@@ -83,9 +85,9 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
             cloudInitUserDataBuilder.addFile(extraUserDataFileType, new StringReader(normalizedExtraUserData));
         } else if (extraUserDataFileContent == null) {
-            LOGGER.warn(Messages.Warn.UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL);
+            LOGGER.warn(Messages.Log.UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL);
         } else {
-            LOGGER.warn(Messages.Warn.UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL);
+            LOGGER.warn(Messages.Log.UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL);
         }
     }
 

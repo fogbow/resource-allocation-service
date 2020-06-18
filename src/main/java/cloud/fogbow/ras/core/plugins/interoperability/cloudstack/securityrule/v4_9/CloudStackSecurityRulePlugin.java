@@ -4,12 +4,11 @@ import cloud.fogbow.common.constants.CloudStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.CidrUtils;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
@@ -23,7 +22,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.C
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
@@ -50,7 +48,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
                                       @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
         checkRequestSecurityParameters(securityRule, majorOrder);
 
         String cidr = securityRule.getCidr();
@@ -74,7 +72,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
                                                        @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
         return doGetSecurityRules(majorOrder, cloudStackUser);
     }
 
@@ -82,7 +80,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     public void deleteSecurityRule(String securityRuleId, @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, securityRuleId));
         DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder()
                 .ruleId(securityRuleId)
                 .build(this.cloudStackUrl);
@@ -103,8 +101,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
             case NETWORK:
                 return new ArrayList<>();
             default:
-                String errorMsg = String.format(Messages.Error.INVALID_LIST_SECURITY_RULE_TYPE, majorOrder.getType());
-                throw new UnexpectedException(errorMsg);
+                String errorMsg = String.format(Messages.Log.INVALID_LIST_SECURITY_RULE_TYPE_S, majorOrder.getType());
+                throw new InternalServerErrorException(errorMsg);
         }
     }
 
@@ -116,15 +114,11 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
-        try {
             String jsonResponse = CloudStackCloudUtils.doRequest(this.client,
                     uriRequest.toString(), cloudStackUser);
             DeleteFirewallRuleResponse response = DeleteFirewallRuleResponse.fromJson(jsonResponse);
             CloudStackCloudUtils.waitForResult(this.client, this.cloudStackUrl,
                     response.getJobId(), cloudStackUser);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
     }
 
     @VisibleForTesting
@@ -147,21 +141,15 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
+        String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
+        CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
         try {
-            String jsonResponse = CloudStackCloudUtils.doRequest(
-                    this.client, uriRequest.toString(), cloudStackUser);
-            CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
-            try {
-                return CloudStackCloudUtils.waitForResult(
+            return CloudStackCloudUtils.waitForResult(this.client, this.cloudStackUrl, response.getJobId(), cloudStackUser);
+        } catch (UnavailableProviderException e) {
+            CloudStackQueryAsyncJobResponse asyncJobResponse = CloudStackCloudUtils.getAsyncJobResponse(
                         this.client, this.cloudStackUrl, response.getJobId(), cloudStackUser);
-            } catch (UnavailableProviderException e) {
-                CloudStackQueryAsyncJobResponse asyncJobResponse = CloudStackCloudUtils.getAsyncJobResponse(
-                        this.client, this.cloudStackUrl, response.getJobId(), cloudStackUser);
-                deleteSecurityRule(asyncJobResponse.getJobInstanceId(), cloudStackUser);
-                throw e;
-            }
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+            deleteSecurityRule(asyncJobResponse.getJobInstanceId(), cloudStackUser);
+            throw e;
         }
     }
 
@@ -177,16 +165,10 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
-        try {
-            String jsonResponse = CloudStackCloudUtils.doRequest(
-                    this.client, uriRequest.toString(), cloudStackUser);
-            ListFirewallRulesResponse response = ListFirewallRulesResponse.fromJson(jsonResponse);
-            List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse =
-                    response.getSecurityRulesResponse();
-            return convertToFogbowSecurityRules(securityRulesResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
+        ListFirewallRulesResponse response = ListFirewallRulesResponse.fromJson(jsonResponse);
+        List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse = response.getSecurityRulesResponse();
+        return convertToFogbowSecurityRules(securityRulesResponse);
     }
 
     @NotNull

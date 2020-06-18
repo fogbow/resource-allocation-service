@@ -26,7 +26,7 @@ public class AzureGeneralPolicy {
     public static void checkRegionName(String regionName) {
         if (Region.findByLabelOrName(regionName) == null) {
             throw new FatalErrorException(
-                    String.format(Messages.Exception.INVALID_REGION_NAME, regionName));
+                    String.format(Messages.Exception.INVALID_REGION_NAME_S, regionName));
         }
     }
 }

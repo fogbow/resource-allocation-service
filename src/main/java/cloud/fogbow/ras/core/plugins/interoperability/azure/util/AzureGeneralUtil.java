@@ -37,9 +37,9 @@ public interface AzureGeneralUtil {
         try {
             return AzureResourceGroupOperationUtil.createResourceGroup(azure, regionName, resourceName);
         } catch (UnacceptableOperationException e) {
-            LOGGER.warn(String.format(Messages.Warn.RESOURCE_CREATION_FAILED_S, e));
+            LOGGER.warn(String.format(Messages.Log.RESOURCE_CREATION_FAILED_S, e));
         }
-        LOGGER.info(Messages.Info.CHANGE_TO_DEFAULT_RESOURCE_GROUP);
+        LOGGER.info(Messages.Log.CHANGE_TO_DEFAULT_RESOURCE_GROUP);
         return defaultResourceGroupName;
     }
 

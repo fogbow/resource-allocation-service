@@ -143,7 +143,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// the plugin should create the base64 script using the appropriate launch command generator; create
 	// the network ids list; and, find an appropriate 'flavor' for the order.
 	@Test
-	public void testGetCreateRequestInstance() throws UnexpectedException, UnacceptableOperationException {
+	public void testGetCreateRequestInstance() throws InternalServerErrorException, UnacceptableOperationException {
 		// set up
 		LaunchCommandGenerator launchCommandGenerator = Mockito.mock(LaunchCommandGenerator.class);
 		this.plugin.setLaunchCommandGenerator(launchCommandGenerator);
@@ -214,7 +214,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getFlavorDisk with valid compute order and disk bigger than minimum
 	// disk required by ONE image, the plugin should return the disk required by user in MegaBytes.
 	@Test
-	public void testGetFlavorDiskSuccessfully() throws UnexpectedException, UnacceptableOperationException {
+	public void testGetFlavorDiskSuccessfully() throws InternalServerErrorException, UnacceptableOperationException {
 		// set up
 		int diskInGb = 2;
 		int diskExpected = diskInGb * OpenNebulaComputePlugin.ONE_GIGABYTE_IN_MEGABYTES;
@@ -299,7 +299,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// , the plugin should return the disk with disk value based on minimum disk required by ONE image.
 	@Test
 	public void testGetFlavorDiskSuccessfullyWhenNotUserNotSpecifyDisk()
-			throws UnexpectedException, UnacceptableOperationException {
+			throws InternalServerErrorException, UnacceptableOperationException {
 
 		// set up
 		int minimumDisk = 1024;
@@ -320,7 +320,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getFlavorDisk with valid compute order and disk smaller than minimum
 	// disk required by ONE image, the plugin should throws a UnacceptableOperationException.
 	@Test
-	public void testGetFlavorDiskFail() throws UnexpectedException, UnacceptableOperationException {
+	public void testGetFlavorDiskFail() throws InternalServerErrorException, UnacceptableOperationException {
 		// set up
 		int diskInGb = 2;
 		int diskExpected = diskInGb * OpenNebulaComputePlugin.ONE_GIGABYTE_IN_MEGABYTES;
@@ -342,7 +342,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getValue with valid compute order, the plugin
 	// should return an appropriate flavor.
 	@Test
-	public void testGetFlavorSuccessfully() throws UnexpectedException, UnacceptableOperationException {
+	public void testGetFlavorSuccessfully() throws InternalServerErrorException, UnacceptableOperationException {
 		// set up
 		int diskExpected = 1;
 		int cpuExpected = 2;
@@ -364,7 +364,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getValue with invalid compute order and throws a exception, the plugin
 	// should rethrow the same exception threw.
 	@Test
-	public void testGetFlavorFail() throws UnexpectedException, UnacceptableOperationException {
+	public void testGetFlavorFail() throws InternalServerErrorException, UnacceptableOperationException {
 		// set up
 		int cpuExpected = 2;
 		int memoryExpected = 3;
@@ -383,7 +383,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getMinimumImageSize and it can find an image in the list, the plugin
 	@Test
 	public void testGetMinimumImageSizeSuccessfully()
-			throws UnexpectedException, UnacceptableOperationException {
+			throws InternalServerErrorException, UnacceptableOperationException {
 
 		// set up
 		String image = "image";
@@ -407,7 +407,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// should throw a NoAvailableResourceException.
 	@Test
 	public void testGetMinimumImageSizeFail()
-			throws UnexpectedException, UnacceptableOperationException {
+			throws InternalServerErrorException, UnacceptableOperationException {
 
 		// set up
 		Map<String, String> images = new HashMap<>();
@@ -426,7 +426,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking getImagesSizes with a valid client, a map of all image ids and respective sizes
 	// should be returned
 	@Test
-	public void testGetImagesSizes() throws UnexpectedException {
+	public void testGetImagesSizes() throws InternalServerErrorException {
 	    // setup
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
 		Image image = Mockito.mock(Image.class);
@@ -568,13 +568,13 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 	}
 
 	// test case: when invoking deleteInstance with an invalid compute order, or when the terminate
-	// action does not succeed the plugin should throw an UnexpectedException
+	// action does not succeed the plugin should throw an InternalServerErrorException
 	@Test
 	public void testDeleteInstanceFail() throws FogbowException {
 		// set up
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
 		OneResponse response = Mockito.mock(OneResponse.class);
-		String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, this.computeOrder.getInstanceId(),
+		String message = String.format(Messages.Exception.ERROR_WHILE_REMOVING_VM_S_S, this.computeOrder.getInstanceId(),
                 response.getMessage());
 
 		Mockito.when(OpenNebulaClientUtil.getVirtualMachine(Mockito.any(Client.class), Mockito.anyString()))
@@ -586,7 +586,7 @@ public class OpenNebulaComputePluginTest extends OpenNebulaBaseTests {
 		try {
 			this.plugin.deleteInstance(this.computeOrder, this.cloudUser);
 			Assert.fail();
-		} catch (UnexpectedException e) {
+		} catch (InternalServerErrorException e) {
 			Assert.assertEquals(e.getMessage(), message);
 		}
 

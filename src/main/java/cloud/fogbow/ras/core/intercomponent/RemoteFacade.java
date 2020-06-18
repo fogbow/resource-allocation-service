@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.intercomponent;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
@@ -151,7 +151,7 @@ public class RemoteFacade {
         if (localOrder != null) {
             synchronized (localOrder) {
                 if (!localOrder.getProvider().equals(signallingProvider)) {
-                    throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER,
+                    throw new InternalServerErrorException(String.format(Messages.Exception.SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER_S_S,
                             signallingProvider, localOrder.getProvider()));
                 }
                 this.orderController.closeOrder(localOrder);
@@ -160,7 +160,7 @@ public class RemoteFacade {
             // The order no longer exists locally. This may only happen in rare corner cases when the remote provider
             // previously signalled that the order was closed, but failed before could save its order in stable storage.
             // When it recovers, it tries to signal again.
-            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_LOCATE_ORDER_S_S, remoteOrderId, signallingProvider));
+            LOGGER.warn(String.format(Messages.Log.UNABLE_TO_LOCATE_ORDER_S_S, remoteOrderId, signallingProvider));
             return;
         }
     }
@@ -182,11 +182,11 @@ public class RemoteFacade {
     }
 
     private void checkOrderConsistency(String requestingProvider, Order order)
-            throws UnexpectedException, InvalidParameterException {
+            throws InternalServerErrorException, InvalidParameterException {
 
         synchronized (order) {
             if (order == null || !order.getProvider().equals(this.localProviderId)) {
-                throw new UnexpectedException(Messages.Exception.INCORRECT_PROVIDER);
+                throw new InternalServerErrorException(Messages.Exception.INCORRECT_PROVIDER);
             }
             if (!order.getRequester().equals(requestingProvider)) {
                 throw new InvalidParameterException(Messages.Exception.INCORRECT_REQUESTING_PROVIDER);

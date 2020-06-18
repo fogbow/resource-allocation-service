@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -11,7 +11,7 @@ public class GetAllServiceOfferingsRequestTest {
 
     // test case: create GetAllServiceOfferingsRequestUrl successfully
     @Test
-    public void testCreateGetAllServiceOfferingsRequestUrl() throws InvalidParameterException {
+    public void testCreateGetAllServiceOfferingsRequestUrl() throws InternalServerErrorException {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
@@ -28,8 +28,8 @@ public class GetAllServiceOfferingsRequestTest {
     }
 
     // test case: trying create GetAllServiceOfferingsRequestUrl but it occur an error
-    @Test(expected = InvalidParameterException.class)
-    public void testCreateGetAllServiceOfferingsRequestWithError() throws InvalidParameterException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testCreateGetAllServiceOfferingsRequestWithError() throws InternalServerErrorException {
         // exercise and verify
         new GetAllServiceOfferingsRequest.Builder().build(null);
     }

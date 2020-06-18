@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import org.apache.http.HttpStatus;
@@ -55,7 +56,7 @@ public class GetVolumeResponseTest {
 
     // test case: create GetVolumeResponse from error Cloudstack Json Response
     @Test
-    public void testGetVolumeErrorResponseJson() throws IOException {
+    public void testGetVolumeErrorResponseJson() throws IOException, FogbowException {
         // set up
         String errorText = "anyString";
         int errorCode = HttpStatus.SC_BAD_REQUEST;
@@ -63,7 +64,7 @@ public class GetVolumeResponseTest {
                 .createGetVolumesErrorResponseJson(errorCode, errorText);
 
         // verify
-        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(errorText);
 
         // execute

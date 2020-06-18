@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
@@ -273,7 +273,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     }
     
     // Test case: When calling the doDeleteInstance method, and an unexpected error
-    // occurs, it must verify if an UnexpectedException has been thrown and after
+    // occurs, it must verify if an InternalServerErrorException has been thrown and after
     // that, the DisassociateAddresses and doReleaseAddresses methods must also be
     // invoked.
     @Test
@@ -300,7 +300,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.doReturn(FAKE_GROUP_ID).when(AwsV2CloudUtil.class, TestUtils.GET_GROUP_ID_FROM_METHOD,
                 Mockito.eq(addressTags));
 
-        PowerMockito.doThrow(new UnexpectedException()).when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD,
+        PowerMockito.doThrow(new InternalServerErrorException()).when(AwsV2CloudUtil.class, TestUtils.DO_DELETE_SECURITY_GROUP_METHOD,
                 Mockito.eq(groupId), Mockito.eq(this.client));
 
         Mockito.doNothing().when(this.plugin).doDisassociateAddresses(Mockito.anyString(), Mockito.eq(this.client));
@@ -310,7 +310,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
             // exercise
             plugin.doDeleteInstance(allocationId, computeId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDisassociateAddresses(Mockito.anyString(),
                     Mockito.eq(this.client));
@@ -337,7 +337,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the getAssociationIdFrom method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testGetAssociationIdFromTagsFail() throws FogbowException {
         // set up
@@ -349,7 +349,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
             // exercise
             this.plugin.getAssociationIdFrom(Arrays.asList(tags));
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -378,7 +378,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doDisassociateAddresses method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoDisassociateAddressesFail() throws FogbowException {
         // set up
@@ -390,14 +390,14 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
 
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).disassociateAddress(Mockito.eq(request));
-        
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.doDisassociateAddresses(associationId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -525,7 +525,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doAssociateAddress method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoAssociateAddressFail() throws Exception {
      // set up
@@ -534,13 +534,13 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
 
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).associateAddress(Mockito.any(AssociateAddressRequest.class));
-        
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+
+        String expected = exception.getMessage();
         try {
             // exercise
             this.plugin.doAssociateAddress(allocationId, networkInterfaceId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -606,7 +606,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doModifyNetworkInterfaceAttributes method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has been
+    // unexpected error occurs, it must verify if an InternalServerErrorException has been
     // thrown and after that, the AwsV2CloudUtil.doDeleteSecurityGroup and
     // doReleaseAddresses methods must also be invoked.
     @Test
@@ -625,13 +625,13 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         
         Mockito.doNothing().when(this.plugin).doReleaseAddresses(Mockito.eq(groupId), Mockito.eq(this.client));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.doModifyNetworkInterfaceAttributes(allocationId, groupId, networkInterfaceId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
 
@@ -665,7 +665,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doReleaseAddresses method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoReleaseAddressesFail() throws FogbowException {
         // set up
@@ -674,12 +674,12 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).releaseAddress(Mockito.any(ReleaseAddressRequest.class));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
         try {
             // exercise
             this.plugin.doReleaseAddresses(allocationId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -750,7 +750,7 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the handleSecurityIssues method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown and
+    // error occurs, it must verify if an InternalServerErrorException has been thrown and
     // after that, the doReleaseAddresses methods must also be invoked.
     @Test
     public void testHandleSecurityIssuesFail() throws Exception {
@@ -774,19 +774,19 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.doReturn(groupId).when(AwsV2CloudUtil.class, TestUtils.CREATE_SECURITY_GROUP_METHOD,
                 Mockito.eq(defaultVpcId), Mockito.eq(groupName), Mockito.eq(description), Mockito.eq(this.client));
 
-        UnexpectedException exception = new UnexpectedException();
+        InternalServerErrorException exception = new InternalServerErrorException();
         PowerMockito.doThrow(exception).when(AwsV2CloudUtil.class, TestUtils.DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD,
                 Mockito.eq(request), Mockito.eq(this.client));
         
         Mockito.doNothing().when(this.plugin).doReleaseAddresses(Mockito.eq(allocationId), Mockito.eq(this.client));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.handleSecurityIssues(allocationId, instance, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doReleaseAddresses(Mockito.eq(allocationId),
@@ -907,19 +907,19 @@ public class AwsPublicIpPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doAllocateAddresses method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoAllocateAddressesFail() throws FogbowException {
         // set up
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).allocateAddress(Mockito.any(AllocateAddressRequest.class));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
         try {
             // exercise
             this.plugin.doAllocateAddresses(this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.IP_ADDRESS_ID_KEY_JSON;
@@ -14,7 +14,7 @@ import static cloud.fogbow.common.constants.CloudStackConstants.SecurityGroup.LI
  */	
 public class ListFirewallRulesRequest extends CloudStackRequest {
 
-	protected ListFirewallRulesRequest(Builder builder) throws InvalidParameterException {
+	protected ListFirewallRulesRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
 		addParameter(IP_ADDRESS_ID_KEY_JSON, builder.ipAddressId);
 	}
@@ -33,7 +33,7 @@ public class ListFirewallRulesRequest extends CloudStackRequest {
             return this;
         }
 
-        public ListFirewallRulesRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public ListFirewallRulesRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new ListFirewallRulesRequest(this);
         }

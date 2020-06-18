@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.Messages;
@@ -38,7 +38,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     private LoggerAssert loggerTestChecking = new LoggerAssert(CheckingDeletionProcessor.class);
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
 
         this.orderController = Mockito.spy(new OrderController());
@@ -111,7 +111,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
                 .thenThrow(fogbowException);
 
         String exceptionMessageExpected = String.format(
-                Messages.Exception.GENERIC_EXCEPTION, exceptionMessage);
+                Messages.Exception.GENERIC_EXCEPTION_S, exceptionMessage);
 
         // exercise
         this.processor.processCheckingDeletionOrder(order);
@@ -181,17 +181,17 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Assert.assertEquals(orderRemote, this.remoteOrderList.getNext());
     }
 
-    // test case: When calling the checkDeletion method and throws an UnexpectedException
+    // test case: When calling the checkDeletion method and throws an InternalServerErrorException
     // it must verify if it logs an error message.
     @Test
-    public void testCheckDeletionFailWhenThrowsUnexpectedException() throws InterruptedException, UnexpectedException {
+    public void testCheckDeletionFailWhenThrowsUnexpectedException() throws InterruptedException, InternalServerErrorException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         this.checkingDeletionOrderList.addItem(order);
 
         String errorMessage = TestUtils.ANY_VALUE;
-        UnexpectedException unexpectedException = new UnexpectedException(errorMessage);
-        Mockito.doThrow(unexpectedException).when(this.processor).processCheckingDeletionOrder(Mockito.eq(order));
+        InternalServerErrorException internalServerErrorException = new InternalServerErrorException(errorMessage);
+        Mockito.doThrow(internalServerErrorException).when(this.processor).processCheckingDeletionOrder(Mockito.eq(order));
 
         // exercise
         this.processor.checkDeletion();
@@ -204,7 +204,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     // it must verify if It does not call processCheckingDeletionOrder.
     @Test
     public void testCheckDeletionSuccessfullyWhenThereIsNoOrder()
-            throws InterruptedException, UnexpectedException {
+            throws InterruptedException, InternalServerErrorException {
 
         // set up
         PowerMockito.mockStatic(Thread.class);

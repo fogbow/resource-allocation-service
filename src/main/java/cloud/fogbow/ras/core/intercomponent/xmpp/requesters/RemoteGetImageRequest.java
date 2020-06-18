@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -32,10 +32,10 @@ public class RemoteGetImageRequest implements RemoteRequest<ImageInstance> {
     @Override
     public ImageInstance send() throws Exception {
         IQ iq = marshal(this.provider, this.cloudName, this.imageId, this.systemUser);
-        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.SENDING_MSG_S, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
-        LOGGER.debug(Messages.Info.SUCCESS);
+        LOGGER.debug(Messages.Log.SUCCESS);
         return unmarshalImage(response);
     }
 
@@ -58,7 +58,7 @@ public class RemoteGetImageRequest implements RemoteRequest<ImageInstance> {
         return iq;
     }
 
-    private ImageInstance unmarshalImage(IQ response) throws UnexpectedException {
+    private ImageInstance unmarshalImage(IQ response) throws InternalServerErrorException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String imageStr = queryElement.element(IqElement.IMAGE.toString()).getText();
 
@@ -67,7 +67,7 @@ public class RemoteGetImageRequest implements RemoteRequest<ImageInstance> {
         try {
             return (ImageInstance) new Gson().fromJson(imageStr, Class.forName(instanceClassName));
         } catch (Exception e) {
-            throw new UnexpectedException(e.getMessage());
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 }

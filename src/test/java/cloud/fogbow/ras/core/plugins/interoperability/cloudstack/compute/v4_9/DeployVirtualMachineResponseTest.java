@@ -18,7 +18,7 @@ public class DeployVirtualMachineResponseTest {
 
     // test case: create DeployVirtualMachineResponse from Cloudstack Json Response
     @Test
-    public void testDeployVirtualMachineResponse() throws IOException {
+    public void testDeployVirtualMachineResponse() throws IOException, FogbowException {
         // set up
         String id = "id";
         String json = CloudstackTestUtils.createDeployVirtualMachineResponseJson(id);
@@ -41,7 +41,7 @@ public class DeployVirtualMachineResponseTest {
                 errorCode, errorText);
 
         // verify
-        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(errorText);
 
         // exercise

@@ -3,10 +3,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.image.v2;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -29,7 +29,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import java.io.File;
 import java.util.*;
 
-@PrepareForTest({GetImageResponse.class, OpenStackHttpToFogbowExceptionMapper.class, DatabaseManager.class})
+@PrepareForTest({GetImageResponse.class, HttpErrorConditionToFogbowExceptionMapper.class, DatabaseManager.class})
 public class OpenStackImagePluginTest extends BaseUnitTests{
 
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
@@ -49,7 +49,7 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
     private OpenStackV3User localUserAttributes;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         this.plugin = Mockito.spy(new OpenStackImagePlugin(cloudConfPath));
@@ -158,14 +158,12 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
         Assert.assertNotNull(imageInstance);
     }
 
-    //test case: Test if getImageId calls OpenStackHttpToFogbowExceptionMapper when a http error occurs.
+    //test case: Test if getImageId calls HttpErrorConditionToFogbowExceptionMapper when a http error occurs.
     @Test
     public void testGetImageResponseWhenHttpError() throws Exception {
         //set up
-        HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, TestUtils.EMPTY_STRING);
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, "map", Mockito.any());
+        UnauthorizedRequestException expectedException = new UnauthorizedRequestException(TestUtils.EMPTY_STRING);
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(expectedException);
 
         try {
             //exercise
@@ -173,8 +171,7 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
             Assert.fail();
         } catch(UnauthorizedRequestException ex) {
             //verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(httpResponseException);
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
 
@@ -200,10 +197,8 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
     public void testGetImagesResponseWhenHttpError() throws Exception {
         //setup
         OpenStackV3User cloudUser = Mockito.mock(OpenStackV3User.class);
-        HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, TestUtils.EMPTY_STRING);
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, "map", Mockito.any());
+        FogbowException expectedException = new FogbowException(TestUtils.EMPTY_STRING);
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(expectedException);
         try {
             //exercise
             plugin.getImagesResponse(cloudUser);
@@ -211,8 +206,7 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
             Assert.fail();
         } catch (FogbowException ex) {
             //verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(httpResponseException);
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
 
@@ -267,10 +261,8 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
         images.add(new GetImageResponse());
         Mockito.when(getImageResponse.getImages()).thenReturn(images);
         Mockito.when(getImageResponse.getNext()).thenReturn("json");
-        HttpResponseException httpResponseException = new HttpResponseException(500, TestUtils.EMPTY_STRING);
-        Mockito.when(client.doGetRequest(Mockito.any(), Mockito.any())).thenThrow(httpResponseException);
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, "map", Mockito.any());
+        FogbowException expectedException = new FogbowException(TestUtils.EMPTY_STRING);
+        Mockito.when(client.doGetRequest(Mockito.any(), Mockito.any())).thenThrow(expectedException);
         GetAllImagesResponse getAllImagesResponseAux = Mockito.mock(GetAllImagesResponse.class);
         Mockito.when(getAllImagesResponseAux.getImages()).thenReturn(new ArrayList<>());
         Mockito.doReturn(getAllImagesResponseAux).when(plugin).getAllImagesResponse(Mockito.any());
@@ -281,8 +273,7 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
             plugin.getNextImageListResponseByPagination(cloudUser, getImageResponse, new ArrayList<>());
         } catch (FogbowException ex) {
             //verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(1));
-            OpenStackHttpToFogbowExceptionMapper.map(httpResponseException);
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(1));
         }
     }
 

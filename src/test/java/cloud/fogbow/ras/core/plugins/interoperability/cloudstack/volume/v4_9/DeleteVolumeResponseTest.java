@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -18,23 +19,22 @@ public class DeleteVolumeResponseTest {
     // test case: When calling the fromJson method, it must verify
     // if It returns the right DeleteVolumeResponse.
     @Test
-    public void testFromJsonSuccessfully() throws IOException {
+    public void testFromJsonSuccessfully() throws IOException, FogbowException {
         // set up
         boolean status = true;
         String deleteVolumeResponseJson = CloudstackTestUtils.createDeleteVolumeResponseJson(status, null);
 
         // execute
-        DeleteVolumeResponse deleteVolumeResponse =
-                DeleteVolumeResponse.fromJson(deleteVolumeResponseJson);
+        DeleteVolumeResponse deleteVolumeResponse = DeleteVolumeResponse.fromJson(deleteVolumeResponseJson);
 
         // verify
         Assert.assertEquals(status, deleteVolumeResponse.isSuccess());
     }
 
     // test case: When calling the fromJson method with error json response,
-    // it must verify if It throws a HttpResponseException.
+    // it must verify if It throws a FogbowException.
     @Test
-    public void testFromJsonFail() throws IOException {
+    public void testFromJsonFail() throws IOException, FogbowException {
         // set up
         String errorText = "anyString";
         int errorCode = HttpStatus.SC_BAD_REQUEST;
@@ -42,7 +42,7 @@ public class DeleteVolumeResponseTest {
                 .createDeleteVolumeErrorResponseJson(errorCode, errorText);
 
         // verify
-        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(errorText);
 
         // execute

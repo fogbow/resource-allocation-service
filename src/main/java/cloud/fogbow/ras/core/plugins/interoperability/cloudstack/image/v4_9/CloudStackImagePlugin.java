@@ -5,7 +5,6 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
@@ -13,7 +12,6 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
@@ -42,7 +40,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     public List<ImageSummary> getAllImages(@NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(Messages.Info.REQUESTING_GET_ALL_FROM_PROVIDER);
+        LOGGER.info(Messages.Log.REQUESTING_GET_ALL_FROM_PROVIDER);
 
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
                 .build(this.cloudStackUrl);
@@ -54,7 +52,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     public ImageInstance getImage(String imageId, @VisibleForTesting CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
 
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
                 .id(imageId)
@@ -107,13 +105,8 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
-        try {
-            String jsonResponse = CloudStackCloudUtils.doRequest(
-                    this.client, uriRequest.toString(), cloudStackUser);
-            return GetAllImagesResponse.fromJson(jsonResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
+        return GetAllImagesResponse.fromJson(jsonResponse);
     }
 
     @VisibleForTesting

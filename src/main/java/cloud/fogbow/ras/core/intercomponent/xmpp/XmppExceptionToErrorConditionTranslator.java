@@ -18,7 +18,7 @@ public class XmppExceptionToErrorConditionTranslator {
         if (e.getMessage() != null) {
             error.setText(e.getMessage());
         } else {
-            error.setText(String.format(Messages.Error.UNEXPECTED_ERROR_WITH_MESSAGE, e.toString()));
+            error.setText(String.format(Messages.Log.UNEXPECTED_ERROR_WITH_MESSAGE_S, e.toString()));
         }
         response.setError(error);
     }
@@ -38,7 +38,7 @@ public class XmppExceptionToErrorConditionTranslator {
             return PacketError.Condition.remote_server_not_found;
         } else if (e.getClass() == ConfigurationErrorException.class) {
             return PacketError.Condition.conflict;
-        } else if (e.getClass() == UnexpectedException.class) {
+        } else if (e.getClass() == InternalServerErrorException.class) {
             return PacketError.Condition.internal_server_error;
         }
         return PacketError.Condition.undefined_condition;

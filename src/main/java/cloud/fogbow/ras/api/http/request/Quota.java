@@ -43,12 +43,12 @@ public class Quota {
         @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_RESOURCE_S_REQUEST, QUOTA_SUFFIX_ENDPOINT, providerId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_RESOURCE_S_REQUEST_S, QUOTA_SUFFIX_ENDPOINT, providerId));
             ResourceQuota resourceQuota = ApplicationFacade.getInstance().getResourceQuota(providerId, cloudName,
                     systemUserToken);
             return new ResponseEntity<>(resourceQuota, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }

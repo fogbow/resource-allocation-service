@@ -82,7 +82,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		try {
 			size =  Integer.parseInt(number);
 		} catch (NumberFormatException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
 		}
 		return size;
 	}

@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.models.orders;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.SerializedEntityHolder;
@@ -113,8 +113,8 @@ public abstract class Order<T extends Order> implements Serializable {
         this.orderState = state;
     }
 
-    public void setOrderState(OrderState state) throws UnexpectedException {
-        LOGGER.debug(String.format(Messages.Info.ORDER_S_CHANGED_STATE_TO_S, this.getId(), state));
+    public void setOrderState(OrderState state) throws InternalServerErrorException {
+        LOGGER.debug(String.format(Messages.Log.ORDER_S_CHANGED_STATE_TO_S, this.getId(), state));
         this.orderState = state;
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         if (state.equals(OrderState.OPEN)) {
@@ -200,12 +200,12 @@ public abstract class Order<T extends Order> implements Serializable {
     }
 
     @PostLoad
-    private void deserializeSystemUser() throws UnexpectedException {
+    private void deserializeSystemUser() throws InternalServerErrorException {
         try {
             SerializedEntityHolder serializedSystemUserHolder = GsonHolder.getInstance().fromJson(this.getSerializedSystemUser(), SerializedEntityHolder.class);
             this.setSystemUser((SystemUser) serializedSystemUserHolder.getSerializedEntity());
         } catch(ClassNotFoundException exception) {
-            throw new UnexpectedException(Messages.Exception.UNABLE_TO_DESERIALIZE_SYSTEM_USER);
+            throw new InternalServerErrorException(Messages.Exception.UNABLE_TO_DESERIALIZE_SYSTEM_USER);
         }
     }
 
@@ -260,5 +260,5 @@ public abstract class Order<T extends Order> implements Serializable {
         this.type = type;
     }
 
-    public abstract void updateFromRemote(T remoteOrder) throws UnexpectedException;
+    public abstract void updateFromRemote(T remoteOrder) throws InternalServerErrorException;
 }

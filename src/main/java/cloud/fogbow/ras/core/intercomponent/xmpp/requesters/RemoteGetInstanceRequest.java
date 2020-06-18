@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -28,12 +28,12 @@ public class RemoteGetInstanceRequest implements RemoteRequest<Instance> {
     public OrderInstance send() throws Exception {
 
         IQ iq = marshal(this.order);
-        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.SENDING_MSG_S, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvider());
         OrderInstance instance = unmarshalInstance(response);
-        LOGGER.debug(Messages.Info.SUCCESS);
+        LOGGER.debug(Messages.Log.SUCCESS);
         return instance;
     }
 
@@ -58,7 +58,7 @@ public class RemoteGetInstanceRequest implements RemoteRequest<Instance> {
         return iq;
     }
 
-    private OrderInstance unmarshalInstance(IQ response) throws UnexpectedException {
+    private OrderInstance unmarshalInstance(IQ response) throws InternalServerErrorException {
 
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String instanceStr = queryElement.element(IqElement.INSTANCE.toString()).getText();
@@ -69,7 +69,7 @@ public class RemoteGetInstanceRequest implements RemoteRequest<Instance> {
         try {
             instance = (OrderInstance) new Gson().fromJson(instanceStr, Class.forName(instanceClassName));
         } catch (Exception e) {
-            throw new UnexpectedException(e.getMessage());
+            throw new InternalServerErrorException(e.getMessage());
         }
 
         return instance;

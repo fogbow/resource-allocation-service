@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.JOB_ID_KEY_JSON;
@@ -8,7 +8,7 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.QUERY
 
 public class AttachmentJobStatusRequest extends CloudStackRequest {
 
-    private AttachmentJobStatusRequest(Builder builder) throws InvalidParameterException {
+    private AttachmentJobStatusRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
         addParameter(JOB_ID_KEY_JSON, builder.jobId);
     }
@@ -32,7 +32,7 @@ public class AttachmentJobStatusRequest extends CloudStackRequest {
             return this;
         }
         
-        public AttachmentJobStatusRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public AttachmentJobStatusRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new AttachmentJobStatusRequest(this);
         }

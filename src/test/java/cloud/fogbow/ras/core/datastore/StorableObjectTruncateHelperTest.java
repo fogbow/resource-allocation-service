@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.datastore;
 
 import cloud.fogbow.common.datastore.StorableObjectTruncateHelper;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -14,7 +14,7 @@ import java.util.Random;
 
 public class StorableObjectTruncateHelperTest {
     @Test
-    public void testGetAllFields() throws UnexpectedException {
+    public void testGetAllFields() throws InternalServerErrorException {
         Object object = new Object();
         StorableObjectTruncateHelper<Object> objectTruncateHelper = new StorableObjectTruncateHelper<>(object.getClass());
 
@@ -22,7 +22,7 @@ public class StorableObjectTruncateHelperTest {
     }
 
     @Test
-    public void testTruncateOrder() throws UnexpectedException {
+    public void testTruncateOrder() throws InternalServerErrorException {
         String userId = "userId";
         String userName = "userName";
         String identityProviderId = "identityProviderId";

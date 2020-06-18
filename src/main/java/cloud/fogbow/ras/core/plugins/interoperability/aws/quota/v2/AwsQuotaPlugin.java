@@ -250,9 +250,8 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
         try {
             return Files.readAllLines(path);
         } catch (IOException e) {
-            String message = String.format(Messages.Error.ERROR_MESSAGE, e);
-            LOGGER.error(message, e);
-            throw new ConfigurationErrorException(message);
+            LOGGER.error(e.getMessage());
+            throw new ConfigurationErrorException(e.getMessage());
         }
     }
 

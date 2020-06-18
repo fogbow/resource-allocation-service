@@ -2,10 +2,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.volume.v2;
 
 import java.util.Properties;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -54,7 +54,7 @@ public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+		LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		
 		CreateVolumeRequest request = CreateVolumeRequest.builder()
@@ -67,7 +67,7 @@ public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
 
 	@Override
 	public VolumeInstance getInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
+		LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String volumeId = volumeOrder.getInstanceId();
 		return doGetInstance(volumeId, client);
@@ -75,21 +75,21 @@ public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
 
 	@Override
 	public void deleteInstance(VolumeOrder volumeOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
+		LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String volumeId = volumeOrder.getInstanceId();
 		doDeleteInstance(volumeId, client);
 	}
 
-	protected void doDeleteInstance(String volumeId, Ec2Client client) throws UnexpectedException {
+	protected void doDeleteInstance(String volumeId, Ec2Client client) throws InternalServerErrorException {
 	    DeleteVolumeRequest request = DeleteVolumeRequest.builder()
 	            .volumeId(volumeId)
 	            .build();
 	    try {
 			client.deleteVolume(request);
 		} catch (SdkException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, request.volumeId()), e);
-			throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, RESOURCE_NAME, request.volumeId()), e);
+			throw new InternalServerErrorException(e.getMessage());
 		}
 	}
 	
@@ -119,7 +119,7 @@ public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
             AwsV2CloudUtil.createTagsRequest(volumeId, AwsV2CloudUtil.AWS_TAG_NAME, order.getName(), client);
             updateVolumeAllocation(order, response);
         } catch (Exception e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
         return volumeId;
     }

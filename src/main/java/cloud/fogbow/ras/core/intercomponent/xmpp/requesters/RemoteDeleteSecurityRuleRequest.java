@@ -32,10 +32,10 @@ public class RemoteDeleteSecurityRuleRequest implements RemoteRequest<Void> {
     public Void send() throws Exception {
         IQ iq = marshal();
 
-        LOGGER.debug(String.format(Messages.Info.SENDING_MSG, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.SENDING_MSG_S, iq.getID()));
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
-        LOGGER.debug(Messages.Info.SUCCESS);
+        LOGGER.debug(Messages.Log.SUCCESS);
         return null;
     }
 

@@ -5,7 +5,7 @@ import java.util.List;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.constants.Messages;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -46,11 +46,11 @@ public class AwsV2CloudUtil {
     }
     
     public static DescribeImagesResponse doDescribeImagesRequest(DescribeImagesRequest request, Ec2Client client)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
         try {
             return client.describeImages(request);
         } catch (Exception e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
@@ -66,7 +66,7 @@ public class AwsV2CloudUtil {
         try {
             return client.describeVolumes(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
@@ -85,7 +85,7 @@ public class AwsV2CloudUtil {
         try {
             client.createTags(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -96,7 +96,7 @@ public class AwsV2CloudUtil {
         try {
             client.deleteSecurityGroup(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -112,7 +112,7 @@ public class AwsV2CloudUtil {
             CreateSecurityGroupResponse response = client.createSecurityGroup(request);
             return response.groupId();
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -122,7 +122,7 @@ public class AwsV2CloudUtil {
             client.authorizeSecurityGroupIngress(request);
         } catch (SdkException e) {
             AwsV2CloudUtil.doDeleteSecurityGroup(request.groupId(), client);
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -135,7 +135,7 @@ public class AwsV2CloudUtil {
         try {
             return client.describeInstances(describeInstancesRequest);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -143,7 +143,7 @@ public class AwsV2CloudUtil {
         try {
             return client.describeInstances();
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -200,7 +200,7 @@ public class AwsV2CloudUtil {
         try {
             return client.describeAddresses(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
@@ -225,7 +225,7 @@ public class AwsV2CloudUtil {
         try {
             return client.describeSubnets(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
@@ -235,7 +235,7 @@ public class AwsV2CloudUtil {
                 return tag.value();
             }
         }
-        throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
+        throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_ERROR);
     }
     
 }

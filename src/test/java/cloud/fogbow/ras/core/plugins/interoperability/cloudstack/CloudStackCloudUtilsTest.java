@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackQueryAsyncJobResponse;
@@ -66,16 +66,16 @@ public class CloudStackCloudUtilsTest {
     // test case: When calling the doRequest method and
     // it occurs an HttpResponseException, it must verify if It returns a HttpResponseException.
     @Test
-    public void testDoRequestFail() throws FogbowException, HttpResponseException {
+    public void testDoRequestFail() throws FogbowException {
         // set up
         String url = "";
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         CloudStackHttpClient client = Mockito.mock(CloudStackHttpClient.class);
         Mockito.when(client.doGetRequest(Mockito.eq(url), Mockito.eq(cloudStackUser))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
-        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
 
         // exercise
@@ -85,7 +85,7 @@ public class CloudStackCloudUtilsTest {
     // test case: When calling the doRequest method and
     // it occurs an FogbowException, it must verify if It returns a HttpResponseException.
     @Test
-    public void testDoRequestFailWhenThrowFogbowException() throws FogbowException, HttpResponseException {
+    public void testDoRequestFailWhenThrowFogbowException() throws FogbowException {
         // set up
         String url = "";
         String errorMessage = "error";
@@ -95,7 +95,7 @@ public class CloudStackCloudUtilsTest {
                 thenThrow(new FogbowException(errorMessage));
 
         // verify
-        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(errorMessage);
 
         // exercise
@@ -153,7 +153,7 @@ public class CloudStackCloudUtilsTest {
     // test case: When calling the getDiskOfferings method and a HttpResponseException occurs,
     // it must verify if a FogbowException has been thrown.
     @Test
-    public void testGetDiskOfferingsFail() throws FogbowException, HttpResponseException {
+    public void testGetDiskOfferingsFail() throws FogbowException {
         // set up
         CloudstackTestUtils.ignoringCloudStackUrl();
 
@@ -165,7 +165,7 @@ public class CloudStackCloudUtilsTest {
 
         Mockito.when(client.doGetRequest(Mockito.eq(request.getUriBuilder().toString()),
                 Mockito.eq(cloudStackUser))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(CloudstackTestUtils.BAD_REQUEST_MSG);
@@ -334,7 +334,7 @@ public class CloudStackCloudUtilsTest {
     }
 
     // test case: When calling the processJobResult method and job status is unknown,
-    // it must verify if It throws an UnexpectedException.
+    // it must verify if It throws an InternalServerErrorException.
     @Test
     public void testProcessJobResultFail() throws FogbowException {
         // set up
@@ -343,8 +343,8 @@ public class CloudStackCloudUtilsTest {
         CloudStackQueryAsyncJobResponse response = Mockito.mock(CloudStackQueryAsyncJobResponse.class);
         Mockito.when(response.getJobStatus()).thenReturn(statusUnkown);
 
-        this.expectedException.expect(UnexpectedException.class);
-        this.expectedException.expectMessage(Messages.Error.UNEXPECTED_JOB_STATUS);
+        this.expectedException.expect(InternalServerErrorException.class);
+        this.expectedException.expectMessage(Messages.Exception.UNEXPECTED_JOB_STATUS);
 
         // exercise
         CloudStackCloudUtils.processJobResult(response, jobId);
@@ -395,7 +395,7 @@ public class CloudStackCloudUtilsTest {
         CloudStackCloudUtils.sleepThread();
 
         // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Warn.SLEEP_THREAD_INTERRUPTED);
+        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Log.SLEEP_THREAD_INTERRUPTED);
     }
 
     private CloudStackQueryAsyncJobResponse mockGetAsyncJobResponse() throws FogbowException {

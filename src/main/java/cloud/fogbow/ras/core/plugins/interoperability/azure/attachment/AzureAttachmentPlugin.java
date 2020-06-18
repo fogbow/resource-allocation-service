@@ -4,7 +4,7 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -58,7 +58,7 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser>, Azure
 
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
         String virtualMachineName = AzureGeneralUtil.defineResourceName(attachmentOrder.getComputeId());
@@ -72,7 +72,7 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser>, Azure
     @Override
     public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AzureUser azureUser) throws FogbowException {
         String instanceId = attachmentOrder.getInstanceId();
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, instanceId));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
         AttachmentInstance creatingInstance = getCreatingInstance(instanceId);
         if (creatingInstance != null) {
@@ -90,7 +90,7 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser>, Azure
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, AzureUser azureUser) throws FogbowException {
         String instanceId = attachmentOrder.getInstanceId();
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, instanceId));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String subscriptionId = azureUser.getSubscriptionId();
         String virtualMachineName = AzureGeneralUtil.defineResourceName(attachmentOrder.getComputeId());

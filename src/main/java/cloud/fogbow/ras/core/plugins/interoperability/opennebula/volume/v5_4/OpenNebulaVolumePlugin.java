@@ -112,15 +112,15 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 		OneResponse response = image.delete();
 		if (response.isError()) {
-			String message = String.format(
-					Messages.Error.ERROR_WHILE_REMOVING_VOLUME_IMAGE, volumeOrder.getInstanceId(), response.getMessage());
-			LOGGER.error(message);
-			throw new UnexpectedException(message);
+			LOGGER.error(String.format(
+					Messages.Log.ERROR_WHILE_REMOVING_VOLUME_IMAGE_S_S, volumeOrder.getInstanceId(), response.getMessage()));
+			throw new InternalServerErrorException(String.format(
+					Messages.Exception.ERROR_WHILE_REMOVING_VOLUME_IMAGE_S_S, volumeOrder.getInstanceId(), response.getMessage()));
 		}
 	}
 
 	protected String doRequestInstance(CreateVolumeRequest createVolumeRequest, Client client)
-			throws UnacceptableOperationException, UnexpectedException, InvalidParameterException {
+			throws UnacceptableOperationException, InternalServerErrorException, InvalidParameterException {
 		VolumeImage volumeImage = createVolumeRequest.getVolumeImage();
 
 		String template = volumeImage.marshalTemplate();
@@ -132,7 +132,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		return OpenNebulaClientUtil.allocateImage(client, template, datastoreId);
 	}
 
-	protected Image doGetInstance(Client client, String instanceId) throws UnexpectedException, InstanceNotFoundException {
+	protected Image doGetInstance(Client client, String instanceId) throws InternalServerErrorException, InstanceNotFoundException {
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(instanceId));
 		if (image == null) {
@@ -143,7 +143,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 	}
 
 	@Nullable
-	protected Integer getDataStoreId(Client client, long diskSize) throws UnexpectedException {
+	protected Integer getDataStoreId(Client client, long diskSize) throws InternalServerErrorException {
 		DatastorePool datastorePool = OpenNebulaClientUtil.getDatastorePool(client);
 
 		int index = 1;
@@ -153,7 +153,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 				try {
 					freeDiskSize = Long.valueOf(datastore.xpath(String.format(DATASTORE_FREE_PATH_FORMAT, index)));
 				} catch(NumberFormatException e) {
-					LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, e.getMessage()));
+					LOGGER.error(String.format(Messages.Log.INVALID_NUMBER_FORMAT, e.getMessage()));
 					continue;
 				}
 			}

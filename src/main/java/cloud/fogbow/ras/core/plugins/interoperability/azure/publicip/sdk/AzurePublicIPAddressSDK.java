@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
 import java.util.Optional;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
@@ -13,7 +14,6 @@ import com.microsoft.azure.management.network.PublicIPAddresses;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import rx.Completable;
@@ -99,35 +99,32 @@ public class AzurePublicIPAddressSDK {
     }
 
     public static Optional<NetworkSecurityGroup> getNetworkSecurityGroupFrom(NetworkInterface networkInterface)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
         try {
             NetworkSecurityGroup networkSecurityGroup = networkInterface.getNetworkSecurityGroup();
             return Optional.ofNullable(networkSecurityGroup);
         } catch (Exception e) {
-            String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
-            throw new UnexpectedException(message, e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
     public static Optional<NetworkInterface> getPrimaryNetworkInterfaceFrom(VirtualMachine virtualMachine)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
         try {
             NetworkInterface networkInterface = virtualMachine.getPrimaryNetworkInterface();
             return Optional.ofNullable(networkInterface);
         } catch (Exception e) {
-            String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
-            throw new UnexpectedException(message, e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
     public static Optional<PublicIPAddress> getPublicIpAddress(Azure azure, String resourceId) 
-            throws UnexpectedException {
+            throws InternalServerErrorException {
         try {
             PublicIPAddresses publicIPAddresses = getPublicIPAddressesSDK(azure);
             return Optional.ofNullable(publicIPAddresses.getById(resourceId));
         } catch (Exception e) {
-            String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
-            throw new UnexpectedException(message, e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 

@@ -27,7 +27,7 @@ public class RemoteGetCloudNamesRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.RECEIVING_REMOTE_REQUEST_S, iq.getID()));
         SystemUser systemUser = unmarshalFederationUser(iq);
         IQ response = IQ.createResultIQ(iq);
 

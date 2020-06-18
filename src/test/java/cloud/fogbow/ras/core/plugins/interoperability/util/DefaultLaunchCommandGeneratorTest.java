@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.util;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
@@ -38,7 +39,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
     // test case: Check the creation of a not empty command from an order.
     @Test
-    public void testCreateLaunchCommand() {
+    public void testCreateLaunchCommand() throws InternalServerErrorException {
 
         // set up
         ComputeOrder order = this.createComputeOrder();
@@ -52,7 +53,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
     // test case: Check the creation of a not empty command from an order without public key.
     @Test
-    public void testCreateLaunchCommandWithoutUserPublicKey() {
+    public void testCreateLaunchCommandWithoutUserPublicKey() throws InternalServerErrorException {
 
         // set up
         ComputeOrder order = this.createComputeOrderWithoutPublicKey();
@@ -66,7 +67,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
     // test case: Check the creation of a not empty command from an order without extra user data
     @Test
-    public void testCreateLaunchCommandWithoutExtraUserData() {
+    public void testCreateLaunchCommandWithoutExtraUserData() throws InternalServerErrorException {
 
         // set up
         ComputeOrder order = this.createComputeOrderWithoutExtraUserData();
@@ -80,7 +81,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
     // test case: Check the addition of extra user data.
     @Test
-    public void testAddExtraUserData() {
+    public void testAddExtraUserData() throws InternalServerErrorException {
 
         // set up
         CloudInitUserDataBuilder cloudInitUserDataBuilder = CloudInitUserDataBuilder.start();
@@ -98,7 +99,7 @@ public class DefaultLaunchCommandGeneratorTest {
     // test case: Check the addition of extra user data with a null data file content. 
     // extra user data is added only if data file content and data file type are not null.
     @Test
-    public void testAddExtraUserDataWithDataFileContentNull() {
+    public void testAddExtraUserDataWithDataFileContentNull() throws InternalServerErrorException {
 
         // set up
         CloudInitUserDataBuilder cloudInitUserDataBuilder = CloudInitUserDataBuilder.start();
@@ -116,7 +117,7 @@ public class DefaultLaunchCommandGeneratorTest {
     // test case: Check the addition of extra user data with a null data file type. 
     // extra user data is added only if data file content and data file type are not null.
     @Test
-    public void testAddExtraUserDataWithDataFileTypeNull() {
+    public void testAddExtraUserDataWithDataFileTypeNull() throws InternalServerErrorException {
 
         // set up
         CloudInitUserDataBuilder cloudInitUserDataBuilder = CloudInitUserDataBuilder.start();

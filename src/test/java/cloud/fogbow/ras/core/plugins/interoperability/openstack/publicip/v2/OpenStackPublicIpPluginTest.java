@@ -3,6 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
 import java.io.File;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,12 +15,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -44,7 +43,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.Remov
     GetNetworkPortsResponse.class, 
     GetSecurityGroupsResponse.class, 
     OpenStackCloudUtils.class, 
-    OpenStackHttpToFogbowExceptionMapper.class 
+    HttpErrorConditionToFogbowExceptionMapper.class
 })
 public class OpenStackPublicIpPluginTest extends BaseUnitTests {
 
@@ -258,7 +257,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     
     // test case: When calling the doDeleteInstance method and an unexpected error
     // occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoDeleteInstanceFail() throws Exception {
         // set up
@@ -271,14 +270,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 + OpenStackConstants.ENDPOINT_SEPARATOR
                 + instanceId;
         
-        HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
-                TestUtils.MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(TestUtils.MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doDeleteRequest(Mockito.eq(endpoint),
                 Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, TestUtils.MAP_METHOD,
-                Mockito.any());
 
         try {
             // exercise
@@ -286,8 +280,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -334,7 +327,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     
     // test case: When calling the disassociateSecurityGroup method and an
     // unexpected error occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDisassociateSecurityGroupFail() throws Exception {
         // set up
@@ -357,15 +350,10 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         RemoveSecurityGroupFromServerRequest request = new RemoveSecurityGroupFromServerRequest.Builder()
                 .name(name)
                 .build();
-        
-        HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
-                TestUtils.MESSAGE_STATUS_CODE);
+
+        FogbowException expectedException = new FogbowException(TestUtils.MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint), Mockito.eq(request.toJson()),
                 Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, TestUtils.MAP_METHOD,
-                Mockito.any());
 
         try {
             // exercise
@@ -373,8 +361,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -417,7 +404,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     
     // test case: When calling the retrieveSecurityGroupId method with a
     // non-existent ID, it must return to an empty security group and throw an
-    // UnexpectedException.
+    // InternalServerErrorException.
     @Test
     public void testRetrieveSecurityGroupIdFail() throws FogbowException {
         // set up
@@ -437,31 +424,31 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(GetSecurityGroupsResponse.class);
         PowerMockito.when(GetSecurityGroupsResponse.fromJson(Mockito.eq(json))).thenReturn(response);
 
-        String expected = String.format(Messages.Exception.NO_SECURITY_GROUP_FOUND, json);
+        String expected = String.format(Messages.Exception.NO_SECURITY_GROUP_FOUND_S, json);
 
         try {
             // exercise
             this.plugin.retrieveSecurityGroupId(securityGroupName, cloudUser);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
     }
     
     // test case: When calling the doGetSecurityGroupsResponseFrom method with a
-    // JSON malformed, it must verify that a UnexpectedException was throw.
+    // JSON malformed, it must verify that a InternalServerErrorException was throw.
     @Test
     public void testDoGetSecurityGroupsResponseFromJsonMalformed() throws FogbowException {
         // set up
         String json = TestUtils.JSON_MALFORMED;
-        String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+        String expected = String.format(Messages.Log.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
                 OpenStackConstants.SECURITY_GROUP_RESOURCE);
         try {
             // exercise
             this.plugin.doGetSecurityGroupsResponseFrom(json);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -504,18 +491,18 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doGetFloatingIpResponseFrom method with a
-    // JSON malformed, it must verify that a UnexpectedException was throw.
+    // JSON malformed, it must verify that a InternalServerErrorException was throw.
     @Test
     public void testDoGetFloatingIpResponseFromJsonMalformed() throws FogbowException {
         // set up
         String json = TestUtils.JSON_MALFORMED;
-        String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+        String expected = String.format(Messages.Log.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
                 OpenStackConstants.PUBLIC_IP_RESOURCE);
         try {
             // exercise
             this.plugin.doGetFloatingIpResponseFrom(json);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -567,7 +554,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     
     // test case: When calling the associateSecurityGroup method and an unexpected
     // error occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class and the deleteSecurityGroup method
+    // HttpErrorConditionToFogbowExceptionMapper class and the deleteSecurityGroup method
     // from this class were been called.
     @Test
     public void testAssociateSecurityGroupFail() throws Exception {
@@ -591,14 +578,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 .name(FAKE_SECURITY_GROUP_NAME)
                 .build();
 
-        HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
-                TestUtils.MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(TestUtils.MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint),
                 Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, TestUtils.MAP_METHOD,
-                Mockito.any());
 
         String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
         try {
@@ -610,8 +592,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                     .deleteSecurityGroup(Mockito.eq(securityGroupId), Mockito.eq(cloudUser));
 
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -642,7 +623,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     
     // test case: When calling the deleteSecurityGroup method and an
     // unexpected error occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDeleteSecurityGroupFail() throws Exception {
         // set up
@@ -655,14 +636,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 + OpenStackConstants.ENDPOINT_SEPARATOR
                 + securityGroupId;
 
-        HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
-                TestUtils.MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(TestUtils.MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doDeleteRequest(Mockito.eq(endpoint),
                 Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, TestUtils.MAP_METHOD,
-                Mockito.any());
 
         try {
             // exercise
@@ -670,8 +646,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -718,7 +693,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     
     // test case: When calling the doPostRequestFromCloud method and an
     // unexpected error occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoPostRequestFromCloudFail() throws Exception {
         // set up
@@ -734,15 +709,10 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 .etherType(OpenStackConstants.IPV4_ETHER_TYPE)
                 .securityGroupId(securityGroupId)
                 .build();
-        
-        HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
-                TestUtils.MESSAGE_STATUS_CODE);
+
+        FogbowException expectedException = new FogbowException(TestUtils.MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint),
                 Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, TestUtils.MAP_METHOD,
-                Mockito.any());
 
         try {
             // exercise
@@ -750,8 +720,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -802,7 +771,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     
     // test case: When calling the doCreateSecurityGroup method and an
     // unexpected error occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoCreateSecurityGroupFail() throws Exception {
         // set up
@@ -820,14 +789,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 .projectId(cloudUser.getProjectId())
                 .build();
 
-        HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
-                TestUtils.MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(TestUtils.MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint),
                 Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, TestUtils.MAP_METHOD,
-                Mockito.any());
 
         try {
             // exercise
@@ -835,24 +799,23 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
     // test case: When calling the doCreateSecurityGroupResponseFrom method with a
-    // JSON malformed, it must verify that a UnexpectedException was throw.
+    // JSON malformed, it must verify that a InternalServerErrorException was throw.
     @Test
     public void testDoCreateSecurityGroupResponseFromJsonMalformed() throws FogbowException {
         // set up
         String json = TestUtils.JSON_MALFORMED;
-        String expected = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S,
+        String expected = String.format(Messages.Log.ERROR_WHILE_CREATING_RESOURCE_S,
                 OpenStackConstants.SECURITY_GROUP_RESOURCE);
         try {
             // exercise
             this.plugin.doCreateSecurityGroupResponseFrom(json);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -895,7 +858,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     
     // test case: When calling the doRequestInstance method and an
     // unexpected error occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoRequestInstanceFail() throws Exception {
         // set up
@@ -911,14 +874,9 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 .projectId(TestUtils.FAKE_PROJECT_ID)
                 .build();
 
-        HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
-                TestUtils.MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(TestUtils.MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doPostRequest(Mockito.eq(endpoint),
                 Mockito.eq(request.toJson()), Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, TestUtils.MAP_METHOD,
-                Mockito.any());
 
         try {
             // exercise
@@ -926,24 +884,23 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
     // test case: When calling the doCreateFloatingIpResponseFrom method with a
-    // JSON malformed, it must verify that a UnexpectedException was thrown.
+    // JSON malformed, it must verify that a InternalServerErrorException was thrown.
     @Test
     public void testDoCreateFloatingIpResponseFromJsonMalformed() throws FogbowException {
         // set up
         String json = TestUtils.JSON_MALFORMED;
-        String expected = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S,
+        String expected = String.format(Messages.Log.ERROR_WHILE_CREATING_RESOURCE_S,
                 OpenStackConstants.PUBLIC_IP_RESOURCE);
         try {
             // exercise
             this.plugin.doCreateFloatingIpResponseFrom(json);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -998,7 +955,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the getNetworkPortId method with a non-existent ID,
-    // it must return to an empty network ports and throw an UnexpectedException.
+    // it must return to an empty network ports and throw an InternalServerErrorException.
     @Test
     public void testGetNetworkPortIdFail() throws Exception {
         // set up
@@ -1026,7 +983,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(GetNetworkPortsResponse.class);
         PowerMockito.when(GetNetworkPortsResponse.fromJson(Mockito.eq(json))).thenReturn(response);
 
-        String expected = String.format(Messages.Exception.PORT_NOT_FOUND, computeId, defaultNetworkId);
+        String expected = String.format(Messages.Exception.PORT_NOT_FOUND_S, computeId, defaultNetworkId);
 
         try {
             // exercise
@@ -1039,18 +996,18 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doGetNetworkPortsResponseFrom method with a
-    // JSON malformed, it must verify that a UnexpectedException was throw.
+    // JSON malformed, it must verify that a InternalServerErrorException was throw.
     @Test
     public void testDoGetNetworkPortsResponseFromJsonMalformed() throws FogbowException {
         // set up
         String json = TestUtils.JSON_MALFORMED;
-        String expected = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+        String expected = String.format(Messages.Log.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
                 OpenStackConstants.NETWORK_PORTS_RESOURCE);
         try {
             // exercise
             this.plugin.doGetNetworkPortsResponseFrom(json);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -1079,7 +1036,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     
     // test case: When calling the doGetResponseFromCloud method and an unexpected
     // error occurs, it must verify that the map method of the
-    // OpenStackHttpToFogbowExceptionMapper class has been called.
+    // HttpErrorConditionToFogbowExceptionMapper class has been called.
     @Test
     public void testDoGetResponseFromCloudFail() throws Exception {
         // set up
@@ -1091,21 +1048,15 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
                 + OpenStackConstants.ENDPOINT_SEPARATOR
                 + TestUtils.FAKE_INSTANCE_ID;
 
-        HttpResponseException expectedException = new HttpResponseException(TestUtils.ERROR_STATUS_CODE,
-                TestUtils.MESSAGE_STATUS_CODE);
+        FogbowException expectedException = new FogbowException(TestUtils.MESSAGE_STATUS_CODE);
         Mockito.doThrow(expectedException).when(this.client).doGetRequest(Mockito.eq(endpoint), Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, TestUtils.MAP_METHOD,
-                Mockito.any());
 
         try {
             // exercise
             this.plugin.doGetResponseFromCloud(endpoint, cloudUser);
             Assert.fail();
         } catch (Exception e) {
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(expectedException));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
     
@@ -1138,13 +1089,13 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String networkId = TestUtils.FAKE_NETWORK_ID;
         String endpoint = TestUtils.JSON_MALFORMED;
 
-        String expected = String.format(Messages.Exception.WRONG_URI_SYNTAX, endpoint);
+        String expected = String.format(Messages.Exception.WRONG_URI_SYNTAX_S, endpoint);
 
         try {
             // exercise
             this.plugin.buildNetworkPortsEndpoint(deviceId, networkId, endpoint);
             Assert.fail();
-        } catch (InvalidParameterException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -1156,7 +1107,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     public void testCheckPropertiesWithoutDefaultNetworkId() {
         // set up
         String[] defaultNetworkIds = { null, TestUtils.EMPTY_STRING };
-        String expected = Messages.Fatal.DEFAULT_NETWORK_NOT_FOUND;
+        String expected = Messages.Exception.DEFAULT_NETWORK_NOT_FOUND;
 
         for (String defaultNetworkId : defaultNetworkIds) {
             Mockito.doReturn(defaultNetworkId).when(this.plugin).getDefaultNetworkId();
@@ -1179,7 +1130,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     public void testCheckPropertiesWithoutExternalNetworkId() {
         // set up
         String[] defaultNetworkIds = { null, TestUtils.EMPTY_STRING };
-        String expected = Messages.Fatal.EXTERNAL_NETWORK_NOT_FOUND;
+        String expected = Messages.Exception.EXTERNAL_NETWORK_NOT_FOUND;
 
         for (String defaultNetworkId : defaultNetworkIds) {
             Mockito.doReturn(defaultNetworkId).when(this.plugin).getExternalNetworkId();
@@ -1202,7 +1153,7 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
     public void testCheckPropertiesWithoutgetNeutronPrefixEndpoint() {
         // set up
         String[] defaultNetworkIds = { null, TestUtils.EMPTY_STRING };
-        String expected = Messages.Fatal.NEUTRON_ENDPOINT_NOT_FOUND;
+        String expected = Messages.Exception.NEUTRON_ENDPOINT_NOT_FOUND;
 
         for (String defaultNetworkId : defaultNetworkIds) {
             Mockito.doReturn(defaultNetworkId).when(this.plugin).getNeutronPrefixEndpoint();

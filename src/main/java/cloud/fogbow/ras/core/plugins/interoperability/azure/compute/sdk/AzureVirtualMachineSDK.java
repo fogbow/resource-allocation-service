@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
@@ -59,25 +59,25 @@ public class AzureVirtualMachineSDK {
     }
 
     public static Optional<VirtualMachine> getVirtualMachine(Azure azure, String virtualMachineId)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
 
         try {
             VirtualMachines virtualMachinesObject = getVirtualMachinesSDK(azure);
             return Optional.ofNullable(virtualMachinesObject.getById(virtualMachineId));
         } catch (RuntimeException e) {
-            throw new UnexpectedException(e.getMessage(), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
     static PagedList<VirtualMachineSize> getVirtualMachineSizes(Azure azure, Region region)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
 
         try {
             VirtualMachines virtualMachinesObject = getVirtualMachinesSDK(azure);
             VirtualMachineSizes sizes = virtualMachinesObject.sizes();
             return sizes.listByRegion(region);
         } catch (RuntimeException e) {
-            throw new UnexpectedException(e.getMessage(), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 

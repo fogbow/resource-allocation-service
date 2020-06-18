@@ -1,12 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -28,7 +28,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import java.util.*;
 
 @PrepareForTest({DatabaseManager.class, GetFlavorResponse.class,
-        PropertiesUtil.class, OpenStackHttpToFogbowExceptionMapper.class,
+        PropertiesUtil.class, HttpErrorConditionToFogbowExceptionMapper.class,
         OpenStackCloudUtils.class, GetFlavorExtraSpecsResponse.class,
         GetAllFlavorsResponse.class})
 public class OpenStackComputePluginTest extends BaseUnitTests {
@@ -199,16 +199,12 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     }
 
     // test case: when doCreateKeyName() request fails, it must
-    // call OpenStackHttpToFogbowExceptionMapper.map(e)
     @Test
     public void testDoCreateKeyNameUnsuccessfully() throws Exception {
         // set up
-        HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
+        InternalServerErrorException exception = testUtils.getInternalServerErrorException();
         Mockito.when(this.clientMock.doPostRequest(Mockito.anyString(),
                 Mockito.anyString(), Mockito.eq(cloudUser))).thenThrow(exception);
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
         // exercise
         try {
@@ -218,8 +214,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
             // verify
             Assert.assertEquals(exception.getMessage(), e.getMessage());
 
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(exception));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
 
@@ -251,16 +246,13 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     }
 
     // test case: when doDeleteRequest() request fails, it must
-    // call OpenStackHttpToFogbowExceptionMapper.map(e)
+    // call HttpErrorConditionToFogbowExceptionMapper.map(e)
     @Test
     public void testDoDeleteUnsuccessfully() throws Exception {
         // set up
-        HttpResponseException exception = testUtils.getHttpInternalServerErrorResponseException();
+        InternalServerErrorException exception = testUtils.getInternalServerErrorException();
         Mockito.doThrow(exception).when(this.clientMock)
                 .doDeleteRequest(Mockito.anyString(), Mockito.eq(cloudUser));
-
-        PowerMockito.mockStatic(OpenStackHttpToFogbowExceptionMapper.class);
-        PowerMockito.doCallRealMethod().when(OpenStackHttpToFogbowExceptionMapper.class, MAP_METHOD, Mockito.any());
 
         // exercise
         try {
@@ -270,8 +262,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
             // verify
             Assert.assertEquals(exception.getMessage(), e.getMessage());
 
-            PowerMockito.verifyStatic(OpenStackHttpToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
-            OpenStackHttpToFogbowExceptionMapper.map(Mockito.eq(exception));
+            PowerMockito.verifyStatic(HttpErrorConditionToFogbowExceptionMapper.class, Mockito.times(TestUtils.RUN_ONCE));
         }
     }
 
@@ -356,10 +347,9 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         return response;
     }
 
-    // test case: When performing an unsuccessful request, it must re-wrap the
-    // HttpResponseException into an UnexpectedException
-    @Test(expected = UnexpectedException.class)
-    public void testDetailFlavorsUnsuccessfully() throws FogbowException, HttpResponseException {
+    // test case: When performing an unsuccessful request, it must throw an InternalServerErrorException
+    @Test(expected = InternalServerErrorException.class)
+    public void testDetailFlavorsUnsuccessfully() throws FogbowException {
         // set up
         Mockito.doReturn(getHardwareRequirementsList()).when(this.computePlugin)
                 .getHardwareRequirementsList();
@@ -368,7 +358,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         flavorIds.add(unCachedFlavorId);
 
         Mockito.when(this.clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
-                .thenThrow(HttpResponseException.class);
+                .thenThrow(InternalServerErrorException.class);
 
         // exercise
         this.computePlugin.detailFlavors(ANY_URL, flavorIds, cloudUser);
@@ -528,8 +518,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Mockito.verify(this.computePlugin, Mockito.times(1)).setHardwareRequirementsList(Mockito.any());
     }
 
-    // test case: when a request is unsuccessful, it should thrown UnexpectedException
-    @Test(expected = UnexpectedException.class)
+    // test case: when a request is unsuccessful, it should thrown InternalServerErrorException
+    @Test(expected = InternalServerErrorException.class)
     public void testUpdateFlavorsUnsuccessfully() throws FogbowException, HttpResponseException {
         // set up
         ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
@@ -538,7 +528,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         computeOrder.setRequirements(fakeRequirement);
 
         Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
-                .thenThrow(HttpResponseException.class);
+                .thenThrow(InternalServerErrorException.class);
 
         // exercise
         this.computePlugin.updateFlavors(computeOrder, cloudUser);
@@ -595,14 +585,14 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
     }
 
-    // test case: when a request is unsuccessful, it should thrown UnexpectedException
-    @Test(expected = UnexpectedException.class)
+    // test case: when a request is unsuccessful, it should thrown InternalServerErrorException
+    @Test(expected = InternalServerErrorException.class)
     public void testGetInstanceUnsuccessfully() throws FogbowException, HttpResponseException {
         // set up
         ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
 
         Mockito.when(clientMock.doGetRequest(Mockito.anyString(), Mockito.eq(cloudUser)))
-                .thenThrow(HttpResponseException.class);
+                .thenThrow(InternalServerErrorException.class);
 
         // exercise
         this.computePlugin.getInstance(computeOrder, cloudUser);
@@ -651,11 +641,11 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(this.instanceId, instanceId);
     }
 
-    @Test(expected = UnexpectedException.class)
-    public void testDoRequestInstanceUnsuccessfully() throws FogbowException, HttpResponseException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testDoRequestInstanceUnsuccessfully() throws FogbowException {
         // set up
         Mockito.when(this.clientMock.doPostRequest(Mockito.any(), Mockito.any(), Mockito.any()))
-                .thenThrow(HttpResponseException.class);
+                .thenThrow(InternalServerErrorException.class);
 
         // exercise
         this.computePlugin.doRequestInstance(FAKE_PROJECT_ID, FAKE_KEY_NAME, ANY_STRING, cloudUser);

@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
@@ -17,7 +16,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.Get
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse.Volume;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListResourceLimitsResponse.ResourceLimit;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListPublicIpAddressResponse.PublicIpAddress;
@@ -79,15 +77,9 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudUser.getToken());
 
         String uri = request.getUriBuilder().toString();
-        ListPublicIpAddressResponse response = null;
         String jsonResponse = doGetRequest(cloudUser, uri);
 
-        try {
-            response = ListPublicIpAddressResponse.fromJson(jsonResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
-
+        ListPublicIpAddressResponse response = ListPublicIpAddressResponse.fromJson(jsonResponse);
         return response.getPublicIpAddresses();
     }
 
@@ -96,11 +88,11 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
         String response = null;
 
         try {
-            LOGGER.debug(Messages.Info.GETTING_QUOTA);
+            LOGGER.debug(Messages.Log.GETTING_QUOTA);
             response = this.client.doGetRequest(uri, cloudUser);
-        } catch (HttpResponseException e) {
+        } catch (FogbowException e) {
             LOGGER.debug(Messages.Exception.FAILED_TO_GET_QUOTA);
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+            throw e;
         }
 
         return response;
@@ -113,13 +105,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
 
         String uri = request.getUriBuilder().toString();
         String networkJsonResponse = doGetRequest(cloudUser, uri);
-        GetNetworkResponse response = null;
-
-        try {
-            response = GetNetworkResponse.fromJson(networkJsonResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        GetNetworkResponse response = GetNetworkResponse.fromJson(networkJsonResponse);
 
         return response.getNetworks();
     }
@@ -137,13 +123,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
 
         String uri = volumeRequest.getUriBuilder().toString();
         String volumeJsonResponse = doGetRequest(cloudUser, uri);
-        GetVolumeResponse volumeResponse = null;
-
-        try {
-            volumeResponse = GetVolumeResponse.fromJson(volumeJsonResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        GetVolumeResponse volumeResponse = GetVolumeResponse.fromJson(volumeJsonResponse);
 
         return volumeResponse.getVolumes();
     }
@@ -155,13 +135,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
 
         String uri = request.getUriBuilder().toString();
         String responseJson = doGetRequest(cloudUser, uri);
-        GetVirtualMachineResponse response = null;
-
-        try {
-            response = GetVirtualMachineResponse.fromJson(responseJson);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        GetVirtualMachineResponse response = GetVirtualMachineResponse.fromJson(responseJson);
 
         return response.getVirtualMachines();
     }

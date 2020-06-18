@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -51,7 +51,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     private String zoneId;
 
     @Before
-    public void setUp() throws UnexpectedException, InvalidParameterException {
+    public void setUp() throws InternalServerErrorException, InvalidParameterException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.cloudStackUrl = properties.getProperty(CloudStackCloudUtils.CLOUDSTACK_URL_CONFIG);
@@ -147,7 +147,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -158,7 +158,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doGetInstance method with methods mocked and there is no volumes,
-    // it must verify if It throws an UnexpectedException.
+    // it must verify if It throws an InternalServerErrorException.
     @Test
     public void testDoGetInstanceFailWhenThereIsNoVolume() throws FogbowException, HttpResponseException {
         // set up
@@ -179,7 +179,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                 thenReturn(response);
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         this.plugin.doGetInstance(request, this.cloudStackUser);
@@ -286,7 +286,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     // test case: When calling the buildVolumeCustomized method, it must verify if
     // It returns a right CreateVolumeRequest.
     @Test
-    public void testBuildVolumeCustomizedSuccessfully() throws InvalidParameterException {
+    public void testBuildVolumeCustomizedSuccessfully() throws InternalServerErrorException {
         // set up
     String diskOfferingId = "diskOfferingId";
         String nameExpected = "nameExpected";
@@ -353,7 +353,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     // test case: When calling the buildVolumeCompatible method, it must verify if
     // It returns a right CreateVolumeRequest.
     @Test
-    public void testBuildVolumeCompatibleSuccessfully() throws InvalidParameterException {
+    public void testBuildVolumeCompatibleSuccessfully() throws InternalServerErrorException {
         // set up
         String diskOfferingId = "diskOfferingId";
 
@@ -599,7 +599,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(requestExpected, request);
-        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Warn.DISK_OFFERING_COMPATIBLE_NOT_FOUND);
+        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Log.DISK_OFFERING_COMPATIBLE_NOT_FOUND);
     }
 
     // test case: When calling the buildCreateVolumeRequest method with secondary methods mocked and
@@ -631,8 +631,8 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.buildCreateVolumeRequest(volumeOrder, this.cloudStackUser);
-        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Warn.DISK_OFFERING_COMPATIBLE_NOT_FOUND)
-                .assertEqualsInOrder(Level.WARN, Messages.Warn.DISK_OFFERING_CUSTOMIZED_NOT_FOUND);
+        this.loggerTestChecking.assertEqualsInOrder(Level.WARN, Messages.Log.DISK_OFFERING_COMPATIBLE_NOT_FOUND)
+                .assertEqualsInOrder(Level.WARN, Messages.Log.DISK_OFFERING_CUSTOMIZED_NOT_FOUND);
     }
 
     // test case: When calling the doRequestInstance method with secondary methods mocked ,
@@ -670,7 +670,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -714,7 +714,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
         Mockito.when(volumeOrder.getInstanceId()).thenReturn(instanceId);
 
-        Mockito.doThrow(new FogbowException())
+        Mockito.doThrow(new FogbowException(""))
                 .when(this.plugin).doDeleteInstance(Mockito.any(), Mockito.eq(this.cloudStackUser));
 
         // exercise
@@ -748,7 +748,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doDeleteInstance method with secondary methods mocked and receive
-    // a response successless by the cloud, it must verify if It throws an UnexpectedException.
+    // a response successless by the cloud, it must verify if It throws an InternalServerErrorException.
     @Test
     public void testDoDeleteInstanceFailWhenReturnSuccessless() throws FogbowException, HttpResponseException {
         // set up
@@ -770,7 +770,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         PowerMockito.when(DeleteVolumeResponse.fromJson(Mockito.eq(responseStr))).thenReturn(response);
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
         this.expectedException.expectMessage(displayTextSuccessless);
 
         // exercise
@@ -787,7 +787,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);

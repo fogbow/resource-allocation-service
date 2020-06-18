@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.volume.v2;
 
 import java.io.File;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +13,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
@@ -208,7 +208,7 @@ public class AwsVolumePluginTest extends BaseUnitTests {
     }
 	
     // test case: When calling the doDeleteInstance method, with a volume order and
-    // cloud user valid, and an error will occur, the UnexpectedException will be
+    // cloud user valid, and an error will occur, the InternalServerErrorException will be
     // thrown.
     @Test
     public void testDoDeleteInstanceFail() {
@@ -222,13 +222,13 @@ public class AwsVolumePluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).deleteVolume(Mockito.eq(request));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.doDeleteInstance(volumeId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -314,7 +314,7 @@ public class AwsVolumePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doRequestInstance method, with a volume order and
-    // cloud user valid, and an error will occur, the UnexpectedException will be
+    // cloud user valid, and an error will occur, the InternalServerErrorException will be
     // thrown.
     @Test
     public void testDoRequestInstanceFail() throws FogbowException {
@@ -329,13 +329,13 @@ public class AwsVolumePluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.when(this.client.createVolume(Mockito.eq(request))).thenThrow(exception);
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.doRequestInstance(request, volumeOrder, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

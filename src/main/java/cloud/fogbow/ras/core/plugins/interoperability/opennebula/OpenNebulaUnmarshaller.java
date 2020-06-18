@@ -23,7 +23,7 @@ public class OpenNebulaUnmarshaller {
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             object = unmarshaller.unmarshal(inputStream);
         } catch (JAXBException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_UNMARSHALL_XML_S, xml), e);
+            LOGGER.error(String.format(Messages.Log.UNABLE_TO_UNMARSHALL_XML_S, xml), e);
         }
         return object;
     }

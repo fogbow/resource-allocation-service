@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
 import java.util.UUID;
 
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
@@ -21,11 +22,7 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
@@ -248,8 +245,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	public void testAttachPublicIpToComputeFail() throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		// set up
 		String template = this.getNicTemplate();
-		String message = String.format(Messages.Error.ERROR_WHILE_CREATING_NIC, template) + " " +
-				String.format(Messages.Error.ERROR_MESSAGE, this.response.getMessage());
+		String message = this.response.getMessage();
 
 		Mockito.doReturn(template).when(this.plugin).createNicTemplate(Mockito.anyString());
 		Mockito.when(this.virtualMachine.nicAttach(Mockito.anyString())).thenReturn(this.response);
@@ -290,7 +286,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 
 	@Test
 	public void testDoDeleteInstance() throws UnauthorizedRequestException, InstanceNotFoundException,
-			InvalidParameterException, UnexpectedException {
+			InvalidParameterException, InternalServerErrorException {
 		// set up
 		Mockito.doReturn(this.response).when(this.virtualMachine).poweroff(Mockito.anyBoolean());
 		Mockito.doReturn(this.response).when(this.virtualMachine).resume();
@@ -318,11 +314,11 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	}
 
 	// test case: when invoking doDeleteInstance with invalid parameters, the plugin should
-	// throw an UnexpectedException
+	// throw an InternalServerErrorException
 	@Test
 	public void testDoDeleteInstanceFail() throws FogbowException {
 		// set up
-		String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, PUBLIC_IP_RESOURCE, this.instanceId);
+		String message = String.format(Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S, PUBLIC_IP_RESOURCE, this.instanceId);
 
 		Mockito.doReturn(this.response).when(this.virtualMachine).poweroff(Mockito.anyBoolean());
 		Mockito.doReturn(false).when(this.plugin).isPowerOff(Mockito.any(VirtualMachine.class));
@@ -331,7 +327,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
         try	{
 			this.plugin.deleteInstance(this.publicIpOrder, this.cloudUser);
 			Assert.fail();
-		} catch (UnexpectedException e) {
+		} catch (InternalServerErrorException e) {
         	Assert.assertEquals(message, e.getMessage());
 		}
 
@@ -348,7 +344,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	// test case: when invoking deletePublicIp the plugin should retrieve the respective ONe
 	// virtual network and delete it
 	@Test
-	public void testDeletePublicIp() throws UnexpectedException, InstanceNotFoundException, InvalidParameterException,
+	public void testDeletePublicIp() throws InternalServerErrorException, InstanceNotFoundException, InvalidParameterException,
 			UnauthorizedRequestException {
 		// set up
 		Mockito.when(this.virtualNetwork.delete()).thenReturn(this.response);
@@ -366,7 +362,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	}
 
 	// test case: when invoking deletePublicIp with invalid parameters the plugin should
-	// throw an UnexpectedException
+	// throw an InternalServerErrorException
 	@Test
 	public void testDeletePublicIpFail() throws InstanceNotFoundException, InvalidParameterException,
 			UnauthorizedRequestException {
@@ -379,7 +375,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 		try {
 			this.plugin.deletePublicIp(this.client, this.instanceId);
 			Assert.fail();
-		} catch (UnexpectedException e) {
+		} catch (InternalServerErrorException e) {
 			Assert.assertEquals(STRING_ID_ONE, e.getMessage());
 		}
 
@@ -396,7 +392,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	// public ip instance id, the plugin should retrieve the respective nic and detach it
 	// from the vm
 	@Test
-	public void testDetachPublicIpFromCompute() throws InvalidParameterException, UnexpectedException {
+	public void testDetachPublicIpFromCompute() throws InvalidParameterException, InternalServerErrorException {
 		// set up
 	    Mockito.when(this.virtualMachine.xpath(Mockito.anyString())).thenReturn(STRING_ID_ONE);
 		Mockito.when(this.virtualMachine.nicDetach(Mockito.anyInt())).thenReturn(this.response);
@@ -415,11 +411,11 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	}
 
 	// test case: when invoking detachPublicIpFromCompute with invalid parameters, the plugin
-	// should throw and UnexpectedException
+	// should throw and InternalServerErrorException
 	@Test
 	public void testDetachPublicIpFromComputeFail() throws InvalidParameterException {
 		// set up
-		String message = String.format(Messages.Error.ERROR_MESSAGE, STRING_ID_ONE);
+		String message = STRING_ID_ONE;
 
 		Mockito.when(this.virtualMachine.xpath(Mockito.anyString())).thenReturn(STRING_ID_ONE);
 		Mockito.when(this.virtualMachine.nicDetach(Mockito.anyInt())).thenReturn(this.response);
@@ -431,7 +427,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 		try {
 			this.plugin.detachPublicIpFromCompute(this.virtualMachine, this.instanceId);
 			Assert.fail();
-		} catch (UnexpectedException e) {
+		} catch (InternalServerErrorException e) {
 			Assert.assertEquals(message, e.getMessage());
 		}
 
@@ -448,7 +444,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	// the plugin should retrieve the respective fogbow security group and delete it
 	@Test
 	public void testDeleteSecurityGroup() throws UnauthorizedRequestException, InstanceNotFoundException,
-			InvalidParameterException, UnexpectedException {
+			InvalidParameterException, InternalServerErrorException {
 		// set up
 		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
 
@@ -468,10 +464,10 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	}
 
 	// test case: when invoking deleteSecurityGroup and the respective secgroup is not found, the plugin
-	// should throw an UnexpectedException
-	@Test(expected = UnexpectedException.class)
+	// should throw an InternalServerErrorException
+	@Test(expected = InternalServerErrorException.class)
 	public void testDeleteSecurityGroupNull() throws UnauthorizedRequestException, InstanceNotFoundException,
-			InvalidParameterException, UnexpectedException {
+			InvalidParameterException, InternalServerErrorException {
 		// set up
 		Mockito.doReturn(null).when(this.plugin).getSecurityGroupForPublicIpNetwork(
 				Mockito.any(Client.class), Mockito.anyString());
@@ -481,12 +477,12 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 	}
 
 	// test case: when invoking deleteSecurityGroup with invalid parameters, the plugin should
-	// throw an UnexpectedException
+	// throw an InternalServerErrorException
 	@Test
 	public void testDeleteSecurityGroupFail() throws UnauthorizedRequestException, InstanceNotFoundException,
 			InvalidParameterException {
 		// set up
-		String message = String.format(Messages.Error.ERROR_MESSAGE, STRING_ID_ONE);
+		String message = STRING_ID_ONE;
 		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
 
 		Mockito.doReturn(securityGroup).when(this.plugin).getSecurityGroupForPublicIpNetwork(
@@ -499,7 +495,7 @@ public class OpenNebulaPublicIpPluginTest extends OpenNebulaBaseTests {
 		try {
 			this.plugin.deleteSecurityGroup(this.client, this.instanceId);
 			Assert.fail();
-		} catch (UnexpectedException e) {
+		} catch (InternalServerErrorException e) {
 			Assert.assertEquals(message, e.getMessage());
 		}
 

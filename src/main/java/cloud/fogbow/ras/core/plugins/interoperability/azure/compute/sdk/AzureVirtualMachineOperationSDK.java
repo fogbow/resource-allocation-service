@@ -4,7 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureCreateVirtualMachineRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
@@ -114,12 +114,12 @@ public class AzureVirtualMachineOperationSDK {
         return virtualMachineObservable
                 .onErrorReturn((error -> {
                     finishCreationCallbacks.runOnError();
-                    LOGGER.error(Messages.Error.ERROR_CREATE_VM_ASYNC_BEHAVIOUR, error);
+                    LOGGER.error(Messages.Log.ERROR_CREATE_VM_ASYNC_BEHAVIOUR, error);
                     return null;
                 }))
                 .doOnCompleted(() -> {
                     finishCreationCallbacks.runOnComplete();
-                    LOGGER.info(Messages.Info.END_CREATE_VM_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Log.END_CREATE_VM_ASYNC_BEHAVIOUR);
                 });
     }
 
@@ -138,7 +138,7 @@ public class AzureVirtualMachineOperationSDK {
     public VirtualMachineSize findVirtualMachineSize(int memoryRequired, int vCpuRequired, String regionName,
             AzureUser azureUser) throws FogbowException {
 
-        LOGGER.debug(String.format(Messages.Info.SEEK_VIRTUAL_MACHINE_SIZE_NAME, memoryRequired, vCpuRequired, regionName));
+        LOGGER.debug(String.format(Messages.Log.SEEK_VIRTUAL_MACHINE_SIZE_NAME_S_S, memoryRequired, vCpuRequired, regionName));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         Region region = Region.findByLabelOrName(regionName);
         
@@ -197,7 +197,7 @@ public class AzureVirtualMachineOperationSDK {
     VirtualMachineSize findVirtualMachineSize(String virtualMachineSizeWanted, String regionName, Azure azure)
             throws FogbowException {
 
-        LOGGER.debug(String.format(Messages.Info.SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME, virtualMachineSizeWanted, regionName));
+        LOGGER.debug(String.format(Messages.Log.SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME_S_S, virtualMachineSizeWanted, regionName));
         Region region = Region.findByLabelOrName(regionName);
         
         PagedList<VirtualMachineSize> virtualMachineSizes = AzureVirtualMachineSDK.getVirtualMachineSizes(azure, region);
@@ -292,20 +292,20 @@ public class AzureVirtualMachineOperationSDK {
     private Completable setDeleteVirtualMachineNicBehaviour(Completable deleteVirtualMachineNic) {
         return deleteVirtualMachineNic
                 .doOnError((error -> {
-                    LOGGER.error(Messages.Error.ERROR_DELETE_NIC_ASYNC_BEHAVIOUR);
+                    LOGGER.error(Messages.Log.ERROR_DELETE_NIC_ASYNC_BEHAVIOUR);
                 }))
                 .doOnCompleted(() -> {
-                    LOGGER.info(Messages.Info.END_DELETE_NIC_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Log.END_DELETE_NIC_ASYNC_BEHAVIOUR);
                 });
     }
 
     private Completable setDeleteVirtualMachineDiskBehaviour(Completable deleteVirutalMachineDisk) {
         return deleteVirutalMachineDisk
                 .doOnError((error -> {
-                    LOGGER.error(Messages.Error.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
+                    LOGGER.error(Messages.Log.ERROR_DELETE_DISK_ASYNC_BEHAVIOUR);
                 }))
                 .doOnCompleted(() -> {
-                    LOGGER.info(Messages.Info.END_DELETE_DISK_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Log.END_DELETE_DISK_ASYNC_BEHAVIOUR);
                 });
     }
 
@@ -313,10 +313,10 @@ public class AzureVirtualMachineOperationSDK {
     Completable setDeleteVirtualMachineBehaviour(Completable deleteVirtualMachineCompletable) {
         return deleteVirtualMachineCompletable
                 .doOnError((error -> {
-                    LOGGER.error(Messages.Error.ERROR_DELETE_VM_ASYNC_BEHAVIOUR, error);
+                    LOGGER.error(Messages.Log.ERROR_DELETE_VM_ASYNC_BEHAVIOUR, error);
                 }))
                 .doOnCompleted(() -> {
-                    LOGGER.info(Messages.Info.END_DELETE_VM_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Log.END_DELETE_VM_ASYNC_BEHAVIOUR);
                 });
     }
 

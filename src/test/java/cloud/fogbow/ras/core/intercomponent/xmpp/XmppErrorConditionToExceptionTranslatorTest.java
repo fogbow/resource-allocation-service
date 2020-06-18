@@ -180,7 +180,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwarding "UnexpectedException" from
+    //test case: checks if "handleError" is properly forwarding "InternalServerErrorException" from
     //"throwException" when the packet error condition is equals to "internal_server_error". In addition, it checks
     //if its message error is correct
     @Test
@@ -195,7 +195,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
             XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             //verify: if the message is correct
             Assert.assertEquals(this.messageError, e.getMessage());
         } catch (Throwable e) {
@@ -238,7 +238,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
             // verify
             Assert.fail();
         } catch (UnavailableProviderException e) {
-            String messageExpected = String.format(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER,
+            String messageExpected = String.format(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S,
                     this.providerId);
             Assert.assertEquals(messageExpected, e.getMessage());
         }

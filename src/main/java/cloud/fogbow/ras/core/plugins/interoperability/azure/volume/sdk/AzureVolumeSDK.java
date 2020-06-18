@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk;
 
 import java.util.Optional;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.Disk;
@@ -9,7 +10,6 @@ import com.microsoft.azure.management.compute.Disks;
 import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import rx.Completable;
 import rx.Observable;
@@ -21,24 +21,22 @@ public class AzureVolumeSDK {
     }
     
     public static Completable buildDeleteDiskCompletable(Azure azure, String resourceId) 
-            throws UnexpectedException {
+            throws InternalServerErrorException {
         try {
             Disks disks = getDisksSDK(azure);
             return disks.deleteByIdAsync(resourceId);
         } catch (Exception e) {
-            String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
-            throw new UnexpectedException(message, e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
     public static Optional<Disk> getDisk(Azure azure, String resourceId) 
-            throws UnexpectedException {
+            throws InternalServerErrorException {
         try {
             Disks disks = getDisksSDK(azure);
             return Optional.ofNullable(disks.getById(resourceId));
         } catch (Exception e) {
-            String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
-            throw new UnexpectedException(message, e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 

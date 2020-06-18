@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import java.util.List;
 import java.util.Objects;

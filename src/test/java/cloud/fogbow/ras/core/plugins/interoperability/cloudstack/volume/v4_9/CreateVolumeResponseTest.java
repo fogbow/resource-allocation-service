@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -18,30 +19,28 @@ public class CreateVolumeResponseTest {
     // test case: When calling the fromJson method, it must verify
     // if It returns the right CreateVolumeResponse.
     @Test
-    public void testFromJsonSuccessfully() throws IOException {
+    public void testFromJsonSuccessfully() throws IOException, FogbowException {
         // set up
         String idExpected = "id";
         String createVolumeResponseJson = CloudstackTestUtils.createCreateVolumeResponseJson(idExpected);
 
         // execute
-        CreateVolumeResponse createVolumeResponse =
-                CreateVolumeResponse.fromJson(createVolumeResponseJson);
+        CreateVolumeResponse createVolumeResponse = CreateVolumeResponse.fromJson(createVolumeResponseJson);
 
         // verify
         Assert.assertEquals(idExpected, createVolumeResponse.getId());
     }
 
-    // it must verify if It throws a HttpResponseException.
+    // it must verify if It throws a FogbowException.
     @Test
-    public void testFromJsonFail() throws IOException {
+    public void testFromJsonFail() throws IOException, FogbowException {
         // set up
         String errorText = "anyString";
         int errorCode = HttpStatus.SC_BAD_REQUEST;
-        String volumesErrorResponseJson = CloudstackTestUtils
-                .createCreateVolumeErrorResponseJson(errorCode, errorText);
+        String volumesErrorResponseJson = CloudstackTestUtils.createCreateVolumeErrorResponseJson(errorCode, errorText);
 
         // verify
-        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(errorText);
 
         // execute

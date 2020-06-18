@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.publicip.sdk;
 
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
@@ -80,9 +80,9 @@ public class AzurePublicIPAddressOperationSDKTest {
                 Mockito.eq(instanceId), Mockito.eq(networkInterface));
 
         this.loggerAssert
-                .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.INFO, Messages.Log.SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 
@@ -103,7 +103,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         this.operation.subscribeAssociatePublicIPAddress(azure, instanceId, observable, finishCreationCallbacks);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
@@ -172,7 +172,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         this.operation.subscribeUpdateNetworkInterface(azure, instanceId, networkInterface, observable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_UPDATE_NIC_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeUpdateNetworkInterface method and the
@@ -193,7 +193,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         this.operation.subscribeUpdateNetworkInterface(azure, instanceId, networkInterface, observable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR);
 
         Mockito.verify(this.operation, Mockito.timeout(TestUtils.RUN_ONCE))
                 .doDisassociateAndDeletePublicIPAddressAsync(Mockito.eq(azure), Mockito.eq(instanceId),
@@ -348,8 +348,8 @@ public class AzurePublicIPAddressOperationSDKTest {
 
         // verify
         this.loggerAssert
-                .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.FIRST_STEP_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
 
         Mockito.verify(this.operation, Mockito.timeout(TestUtils.RUN_ONCE))
                 .subscribeDeletePublicIPAddressAsync(Mockito.eq(completable));
@@ -368,7 +368,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         this.operation.subscribeDisassociateAndDeletePublicIPAddress(observable, completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeDeletePublicIPAddressAsync method
@@ -383,7 +383,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         this.operation.subscribeDeletePublicIPAddressAsync(completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeDeletePublicIPAddressAsync
@@ -398,7 +398,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         this.operation.subscribeDeletePublicIPAddressAsync(completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_PUBLIC_IP_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeDisassociateAndDeleteResources method
@@ -424,8 +424,8 @@ public class AzurePublicIPAddressOperationSDKTest {
                 .subscribeDeleteResources(Mockito.eq(completable));
 
         this.loggerAssert
-                .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_DETACH_RESOURCES_ASYNC_BEHAVIOUR)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.FIRST_STEP_DETACH_RESOURCES_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeDisassociateAndDeleteResources method
@@ -441,7 +441,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         this.operation.subscribeDisassociateAndDeleteResources(observable, completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DETACH_RESOURCES_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeDeleteResources method and the
@@ -456,7 +456,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         this.operation.subscribeDeleteResources(completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the subscribeDeleteDisk method and the completable
@@ -470,7 +470,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         this.operation.subscribeDeleteResources(completable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_RESOURCES_ASYNC_BEHAVIOUR);
     }
 
 }

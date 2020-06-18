@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Compute.DEPLOY_VIRTUAL_MACHINE;
 import static cloud.fogbow.common.constants.CloudStackConstants.Compute.ID_KEY_JSON;
@@ -17,7 +17,7 @@ public class DeployVirtualMachineResponse {
         return deployVirtualMachineResponseInner.id;
     }
 
-    public static DeployVirtualMachineResponse fromJson(String json) throws HttpResponseException {
+    public static DeployVirtualMachineResponse fromJson(String json) throws FogbowException {
         DeployVirtualMachineResponse deployVirtualMachineResponse =
                 GsonHolder.getInstance().fromJson(json, DeployVirtualMachineResponse.class);
         deployVirtualMachineResponse.deployVirtualMachineResponseInner.checkErrorExistence();

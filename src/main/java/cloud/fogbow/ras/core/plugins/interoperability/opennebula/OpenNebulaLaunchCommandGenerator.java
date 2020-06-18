@@ -51,7 +51,7 @@ public class OpenNebulaLaunchCommandGenerator implements LaunchCommandGenerator 
                         userDataBuilder.append("\n");
                         userDataBuilder.append(normalizedExtraUserData);
                     } else {
-                        LOGGER.warn(Messages.Warn.UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL);
+                        LOGGER.warn(Messages.Log.UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL);
                     }
                 }
             }

@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
@@ -47,11 +47,11 @@ public class OpenProcessor implements Runnable {
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (UnexpectedException e) {
+                LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
+            } catch (InternalServerErrorException e) {
                 LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
+                LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
             }
         }
     }
@@ -88,7 +88,7 @@ public class OpenProcessor implements Runnable {
                     if (instanceId != null) {
                         OrderStateTransitioner.transition(order, OrderState.SPAWNING);
                     } else {
-                        throw new UnexpectedException(String.format(Messages.Exception.REQUEST_INSTANCE_NULL, order.getId()));
+                        throw new InternalServerErrorException(String.format(Messages.Exception.REQUEST_INSTANCE_NULL_S, order.getId()));
                     }
                 } else {
                     OrderStateTransitioner.transition(order, OrderState.PENDING);

@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
 import cloud.fogbow.common.constants.CloudStackConstants;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
@@ -14,7 +15,7 @@ public class DeleteFirewallRuleRequestTest {
 
     // test case: When calling the build method, it must verify if It generates the right URL.
     @Test
-    public void testBuildSuccessfully() throws InvalidParameterException {
+    public void testBuildSuccessfully() throws InternalServerErrorException {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
@@ -42,9 +43,9 @@ public class DeleteFirewallRuleRequestTest {
     }
 
     // test case: When calling the build method with a null parameter,
-    // it must verify if It throws an InvalidParameterException.
-    @Test(expected = InvalidParameterException.class)
-    public void testBuildFail() throws InvalidParameterException {
+    // it must verify if It throws an InternalServerErrorException.
+    @Test(expected = InternalServerErrorException.class)
+    public void testBuildFail() throws InternalServerErrorException {
         // exercise and verify
         new DeleteFirewallRuleRequest.Builder().build(null);
     }

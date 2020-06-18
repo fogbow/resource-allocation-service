@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
@@ -12,7 +12,7 @@ public class GetAllDiskOfferingsRequestTest {
 
     // test case: create GetAllDiskOfferingsRequestUrl successfully
     @Test
-    public void testCreateGetAllDiskOfferingsRequestUrl() throws InvalidParameterException {
+    public void testCreateGetAllDiskOfferingsRequestUrl() throws InternalServerErrorException {
         // set up
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(
                 CloudstackTestUtils.CLOUDSTACK_URL_DEFAULT,
@@ -29,8 +29,8 @@ public class GetAllDiskOfferingsRequestTest {
     }
 
     // test case: trying create GetAllDiskOfferingsRequestUrl but it occur an error
-    @Test(expected = InvalidParameterException.class)
-    public void testCreateGetAllDiskOfferingsRequestWithError() throws InvalidParameterException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testCreateGetAllDiskOfferingsRequestWithError() throws InternalServerErrorException {
         // exercise and verify
         new GetAllDiskOfferingsRequest.Builder().build(null);
     }

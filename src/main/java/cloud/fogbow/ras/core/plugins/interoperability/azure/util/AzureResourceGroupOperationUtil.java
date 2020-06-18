@@ -23,7 +23,7 @@ public class AzureResourceGroupOperationUtil {
             
             return resourceGroup.name();
         } catch (RuntimeException e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e));
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e));
             throw new UnacceptableOperationException(Messages.Exception.RESOURCE_GROUP_LIMIT_EXCEEDED);
         }
     }

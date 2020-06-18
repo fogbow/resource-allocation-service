@@ -34,7 +34,7 @@ public class RemoteCloudConnector implements CloudConnector {
             return remoteOrder;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 
@@ -48,12 +48,12 @@ public class RemoteCloudConnector implements CloudConnector {
             return null;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 
     @Override
-    public void deleteInstance(Order order) throws FogbowException, InstanceNotFoundException {
+    public void deleteInstance(Order order) throws FogbowException {
         try {
             RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
             remoteDeleteOrderRequest.send();
@@ -63,12 +63,12 @@ public class RemoteCloudConnector implements CloudConnector {
         } catch (Exception e) {
             String exceptionMessage = e.getMessage();
             LOGGER.error(exceptionMessage, e);
-            throw new FogbowException(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage);
         }
     }
 
     @Override
-    public OrderInstance getInstance(Order order) throws FogbowException, InstanceNotFoundException {
+    public OrderInstance getInstance(Order order) throws FogbowException {
         try {
             RemoteGetInstanceRequest remoteGetInstanceRequest = new RemoteGetInstanceRequest(order);
             OrderInstance instance = remoteGetInstanceRequest.send();
@@ -78,7 +78,7 @@ public class RemoteCloudConnector implements CloudConnector {
             throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 
@@ -91,7 +91,7 @@ public class RemoteCloudConnector implements CloudConnector {
             return quota;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 
@@ -104,7 +104,7 @@ public class RemoteCloudConnector implements CloudConnector {
             return imagesSummaryList;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 
@@ -117,7 +117,7 @@ public class RemoteCloudConnector implements CloudConnector {
             return imageInstance;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 
@@ -130,7 +130,7 @@ public class RemoteCloudConnector implements CloudConnector {
             return remoteGetAllSecurityRuleRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 
@@ -144,7 +144,7 @@ public class RemoteCloudConnector implements CloudConnector {
             return null;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 
@@ -156,7 +156,7 @@ public class RemoteCloudConnector implements CloudConnector {
             remoteDeleteSecurityRuleRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
-            throw new FogbowException(e.getMessage(), e);
+            throw new FogbowException(e.getMessage());
         }
     }
 }

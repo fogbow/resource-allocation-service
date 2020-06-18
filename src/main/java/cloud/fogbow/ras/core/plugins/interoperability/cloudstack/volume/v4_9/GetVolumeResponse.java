@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -36,7 +36,7 @@ public class GetVolumeResponse {
         return this.listVolumesResponse.volumes;
     }
 
-    public static GetVolumeResponse fromJson(String json) throws HttpResponseException {
+    public static GetVolumeResponse fromJson(String json) throws FogbowException {
         GetVolumeResponse volumeResponse = GsonHolder.getInstance().fromJson(json, GetVolumeResponse.class);
         volumeResponse.listVolumesResponse.checkErrorExistence();
         return volumeResponse;

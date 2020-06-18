@@ -2,8 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -50,7 +50,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
     private String cloudStackUrl;
 
     @Before
-    public void setUp() throws InvalidParameterException, UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         String cloudStackConfFilePath = CloudstackTestUtils.CLOUDSTACK_CONF_FILE_PATH;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.networkOfferingId = properties.getProperty(CloudStackCloudUtils.NETWORK_OFFERING_ID_CONFIG);
@@ -89,8 +89,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
         // verify
         this.expectedException.expect(FogbowException.class);
-        this.expectedException.expectMessage(
-                String.format(Messages.Exception.INVALID_CIDR, cidrNotation));
+        this.expectedException.expectMessage(String.format(Messages.Exception.INVALID_CIDR_S, cidrNotation));
 
         // exercise
         this.plugin.getSubnetInfo(cidrNotation);
@@ -99,7 +98,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
     // test case: When calling the doRequestInstance method with secondary methods mocked,
     // it must verify if It returns the right instanceId.
     @Test
-    public void testDoRequestInstanceSuccessfully() throws FogbowException, HttpResponseException {
+    public void testDoRequestInstanceSuccessfully() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder().build("");
@@ -125,7 +124,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
     // test case: When calling the doRequestInstance method with secondary methods mocked and
     // it occurs an HttpResponseException, it must verify if It returns a FogbowException.
     @Test
-    public void testDoRequestInstanceFail() throws FogbowException, HttpResponseException {
+    public void testDoRequestInstanceFail() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder().build("");
@@ -137,7 +136,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client), Mockito.eq(uriRequestExpected),
-                Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // exercise
         this.plugin.doRequestInstance(createNetworkRequest, cloudStackUser);
@@ -280,7 +279,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
 
         PowerMockito.mockStatic(CloudStackCloudUtils.class);
         PowerMockito.when(CloudStackCloudUtils.doRequest(Mockito.eq(this.client),Mockito.eq(uriRequestExpected),
-                Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                Mockito.eq(cloudStackUser))).thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -294,8 +293,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
     // it occurs an InstanceNotFoundException in the getNetworkInstance method,
     // it must verify if It returns a InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class)
-    public void testDoGetInstanceFailWhenOccursInstanceNotFoundException()
-            throws FogbowException, HttpResponseException {
+    public void testDoGetInstanceFailWhenOccursInstanceNotFoundException() throws FogbowException {
 
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
@@ -320,7 +318,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
     // test case: When calling the getNetworkInstance method with right parameter,
     // it must verify if It returns the right NetworkInstance.
     @Test
-    public void testGetNetworkInstanceSuccessfully() throws IOException, InstanceNotFoundException {
+    public void testGetNetworkInstanceSuccessfully() throws IOException, FogbowException {
         // set up
         String idExpected = "idExpected";
         String nameExpected = "nameExpected";
@@ -348,7 +346,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
     // test case: When calling the getNetworkInstance method with empty GetNetworkResponse,
     // it must verify if It throws an InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class)
-    public void testGetNetworkInstanceFail() throws IOException, InstanceNotFoundException {
+    public void testGetNetworkInstanceFail() throws IOException, FogbowException {
         // set up
         String jsonResponse = CloudstackTestUtils.createGetNetworkEmptyResponseJson();
         GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
@@ -412,7 +410,7 @@ public class CloudStackNetworkPluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackCloudUtils.doRequest(
                 Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(cloudStackUser))).
-                thenThrow(CloudstackTestUtils.createBadRequestHttpResponse());
+                thenThrow(CloudstackTestUtils.createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);

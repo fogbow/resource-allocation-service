@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -56,12 +56,12 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                 Thread.sleep(this.sleepTime);
             }
         } catch (InterruptedException e) {
-            LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
+            LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
             throw e;
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             LOGGER.error(e.getMessage(), e);
         } catch (Throwable e) {
-            LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
+            LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
         }
     }
 
@@ -70,12 +70,12 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
      * counterparts consistent.
      */
     @VisibleForTesting
-    void processRemoteProviderOrder(Order order) throws UnexpectedException {
+    void processRemoteProviderOrder(Order order) throws InternalServerErrorException {
         synchronized (order) {
            // Only remote orders need to be synchronized.
             if (order.isProviderLocal(this.localProviderId)) {
                 // This should never happen.
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
+                LOGGER.error(Messages.Log.UNEXPECTED_ERROR);
                 return;
             }
             try {
@@ -93,7 +93,7 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                     order.setOrderState(remoteOrder.getOrderState());
                 }
             } catch (FogbowException e) {
-                LOGGER.warn(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+                LOGGER.warn(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()));
             }
         }
     }

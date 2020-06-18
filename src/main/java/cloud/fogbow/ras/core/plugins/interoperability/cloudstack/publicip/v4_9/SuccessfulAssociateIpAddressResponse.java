@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.PublicIp.*;
 
@@ -31,7 +31,7 @@ public class SuccessfulAssociateIpAddressResponse {
 		return this.response.jobResult.ipAddress;
 	}
 	
-    public static SuccessfulAssociateIpAddressResponse fromJson(String json) throws HttpResponseException {
+    public static SuccessfulAssociateIpAddressResponse fromJson(String json) throws FogbowException {
         SuccessfulAssociateIpAddressResponse successfulAssociateIpAddressResponse =
                 GsonHolder.getInstance().fromJson(json, SuccessfulAssociateIpAddressResponse.class);
         successfulAssociateIpAddressResponse.response.jobResult.checkErrorExistence();

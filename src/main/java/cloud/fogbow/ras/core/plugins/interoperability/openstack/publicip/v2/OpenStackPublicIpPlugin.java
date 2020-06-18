@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Properties;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
@@ -13,11 +14,9 @@ import com.google.gson.JsonSyntaxException;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -104,11 +103,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         String endpoint = getFloatingIpEndpoint() 
                 + OpenStackConstants.ENDPOINT_SEPARATOR
                 + instanceId;
-        try {
-            this.client.doDeleteRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        this.client.doDeleteRequest(endpoint, cloudUser);
     }
     
     protected void disassociateSecurityGroup(String name, PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
@@ -119,11 +114,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         RemoveSecurityGroupFromServerRequest request = new RemoveSecurityGroupFromServerRequest.Builder()
                 .name(name)
                 .build();
-        try {
-            this.client.doPostRequest(endpoint, request.toJson(), cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        this.client.doPostRequest(endpoint, request.toJson(), cloudUser);
     }
     
     protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
@@ -135,7 +126,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         if (securityGroups != null && !securityGroups.isEmpty()) {
             return securityGroups.listIterator().next().getId();
         } else {
-            throw new UnexpectedException(String.format(Messages.Exception.NO_SECURITY_GROUP_FOUND, json));
+            throw new InternalServerErrorException(String.format(Messages.Exception.NO_SECURITY_GROUP_FOUND_S, json));
         }
     }
 
@@ -143,10 +134,10 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         try {
             return GetSecurityGroupsResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
-                    OpenStackConstants.SECURITY_GROUP_RESOURCE);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                    OpenStackConstants.SECURITY_GROUP_RESOURCE), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                    OpenStackConstants.SECURITY_GROUP_RESOURCE));
         }
     }
     
@@ -168,10 +159,10 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         try {
             return GetFloatingIpResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
-                    OpenStackConstants.PUBLIC_IP_RESOURCE);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                    OpenStackConstants.PUBLIC_IP_RESOURCE), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                    OpenStackConstants.PUBLIC_IP_RESOURCE));
         }
     }
     
@@ -194,9 +185,9 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                 .build();
         try {
             this.client.doPostRequest(endpoint, request.toJson(), cloudUser);
-        } catch (HttpResponseException e) {
+        } catch (FogbowException e) {
             deleteSecurityGroup(securityGroupId, cloudUser);
-            OpenStackHttpToFogbowExceptionMapper.map(e);
+            throw e;
         }
     }
 
@@ -220,11 +211,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         String endpoint = getSecurityGroupsEndpoint() 
                 + OpenStackConstants.ENDPOINT_SEPARATOR
                 + securityGroupId;
-        try {
-            this.client.doDeleteRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        this.client.doDeleteRequest(endpoint, cloudUser);
     }
 
     protected void allowAllIngressSecurityRules(String securityGroupId, OpenStackV3User cloudUser)
@@ -248,11 +235,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
 
     protected void doPostRequestFromCloud(CreateSecurityGroupRuleRequest request, OpenStackV3User cloudUser)
             throws FogbowException {
-        try {
-            this.client.doPostRequest(getSecurityGroupRulesEndpoint(), request.toJson(), cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        this.client.doPostRequest(getSecurityGroupRulesEndpoint(), request.toJson(), cloudUser);
     }
 
     protected String getSecurityGroupRulesEndpoint() {
@@ -270,12 +253,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                 .projectId(projectId)
                 .build();
         
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doPostRequest(getSecurityGroupsEndpoint(), request.toJson(), cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String jsonResponse = this.client.doPostRequest(getSecurityGroupsEndpoint(), request.toJson(), cloudUser);
         CreateSecurityGroupResponse securityGroupResponse = doCreateSecurityGroupResponseFrom(jsonResponse);
         return securityGroupResponse.getId();
     }
@@ -284,10 +262,12 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         try {
             return CreateSecurityGroupResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S,
+            String message = String.format(Messages.Log.ERROR_WHILE_CREATING_RESOURCE_S,
                     OpenStackConstants.SECURITY_GROUP_RESOURCE);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CREATING_RESOURCE_S,
+                    OpenStackConstants.SECURITY_GROUP_RESOURCE), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_CREATING_RESOURCE_S,
+                    OpenStackConstants.SECURITY_GROUP_RESOURCE));
         }
     }
 
@@ -300,12 +280,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     protected String doRequestInstance(CreateFloatingIpRequest request, OpenStackV3User cloudUser)
             throws FogbowException {
         
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doPostRequest(getFloatingIpEndpoint(), request.toJson(), cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String jsonResponse = this.client.doPostRequest(getFloatingIpEndpoint(), request.toJson(), cloudUser);
+
         CreateFloatingIpResponse response = doCreateFloatingIpResponseFrom(jsonResponse);
         return response.getFloatingIp().getId();
     }
@@ -314,10 +290,10 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         try {
             return CreateFloatingIpResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_CREATING_RESOURCE_S,
-                    OpenStackConstants.PUBLIC_IP_RESOURCE);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CREATING_RESOURCE_S,
+                    OpenStackConstants.PUBLIC_IP_RESOURCE), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_CREATING_RESOURCE_S,
+                    OpenStackConstants.PUBLIC_IP_RESOURCE));
         }
     }
 
@@ -333,7 +309,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         if (ports != null && !ports.isEmpty()) {
             return ports.listIterator().next().getId();
         } else {
-            throw new UnexpectedException(String.format(Messages.Exception.PORT_NOT_FOUND, computeId, defaulNetworkId));
+            throw new InternalServerErrorException(String.format(Messages.Exception.PORT_NOT_FOUND_S, computeId, defaulNetworkId));
         }
     }
 
@@ -341,25 +317,20 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         try {
             return GetNetworkPortsResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
-                    OpenStackConstants.NETWORK_PORTS_RESOURCE);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                    OpenStackConstants.NETWORK_PORTS_RESOURCE), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD,
+                    OpenStackConstants.NETWORK_PORTS_RESOURCE));
         }
     }
 
     protected String doGetResponseFromCloud(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
-        String json = null;
-        try {
-            json = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String json = this.client.doGetRequest(endpoint, cloudUser);
         return json;
     }
 
     protected String buildNetworkPortsEndpoint(String deviceId, String networkId, String endpoint)
-            throws InvalidParameterException {
+            throws InternalServerErrorException {
         
         GetNetworkPortsResquest resquest = null;
         try {
@@ -370,7 +341,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
                     .build();
 
         } catch (URISyntaxException e) {
-            throw new InvalidParameterException(String.format(Messages.Exception.WRONG_URI_SYNTAX, endpoint), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.WRONG_URI_SYNTAX_S, endpoint));
         }
         return resquest.getUrl();
     }
@@ -384,15 +355,15 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     protected void checkProperties() {
         String defaultNetworkId = getDefaultNetworkId();
         if (defaultNetworkId == null || defaultNetworkId.isEmpty()) {
-            throw new FatalErrorException(Messages.Fatal.DEFAULT_NETWORK_NOT_FOUND);
+            throw new FatalErrorException(Messages.Exception.DEFAULT_NETWORK_NOT_FOUND);
         }
         String externalNetworkId = getExternalNetworkId();
         if (externalNetworkId == null || externalNetworkId.isEmpty()) {
-            throw new FatalErrorException(Messages.Fatal.EXTERNAL_NETWORK_NOT_FOUND);
+            throw new FatalErrorException(Messages.Exception.EXTERNAL_NETWORK_NOT_FOUND);
         }
         String neutroApiEndpoint = getNeutronPrefixEndpoint();
         if (neutroApiEndpoint == null || neutroApiEndpoint.isEmpty()) {
-            throw new FatalErrorException(Messages.Fatal.NEUTRON_ENDPOINT_NOT_FOUND);
+            throw new FatalErrorException(Messages.Exception.NEUTRON_ENDPOINT_NOT_FOUND);
         }
     }
     

@@ -1,10 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.constants.AwsConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.ras.constants.Messages;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -18,7 +18,7 @@ public class AwsV2ClientUtil {
 	private static final int SECRET_KEY_ID_TOKEN_INDEX = 1;
 
 	public static Ec2Client createEc2Client(String tokenValue, String regionName)
-			throws InvalidParameterException, UnexpectedException {
+			throws InvalidParameterException, InternalServerErrorException {
 
 		String[] token = tokenValue.split(AwsConstants.TOKEN_VALUE_SEPARATOR);
 		String accessKeyId = token[ACCESS_KEY_ID_TOKEN_INDEX];
@@ -37,8 +37,8 @@ public class AwsV2ClientUtil {
 
 			return client;
 		} catch (Throwable e) {
-			LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_CLIENT, e);
-			throw new UnexpectedException(e.getMessage());
+			LOGGER.error(Messages.Log.ERROR_WHILE_CREATING_CLIENT, e);
+			throw new InternalServerErrorException(e.getMessage());
 		}
 	}
 

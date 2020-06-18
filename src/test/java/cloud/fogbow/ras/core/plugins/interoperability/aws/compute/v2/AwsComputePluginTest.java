@@ -272,7 +272,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doDeleteInstance method, and an unexpected error
-    // occurs, it must verify if an UnexpectedException has been thrown.
+    // occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoDeleteInstanceFail() {
         // set up
@@ -281,14 +281,14 @@ public class AwsComputePluginTest extends BaseUnitTests {
         Mockito.when(this.client.terminateInstances(Mockito.any(TerminateInstancesRequest.class)))
                 .thenThrow(SdkClientException.builder().build());
 
-        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, AwsComputePlugin.RESOURCE_NAME,
+        String expected = String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, AwsComputePlugin.RESOURCE_NAME,
                 instanceId);
 
         try {
             // exercise
             this.plugin.doDeleteInstance(instanceId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -482,7 +482,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doRequestInstance method, and an unexpected error
-    // occurs, it must verify if an UnexpectedException has been thrown.
+    // occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoRequestInstanceFail() throws Exception {
         // set up
@@ -493,13 +493,13 @@ public class AwsComputePluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.when(this.client.runInstances(request)).thenThrow(exception);
         
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.doRequestInstance(order, flavor, request, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -885,8 +885,8 @@ public class AwsComputePluginTest extends BaseUnitTests {
         // set up
         Mockito.doReturn(ANY_VALUE).when(this.plugin).getFlavorsFilePath();
 
-        NoSuchFileException exception = new NoSuchFileException(ANY_VALUE);
-        String expected = String.format(Messages.Error.ERROR_MESSAGE, exception);
+        NoSuchFileException exception = new NoSuchFileException(Messages.Exception.UNABLE_TO_LOAD_FLAVOURS);
+        String expected = String.format(exception.getMessage());
 
         try {
             // exercise
@@ -1120,7 +1120,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
         return response;
     }
     
-    private RunInstancesRequest buildRunInstancesResquest(ComputeOrder order, AwsHardwareRequirements flavor) {
+    private RunInstancesRequest buildRunInstancesResquest(ComputeOrder order, AwsHardwareRequirements flavor) throws InternalServerErrorException {
         RunInstancesRequest request = RunInstancesRequest.builder()
                 .imageId(flavor.getImageId())
                 .instanceType(InstanceType.T2_MICRO)

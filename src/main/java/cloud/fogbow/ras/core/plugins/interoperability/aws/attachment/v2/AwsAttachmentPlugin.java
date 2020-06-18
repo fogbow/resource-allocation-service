@@ -2,11 +2,11 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.attachment.v2;
 
 import java.util.Properties;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
@@ -54,7 +54,7 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
 	@Override
 	public String requestInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+		LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
 
 		Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 		String device = getAttachedDeviceName(attachmentOrder.getDevice());
@@ -72,7 +72,7 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String volumeId = attachmentOrder.getVolumeId();
         doDeleteInstance(volumeId, client);
@@ -80,7 +80,7 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
     @Override
     public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String attachmentId = attachmentOrder.getInstanceId();
         return doGetInstance(attachmentId, client);
@@ -96,7 +96,7 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
     }
 
     protected void doDeleteInstance(String volumeId, Ec2Client client)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
         
         DetachVolumeRequest request = DetachVolumeRequest.builder()
                 .volumeId(volumeId)
@@ -104,9 +104,9 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
         try {
             client.detachVolume(request);
         } catch (Exception e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, volumeId);
+            String message = String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, RESOURCE_NAME, volumeId);
             LOGGER.error(message, e);
-            throw new UnexpectedException(message);
+            throw new InternalServerErrorException(message);
         }
     }
 
@@ -137,7 +137,7 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
             client.attachVolume(request);
             attachmentId = request.volumeId();
         } catch (Exception e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
         return attachmentId;
     }

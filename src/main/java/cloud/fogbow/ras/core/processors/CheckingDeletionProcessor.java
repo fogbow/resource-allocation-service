@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderController;
@@ -62,12 +62,12 @@ public class CheckingDeletionProcessor implements Runnable {
                 Thread.sleep(this.sleepTime);
             }
         } catch (InterruptedException e) {
-            LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
+            LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
             throw e;
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             LOGGER.error(e.getMessage(), e);
         } catch (Throwable e) {
-            LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
+            LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
         }
     }
 
@@ -81,7 +81,7 @@ public class CheckingDeletionProcessor implements Runnable {
      * @param order {@link Order}
      */
     @VisibleForTesting
-    void processCheckingDeletionOrder(Order order) throws UnexpectedException {
+    void processCheckingDeletionOrder(Order order) throws InternalServerErrorException {
         synchronized (order) {
             // Check if the order is still in the CHECKING_DELETION state (for this particular state, this should
             // always happen, since once the order gets in this state, only this thread can operate on it. However,
@@ -96,7 +96,7 @@ public class CheckingDeletionProcessor implements Runnable {
             if (order.isProviderRemote(this.localProviderId)) {
                 // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
                 OrderStateTransitioner.transition(order, OrderState.PENDING);
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
+                LOGGER.error(Messages.Log.UNEXPECTED_ERROR);
                 return;
             }
             try {
@@ -108,7 +108,7 @@ public class CheckingDeletionProcessor implements Runnable {
 
                 localCloudConnector.getInstance(order);
             } catch (InstanceNotFoundException e) {
-                LOGGER.info(String.format(Messages.Info.INSTANCE_NOT_FOUND_S, order.getId()));
+                LOGGER.info(String.format(Messages.Log.INSTANCE_NOT_FOUND_S, order.getId()));
                 // Remove any references that related dependencies of other orders with the order that has
                 // just been deleted. Only the provider that has receiving the delete request through its
                 // REST API needs to update order dependencies.
@@ -117,7 +117,7 @@ public class CheckingDeletionProcessor implements Runnable {
                 }
                 this.orderController.closeOrder(order);
             } catch (FogbowException e) {
-                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()));
             }
         }
     }

@@ -12,10 +12,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -45,7 +44,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private Thread thread;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
         this.testUtils.mockLocalCloudConnectorFromFactory();
 
@@ -69,7 +68,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws InternalServerErrorException {
         if (this.thread != null) {
             this.thread.interrupt();
         }
@@ -295,7 +294,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
-    // UnexpectedException.
+    // InternalServerErrorException.
     @Test
     public void testThrowUnexpectedExceptionWhileTryingToProcessOrder() throws Exception {
         // set up
@@ -303,7 +302,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(order.getOrderState());
 
-        Mockito.doThrow(new UnexpectedException()).when(this.processor)
+        Mockito.doThrow(new InternalServerErrorException()).when(this.processor)
                 .processFulfilledOrder(Mockito.eq(order));
 
         // exercise

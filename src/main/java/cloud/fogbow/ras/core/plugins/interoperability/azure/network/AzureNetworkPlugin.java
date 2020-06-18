@@ -50,7 +50,7 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
 
     @Override
     public String requestInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
 
         String resourceName = AzureGeneralUtil.generateResourceName();
         String cidr = networkOrder.getCidr();
@@ -86,7 +86,7 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
     @Override
     public NetworkInstance getInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
         String instanceId = networkOrder.getInstanceId();
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, instanceId));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
         NetworkInstance creatingInstance = this.getCreatingInstance(instanceId);
         if (creatingInstance != null) {
@@ -120,7 +120,7 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
 
     @Override
     public void deleteInstance(NetworkOrder networkOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
 
         String instanceId = networkOrder.getInstanceId();
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);

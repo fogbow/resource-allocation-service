@@ -5,7 +5,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
@@ -95,9 +95,9 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // verify
         this.loggerAssert
-                .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.INFO, Messages.Log.SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_CREATE_VNET_ASYNC_BEHAVIOUR);
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 
@@ -128,9 +128,9 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // verify
         this.loggerAssert
-                .assertEqualsInOrder(Level.INFO, Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
-                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR)
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR)
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_CREATE_VNET_ASYNC_BEHAVIOUR);
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
@@ -284,7 +284,7 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // verify
         this.loggerAssert
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VNET_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_VNET_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteVirtualNetworkCompletable method and the completable executes
@@ -307,7 +307,7 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // verify
         this.loggerAssert
-                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteSecurityGroupCompletable method and the completable executes
@@ -330,7 +330,7 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // verify
         this.loggerAssert
-                .assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the buildDeleteSecurityGroupCompletable method and the completable executes
@@ -353,7 +353,7 @@ public class AzureVirtualNetworkOperationSDKTest {
 
         // verify
         this.loggerAssert
-                .assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
+                .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the doGetInstance method with mocked methods
@@ -662,7 +662,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureResourceGroupOperationUtil.deleteResourceGroupAsync(Mockito.eq(this.azure), Mockito.eq(resourceName));
 
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_DELETE_VNET_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_DELETE_VNET_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the doDeleteInstance method whose existing
@@ -697,7 +697,7 @@ public class AzureVirtualNetworkOperationSDKTest {
         PowerMockito.verifyStatic(AzureResourceGroupOperationUtil.class, Mockito.times(TestUtils.RUN_ONCE));
         AzureResourceGroupOperationUtil.deleteResourceGroupAsync(Mockito.eq(this.azure), Mockito.eq(resourceName));
 
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
     }
 
     // test case: When calling the doCreateInstance method, it must verify that is

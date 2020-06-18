@@ -28,8 +28,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.Get
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.hamcrest.Matcher;
 import org.junit.Assert;
@@ -67,7 +65,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     private ExpectedException expectedException = ExpectedException.none();
 
     @Before
-    public void setUp() throws UnexpectedException, InvalidParameterException {
+    public void setUp() throws InternalServerErrorException, InvalidParameterException {
         String cloudStackConfFilePath = HomeDir.getPath() +
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + CLOUDSTACK_CLOUD_NAME + File.separator
@@ -122,7 +120,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         GetVirtualMachineResponse response = Mockito.mock(GetVirtualMachineResponse.class);
-        Mockito.doThrow(new FogbowException()).when(this.plugin).requestGetVirtualMachine(
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).requestGetVirtualMachine(
                 Mockito.eq(request), Mockito.eq(cloudStackUser));
 
         // exercise
@@ -179,7 +177,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         GetAllDiskOfferingsResponse.DiskOffering diskOffering =
                 Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin)
+        Mockito.doThrow(new FogbowException("")).when(this.plugin)
                 .requestDeployVirtualMachine(Mockito.any(), Mockito.any());
 
         // exercise
@@ -198,14 +196,13 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // and it must verify if a FogbowException has been thrown.
     // note: CloudStackUrlUtil.sign() is beeing mocked in the @Before test method.
     @Test
-    public void testGetServiceOfferingsFail() throws FogbowException, HttpResponseException {
+    public void testGetServiceOfferingsFail() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
-        HttpResponseException badRequestHttpResponse = createBadRequestHttpResponse();
         Mockito.when(this.client.doGetRequest(
                 Mockito.anyString(), Mockito.any(CloudStackUser.class)))
-                .thenThrow(badRequestHttpResponse);
+                .thenThrow(createInvalidParameterException());
 
         // verify
         this.expectedException.expect(FogbowException.class);
@@ -248,12 +245,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // , it must verify if a FogbowException has been thrown.
     // note: CloudStackUrlUtil.sign() is beeing mocked in the @Before test method.
     @Test
-    public void testGetDiskOfferingsFail() throws FogbowException, HttpResponseException {
+    public void testGetDiskOfferingsFail() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
-        HttpResponseException badRequestHttpResponse = createBadRequestHttpResponse();
-        Mockito.doThrow(badRequestHttpResponse).when(this.plugin).doGet(
+        Mockito.doThrow(createInvalidParameterException()).when(this.plugin).doGet(
                 Mockito.anyString(), Mockito.any(CloudStackUser.class));
 
         // verify
@@ -370,7 +366,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // verify
         this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(
-                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
+                Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
 
         // exercise
         this.plugin.getServiceOffering(computeOrder, cloudStackUser);
@@ -404,7 +400,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // verify
         this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(
-                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
+                Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
 
         // exercise
         this.plugin.getServiceOffering(computeOrder, cloudStackUser);
@@ -587,7 +583,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(
                 Mockito.any(ComputeOrder.class))).thenReturn("anystring");
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin)
+        Mockito.doThrow(new FogbowException("")).when(this.plugin)
                 .requestDeployVirtualMachine(Mockito.any(), Mockito.eq(cloudStackUser));
 
         // exercise
@@ -724,13 +720,13 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: calling the getVirtualMachineDiskSize method with secondary methods mocked and
     // it occurs a Exception, it must verify if It returns the Fogbow default value
     @Test
-    public void testGetVirtualMachineDiskSizeFail() throws FogbowException, IOException {
+    public void testGetVirtualMachineDiskSizeFail() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         String virtualMachineId = "id";
 
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(cloudStackUser)))
-                .thenThrow(createBadRequestHttpResponse());
+                .thenThrow(createInvalidParameterException());
 
         // exercise
         int virtualMachineDiskSize = this.plugin.getVirtualMachineDiskSize(virtualMachineId, cloudStackUser);
@@ -790,7 +786,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: When calling the requestGetVirtualMachine method with secondary methods mocked,
     // it must verify if it returns the GetVirtualMachineResponse correct.
     @Test
-    public void testRequestGetVirtualMachineSuccessfully() throws FogbowException, HttpResponseException {
+    public void testRequestGetVirtualMachineSuccessfully() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         GetVirtualMachineRequest getVirtualMachineRequest = new GetVirtualMachineRequest.Builder()
@@ -818,7 +814,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: calling the requestGetVirtualMachineFail method and it occurs a Exception,
     // it must verify if it was threw a FogbowException
     @Test
-    public void testRequestGetVirtualMachineFail() throws FogbowException, HttpResponseException {
+    public void testRequestGetVirtualMachineFail() throws FogbowException {
 
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
@@ -826,7 +822,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .build("anything");
         URIBuilder uriRequest = getVirtualMachineRequest.getUriBuilder();
 
-        Mockito.doThrow(createBadRequestHttpResponse()).when(this.plugin)
+        Mockito.doThrow(createInvalidParameterException()).when(this.plugin)
                 .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
 
         // verify
@@ -876,7 +872,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         ComputeOrder computeOrder = createComputeOrder(new ArrayList<>(), "fake-image-id");
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin)
+        Mockito.doThrow(new FogbowException("")).when(this.plugin)
                 .requestGetVirtualMachine(Mockito.any(), Mockito.eq(cloudStackUser));
 
         // exercise
@@ -893,7 +889,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: When calling the doDeleteInstance method with secondary methods mocked,
     // it must verify if it returns the right ComputeInstance.
     @Test
-    public void testDoDeleteInstanceSuccessfully() throws FogbowException, HttpResponseException {
+    public void testDoDeleteInstanceSuccessfully() throws FogbowException {
         //set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         DestroyVirtualMachineRequest destroyVirtualMachineRequest = new DestroyVirtualMachineRequest
@@ -914,7 +910,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: calling the doDeleteInstance method and it occurs a Exception,
     // it must verify if it was threw a FogbowException.
     @Test
-    public void testDoDeleteInstanceFail() throws FogbowException, HttpResponseException {
+    public void testDoDeleteInstanceFail() throws FogbowException {
         //set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         DestroyVirtualMachineRequest destroyVirtualMachineRequest = new DestroyVirtualMachineRequest
@@ -922,7 +918,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         URIBuilder uriRequest = destroyVirtualMachineRequest.getUriBuilder();
         String instanceId = "InstanceId";
 
-        Mockito.doThrow(createBadRequestHttpResponse()).when(this.plugin)
+        Mockito.doThrow(createInvalidParameterException()).when(this.plugin)
                 .doGet(Mockito.eq(uriRequest.toString()), Mockito.eq(cloudStackUser));
 
         this.expectedException.expect(FogbowException.class);
@@ -935,7 +931,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: When calling the deleteInstance method with secondary methods mocked,
     // it must check the Cloudstack request is the expected.
     @Test
-    public void testDeleteInstanceSuccessfully() throws FogbowException, HttpResponseException {
+    public void testDeleteInstanceSuccessfully() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         Mockito.when(this.client.doGetRequest(
@@ -964,16 +960,16 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: calling the deleteInstance method and it occurs a Exception,
     // it must verify if it was threw a FogbowException.
     @Test
-    public void testDeleteInstanceFail() throws FogbowException, HttpResponseException {
+    public void testDeleteInstanceFail() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.eq(cloudStackUser)))
-                .thenThrow(createBadRequestHttpResponse());
+                .thenThrow(createInvalidParameterException());
 
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
 
-        Mockito.doThrow(new FogbowException()).when(this.plugin).doDeleteInstance(Mockito.any(),
+        Mockito.doThrow(new FogbowException("")).when(this.plugin).doDeleteInstance(Mockito.any(),
                 Mockito.eq(cloudStackUser), Mockito.endsWith(TestUtils.FAKE_INSTANCE_ID));
 
         // verify
@@ -1144,7 +1140,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // verify
         this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(
-                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
+                Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
 
         // exercise
         this.plugin.getDiskOffering(computeOrder, cloudStackUser);
@@ -1168,7 +1164,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         // verify
         this.expectedException.expect(UnacceptableOperationException.class);
         this.expectedException.expectMessage(
-                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
+                Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
 
         // exercise
         this.plugin.getDiskOffering(anyComputeOrder, cloudStackUser);
@@ -1177,7 +1173,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: When calling the doGet method with secondary methods mocked,
     // it must verify if It returns the response correct.
     @Test
-    public void testDoGetSuccessfully() throws FogbowException, HttpResponseException {
+    public void testDoGetSuccessfully() throws FogbowException {
         // set up
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
         String url = "http://localhost";
@@ -1196,7 +1192,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: calling the doGet method and it occurs a Exception,
     // it must verify if it was threw a HttpResponseException.
     @Test
-    public void testDoGetFail() throws FogbowException, HttpResponseException {
+    public void testDoGetFail() throws FogbowException {
         // set up
         String url = "anyUrl";
         String exceptionMessage = "anyMessage";
@@ -1205,7 +1201,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
                 .thenThrow(new FogbowException(exceptionMessage));
 
         // verify
-        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(exceptionMessage);
 
         // exercise
@@ -1215,7 +1211,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: When calling the requestDeployVirtualMachine method with secondary methods mocked,
     // it must verify if It returns the DeployVirtualMachineResponse correct.
     @Test
-    public void testRequestDeployVirtualMachineSuccessfully() throws FogbowException, IOException {
+    public void testRequestDeployVirtualMachineSuccessfully() throws FogbowException {
         // set up
         DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
                 .build("");
@@ -1242,14 +1238,14 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     // test case: calling the requestDeployVirtualMachine method and it occurs a Exception,
     // it must verify if it was threw a FogbowException.
     @Test
-    public void testRequestDeployVirtualMachineFail() throws FogbowException, IOException {
+    public void testRequestDeployVirtualMachineFail() throws FogbowException {
         // set up
         DeployVirtualMachineRequest deployVirtualMachineRequest = new DeployVirtualMachineRequest.Builder()
                 .build("anything");
         CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
 
         Mockito.when(this.client.doGetRequest(
-                Mockito.any(), Mockito.eq(cloudStackUser))).thenThrow(createBadRequestHttpResponse());
+                Mockito.any(), Mockito.eq(cloudStackUser))).thenThrow(createInvalidParameterException());
 
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(BAD_REQUEST_MSG);
@@ -1375,11 +1371,11 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         return servicesOffering;
     }
 
-    private HttpResponseException createBadRequestHttpResponse() {
-        return new HttpResponseException(HttpStatus.SC_BAD_REQUEST, BAD_REQUEST_MSG);
+    private InvalidParameterException createInvalidParameterException() {
+        return new InvalidParameterException(BAD_REQUEST_MSG);
     }
 
-    private void ignoringCloudStackUrl() throws InvalidParameterException {
+    private void ignoringCloudStackUrl() throws InternalServerErrorException {
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(),
                 Mockito.anyString())).thenCallRealMethod();

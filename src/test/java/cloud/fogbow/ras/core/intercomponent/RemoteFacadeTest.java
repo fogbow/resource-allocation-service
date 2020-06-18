@@ -47,7 +47,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	private OrderController orderController;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
         this.orderController = Mockito.spy(new OrderController());
         this.facade = Mockito.spy(RemoteFacade.getInstance());
@@ -91,8 +91,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 
 	// test case: When calling the activateOrder method with a requesting member
-	// different of the order requester, it must throw an UnexpectedException.
-	@Test(expected = UnexpectedException.class) // verify
+	// different of the order requester, it must throw an InternalServerErrorException.
+	@Test(expected = InternalServerErrorException.class) // verify
 	public void testRemoteActivateOrderThrowsUnexpectedException() throws Exception {
 		// set up
 		Order order = new ComputeOrder();
@@ -531,8 +531,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 
 	// test case: When calling the handleRemoteEvent method with a provider
-	// different from the ordering provider, it must throw an UnexpectedException.
-	@Test(expected = UnexpectedException.class) // verify
+	// different from the ordering provider, it must throw an InternalServerErrorException.
+	@Test(expected = InternalServerErrorException.class) // verify
 	public void testRemoteHandleRemoteEvent() throws Exception {
 		// set up
 		OrderState orderState = OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST;
@@ -553,7 +553,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	}
 
 	private AuthorizationPlugin mockAuthorizationPlugin(SystemUser systemUser, RasOperation operation)
-			throws UnexpectedException, UnauthorizedRequestException {
+			throws InternalServerErrorException, UnauthorizedRequestException {
 		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(DefaultAuthorizationPlugin.class);
 
 		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation))).thenReturn(true);

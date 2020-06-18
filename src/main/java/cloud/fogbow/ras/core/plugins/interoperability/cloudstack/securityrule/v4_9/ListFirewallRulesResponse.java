@@ -1,10 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class ListFirewallRulesResponse {
 	@SerializedName(LIST_FIREWALL_RULES_KEY_JSON)
 	private ListFirewallRules response;
 
-	public static ListFirewallRulesResponse fromJson(String jsonResponse) throws HttpResponseException {
+	public static ListFirewallRulesResponse fromJson(String jsonResponse) throws FogbowException {
 		ListFirewallRulesResponse listFirewallRulesResponse =
 				GsonHolder.getInstance().fromJson(jsonResponse, ListFirewallRulesResponse.class);
 		listFirewallRulesResponse.response.checkErrorExistence();

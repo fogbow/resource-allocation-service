@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -32,7 +32,7 @@ public class GetAllImagesResponse {
     private ListTemplatesResponse response;
 
     @NotNull
-    public static GetAllImagesResponse fromJson(String jsonResponse) throws HttpResponseException {
+    public static GetAllImagesResponse fromJson(String jsonResponse) throws FogbowException {
         GetAllImagesResponse getAllImagesResponse =
                 GsonHolder.getInstance().fromJson(jsonResponse, GetAllImagesResponse.class);
         getAllImagesResponse.response.checkErrorExistence();

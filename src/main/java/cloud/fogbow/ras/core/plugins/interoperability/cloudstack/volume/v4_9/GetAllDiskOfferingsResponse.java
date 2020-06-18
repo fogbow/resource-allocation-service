@@ -1,10 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -38,7 +37,7 @@ public class GetAllDiskOfferingsResponse {
         return this.listDiskOfferingsResponse.diskOfferings;
     }
 
-    public static GetAllDiskOfferingsResponse fromJson(String json) throws HttpResponseException {
+    public static GetAllDiskOfferingsResponse fromJson(String json) throws FogbowException {
         GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = GsonHolder.getInstance().
                 fromJson(json, GetAllDiskOfferingsResponse.class);
         getAllDiskOfferingsResponse.listDiskOfferingsResponse.checkErrorExistence();

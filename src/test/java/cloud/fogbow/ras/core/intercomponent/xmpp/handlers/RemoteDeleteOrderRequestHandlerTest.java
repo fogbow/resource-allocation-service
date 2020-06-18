@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
@@ -35,7 +35,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
             "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n" +
                     "  <error code=\"500\" type=\"wait\">\n" +
                     "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n" +
-                    "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW + "</text>\n" +
+                    "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"></text>\n" +
                     "  </error>\n" +
                     "</iq>";
 
@@ -92,7 +92,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         this.order = new ComputeOrder(systemUser, REQUESTING_MEMBER, "providingmember",
                 "default", "hostName", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
-        Mockito.doThrow(new FogbowException()).when(this.remoteFacade).deleteOrder(this.order.getRequester(),
+        Mockito.doThrow(new FogbowException("")).when(this.remoteFacade).deleteOrder(this.order.getRequester(),
                 this.order.getId(), this.order.getSystemUser(), this.order.getType());
 
         IQ iq = RemoteDeleteOrderRequest.marshal(this.order);

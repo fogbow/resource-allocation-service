@@ -56,7 +56,7 @@ public class SecurityRuleUtil {
             } else if (splitPorts.length == 2) {
                 return Integer.parseInt(splitPorts[index]);
             } else {
-                LOGGER.warn(String.format(Messages.Warn.INCONSISTENT_RANGE_S, range));
+                LOGGER.warn(String.format(Messages.Log.INCONSISTENT_RANGE_S, range));
             }
         } catch (Exception e) {
             LOGGER.warn(String.format(Messages.Exception.INVALID_PARAMETER_S, range), e);
@@ -80,7 +80,7 @@ public class SecurityRuleUtil {
             // NOTE(pauloewerton): IPSEC is supported by ONe but not by Fogbow
             case IPSEC_TEMPLATE_VALUE:
             default:
-                LOGGER.warn(String.format(Messages.Warn.INCONSISTENT_PROTOCOL_S, protocol));
+                LOGGER.warn(String.format(Messages.Log.INCONSISTENT_PROTOCOL_S, protocol));
                 return null;
             }
         }
@@ -110,7 +110,7 @@ public class SecurityRuleUtil {
             case OUTBOUND_TEMPLATE_VALUE:
                 return Direction.OUT;
             default:
-                LOGGER.warn(String.format(Messages.Warn.INCONSISTENT_DIRECTION, type));
+                LOGGER.warn(String.format(Messages.Log.INCONSISTENT_DIRECTION_S, type));
                 return null;
             }
         }

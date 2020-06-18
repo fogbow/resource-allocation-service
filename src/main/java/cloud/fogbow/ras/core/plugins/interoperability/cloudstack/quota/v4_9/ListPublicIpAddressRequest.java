@@ -1,13 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 import static cloud.fogbow.common.constants.CloudStackConstants.Network.ID_KEY_JSON;
 
 public class ListPublicIpAddressRequest extends CloudStackRequest {
     private static final String LIST_PUBLIC_IP_ADDRESSES_COMMAND = "listPublicIpAddresses";
 
-    private ListPublicIpAddressRequest(Builder builder) throws InvalidParameterException {
+    private ListPublicIpAddressRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
         addParameter(ID_KEY_JSON, builder.id);
     }
@@ -26,7 +26,7 @@ public class ListPublicIpAddressRequest extends CloudStackRequest {
             return this;
         }
 
-        public ListPublicIpAddressRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public ListPublicIpAddressRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new ListPublicIpAddressRequest(this);
         }

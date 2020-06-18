@@ -4,7 +4,7 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
@@ -59,7 +59,7 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
 
     @Override
     public String requestInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.generateResourceName();
         String resourceGroupName = AzureGeneralUtil
@@ -81,7 +81,7 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
     @Override
     public VolumeInstance getInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
         String instanceId = volumeOrder.getInstanceId();
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, instanceId));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
         VolumeInstance creatingInstance = getCreatingInstance(instanceId);
         if (creatingInstance != null) {
@@ -101,7 +101,7 @@ public class AzureVolumePlugin implements VolumePlugin<AzureUser>, AzureAsync<Vo
     @Override
     public void deleteInstance(VolumeOrder volumeOrder, AzureUser azureUser) throws FogbowException {
         String instanceId = volumeOrder.getInstanceId();
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, instanceId));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
 

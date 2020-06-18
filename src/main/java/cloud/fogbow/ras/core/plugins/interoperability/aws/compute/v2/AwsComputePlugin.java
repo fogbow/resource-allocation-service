@@ -14,14 +14,10 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import cloud.fogbow.common.exceptions.*;
 import org.apache.log4j.Logger;
 
-import cloud.fogbow.common.exceptions.ConfigurationErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnacceptableOperationException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -107,7 +103,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         AwsHardwareRequirements flavor = findSmallestFlavor(computeOrder, cloudUser);
         Subnet subnet = getNetworkSelected(computeOrder, client);
@@ -117,7 +113,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
 
     @Override
     public ComputeInstance getInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, computeOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         updateHardwareRequirements(cloudUser);
         String instanceId = computeOrder.getInstanceId();
@@ -126,7 +122,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
 
     @Override
     public void deleteInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, computeOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String instanceId = computeOrder.getInstanceId();
         doDeleteInstance(instanceId, client);
@@ -142,16 +138,15 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return false;
     }
 
-    protected void doDeleteInstance(String instanceId, Ec2Client client) throws UnexpectedException {
+    protected void doDeleteInstance(String instanceId, Ec2Client client) throws InternalServerErrorException {
         TerminateInstancesRequest request = TerminateInstancesRequest.builder()
                 .instanceIds(instanceId)
                 .build();
         try {
             client.terminateInstances(request);
         } catch (SdkException e) {
-            String message = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, RESOURCE_NAME, instanceId);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message);
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, RESOURCE_NAME, instanceId), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S, RESOURCE_NAME, instanceId));
         }
     }
 	
@@ -230,7 +225,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     }
 	
     protected String doRequestInstance(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
-            RunInstancesRequest request, Ec2Client client) throws UnexpectedException {
+            RunInstancesRequest request, Ec2Client client) throws InternalServerErrorException {
         
         try {
             RunInstancesResponse response = client.runInstances(request);
@@ -245,7 +240,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
             }
             return instanceId;
         } catch (Exception e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -423,9 +418,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         try {
             return Files.readAllLines(path);
         } catch (IOException e) {
-            String message = String.format(Messages.Error.ERROR_MESSAGE, e);
-            LOGGER.error(message, e);
-            throw new ConfigurationErrorException(message);
+            LOGGER.error(String.format(Messages.Log.UNABLE_TO_LOAD_FLAVOURS, e), e);
+            throw new ConfigurationErrorException(String.format(Messages.Exception.UNABLE_TO_LOAD_FLAVOURS, e));
         }
     }
 	

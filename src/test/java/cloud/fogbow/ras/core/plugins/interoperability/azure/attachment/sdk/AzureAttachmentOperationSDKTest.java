@@ -42,7 +42,7 @@ public class AzureAttachmentOperationSDKTest {
         this.operation.subscribeAttachDiskFrom(observable, finishCreationCallbacks);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_ATTACH_DISK_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_ATTACH_DISK_ASYNC_BEHAVIOUR);
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.NEVER_RUN)).runOnError();
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
@@ -60,7 +60,7 @@ public class AzureAttachmentOperationSDKTest {
         this.operation.subscribeAttachDiskFrom(observable, finishCreationCallbacks);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR);
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
@@ -77,7 +77,7 @@ public class AzureAttachmentOperationSDKTest {
         this.operation.subscribeDetachDiskFrom(observable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Info.END_DETACH_DISK_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_DETACH_DISK_ASYNC_BEHAVIOUR);
     }
     
     // test case: When calling the subscribeDetachDiskFrom method and the
@@ -92,7 +92,7 @@ public class AzureAttachmentOperationSDKTest {
         this.operation.subscribeDetachDiskFrom(observable);
 
         // verify
-        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Error.ERROR_DETACH_DISK_ASYNC_BEHAVIOUR);
+        this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DETACH_DISK_ASYNC_BEHAVIOUR);
     }
     
 }

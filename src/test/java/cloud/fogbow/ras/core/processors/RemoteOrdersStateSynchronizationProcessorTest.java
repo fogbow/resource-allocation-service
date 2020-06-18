@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.Messages;
@@ -38,7 +38,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
     private ExpectedException expectedException = ExpectedException.none();
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
 
         this.processor = Mockito.spy(new RemoteOrdersStateSynchronizationProcessor(
@@ -89,7 +89,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
         FogbowException fogbowException = new FogbowException(errorMessageException);
         Mockito.when(remoteCloudConnector.getRemoteOrder(Mockito.eq(order))).thenThrow(fogbowException);
 
-        String infoMessageExpected = String.format(Messages.Exception.GENERIC_EXCEPTION, errorMessageException);
+        String infoMessageExpected = String.format(Messages.Exception.GENERIC_EXCEPTION_S, errorMessageException);
 
         // exercise
         this.processor.processRemoteProviderOrder(order);
@@ -115,7 +115,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
         // verify
         Mockito.verify(order, Mockito.times(TestUtils.NEVER_RUN)).getOrderState();
         Mockito.verify(remoteCloudConnector, Mockito.times(TestUtils.NEVER_RUN)).getRemoteOrder(Mockito.eq(order));
-        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
+        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
 
     }
 
@@ -163,7 +163,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
     // test case: When calling the synchronizeWithRemote method and throws a Throwable
     // it must verify if It logs an error message.
     @Test
-    public void testAssignForDeletionFailWhenThrowsThrowable() throws InterruptedException, UnexpectedException {
+    public void testAssignForDeletionFailWhenThrowsThrowable() throws InterruptedException, InternalServerErrorException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         this.remoteOrderList.addItem(order);
@@ -174,20 +174,20 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
         this.processor.synchronizeWithRemote();
 
         // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Error.UNEXPECTED_ERROR);
+        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
     }
 
-    // test case: When calling the synchronizeWithRemote method and throws an UnexpectedException
+    // test case: When calling the synchronizeWithRemote method and throws an InternalServerErrorException
     // it must verify if It logs an error message.
     @Test
-    public void testAssignForDeletionFailWhenThrowsUnexpectedException() throws InterruptedException, UnexpectedException {
+    public void testAssignForDeletionFailWhenThrowsUnexpectedException() throws InterruptedException, InternalServerErrorException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         this.remoteOrderList.addItem(order);
 
         String errorMessage = TestUtils.ANY_VALUE;
-        UnexpectedException unexpectedException = new UnexpectedException(errorMessage);
-        Mockito.doThrow(unexpectedException).when(this.processor).processRemoteProviderOrder(Mockito.eq(order));
+        InternalServerErrorException internalServerErrorException = new InternalServerErrorException(errorMessage);
+        Mockito.doThrow(internalServerErrorException).when(this.processor).processRemoteProviderOrder(Mockito.eq(order));
 
         // exercise
         this.processor.synchronizeWithRemote();
@@ -199,7 +199,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
     // test case: When calling the synchronizeWithRemote method and there is no order in the processAssignedForDeletionOrder,
     // it must verify if It does not call processAssignedForDeletionOrder.
     @Test
-    public void testAssignForDeletionSuccessfullyWhenThereIsNoOrder() throws InterruptedException, UnexpectedException {
+    public void testAssignForDeletionSuccessfullyWhenThereIsNoOrder() throws InterruptedException, InternalServerErrorException {
 
         // set up
         PowerMockito.mockStatic(Thread.class);

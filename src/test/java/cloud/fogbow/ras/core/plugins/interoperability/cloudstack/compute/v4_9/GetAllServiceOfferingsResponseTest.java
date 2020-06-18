@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -58,7 +59,7 @@ public class GetAllServiceOfferingsResponseTest {
 
     // test case: create GetAllServiceOfferingsResponse from error Cloudstack Json Response
     @Test
-    public void testGetAllServiceOfferingsResponseUnexpectedJson() throws IOException {
+    public void testGetAllServiceOfferingsResponseUnexpectedJson() throws IOException, FogbowException {
         // set up
         String errorText = "anyString";
         int errorCode = HttpStatus.SC_BAD_REQUEST;
@@ -66,7 +67,7 @@ public class GetAllServiceOfferingsResponseTest {
                 .createGetAllServiceOfferingsErrotResponseJson(errorCode, errorText);
 
         // verify
-        this.expectedException.expect(HttpResponseException.class);
+        this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(errorText);
 
         // execute

@@ -4,7 +4,6 @@ import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -96,12 +95,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     protected String doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         return jsonResponse;
     }
 
@@ -136,8 +130,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
             String response = this.client.doPostRequest(endpoint, body, cloudUser);
             CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
             instanceId = createComputeResponse.getId();
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
+        } catch (FogbowException e) {
+            throw e;
         } finally {
             if (keyName != null) {
                 deleteKeyName(projectId, keyName, cloudUser);
@@ -188,11 +182,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     protected void doCreateKeyName(String osKeypairEndpoint, String body, OpenStackV3User cloudUser) throws FogbowException {
-        try {
-            this.client.doPostRequest(osKeypairEndpoint, body, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        this.client.doPostRequest(osKeypairEndpoint, body, cloudUser);
     }
 
     protected String getComputeEndpoint(String projectId, String suffix) {
@@ -370,21 +360,12 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     protected String doGetRequest(String endpoint, OpenStackV3User clouUser) throws FogbowException {
-        String responseStr = null;
-        try {
-            responseStr = this.client.doGetRequest(endpoint, clouUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String responseStr = this.client.doGetRequest(endpoint, clouUser);
         return responseStr;
     }
 
     protected void doDeleteRequest(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
-        try {
-            this.client.doDeleteRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        this.client.doDeleteRequest(endpoint, cloudUser);
     }
 
     protected TreeSet<HardwareRequirements> getHardwareRequirementsList() {

@@ -25,7 +25,7 @@ public class RemoteCreateSecurityRuleRequestHandler extends AbstractQueryHandler
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.RECEIVING_REMOTE_REQUEST_S, iq.getID()));
         String orderId = unmarshalOrderId(iq);
         SystemUser systemUser = unmarshalFederationUserToken(iq);
         SecurityRule securityRule = unmarshalSecurityRule(iq);

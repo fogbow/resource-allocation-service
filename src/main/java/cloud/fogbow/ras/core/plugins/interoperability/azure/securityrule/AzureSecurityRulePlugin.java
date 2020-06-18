@@ -36,7 +36,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, AzureUser azureUser)
             throws FogbowException {
 
-        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(majorOrder.getInstanceId());
         String cidr = securityRule.getCidr();
         int portFrom = securityRule.getPortFrom();
@@ -61,7 +61,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
         String instanceId = majorOrder.getInstanceId();
         String networkSecurityGroupName = AzureGeneralUtil.defineResourceName(instanceId);
         return this.operation.getNetworkSecurityRules(networkSecurityGroupName, azureUser);
@@ -69,7 +69,7 @@ public class AzureSecurityRulePlugin implements SecurityRulePlugin<AzureUser> {
 
     @Override
     public void deleteSecurityRule(String securityRuleId, AzureUser azureUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, securityRuleId));
         SecurityRuleIdContext securityRuleIdContext = getSecurityRuleIdContext(securityRuleId);
         String networkSecurityGroupName = securityRuleIdContext.getNetworkSecurityGroupName();
         String securityRuleName = securityRuleIdContext.getSecurityRuleName();

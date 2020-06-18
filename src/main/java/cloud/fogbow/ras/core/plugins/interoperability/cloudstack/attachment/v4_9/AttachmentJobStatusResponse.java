@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
@@ -54,17 +54,17 @@ public class AttachmentJobStatusResponse {
 
     /**
      * It returns a CloudStackErrorResponse when the job status response is a failure and it throws
-     * an UnexpectedException when the job status response is not a failure due to the fact that
+     * an InternalServerErrorException when the job status response is not a failure due to the fact that
      * either complete or failure response comes by the same parameters, the jobResult.
      */
     @NotNull
-    public CloudStackErrorResponse getErrorResponse() throws UnexpectedException {
+    public CloudStackErrorResponse getErrorResponse() throws InternalServerErrorException {
         if (response.jobStatus == CloudStackCloudUtils.JOB_STATUS_FAILURE) {
             return response.jobResult;
         }
         LOGGER.debug(String.format(
                 "Error code: %s, jobResult: %s", response.jobStatus, response.jobResult));
-        throw new UnexpectedException(
+        throw new InternalServerErrorException(
                 String.format(Messages.Exception.UNEXPECTED_OPERATION_S, NO_FAILURE_EXCEPTION_MESSAGE));
     }
 

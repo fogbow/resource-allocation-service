@@ -5,10 +5,11 @@ import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.CidrUtils;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -19,7 +20,6 @@ import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
 import cloud.fogbow.ras.api.parameters.SecurityRule.Protocol;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityGroupsResponse.SecurityGroup;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityRulesResponse.SecurityGroupRule;
@@ -59,7 +59,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, OpenStackV3User cloudUser)
             throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
         String securityGroupName = retrieveSecurityGroupName(majorOrder);
         String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
         CreateSecurityRuleRequest request = buildCreateSecurityRuleRequest(securityGroupId, securityRule);
@@ -70,7 +70,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, OpenStackV3User cloudUser)
             throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
         String securityGroupName = retrieveSecurityGroupName(majorOrder);
         String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
         GetSecurityRulesResponse response = doGetSecurityRules(securityGroupId, cloudUser);
@@ -79,7 +79,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
 
     @Override
     public void deleteSecurityRule(String securityRuleId, OpenStackV3User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, securityRuleId));
         String endpoint = this.prefixEndpoint
                 + OpenStackConstants.SECURITY_GROUP_RULES_ENDPOINT
                 + OpenStackConstants.ENDPOINT_SEPARATOR
@@ -90,32 +90,18 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
 
     @VisibleForTesting
     void doDeleteRequest(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
-        try {
-            this.client.doDeleteRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        this.client.doDeleteRequest(endpoint, cloudUser);
     }
 
     @VisibleForTesting
     String doPostRequest(String endpoint, String bodyContent, OpenStackV3User cloudUser) throws FogbowException {
-        String response = null;
-        try {
-            response = this.client.doPostRequest(endpoint, bodyContent, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String response = this.client.doPostRequest(endpoint, bodyContent, cloudUser);
         return response;
     }
 
     @VisibleForTesting
     String doGetRequest(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
-        String response = null;
-        try {
-            response = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+        String response = this.client.doGetRequest(endpoint, cloudUser);
         return response;
     }
 
@@ -228,11 +214,11 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
             throws FogbowException {
 
         if (securityGroups.size() < MAXIMUM_SIZE_ALLOWED) {
-            String message = String.format(Messages.Exception.SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND, securityGroupName);
+            String message = String.format(Messages.Exception.SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND_S, securityGroupName);
             throw new InstanceNotFoundException(message);
         } else if (securityGroups.size() > MAXIMUM_SIZE_ALLOWED) {
-            String message = String.format(Messages.Exception.MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED, securityGroupName);
-            throw new UnexpectedException(message);
+            String message = String.format(Messages.Exception.MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED_S, securityGroupName);
+            throw new InternalServerErrorException(message);
         }
     }
 

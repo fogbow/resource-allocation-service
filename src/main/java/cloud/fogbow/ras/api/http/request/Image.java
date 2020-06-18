@@ -40,11 +40,11 @@ public class Image {
             throws FogbowException {
 
         try {
-            LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
+            LOGGER.info(Messages.Log.RECEIVING_GET_ALL_IMAGES_REQUEST);
             List<ImageSummary> imagesMap = ApplicationFacade.getInstance().getAllImages(providerId, cloudName, systemUserToken);
             return new ResponseEntity<>(imagesMap, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Log.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -63,11 +63,11 @@ public class Image {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_IMAGE_REQUEST_S, imageId));
             ImageInstance imageInstance = ApplicationFacade.getInstance().getImage(providerId, cloudName, imageId, systemUserToken);
             return new ResponseEntity<>(imageInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }

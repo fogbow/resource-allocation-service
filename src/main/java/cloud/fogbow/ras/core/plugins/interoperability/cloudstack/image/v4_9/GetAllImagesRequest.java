@@ -1,13 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 import static cloud.fogbow.common.constants.CloudStackConstants.Image.*;
 
 public class GetAllImagesRequest extends CloudStackRequest {
 
-    protected GetAllImagesRequest(Builder builder) throws InvalidParameterException {
+    protected GetAllImagesRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
         addParameter(TEMPLATE_FILTER_KEY_JSON, EXECUTABLE_TEMPLATES_VALUE);
         addParameter(ID_KEY_JSON, builder.id);
@@ -27,7 +27,7 @@ public class GetAllImagesRequest extends CloudStackRequest {
             return this;
         }
 
-        public GetAllImagesRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public GetAllImagesRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new GetAllImagesRequest(this);
         }

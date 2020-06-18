@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import javax.validation.constraints.NotNull;
 
@@ -28,7 +28,7 @@ public class CreateNetworkResponse {
     private Response response;
 
     @NotNull
-    public static CreateNetworkResponse fromJson(String json) throws HttpResponseException {
+    public static CreateNetworkResponse fromJson(String json) throws FogbowException {
         CreateNetworkResponse createNetworkResponse =
                 GsonHolder.getInstance().fromJson(json, CreateNetworkResponse.class);
         createNetworkResponse.response.checkErrorExistence();

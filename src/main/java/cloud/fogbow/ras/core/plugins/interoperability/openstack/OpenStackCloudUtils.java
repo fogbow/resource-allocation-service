@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -24,21 +24,20 @@ public class OpenStackCloudUtils {
     public static String getProjectIdFrom(OpenStackV3User cloudUser) throws InvalidParameterException {
         String projectId = cloudUser.getProjectId();
         if (projectId == null) {
-            LOGGER.error(Messages.Error.UNSPECIFIED_PROJECT_ID);
+            LOGGER.error(Messages.Log.UNSPECIFIED_PROJECT_ID);
             throw new InvalidParameterException(Messages.Exception.NO_PROJECT_ID);
         }
         return projectId;
     }
 
-    public static String getSecurityGroupIdFromGetResponse(String json) throws UnexpectedException {
+    public static String getSecurityGroupIdFromGetResponse(String json) throws InternalServerErrorException {
         String securityGroupId = null;
         try {
             GetSecurityGroupsResponse.SecurityGroup securityGroup = GetSecurityGroupsResponse.fromJson(json).getSecurityGroups().iterator().next();
             securityGroupId = securityGroup.getId();
         } catch (JSONException e) {
-            String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
-            LOGGER.error(message, e);
-            throw new UnexpectedException(message, e);
+            LOGGER.error(String.format(Messages.Log.UNABLE_TO_RETRIEVE_NETWORK_ID_S, json), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.UNABLE_TO_RETRIEVE_NETWORK_ID_S, json));
         }
         return securityGroupId;
     }

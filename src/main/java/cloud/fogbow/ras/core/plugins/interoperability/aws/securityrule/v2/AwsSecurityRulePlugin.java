@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.constants.AwsConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.Ipv4AddressValidator;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -73,7 +73,7 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
 
     @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         ResourceType resourceType = majorOrder.getType();
         String instanceId = majorOrder.getInstanceId();
@@ -84,7 +84,7 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         ResourceType resourceType = majorOrder.getType();
         String instanceId = majorOrder.getInstanceId();
@@ -93,7 +93,7 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
 
     @Override
     public void deleteSecurityRule(String securityRuleId, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, securityRuleId));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, securityRuleId));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         doDeleteSecurityRule(securityRuleId, client);
     }
@@ -127,7 +127,7 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         try {
             client.revokeSecurityGroupEgress(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -141,7 +141,7 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         try {
             client.revokeSecurityGroupIngress(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -254,7 +254,7 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         try {
             return client.describeSecurityGroups(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
@@ -296,7 +296,7 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         try {
             client.authorizeSecurityGroupEgress(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
@@ -310,7 +310,7 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         try {
             client.authorizeSecurityGroupIngress(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
@@ -353,7 +353,7 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         String[] cidrSlice = cidrIp.split(CIDR_SEPARATOR);
         String ipAddress = cidrSlice[0];
         if (!validator.validate(ipAddress)) {
-            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR_FORMAT, cidrIp));
+            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR_FORMAT_S, cidrIp));
         }
     }
     

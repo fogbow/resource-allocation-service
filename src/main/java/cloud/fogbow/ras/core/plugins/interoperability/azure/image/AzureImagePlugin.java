@@ -4,9 +4,9 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
@@ -92,7 +92,7 @@ public class AzureImagePlugin implements ImagePlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    Map<String, ImageSummary> getImageMap(Azure azure) throws UnexpectedException {
+    Map<String, ImageSummary> getImageMap(Azure azure) throws InternalServerErrorException {
         if (images.isEmpty()) {
             images = this.operation.getImages(azure, this.publishers);
         }

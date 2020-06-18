@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import com.google.gson.annotations.SerializedName;
-import org.apache.http.client.HttpResponseException;
 
 import javax.validation.constraints.NotNull;
 
@@ -36,7 +36,7 @@ public class AttachVolumeResponse {
     }
 
     @NotNull
-    public static AttachVolumeResponse fromJson(String json) throws HttpResponseException {
+    public static AttachVolumeResponse fromJson(String json) throws FogbowException {
         AttachVolumeResponse attachVolumeResponse =
                 GsonHolder.getInstance().fromJson(json, AttachVolumeResponse.class);
         attachVolumeResponse.response.checkErrorExistence();

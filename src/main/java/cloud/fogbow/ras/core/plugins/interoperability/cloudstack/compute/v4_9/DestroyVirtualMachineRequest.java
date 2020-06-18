@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 public class DestroyVirtualMachineRequest extends CloudStackRequest {
@@ -8,7 +8,7 @@ public class DestroyVirtualMachineRequest extends CloudStackRequest {
     protected static final String VIRTUAL_MACHINE_ID_KEY = "id";
     protected static final String EXPUNGE_KEY = "expunge";
 
-    protected DestroyVirtualMachineRequest(Builder builder) throws InvalidParameterException {
+    protected DestroyVirtualMachineRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
 
         addParameter(VIRTUAL_MACHINE_ID_KEY, builder.id);
@@ -41,7 +41,7 @@ public class DestroyVirtualMachineRequest extends CloudStackRequest {
             return this;
         }
 
-        public DestroyVirtualMachineRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public DestroyVirtualMachineRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new DestroyVirtualMachineRequest(this);
         }

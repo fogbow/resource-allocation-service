@@ -1,9 +1,7 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
-import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.junit.Assert;
@@ -20,7 +18,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
     // list twice (or more) it must point to the same reference, in other words,
     // they are the same object.
     @Test
-    public void testGetSameListReference() throws UnexpectedException {
+    public void testGetSameListReference() throws InternalServerErrorException {
         // set up
         this.testUtils.mockReadOrdersFromDataBase();
         SharedOrderHolders instanceOne = SharedOrderHolders.getInstance();
@@ -55,7 +53,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
     // test case: When calling the constructor method,
     // it must verify if It It retrieves Orders at the database and populates lists.
     @Test
-    public void testConstructorSuccessfully() throws UnexpectedException {
+    public void testConstructorSuccessfully() throws InternalServerErrorException {
         // set up
         int localOpenOrderSize = 2;
         int remoteOpenOrderSize = 3;
@@ -155,7 +153,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         Assert.assertEquals(sizeExpected, listSize);
     }
 
-    private SynchronizedDoublyLinkedList<Order> createOrderList(int sizeLocal, int sizeRemote) {
+    private SynchronizedDoublyLinkedList<Order> createOrderList(int sizeLocal, int sizeRemote) throws InternalServerErrorException {
         SynchronizedDoublyLinkedList<Order> list = new SynchronizedDoublyLinkedList<>();
         for (int i = 0; i < sizeLocal; i++) {
             Order order = Mockito.mock(Order.class);

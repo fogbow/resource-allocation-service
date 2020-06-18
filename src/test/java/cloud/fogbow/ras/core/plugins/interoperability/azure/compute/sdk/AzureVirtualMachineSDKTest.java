@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk;
 
 import cloud.fogbow.common.constants.AzureConstants;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
@@ -258,7 +258,7 @@ public class AzureVirtualMachineSDKTest {
     }
 
     // test case: When calling the getVirtualMachine method and throws any exception,
-    // it must verify if It throws an UnexpectedException.
+    // it must verify if It throws an InternalServerErrorException.
     @Test
     public void testGetVirtualMachineFail() throws Exception {
         // set up
@@ -270,7 +270,7 @@ public class AzureVirtualMachineSDKTest {
                 .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
         this.expectedException.expectMessage(errorMessage);
 
         // exercise
@@ -303,7 +303,7 @@ public class AzureVirtualMachineSDKTest {
     }
 
     // test case: When calling the getVirtualMachineSizes method ant throws an exception,
-    // it must verify if It throws a UnexpectedException.
+    // it must verify if It throws a InternalServerErrorException.
     @Test
     public void testGetVirtualMachineSizesFail() throws Exception {
         // set up
@@ -316,7 +316,7 @@ public class AzureVirtualMachineSDKTest {
                 .when(AzureVirtualMachineSDK.class, "getVirtualMachinesSDK", Mockito.eq(azure));
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
         this.expectedException.expectMessage(errorMessage);
 
         // exercise

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
@@ -399,7 +399,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the handleSecurityIssues method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has been
+    // unexpected error occurs, it must verify if an InternalServerErrorException has been
     // thrown.
     @Test
     public void testHandleSecurityIssuesFail() throws Exception {
@@ -425,11 +425,11 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
                 .ipProtocol(AwsNetworkPlugin.ALL_PROTOCOLS)
                 .build();
 
-        UnexpectedException exception = new UnexpectedException();
+        InternalServerErrorException exception = new InternalServerErrorException();
         PowerMockito.doThrow(exception).when(AwsV2CloudUtil.class, TestUtils.DO_AUTHORIZE_SECURITY_GROUP_INGRESS_METHOD,
                 Mockito.eq(request), Mockito.eq(this.client));
         
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         String gatewayId = FAKE_GATEWAY_ID;
         Mockito.doReturn(gatewayId).when(this.plugin).getGatewayIdAttachedToVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
@@ -440,7 +440,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
             // exercise
             this.plugin.handleSecurityIssues(subnetId, vpcId, cidr, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSubnet(Mockito.eq(subnetId),
@@ -477,7 +477,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doAssociateRouteTables method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has been
+    // unexpected error occurs, it must verify if an InternalServerErrorException has been
     // thrown.
     @Test
     public void testDoAssociateRouteTablesFail() throws FogbowException {
@@ -492,7 +492,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Mockito.doThrow(exception).when(this.client).associateRouteTable(Mockito.any(AssociateRouteTableRequest.class));
         Mockito.doNothing().when(this.plugin).doDeleteSubnet(Mockito.eq(subnetId), Mockito.eq(this.client));
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         String gatewayId = FAKE_GATEWAY_ID;
         Mockito.doReturn(gatewayId).when(this.plugin).getGatewayIdAttachedToVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
@@ -503,7 +503,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
             // exercise
             this.plugin.doAssociateRouteTables(subnetId, vpcId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
             Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSubnet(Mockito.eq(subnetId),
@@ -580,7 +580,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doDeleteSubnet method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has been
+    // unexpected error occurs, it must verify if an InternalServerErrorException has been
     // thrown.
     @Test
     public void testDoDeleteSubnetFail() throws FogbowException {
@@ -589,13 +589,13 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Mockito.doThrow(exception).when(this.client).deleteSubnet(Mockito.any(DeleteSubnetRequest.class));
 
         String subnetId = FAKE_SUBNET_ID;
-        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+        String expected = String.format(Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S,
                 AwsNetworkPlugin.SUBNET_RESOURCE, subnetId);
         try {
             // exercise
             this.plugin.doDeleteSubnet(subnetId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -619,7 +619,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the getRouteTables method, without a list of route
-    // tables, it must verify if an UnexpectedException has been thrown.
+    // tables, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testGetRouteTablesFail() throws FogbowException {
         // set up
@@ -655,20 +655,20 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doDescribeRouteTables method, and an unexpected error
-    // occurs, it must verify if an UnexpectedException has been thrown.
+    // occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoDescribeRouteTablesFail() throws FogbowException {
         // set up
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(SdkClientException.builder().build()).when(this.client).describeRouteTables();
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
         
         try {
             // exercise
             this.plugin.doDescribeRouteTables(this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -700,7 +700,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
     
     // test case: When calling the doCreateSubnetResquest method, and an unexpected
-    // error occurs, it must verify if an UnexpectedException has been thrown.
+    // error occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoCreateSubnetResquestFail() throws FogbowException {
         // set up
@@ -717,12 +717,12 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.doThrow(exception).when(this.client).createSubnet(Mockito.eq(request));
         
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.doCreateSubnetResquest(instanceName, request, this.client);
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -767,7 +767,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doCreateAndConfigureVpc method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has
+    // unexpected error occurs, it must verify if an InternalServerErrorException has
     // been thrown.
     @Test
     public void testDoCreateAndConfigureVpcFail() throws FogbowException {
@@ -777,13 +777,13 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Exception exception = SdkException.builder().build();
         Mockito.when(this.client.createVpc(Mockito.any(CreateVpcRequest.class))).thenThrow(exception);
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.doCreateAndConfigureVpc(cidr, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -816,7 +816,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doCreateRouteTables method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has
+    // unexpected error occurs, it must verify if an InternalServerErrorException has
     // been thrown.
     @Test
     public void testDoCreateRouteTablesFail() throws FogbowException {
@@ -832,7 +832,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.when(this.client.createRoute(Mockito.any(CreateRouteRequest.class))).thenThrow(exception);
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         Mockito.doNothing().when(this.plugin).doRollbackAllConfigurationAndDeleteVpc(Mockito.eq(gatewayId),
                 Mockito.eq(vpcId), Mockito.eq(this.client));
@@ -841,7 +841,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
             // exercise
             this.plugin.doCreateRouteTables(cidr, gatewayId, vpcId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
 
@@ -898,7 +898,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doDetachInternetGateway method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has
+    // unexpected error occurs, it must verify if an InternalServerErrorException has
     // been thrown.
     @Test
     public void testDoDetachInternetGatewayFail() throws FogbowException {
@@ -910,13 +910,13 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Mockito.when(this.client.detachInternetGateway(Mockito.any(DetachInternetGatewayRequest.class)))
                 .thenThrow(exception);
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         try {
             // exercise
             this.plugin.doDetachInternetGateway(gatewayId, vpcId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -943,7 +943,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doAttachInternetGateway method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has
+    // unexpected error occurs, it must verify if an InternalServerErrorException has
     // been thrown.
     @Test
     public void testDoAttachInternetGatewayFail() throws FogbowException {
@@ -955,7 +955,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Mockito.when(this.client.attachInternetGateway(Mockito.any(AttachInternetGatewayRequest.class)))
                 .thenThrow(exception);
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         Mockito.doNothing().when(this.plugin).doDeleteInternetGateway(Mockito.eq(gatewayId), Mockito.eq(this.client));
         Mockito.doNothing().when(this.plugin).doDeleteVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
@@ -964,7 +964,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
             // exercise
             this.plugin.doAttachInternetGateway(gatewayId, vpcId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
 
@@ -995,7 +995,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doDeleteInternetGateway method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has
+    // unexpected error occurs, it must verify if an InternalServerErrorException has
     // been thrown.
     @Test
     public void testDoDeleteInternetGatewayFail() throws FogbowException {
@@ -1006,14 +1006,14 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Mockito.when(this.client.deleteInternetGateway(Mockito.any(DeleteInternetGatewayRequest.class)))
                 .thenThrow(exception);
 
-        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+        String expected = String.format(Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S,
                 AwsNetworkPlugin.GATEWAY_RESOURCE, gatewayId);
 
         try {
             // exercise
             this.plugin.doDeleteInternetGateway(gatewayId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -1041,7 +1041,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doCreateInternetGateway method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException has
+    // unexpected error occurs, it must verify if an InternalServerErrorException has
     // been thrown.
     @Test
     public void testDoCreateInternetGatewayFail() throws FogbowException {
@@ -1051,7 +1051,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         SdkClientException exception = SdkClientException.builder().build();
         Mockito.when(this.client.createInternetGateway()).thenThrow(exception);
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         Mockito.doNothing().when(this.plugin).doDeleteVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
 
@@ -1059,7 +1059,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
             // exercise
             this.plugin.doCreateInternetGateway(vpcId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
 
@@ -1087,7 +1087,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doModifyVpcAttributes method, and an
-    // unexpected error occurs, it must verify if an UnexpectedException
+    // unexpected error occurs, it must verify if an InternalServerErrorException
     // has been thrown.
     @Test
     public void testDoModifyVpcAttributesFail() throws FogbowException {
@@ -1098,7 +1098,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Mockito.when(this.client.modifyVpcAttribute(Mockito.any(ModifyVpcAttributeRequest.class)))
                 .thenThrow(exception);
 
-        String expected = String.format(Messages.Exception.GENERIC_EXCEPTION, exception);
+        String expected = exception.getMessage();
 
         Mockito.doNothing().when(this.plugin).doDeleteVpc(Mockito.eq(vpcId), Mockito.eq(this.client));
 
@@ -1106,7 +1106,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
             // exercise
             this.plugin.doModifyVpcAttributes(vpcId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
 
@@ -1135,7 +1135,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the doDeleteVpc method, and an unexpected error
-    // occurs, it must verify if an UnexpectedException has been thrown.
+    // occurs, it must verify if an InternalServerErrorException has been thrown.
     @Test
     public void testDoDeleteVpcFail() throws FogbowException {
         // set up
@@ -1145,14 +1145,14 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Mockito.when(this.client.deleteVpc(Mockito.any(DeleteVpcRequest.class)))
                 .thenThrow(exception);
 
-        String expected = String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+        String expected = String.format(Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S,
                 AwsNetworkPlugin.VPC_RESOURCE, vpcId);
 
         try {
             // exercise
             this.plugin.doDeleteVpc(vpcId, this.client);
             Assert.fail();
-        } catch (UnexpectedException e) {
+        } catch (InternalServerErrorException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

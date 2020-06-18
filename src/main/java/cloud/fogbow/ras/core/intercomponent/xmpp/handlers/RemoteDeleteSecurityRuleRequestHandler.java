@@ -23,7 +23,7 @@ public class RemoteDeleteSecurityRuleRequestHandler extends AbstractQueryHandler
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.RECEIVING_REMOTE_REQUEST_S, iq.getID()));
         String cloudName = unmarshalCloudName(iq);
         String ruleId = unmarshalRuleId(iq);
         SystemUser systemUser = unmarshalFederationUserToken(iq);

@@ -164,7 +164,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 	// the plugin should call getDataStoreId to discover where to store the volume and then allocate
 	// the new volume with the request template.
 	@Test
-	public void testDoRequestInstance() throws UnexpectedException, InvalidParameterException, UnacceptableOperationException {
+	public void testDoRequestInstance() throws InternalServerErrorException, InvalidParameterException, UnacceptableOperationException {
 		// set up
 		int datastoreId = Integer.parseInt(STRING_VALUE_ONE);
 		CreateVolumeRequest createVolumeRequest = Mockito.spy(this.createVolumeRequest(this.volumeOrder));
@@ -185,7 +185,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 	// test case: when calling doRequestInstance and receiving a null value (meaning no datastore with enough available
 	// free storage was found) from the getDataStoreId call, then a NoAvailableResources exception should be thrown
 	@Test
-	public void testDoRequestInstanceFail() throws UnexpectedException, InvalidParameterException {
+	public void testDoRequestInstanceFail() throws InternalServerErrorException, InvalidParameterException {
 		// set up
 		CreateVolumeRequest createVolumeRequest = Mockito.spy(this.createVolumeRequest(this.volumeOrder));
 		Mockito.doReturn(null).when(this.plugin).getDataStoreId(Mockito.any(Client.class), Mockito.anyLong());
@@ -261,7 +261,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 	// test case: when calling doGetInstance with a valid client and volume instance id, return the ONe image
 	// related to that volume order
 	@Test
-	public void testDoGetInstance() throws UnexpectedException, InstanceNotFoundException {
+	public void testDoGetInstance() throws InternalServerErrorException, InstanceNotFoundException {
 		// set up
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
 
@@ -280,7 +280,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 
 	// test case: when calling doGetInstance with an nonexistent volume instance id, throw an InstanceNotFound exception
 	@Test
-	public void testDoGetInstanceFail() throws UnexpectedException {
+	public void testDoGetInstanceFail() throws InternalServerErrorException {
 		// set up
 		ImagePool imagePool = Mockito.mock(ImagePool.class);
 
@@ -346,7 +346,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		// set up
 		OneResponse response = Mockito.mock(OneResponse.class);
 		String message = String.format(
-				Messages.Error.ERROR_WHILE_REMOVING_VOLUME_IMAGE, this.volumeOrder.getInstanceId(), null);
+				Messages.Exception.ERROR_WHILE_REMOVING_VOLUME_IMAGE_S_S, this.volumeOrder.getInstanceId(), null);
 
 		Mockito.doReturn(this.image).when(this.plugin).doGetInstance(Mockito.any(Client.class), Mockito.anyString());
 		Mockito.when(this.image.delete()).thenReturn(response);
@@ -356,7 +356,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		try {
 			this.plugin.deleteInstance(this.volumeOrder, this.cloudUser);
 			Assert.fail();
-		} catch (UnexpectedException e) {
+		} catch (InternalServerErrorException e) {
 			Assert.assertEquals(e.getMessage(), message);
 		}
 
@@ -367,7 +367,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(
 				Mockito.any(Client.class), Mockito.eq(this.volumeOrder.getInstanceId()));
 		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).isError();
-		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
+		Mockito.verify(response, Mockito.times(TestUtils.RUN_TWICE)).getMessage();
 	}
 
 	private String getTemplate() {

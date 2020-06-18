@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 
@@ -21,26 +21,26 @@ public class AzureNetworkSDK {
     private static final String DEFAULT_SUBNET_NAME = "default-subnet";
 
     public static Optional<NetworkInterface> getNetworkInterface(Azure azure, String azureNetworkInterfaceId)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
 
         try {
             NetworkInterfaces networkInterfaces = getNetworkInterfacesSDK(azure);
             NetworkInterface networkInterface = networkInterfaces.getById(azureNetworkInterfaceId);
             return Optional.ofNullable(networkInterface);
         } catch (RuntimeException e) {
-            throw new UnexpectedException(e.getMessage(), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
     public static Optional<Network> getNetwork(Azure azure, String azureNetworkId)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
 
         try {
             Networks networks = getNetworksSDK(azure);
             Network network = networks.getById(azureNetworkId);
             return Optional.ofNullable(network);
         } catch (RuntimeException e) {
-            throw new UnexpectedException(e.getMessage(), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -91,14 +91,13 @@ public class AzureNetworkSDK {
     }
 
     public static Completable buildDeleteNetworkInterfaceCompletable(Azure azure, String resourceId)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
 
         try {
             NetworkInterfaces networkInterfaces = getNetworkInterfacesSDK(azure);
             return networkInterfaces.deleteByIdAsync(resourceId);
         } catch (Exception e) {
-            String message = String.format(Messages.Exception.GENERIC_EXCEPTION, e);
-            throw new UnexpectedException(message, e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 

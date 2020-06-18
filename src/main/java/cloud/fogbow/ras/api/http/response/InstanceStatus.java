@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.api.http.response;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.OrderState;
@@ -61,12 +61,12 @@ public class InstanceStatus {
         this.state = state;
     }
 
-    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws UnexpectedException {
+    public static InstanceState mapInstanceStateFromOrderState(OrderState orderState) throws InternalServerErrorException {
         return mapInstanceStateFromOrderState(orderState, false, false, false);
     }
 
     public static InstanceState mapInstanceStateFromOrderState(OrderState orderState,
-          Boolean knowWhetherInstanceIsReadyOrHasFailed, Boolean isReady, Boolean hasFailed) throws UnexpectedException {
+          Boolean knowWhetherInstanceIsReadyOrHasFailed, Boolean isReady, Boolean hasFailed) throws InternalServerErrorException {
         switch(orderState) {
             case OPEN:
             case SELECTED:
@@ -118,7 +118,7 @@ public class InstanceStatus {
             case CLOSED:
                 return InstanceState.DELETED;
             default:
-                throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
+                throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_ERROR);
         }
     }
 

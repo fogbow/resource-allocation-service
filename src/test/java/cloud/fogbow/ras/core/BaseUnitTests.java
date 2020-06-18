@@ -4,6 +4,7 @@ package cloud.fogbow.ras.core;
 import java.util.Map;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
@@ -38,7 +39,7 @@ public class BaseUnitTests {
      * Clears the orders from the lists on the SharedOrderHolders instance.
      */
     @After
-    public void tearDown() {
+    public void tearDown() throws InternalServerErrorException {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         for (OrderState state : OrderState.values()) {
             if (!state.equals(OrderState.CLOSED)) {

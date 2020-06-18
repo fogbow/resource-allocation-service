@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 public class ListResourceLimitsRequest extends CloudStackRequest {
@@ -9,7 +9,7 @@ public class ListResourceLimitsRequest extends CloudStackRequest {
     public static final String DOMAIN_ID_KEY = "domainid";
     public static final String RESOURCE_TYPE_KEY = "resourcetype";
 
-    private ListResourceLimitsRequest(Builder builder) throws InvalidParameterException {
+    private ListResourceLimitsRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
         addParameter(DOMAIN_ID_KEY, builder.domainId);
         addParameter(RESOURCE_TYPE_KEY, builder.resourceType);
@@ -40,7 +40,7 @@ public class ListResourceLimitsRequest extends CloudStackRequest {
             return this;
         }
 
-        public ListResourceLimitsRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public ListResourceLimitsRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new ListResourceLimitsRequest(this);
         }

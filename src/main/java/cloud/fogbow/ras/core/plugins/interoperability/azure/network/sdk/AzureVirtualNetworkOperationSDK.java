@@ -4,7 +4,7 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.AzureClientCacheManager;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureCreateVirtualNetworkRef;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk.model.AzureGetVirtualNetworkRef;
@@ -68,18 +68,18 @@ public class AzureVirtualNetworkOperationSDK {
         Observable<Indexable> securityGroupObservable = buildCreateSecurityGroupObservable(azureCreateVirtualNetworkRef, azure);
         return securityGroupObservable
                 .doOnNext(indexableSecurityGroup -> {
-                    LOGGER.info(Messages.Info.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Log.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
                     doNetworkCreationStepTwoSync(indexableSecurityGroup, azureCreateVirtualNetworkRef, azure);
-                    LOGGER.info(Messages.Info.SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Log.SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR);
                 })
                 .onErrorReturn(error -> {
                     finishCreationCallbacks.runOnError();
-                    LOGGER.error(Messages.Error.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR, error);
+                    LOGGER.error(Messages.Log.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR, error);
                     return null;
                 })
                 .doOnCompleted(() -> {
                     finishCreationCallbacks.runOnComplete();
-                    LOGGER.info(Messages.Info.END_CREATE_VNET_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Log.END_CREATE_VNET_ASYNC_BEHAVIOUR);
                 });
     }
 
@@ -204,10 +204,10 @@ public class AzureVirtualNetworkOperationSDK {
     private Completable setDeleteSecurityGroupBehaviour(Completable deleteNetworkSecurityGroupCompletable) {
         return deleteNetworkSecurityGroupCompletable
                 .doOnError((error -> {
-                    LOGGER.error(Messages.Error.ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
+                    LOGGER.error(Messages.Log.ERROR_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
                 }))
                 .doOnCompleted(() -> {
-                    LOGGER.info(Messages.Info.END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Log.END_DELETE_SECURITY_GROUP_ASYNC_BEHAVIOUR);
                 });
     }
 
@@ -222,10 +222,10 @@ public class AzureVirtualNetworkOperationSDK {
     private Completable setDeleteVirtualNetworkBehaviour(Completable deleteVirtualNetworkCompletable) {
         return deleteVirtualNetworkCompletable
                 .doOnError((error -> {
-                    LOGGER.error(Messages.Error.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
+                    LOGGER.error(Messages.Log.ERROR_DELETE_VNET_ASYNC_BEHAVIOUR);
                 }))
                 .doOnCompleted(() -> {
-                    LOGGER.info(Messages.Info.END_DELETE_VNET_ASYNC_BEHAVIOUR);
+                    LOGGER.info(Messages.Log.END_DELETE_VNET_ASYNC_BEHAVIOUR);
                 });
     }
 

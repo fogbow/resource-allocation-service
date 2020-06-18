@@ -4,7 +4,6 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -25,8 +24,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandG
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
@@ -160,10 +157,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         try {
             doGet(uriRequest.toString(), cloudStackUser);
-            LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, instanceId, token));
-        } catch (HttpResponseException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, instanceId), e);
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
+            LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S_WITH_TOKEN_S, instanceId, token));
+        } catch (FogbowException e) {
+            LOGGER.error(String.format(Messages.Log.UNABLE_TO_DELETE_INSTANCE_S, instanceId), e);
+            throw e;
         }
     }
 
@@ -189,7 +186,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         throw new UnacceptableOperationException(
-                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
+                Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_SERVICE_OFFERING_CLOUDSTACK);
     }
 
     @VisibleForTesting
@@ -228,12 +225,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String token = cloudStackUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 
-        try {
-            String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
-            return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
+        return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
     }
 
     @NotNull
@@ -255,7 +248,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
 
         throw new UnacceptableOperationException(
-                Messages.Error.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
+                Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
     }
 
     @NotNull
@@ -269,12 +262,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String token = cloudUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 
-        try {
-            String jsonResponse = doGet(uriRequest.toString(), cloudUser);
-            return GetAllDiskOfferingsResponse.fromJson(jsonResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        String jsonResponse = doGet(uriRequest.toString(), cloudUser);
+        return GetAllDiskOfferingsResponse.fromJson(jsonResponse);
     }
 
     @NotNull
@@ -346,20 +335,16 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 return convertBytesToGigabyte(sizeInBytes);
             }
         } catch (Exception e) {
-            LOGGER.debug(Messages.Error.ERROR_WHILE_GETTING_DISK_SIZE, e);
+            LOGGER.debug(Messages.Log.ERROR_WHILE_GETTING_DISK_SIZE, e);
         }
-        LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, virtualMachineId));
+        LOGGER.warn(String.format(Messages.Log.UNABLE_TO_RETRIEVE_ROOT_VOLUME_S, virtualMachineId));
         return UNKNOWN_DISK_VALUE;
     }
 
     @NotNull
     @VisibleForTesting
-    String doGet(String url, @NotNull CloudStackUser cloudUser) throws HttpResponseException {
-        try {
-            return this.client.doGetRequest(url, cloudUser);
-        } catch (FogbowException e) {
-            throw  new HttpResponseException(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-        }
+    String doGet(String url, @NotNull CloudStackUser cloudUser) throws FogbowException {
+        return this.client.doGetRequest(url, cloudUser);
     }
 
     @VisibleForTesting
@@ -392,12 +377,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String token = cloudUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 
-        try {
-            String jsonResponse = doGet(uriRequest.toString(), cloudUser);
-            return DeployVirtualMachineResponse.fromJson(jsonResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        String jsonResponse = doGet(uriRequest.toString(), cloudUser);
+        return DeployVirtualMachineResponse.fromJson(jsonResponse);
     }
 
     @NotNull
@@ -410,12 +391,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String token = cloudStackUser.getToken();
         CloudStackUrlUtil.sign(uriRequest, token);
 
-        try {
-            String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
-            return GetVirtualMachineResponse.fromJson(jsonResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
+        return GetVirtualMachineResponse.fromJson(jsonResponse);
     }
 
     @NotNull
@@ -439,7 +416,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     String getTemplateId(@NotNull ComputeOrder computeOrder) throws InvalidParameterException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || templateId.isEmpty()) {
-            throw new InvalidParameterException(Messages.Error.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK);
+            throw new InvalidParameterException(Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK);
         }
         return templateId;
     }

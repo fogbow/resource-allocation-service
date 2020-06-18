@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.network.sdk;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
 import rx.Completable;
@@ -83,7 +83,7 @@ public class AzureNetworkSDKTest {
     }
 
     // test case: When calling the getNetworkInterface method and throws any exception,
-    // it must verify if It throws an UnexpectedException.
+    // it must verify if It throws an InternalServerErrorException.
     @Test
     public void testGetNetworkInterfacesFail() throws Exception {
         // set up
@@ -95,7 +95,7 @@ public class AzureNetworkSDKTest {
                 .when(AzureNetworkSDK.class, "getNetworkInterfacesSDK", Mockito.eq(azure));
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
         this.expectedException.expectMessage(errorMessage);
 
         // exercise
@@ -129,7 +129,7 @@ public class AzureNetworkSDKTest {
     }
 
     // test case: When calling the buildDeleteNetworkInterfaceCompletable method and
-    // an unexpected error occurs, it must verify than an UnexpectedException has
+    // an unexpected error occurs, it must verify than an InternalServerErrorException has
     // been thrown.
     @Test
     public void testBuildDeleteDiskCompletableFail() throws Exception {
@@ -145,7 +145,7 @@ public class AzureNetworkSDKTest {
         Mockito.when(networkInterfaces.deleteByIdAsync(resourceId)).thenThrow(new RuntimeException());
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         AzureNetworkSDK.buildDeleteNetworkInterfaceCompletable(azure, resourceId);
@@ -178,7 +178,7 @@ public class AzureNetworkSDKTest {
     }
 
     // test case: When calling the getNetwork method and an unexpected error occurs,
-    // it must verify than an UnexpectedException has been thrown.
+    // it must verify than an InternalServerErrorException has been thrown.
     @Test
     public void testGetNetworkFail() throws Exception {
         // set up
@@ -192,7 +192,7 @@ public class AzureNetworkSDKTest {
         Mockito.when(networks.getById(Mockito.eq(resourceId))).thenThrow(new RuntimeException());
 
         // verify
-        this.expectedException.expect(UnexpectedException.class);
+        this.expectedException.expect(InternalServerErrorException.class);
 
         // exercise
         AzureNetworkSDK.getNetwork(azure, resourceId);

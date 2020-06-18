@@ -100,12 +100,12 @@ public class XmppExceptionToErrorConditionTranslatorTest {
     }
 
     // test case: checks if "updateErrorCondition" sets PacketError condition to
-    // internal_server_error when the exception is equal to UnexpectedException
+    // internal_server_error when the exception is equal to InternalServerErrorException
     @Test
     public void testUpdateErrorWhenUnexpectedException() {
         // set up
         IQ response = new IQ();
-        Throwable e = new UnexpectedException();
+        Throwable e = new InternalServerErrorException();
         // exercise
         XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         // verify

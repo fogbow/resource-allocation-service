@@ -1,9 +1,9 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
@@ -35,7 +35,7 @@ public class RemoteCreateOrderRequestHandlerTest {
     public static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <error code=\"500\" type=\"wait\">\n"
             + "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
-            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW + "</text>\n"
+            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"></text>\n"
             + "  </error>\n" + "</iq>";
 
     private RemoteCreateOrderRequestHandler remoteCreateOrderRequestHandler;
@@ -89,7 +89,7 @@ public class RemoteCreateOrderRequestHandlerTest {
         SystemUser systemUser = null;
         Order order = createOrder(systemUser);
 
-        Mockito.doThrow(new FogbowException()).when(this.remoteFacade)
+        Mockito.doThrow(new FogbowException("")).when(this.remoteFacade)
                 .activateOrder(Mockito.anyString(), Mockito.any(Order.class));
 
         IQ iq = RemoteCreateOrderRequest.marshal(order);

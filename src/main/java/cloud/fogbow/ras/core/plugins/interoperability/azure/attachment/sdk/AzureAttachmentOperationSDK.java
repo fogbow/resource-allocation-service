@@ -35,11 +35,11 @@ public class AzureAttachmentOperationSDK {
                                                       AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
         return observable.onErrorReturn((error -> {
             finishCreationCallbacks.runOnError();
-            LOGGER.error(Messages.Error.ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR, error);
+            LOGGER.error(Messages.Log.ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR, error);
             return null;
         })).doOnCompleted(() -> {
             finishCreationCallbacks.runOnComplete();
-            LOGGER.info(Messages.Info.END_ATTACH_DISK_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_ATTACH_DISK_ASYNC_BEHAVIOUR);
         });
     }
     
@@ -52,10 +52,10 @@ public class AzureAttachmentOperationSDK {
     @VisibleForTesting
     Observable<VirtualMachine> setDetachDiskBehaviour(Observable<VirtualMachine> observable) {
         return observable.onErrorReturn((error -> {
-            LOGGER.error(Messages.Error.ERROR_DETACH_DISK_ASYNC_BEHAVIOUR, error);
+            LOGGER.error(Messages.Log.ERROR_DETACH_DISK_ASYNC_BEHAVIOUR, error);
             return null;
         })).doOnCompleted(() -> {
-            LOGGER.info(Messages.Info.END_DETACH_DISK_ASYNC_BEHAVIOUR);
+            LOGGER.info(Messages.Log.END_DETACH_DISK_ASYNC_BEHAVIOUR);
         });
     }
 

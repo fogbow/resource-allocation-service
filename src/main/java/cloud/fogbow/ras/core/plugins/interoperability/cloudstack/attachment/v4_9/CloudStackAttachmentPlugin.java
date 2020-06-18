@@ -1,11 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -17,7 +16,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloud
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
@@ -53,7 +51,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
                                   @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER);
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
 
         String virtualMachineId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
@@ -69,7 +67,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     public void deleteInstance(@NotNull AttachmentOrder attachmentOrder,
                                @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
 
         String volumeId = attachmentOrder.getVolumeId();
         DetachVolumeRequest request = new DetachVolumeRequest.Builder()
@@ -84,7 +82,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
                                           @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
 
         String jobId = attachmentOrder.getInstanceId();
         AttachmentJobStatusRequest request = new AttachmentJobStatusRequest.Builder()
@@ -103,14 +101,9 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
-        try {
-            String jsonResponse = CloudStackCloudUtils.doRequest(
-                    this.client, uriRequest.toString(), cloudStackUser);
-            AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
-            return loadInstanceByJobStatus(attachmentOrder.getInstanceId(), response);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
+        AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
+        return loadInstanceByJobStatus(attachmentOrder.getInstanceId(), response);
     }
 
     @VisibleForTesting
@@ -121,13 +114,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
-        try {
-            String jsonResponse = CloudStackCloudUtils.doRequest(
-                    this.client, uriRequest.toString(), cloudStackUser);
-            DetachVolumeResponse.fromJson(jsonResponse);
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
+        DetachVolumeResponse.fromJson(jsonResponse);
     }
 
     @NotNull
@@ -139,21 +127,16 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
-        try {
-            String jsonResponse = CloudStackCloudUtils.doRequest(
-                    this.client, uriRequest.toString(), cloudStackUser);
-            AttachVolumeResponse response = AttachVolumeResponse.fromJson(jsonResponse);
-            return response.getJobId();
-        } catch (HttpResponseException e) {
-            throw CloudStackHttpToFogbowExceptionMapper.get(e);
-        }
+        String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
+        AttachVolumeResponse response = AttachVolumeResponse.fromJson(jsonResponse);
+        return response.getJobId();
     }
 
     @NotNull
     @VisibleForTesting
     AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,
                                                @NotNull AttachmentJobStatusResponse response)
-            throws UnexpectedException {
+            throws InternalServerErrorException {
         
         int status = response.getJobStatus();
         switch (status) {
@@ -166,16 +149,16 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
                 logFailure(response);
                 return buildInstance(attachmentInstanceId, CloudStackCloudUtils.FAILURE_STATE);
             default:
-                throw new UnexpectedException(Messages.Error.UNEXPECTED_JOB_STATUS);
+                throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_JOB_STATUS);
         }
     }
 
     @VisibleForTesting
-    void logFailure(@NotNull AttachmentJobStatusResponse response) throws UnexpectedException {
+    void logFailure(@NotNull AttachmentJobStatusResponse response) throws InternalServerErrorException {
         CloudStackErrorResponse errorResponse = response.getErrorResponse();
         String errorText = String.format(FAILED_ATTACH_ERROR_MESSAGE,
                 errorResponse.getErrorCode(), errorResponse.getErrorText());
-        LOGGER.error(String.format(Messages.Error.ERROR_WHILE_ATTACHING_VOLUME_GENERAL, errorText));
+        LOGGER.error(String.format(Messages.Log.ERROR_WHILE_ATTACHING_VOLUME_GENERAL_S, errorText));
     }
 
     @NotNull

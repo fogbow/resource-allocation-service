@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -61,14 +61,14 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
     @Override
     public String requestInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE_FROM_PROVIDER));
+        LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         return doRequestInstance(publicIpOrder, client);
     }
 
     @Override
     public void deleteInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, publicIpOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String allocationId = publicIpOrder.getInstanceId();
         String computeId = publicIpOrder.getComputeId();
@@ -77,7 +77,7 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
     @Override
     public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, AwsV2User cloudUser) throws FogbowException {
-        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_S, publicIpOrder.getInstanceId()));
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, publicIpOrder.getInstanceId()));
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String allocationId = publicIpOrder.getInstanceId();
         return doGetInstance(allocationId, client);
@@ -105,8 +105,8 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
         try {
             AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
-        } catch (UnexpectedException exception) {
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE,
+        } catch (InternalServerErrorException exception) {
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S,
                     AwsV2CloudUtil.SECURITY_GROUP_RESOURCE, groupId), exception);
             throw exception;
         } finally {
@@ -121,7 +121,7 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
                 return tag.value();
             }
         }
-        throw new UnexpectedException(Messages.Exception.UNEXPECTED_ERROR);
+        throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_ERROR);
     }
 
     protected void doDisassociateAddresses(String associationId, Ec2Client client) throws FogbowException {
@@ -131,7 +131,7 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         try {
             client.disassociateAddress(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -178,7 +178,7 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
             String associationId = response.associationId();
             AwsV2CloudUtil.createTagsRequest(allocationId, AWS_TAG_ASSOCIATION_ID, associationId, client);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -207,7 +207,7 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
                 AwsV2CloudUtil.doDeleteSecurityGroup(groupId, client);
             }
             doReleaseAddresses(allocationId, client);
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -218,7 +218,7 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         try {
             client.releaseAddress(request);
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -245,7 +245,7 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
             return groupId;
         } catch (FogbowException e) {
             doReleaseAddresses(allocationId, client);
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
     
@@ -268,7 +268,7 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
             AllocateAddressResponse response = client.allocateAddress(request);
             return response.allocationId();
         } catch (SdkException e) {
-            throw new UnexpectedException(String.format(Messages.Exception.GENERIC_EXCEPTION, e), e);
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 

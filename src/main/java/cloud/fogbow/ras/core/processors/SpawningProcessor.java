@@ -1,9 +1,8 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -51,11 +50,11 @@ public class SpawningProcessor implements Runnable {
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (UnexpectedException e) {
+                LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
+            } catch (InternalServerErrorException e) {
                 LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
+                LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
             }
         }
     }
@@ -77,7 +76,7 @@ public class SpawningProcessor implements Runnable {
             if (order.isProviderRemote(this.localProviderId)) {
                 // This should never happen, but the bug can be mitigated by moving the order to the remoteOrders list
                 OrderStateTransitioner.transition(order, OrderState.PENDING);
-                LOGGER.error(Messages.Error.UNEXPECTED_ERROR);
+                LOGGER.error(Messages.Log.UNEXPECTED_ERROR);
                 return;
             }
             // Here we know that the CloudConnector is local, but the use of CloudConnectFactory facilitates testing.
@@ -97,7 +96,7 @@ public class SpawningProcessor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
                 throw e1;
             } catch (Exception e2) {
-                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e2));
+                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e2));
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }
         }

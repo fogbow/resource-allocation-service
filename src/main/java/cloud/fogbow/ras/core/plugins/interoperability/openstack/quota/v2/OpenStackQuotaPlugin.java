@@ -15,7 +15,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.constants.Messages;
@@ -165,11 +164,11 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     String doGetQuota(@NotBlank String endpoint, @NotNull OpenStackV3User cloudUser) throws FogbowException {
         String response = null;
         try {
-            LOGGER.debug(Messages.Info.GETTING_QUOTA);
+            LOGGER.debug(Messages.Log.GETTING_QUOTA);
             response = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
+        } catch (FogbowException e) {
             LOGGER.debug(Messages.Exception.FAILED_TO_GET_QUOTA);
-            OpenStackHttpToFogbowExceptionMapper.map(e);
+            throw e;
         }
         return response;
     }

@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
-import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
 
 public class GetVolumeRequest extends CloudStackRequest {
@@ -9,7 +9,7 @@ public class GetVolumeRequest extends CloudStackRequest {
     public static final String VIRTUAL_MACHINE_ID_KEY = "virtualmachineid";
     public static final String TYPE_KEY = "type";
 
-    protected GetVolumeRequest(Builder builder) throws InvalidParameterException {
+    protected GetVolumeRequest(Builder builder) throws InternalServerErrorException {
         super(builder.cloudStackUrl);
         addParameter(VOLUME_ID_KEY, builder.id);
         addParameter(VIRTUAL_MACHINE_ID_KEY, builder.virtualMachineId);
@@ -47,7 +47,7 @@ public class GetVolumeRequest extends CloudStackRequest {
             return this;
         }
 
-        public GetVolumeRequest build(String cloudStackUrl) throws InvalidParameterException {
+        public GetVolumeRequest build(String cloudStackUrl) throws InternalServerErrorException {
             this.cloudStackUrl = cloudStackUrl;
             return new GetVolumeRequest(this);
         }

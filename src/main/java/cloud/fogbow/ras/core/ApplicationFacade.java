@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import org.apache.log4j.Logger;
 
@@ -15,7 +16,6 @@ import cloud.fogbow.as.core.util.AuthenticationUtil;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.CryptoUtil;
@@ -101,12 +101,12 @@ public class ApplicationFacade {
         return SystemConstants.API_VERSION_NUMBER + "-" + this.buildNumber;
     }
 
-    public String getPublicKey() throws UnexpectedException {
+    public String getPublicKey() throws InternalServerErrorException {
         // There is no need to authenticate the user or authorize this operation
         try {
             return CryptoUtil.toBase64(ServiceAsymmetricKeysHolder.getInstance().getPublicKey());
-        } catch (IOException | GeneralSecurityException e) {
-            throw new UnexpectedException(e.getMessage(), e);
+        } catch (GeneralSecurityException e) {
+            throw new InternalServerErrorException(e.getMessage());
         }
     }
 
@@ -121,9 +121,12 @@ public class ApplicationFacade {
                 RemoteGetCloudNamesRequest remoteGetCloudNames = getCloudNamesFromRemoteRequest(providerId, requester);
                 List<String> cloudNames = remoteGetCloudNames.send();
                 return cloudNames;
-            } catch (Throwable e) {
+            } catch (FogbowException e) {
                 LOGGER.error(e.toString(), e);
-                throw new FogbowException(e.getMessage(), e);
+                throw e;
+            } catch (Exception e) {
+                LOGGER.error(e.toString(), e);
+                throw new InternalServerErrorException(e.getMessage());
             }
         }
     }
@@ -384,7 +387,7 @@ public class ApplicationFacade {
         return this.asPublicKey;
     }
 
-    protected void checkEmbeddedOrdersConsistency(Order order) throws InvalidParameterException, UnexpectedException {
+    protected void checkEmbeddedOrdersConsistency(Order order) throws InvalidParameterException, InternalServerErrorException {
         // Orders that embed other orders (compute, attachment and publicip) need to check the consistency
         // of these orders when the order is being dispatched by the LocalCloudConnector.
         switch (order.getType()) {
@@ -401,7 +404,7 @@ public class ApplicationFacade {
             case VOLUME:
                 break;
             default:
-                throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType()));
+                throw new InternalServerErrorException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE_S, order.getType()));
         }
     }
 
@@ -438,7 +441,7 @@ public class ApplicationFacade {
             throw new InvalidParameterException(Messages.Exception.PROVIDERS_DONT_MATCH);
         }
         if (!mainOrder.getCloudName().equals(embeddedOrder.getCloudName())) {
-            throw new InvalidParameterException(Messages.Exception.CLOUD_NAMES_DONT_MATCH);
+            throw new InvalidParameterException(Messages.Exception.CLOUD_NAMES_DO_NOT_MATCH);
         }
         if (embeddedOrder.getProvider().equals(this.providerId) && embeddedOrder.getInstanceId() == null) {
             throw new InvalidParameterException(String.format(Messages.Exception.INSTANCE_NULL_S, embeddedOrder.getId()));
