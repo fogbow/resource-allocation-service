@@ -99,7 +99,7 @@ public class UnableToCheckStatusProcessor implements Runnable {
                     OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
                 }
             } catch (Exception e) {
-                order.setFaultMessage(e.getMessage());
+                order.setOnceFaultMessage(e.getMessage());
                 LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e));
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }

@@ -75,7 +75,7 @@ public class VolumeOrder extends Order<VolumeOrder> {
     @Override
     public void updateFromRemote(VolumeOrder remoteOrder) {
         this.setActualAllocation(remoteOrder.getActualAllocation());
-        this.setFaultMessage(remoteOrder.getFaultMessage());
+        this.setOnceFaultMessage(remoteOrder.getFaultMessage());
     }
 
 }

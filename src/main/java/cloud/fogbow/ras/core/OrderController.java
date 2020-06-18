@@ -389,7 +389,7 @@ public class OrderController {
                 if (orderInstance.getFaultMessage() == null) {
                     orderInstance.setFaultMessage("");
                 } else {
-                    order.setFaultMessage(orderInstance.getFaultMessage());
+                    order.setOnceFaultMessage(orderInstance.getFaultMessage());
                 }
             } else {
                 orderInstance.setFaultMessage(order.getFaultMessage());

@@ -190,8 +190,8 @@ public abstract class Order<T extends Order> implements Serializable {
         return this.faultMessage;
     }
 
-    public void setFaultMessage(String faultMessage) {
-        this.faultMessage = faultMessage;
+    public void setOnceFaultMessage(String faultMessage) {
+        if (this.faultMessage == null) this.faultMessage = faultMessage;
     }
 
     private void setSerializedSystemUser(String serializedSystemUser) {
