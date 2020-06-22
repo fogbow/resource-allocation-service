@@ -27,6 +27,10 @@ public class DefaultAuthorizationPlugin implements AuthorizationPlugin<RasOperat
                     if (!type.equals(ResourceType.NETWORK) && !type.equals(ResourceType.SECURITY_RULE))
                         throw new UnauthorizedRequestException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
                     break;
+                case PUBLIC_IP:
+                    if (!type.equals(ResourceType.PUBLIC_IP) && !type.equals(ResourceType.SECURITY_RULE))
+                        throw new UnauthorizedRequestException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
+                    break;
                 default:
                     if (!order.getType().equals(type))
                         throw new UnauthorizedRequestException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
