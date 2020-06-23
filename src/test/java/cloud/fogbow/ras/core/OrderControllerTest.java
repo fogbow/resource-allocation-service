@@ -1183,6 +1183,20 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(faultMessageExpected, order.getFaultMessage());
     }
 
+    // test case: When calling the setFaultMessage method when the parameter is not a Order Instance,
+    // it must verify if it do not anything.
+    @Test
+    public void testSetFaultMessageSuccessfullyWhenIsNotAnOrderInstance() {
+        Order order = Mockito.mock(Order.class);
+        Instance orderInstance = new Instance(TestUtils.ANY_VALUE);
+
+        // exercise
+        this.ordersController.setFaultMessage(orderInstance, order);
+
+        // verify
+        Mockito.verify(order, Mockito.never()).getFaultMessage();
+    }
+
     private PublicIpOrder createFulfilledPublicIpOrder(SystemUser systemUser) throws InternalServerErrorException {
         PublicIpOrder publicIpOrder = new PublicIpOrder();
         publicIpOrder.setSystemUser(systemUser);
