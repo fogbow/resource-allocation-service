@@ -376,14 +376,14 @@ public class OrderController {
     Instance updateInstanceUsingOrderData(Instance instance, Order order) {
         switch (order.getType()) {
             case COMPUTE:
-                updateComputeInstanceUsingOrderData(((ComputeInstance) instance), ((ComputeOrder) order));
+                updateComputeInstanceUsingOrderData((ComputeInstance) instance, (ComputeOrder) order);
                 break;
             case ATTACHMENT:
-                updateAttachmentInstanceUsingOrderData(((AttachmentInstance) instance), ((AttachmentOrder) order));
+                updateAttachmentInstanceUsingOrderData((AttachmentInstance) instance, (AttachmentOrder) order);
                 break;
             case PUBLIC_IP:
                 // TODO
-                updatePublicIpInstanceUsingOrderData(((PublicIpOrder) order), ((PublicIpInstance) instance));
+                updatePublicIpInstanceUsingOrderData((PublicIpInstance) instance, (PublicIpOrder) order);
                 break;
             case NETWORK:
             case VOLUME:
@@ -455,7 +455,7 @@ public class OrderController {
         instance.setVolumeId(volumeOrder.getId());
     }
 
-    private void updatePublicIpInstanceUsingOrderData(PublicIpOrder order, PublicIpInstance instance) {
+    private void updatePublicIpInstanceUsingOrderData(PublicIpInstance instance, PublicIpOrder order) {
         // Remember that the instance ids seen by the user are really order ids, thus, when an order embeds other
         // orders, the instance that is returned needs to display order ids for these embedded orders, and not the
         // corresponding instance ids.
