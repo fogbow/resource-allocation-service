@@ -1,6 +1,9 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.*;
@@ -24,6 +27,8 @@ import java.util.stream.Collectors;
 
 public class OrderController {
     private static final Logger LOGGER = Logger.getLogger(OrderController.class);
+
+    @VisibleForTesting static final String FAULT_MESSAGE_EMPTY =  "";
 
     private final SharedOrderHolders orderHolders;
     private Map<String, List<String>> orderDependencies;
@@ -371,30 +376,19 @@ public class OrderController {
     Instance updateInstanceUsingOrderData(Instance instance, Order order) {
         switch (order.getType()) {
             case COMPUTE:
-                updateComputeInstanceUsingOrderData(((ComputeInstance) instance), ((ComputeOrder) order));
+                updateComputeInstanceUsingOrderData((ComputeInstance) instance, (ComputeOrder) order);
                 break;
             case ATTACHMENT:
-                updateAttachmentInstanceUsingOrderData(((AttachmentInstance) instance), ((AttachmentOrder) order));
+                updateAttachmentInstanceUsingOrderData((AttachmentInstance) instance, (AttachmentOrder) order);
                 break;
             case PUBLIC_IP:
-                updatePublicIpInstanceUsingOrderData(((PublicIpOrder) order), ((PublicIpInstance) instance));
+                updatePublicIpInstanceUsingOrderData((PublicIpInstance) instance, (PublicIpOrder) order);
                 break;
             case NETWORK:
             case VOLUME:
                 break;
         }
-        if (instance.getClass().isInstance(OrderInstance.class)) {
-            OrderInstance orderInstance = (OrderInstance) instance;
-            if (order.getFaultMessage() == null) {
-                if (orderInstance.getFaultMessage() == null) {
-                    orderInstance.setFaultMessage("");
-                } else {
-                    order.setOnceFaultMessage(orderInstance.getFaultMessage());
-                }
-            } else {
-                orderInstance.setFaultMessage(order.getFaultMessage());
-            }
-        }
+        setFaultMessage(instance, order);
         // Setting instance common fields that come from the order object
         instance.setProvider(order.getProvider());
         instance.setCloudName(order.getCloudName());
@@ -403,6 +397,22 @@ public class OrderController {
         // with the order id, before returning the instance to the user.
         instance.setId(order.getId());
         return instance;
+    }
+
+    @VisibleForTesting
+    void setFaultMessage(Instance instance, Order order) {
+        if (instance instanceof OrderInstance) {
+            OrderInstance orderInstance = (OrderInstance) instance;
+            if (order.getFaultMessage() == null) {
+                if (orderInstance.getFaultMessage() == null) {
+                    orderInstance.setFaultMessage(FAULT_MESSAGE_EMPTY);
+                } else {
+                    order.setOnceFaultMessage(orderInstance.getFaultMessage());
+                }
+            } else {
+                orderInstance.setFaultMessage(order.getFaultMessage());
+            }
+        }
     }
 
     private void updateComputeInstanceUsingOrderData(ComputeInstance instance, ComputeOrder order) {
@@ -444,7 +454,7 @@ public class OrderController {
         instance.setVolumeId(volumeOrder.getId());
     }
 
-    private void updatePublicIpInstanceUsingOrderData(PublicIpOrder order, PublicIpInstance instance) {
+    private void updatePublicIpInstanceUsingOrderData(PublicIpInstance instance, PublicIpOrder order) {
         // Remember that the instance ids seen by the user are really order ids, thus, when an order embeds other
         // orders, the instance that is returned needs to display order ids for these embedded orders, and not the
         // corresponding instance ids.
