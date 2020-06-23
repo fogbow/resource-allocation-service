@@ -382,7 +382,6 @@ public class OrderController {
                 updateAttachmentInstanceUsingOrderData((AttachmentInstance) instance, (AttachmentOrder) order);
                 break;
             case PUBLIC_IP:
-                // TODO
                 updatePublicIpInstanceUsingOrderData((PublicIpInstance) instance, (PublicIpOrder) order);
                 break;
             case NETWORK:
