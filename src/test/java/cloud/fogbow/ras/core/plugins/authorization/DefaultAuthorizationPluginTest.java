@@ -4,10 +4,8 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
-import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.*;
-import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -33,15 +31,16 @@ public class DefaultAuthorizationPluginTest extends BaseUnitTests {
     // different from COMPUTE, NETWORK, ATTACHMENT, VOLUME or PUBLIC_IP, it must
     // throw an UnauthorizedRequestException;
     @Test
-    public void testAuthorizeOrderWithDifferentResourceType() throws FogbowException {
+    public void testAuthorizeOrderWithDifferentResourceType() {
         // set up
         Order order = this.testUtils.createLocalComputeOrder();
+        SystemUser requester = order.getSystemUser();
 
         String expected = Messages.Exception.MISMATCHING_RESOURCE_TYPE;
 
         try {
             // exercise
-            this.authorizationPlugin.isAuthorized(null, new RasOperation(null,
+            this.authorizationPlugin.isAuthorized(requester, new RasOperation(null,
                     ResourceType.INVALID_RESOURCE, null, order));
             Assert.fail();
         } catch (UnauthorizedRequestException e) {
@@ -53,7 +52,7 @@ public class DefaultAuthorizationPluginTest extends BaseUnitTests {
     // test case: When calling the authorizeOrder method with requester
     // different from order owner, it must throws an UnauthorizedRequestException;
     @Test
-    public void testAuthorizeOrderWithDifferentRequester() throws FogbowException {
+    public void testAuthorizeOrderWithDifferentRequester() {
         // set up
         SystemUser requester = Mockito.mock(SystemUser.class);
         Order order = this.testUtils.createLocalComputeOrder();
