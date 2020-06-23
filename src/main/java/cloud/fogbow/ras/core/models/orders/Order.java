@@ -78,6 +78,10 @@ public abstract class Order<T extends Order> implements Serializable {
     @Enumerated(EnumType.STRING)
     protected ResourceType type;
 
+    @Column
+    @Size(max = FIELDS_MAX_SIZE)
+    private String faultMessage;
+
     public Order() {
     }
 
@@ -180,6 +184,14 @@ public abstract class Order<T extends Order> implements Serializable {
 
     private void setIdentityProviderId(String identityProviderId) {
         this.identityProviderId = identityProviderId;
+    }
+
+    public String getFaultMessage() {
+        return this.faultMessage;
+    }
+
+    public void setOnceFaultMessage(String faultMessage) {
+        if (this.faultMessage == null) this.faultMessage = faultMessage;
     }
 
     private void setSerializedSystemUser(String serializedSystemUser) {

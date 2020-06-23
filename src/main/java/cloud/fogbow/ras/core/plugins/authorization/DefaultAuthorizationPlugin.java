@@ -15,13 +15,26 @@ public class DefaultAuthorizationPlugin implements AuthorizationPlugin<RasOperat
         Order order = operation.getOrder();
         ResourceType type = operation.getResourceType();
         if (order != null) {
-            // Check if requested type matches order type
-            if (!order.getType().equals(type))
-                throw new UnauthorizedRequestException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
             // Check whether requester owns order
             SystemUser orderOwner = order.getSystemUser();
             if (!orderOwner.equals(requester)) {
                 throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
+            }
+            // Check if requested type matches order type
+            ResourceType orderType = order.getType();
+            switch (orderType) {
+                case NETWORK:
+                    if (!type.equals(ResourceType.NETWORK) && !type.equals(ResourceType.SECURITY_RULE))
+                        throw new UnauthorizedRequestException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
+                    break;
+                case PUBLIC_IP:
+                    if (!type.equals(ResourceType.PUBLIC_IP) && !type.equals(ResourceType.SECURITY_RULE))
+                        throw new UnauthorizedRequestException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
+                    break;
+                default:
+                    if (!order.getType().equals(type))
+                        throw new UnauthorizedRequestException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
+                    break;
             }
         }
         return true;

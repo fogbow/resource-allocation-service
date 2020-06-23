@@ -1,5 +1,8 @@
 #!/bin/sh
 interface=$(ip l | grep -i down | awk '{print $2}' | sed 's/://')
-dhclient ${interface}
-ifconfig ${interface} up
+for i in $(echo ${interface})
+do
+  dhclient $i
+  ifconfig $i up
+done
 EOL

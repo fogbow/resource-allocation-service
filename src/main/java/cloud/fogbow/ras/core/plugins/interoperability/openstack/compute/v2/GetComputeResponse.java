@@ -46,6 +46,8 @@ public class GetComputeResponse {
         private Flavor flavor;
         @SerializedName(STATUS_KEY_JSON)
         private String status;
+        @SerializedName(FAULT_MSG_KEY_JSON)
+        private String faultMessage;
     }
 
     public String getId() {
@@ -66,6 +68,10 @@ public class GetComputeResponse {
 
     public String getStatus() {
         return server.status;
+    }
+
+    public String getFaultMessage() {
+        return server.faultMessage;
     }
 
     public static GetComputeResponse fromJson(String json) {

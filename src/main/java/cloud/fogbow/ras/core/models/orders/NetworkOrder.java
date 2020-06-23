@@ -84,6 +84,8 @@ public class NetworkOrder extends Order<NetworkOrder> {
     }
 
     @Override
-    public void updateFromRemote(NetworkOrder remoteOrder) { }
+    public void updateFromRemote(NetworkOrder remoteOrder) {
+        this.setOnceFaultMessage(remoteOrder.getFaultMessage());
+    }
 
 }

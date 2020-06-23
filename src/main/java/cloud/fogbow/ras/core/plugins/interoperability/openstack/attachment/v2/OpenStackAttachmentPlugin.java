@@ -4,8 +4,6 @@ import java.util.Properties;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
-import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
-import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonSyntaxException;
@@ -116,7 +114,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     }
 
     protected GetAttachmentResponse doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
-        String jsonResponse = jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
+        String jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         return doGetAttachmentResponseFrom(jsonResponse);
     }
 
@@ -136,7 +134,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     protected CreateAttachmentResponse doRequestInstance(String endpoint, String jsonRequest,
             OpenStackV3User cloudUser) throws FogbowException {
         
-        String jsonResponse = jsonResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
+        String jsonResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
         return doCreateAttachmentResponseFrom(jsonResponse);
     }
 

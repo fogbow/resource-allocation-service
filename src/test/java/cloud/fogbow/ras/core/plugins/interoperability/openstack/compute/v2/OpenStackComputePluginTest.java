@@ -568,7 +568,7 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(rawInstanceResponse).when(this.computePlugin)
                 .doGetRequest(Mockito.any(), Mockito.any());
 
-        ComputeInstance fakeComputeInstance = new ComputeInstance(instanceId, ANY_STRING, ANY_STRING, null);
+        ComputeInstance fakeComputeInstance = new ComputeInstance(instanceId, ANY_STRING, ANY_STRING, null, null);
         Mockito.doReturn(fakeComputeInstance).when(computePlugin)
                 .getInstanceFromJson(Mockito.anyString());
 

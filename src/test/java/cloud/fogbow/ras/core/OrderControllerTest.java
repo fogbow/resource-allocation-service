@@ -1,6 +1,9 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.*;
@@ -1111,6 +1114,87 @@ public class OrderControllerTest extends BaseUnitTests {
                 .updateOrderDependencies(Mockito.eq(orderLocalNonActive), Mockito.eq(Operation.CREATE));
         Mockito.verify(this.ordersController, Mockito.times(TestUtils.NEVER_RUN))
                 .updateOrderDependencies(Mockito.eq(orderRemoteActive), Mockito.eq(Operation.CREATE));
+    }
+
+    // test case: When calling the setFaultMessage method
+    // when Order Fault message is null and Instance Fault message is not null,
+    // it must verify if the order and the instance have the fault message.
+    @Test
+    public void testSetFaultMessageSuccessfullyWhenOrderFaultMsgNullAndInstanceFaultMessageNotNull() {
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+
+        String faultMessageExpected = TestUtils.ANY_VALUE;
+        OrderInstance orderInstance = new OrderInstance(
+                TestUtils.EMPTY_STRING, TestUtils.EMPTY_STRING, faultMessageExpected);
+
+        // verify before
+        Assert.assertNull(order.getFaultMessage());
+        Assert.assertEquals(faultMessageExpected, orderInstance.getFaultMessage());
+
+        // exercise
+        this.ordersController.setFaultMessage(orderInstance, order);
+
+        // verify
+        Assert.assertEquals(faultMessageExpected, orderInstance.getFaultMessage());
+        Assert.assertEquals(faultMessageExpected, order.getFaultMessage());
+    }
+
+    // test case: When calling the setFaultMessage method
+    // when Order Fault message is null and Instance Fault message is null,
+    // it must verify if the order and the instance have the fault message.
+    @Test
+    public void testSetFaultMessageSuccessfullyWhenOrderFaultMsgNullAndInstanceFaultMessageNull() {
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        OrderInstance orderInstance = new OrderInstance(TestUtils.EMPTY_STRING, TestUtils.EMPTY_STRING);
+
+
+        // verify before
+        Assert.assertNull(order.getFaultMessage());
+        Assert.assertNull(orderInstance.getFaultMessage());
+
+        // exercise
+        this.ordersController.setFaultMessage(orderInstance, order);
+
+        // verify
+        Assert.assertEquals(OrderController.FAULT_MESSAGE_EMPTY, orderInstance.getFaultMessage());
+        Assert.assertNull(order.getFaultMessage());
+    }
+
+    // test case: When calling the setFaultMessage method
+    // when Order Fault message is not null and Instance Fault message is null,
+    // it must verify if the order and the instance have the fault message.
+    @Test
+    public void testSetFaultMessageSuccessfullyWhenOrderFaultMsgNotNull() {
+        NetworkOrder order = this.testUtils.createLocalNetworkOrder();
+        String faultMessageExpected = TestUtils.ANY_VALUE;
+        order.setOnceFaultMessage(faultMessageExpected);
+
+        OrderInstance orderInstance = new OrderInstance(TestUtils.EMPTY_STRING, TestUtils.EMPTY_STRING);
+
+        // verify before
+        Assert.assertEquals(faultMessageExpected, order.getFaultMessage());
+        Assert.assertNull(orderInstance.getFaultMessage());
+
+        // exercise
+        this.ordersController.setFaultMessage(orderInstance, order);
+
+        // verify
+        Assert.assertEquals(faultMessageExpected, orderInstance.getFaultMessage());
+        Assert.assertEquals(faultMessageExpected, order.getFaultMessage());
+    }
+
+    // test case: When calling the setFaultMessage method when the parameter is not a Order Instance,
+    // it must verify if it do not anything.
+    @Test
+    public void testSetFaultMessageSuccessfullyWhenIsNotAnOrderInstance() {
+        Order order = Mockito.mock(Order.class);
+        Instance orderInstance = new Instance(TestUtils.ANY_VALUE);
+
+        // exercise
+        this.ordersController.setFaultMessage(orderInstance, order);
+
+        // verify
+        Mockito.verify(order, Mockito.never()).getFaultMessage();
     }
 
     private PublicIpOrder createFulfilledPublicIpOrder(SystemUser systemUser) throws InternalServerErrorException {
