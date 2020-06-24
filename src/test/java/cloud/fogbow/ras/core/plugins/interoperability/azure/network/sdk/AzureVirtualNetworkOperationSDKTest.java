@@ -117,7 +117,8 @@ public class AzureVirtualNetworkOperationSDKTest {
         Mockito.doReturn(observableSecurityGroupSuccess).when(this.azureVirtualNetworkOperationSDK)
                 .buildCreateSecurityGroupObservable(Mockito.eq(azureCreateVirtualNetworkRef), Mockito.eq(this.azure));
 
-        Mockito.doThrow(new RuntimeException()).when(this.azureVirtualNetworkOperationSDK)
+        RuntimeException runtimeException = new RuntimeException();
+        Mockito.doThrow(runtimeException).when(this.azureVirtualNetworkOperationSDK)
                 .doNetworkCreationStepTwoSync(Mockito.eq(securityGroupIndexable),
                         Mockito.eq(azureCreateVirtualNetworkRef), Mockito.eq(this.azure));
 
@@ -131,7 +132,8 @@ public class AzureVirtualNetworkOperationSDKTest {
                 .assertEqualsInOrder(Level.INFO, Messages.Log.FIRST_STEP_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_CREATE_VNET_ASYNC_BEHAVIOUR)
                 .assertEqualsInOrder(Level.INFO, Messages.Log.END_CREATE_VNET_ASYNC_BEHAVIOUR);
-        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE))
+                .runOnError(Mockito.eq(runtimeException.getMessage()));
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 

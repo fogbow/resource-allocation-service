@@ -39,7 +39,7 @@ public class AzureVolumeOperationSDK {
                                                  AsyncInstanceCreationManager.Callbacks finishCreationCallback) {
 
         return observable.onErrorReturn((error -> {
-            finishCreationCallback.runOnError();
+            finishCreationCallback.runOnError(error.getMessage());
             LOGGER.error(Messages.Log.ERROR_CREATE_DISK_ASYNC_BEHAVIOUR, error);
             return null;
         })).doOnCompleted(() -> {

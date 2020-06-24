@@ -104,7 +104,7 @@ public class AzurePublicIPAddressOperationSDKTest {
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR);
-        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError(Mockito.anyString());
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 

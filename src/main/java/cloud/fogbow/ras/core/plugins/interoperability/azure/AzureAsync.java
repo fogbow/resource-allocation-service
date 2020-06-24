@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import javax.annotation.Nullable;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager.Status;
+import static cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCreationManager.StatusType;
 
 public interface AzureAsync<T extends OrderInstance> {
 
@@ -46,12 +47,13 @@ public interface AzureAsync<T extends OrderInstance> {
         }
 
         T creatingInstance = buildCreatingInstance(instanceId);
-        switch (currentStatus) {
+        switch (currentStatus.getType()) {
             case CREATING:
                 creatingInstance.setCloudState(AzureStateMapper.CREATING_STATE);
                 break;
             case FAILED:
                 creatingInstance.setCloudState(AzureStateMapper.FAILED_STATE);
+                creatingInstance.setFaultMessage(currentStatus.getFaultMessage());
                 break;
             default:
                 throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_ERROR);
@@ -71,7 +73,9 @@ public interface AzureAsync<T extends OrderInstance> {
             LOGGER.warn(Messages.Log.SLEEP_THREAD_INTERRUPTED);
         } finally {
             Status status = this.asyncInstanceCreation.getStatus(instanceId);
-            if (status == Status.FAILED) {
+            if (status == null) {
+                throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_ERROR);
+            } else if (status.getType() == StatusType.FAILED) {
                 throw new FogbowException(Messages.Log.ERROR_ON_REQUEST_ASYNC_PLUGIN);
             }
         }

@@ -53,7 +53,7 @@ public class AzurePublicIPAddressOperationSDK {
             doAssociateNetworkSecurityGroupAsync(azure, resourceName, nic);
             LOGGER.info(Messages.Log.SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR);
         }).onErrorReturn(error -> {
-            finishCreationCallbacks.runOnError();
+            finishCreationCallbacks.runOnError(error.getMessage());
             LOGGER.error(Messages.Log.ERROR_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR, error);
             return null;
         }).doOnCompleted(() -> {

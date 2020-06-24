@@ -284,7 +284,8 @@ public class AzureComputePluginTest {
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
         AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
-        Mockito.doThrow(new FogbowException("")).when(this.azureVirtualMachineOperation)
+        FogbowException fogbowException = new FogbowException("");
+        Mockito.doThrow(fogbowException).when(this.azureVirtualMachineOperation)
                 .doCreateInstance(Mockito.eq(azureCreateVirtualMachineRef), Mockito.eq(finishCreationCallbacks),
                 Mockito.eq(this.azureUser));
 
@@ -294,7 +295,8 @@ public class AzureComputePluginTest {
             Assert.fail();
         } catch (Exception e) {
             // verify
-            Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
+            Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE))
+                    .runOnError(Mockito.eq(fogbowException.getMessage()));
             Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.NEVER_RUN)).runOnComplete();
         }
     }
