@@ -89,4 +89,23 @@ public class AsyncInstanceCreationManagerTest {
         Assert.assertNull(status);
     }
 
+    // test case: When calling the endCreation method when there is no Status,
+    // it must verify if the Status is null.
+    @Test
+    public void testEndCreationSuccessfullyWhenThereIsNoStatus() {
+        // set up
+        String instanceId = "instanceId";
+
+        // verify
+        AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
+        Assert.assertNull(status);
+
+        // exercise
+        this.asyncInstanceCreationManagerPlugin.endCreation(instanceId);
+
+        // verify
+        status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
+        Assert.assertNull(status);
+    }
+
 }
