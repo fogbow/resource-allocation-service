@@ -82,29 +82,29 @@ public class AsyncInstanceCreationManager {
     */
     private void defineAsCreated(String instanceId) {
         if (this.creating.get(instanceId) != null &&
-                this.creating.get(instanceId).getType() == StatusType.CREATING) {
+                this.creating.get(instanceId).getValue() == StatusValue.CREATING) {
             this.creating.remove(instanceId);
         }
     }
 
     public static class Status {
-        private StatusType type;
+        private StatusValue type;
         private String faultMessage;
 
-        private Status(StatusType type, String faultMessage) {
+        private Status(StatusValue type, String faultMessage) {
             this.type = type;
             this.faultMessage = faultMessage;
         }
 
         public static Status create() {
-            return new Status(StatusType.CREATING, null);
+            return new Status(StatusValue.CREATING, null);
         }
 
         public static Status fail(String faultMessage) {
-            return new Status(StatusType.FAILED, faultMessage);
+            return new Status(StatusValue.FAILED, faultMessage);
         }
 
-        public StatusType getType() {
+        public StatusValue getValue() {
             return type;
         }
 
@@ -113,7 +113,7 @@ public class AsyncInstanceCreationManager {
         }
     }
 
-    public enum StatusType {
+    public enum StatusValue {
         CREATING, FAILED
     }
 

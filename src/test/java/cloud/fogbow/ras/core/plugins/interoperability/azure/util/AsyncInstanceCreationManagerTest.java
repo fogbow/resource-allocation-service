@@ -29,7 +29,7 @@ public class AsyncInstanceCreationManagerTest {
 
         // verify
         AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
-        Assert.assertEquals(AsyncInstanceCreationManager.StatusType.CREATING, status.getType());
+        Assert.assertEquals(AsyncInstanceCreationManager.StatusValue.CREATING, status.getValue());
 
         // exercise
         finishCreationAsyncInstanceCreationCallbacks.runOnComplete();
@@ -54,7 +54,7 @@ public class AsyncInstanceCreationManagerTest {
 
         // verify
         AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
-        Assert.assertEquals(AsyncInstanceCreationManager.StatusType.CREATING, status.getType());
+        Assert.assertEquals(AsyncInstanceCreationManager.StatusValue.CREATING, status.getValue());
 
         // exercise
         finishCreationAsyncInstanceCreationCallbacks.runOnError(faultMessageExpected);
@@ -62,7 +62,7 @@ public class AsyncInstanceCreationManagerTest {
 
         // verify
         status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
-        Assert.assertEquals(AsyncInstanceCreationManager.StatusType.FAILED, status.getType());
+        Assert.assertEquals(AsyncInstanceCreationManager.StatusValue.FAILED, status.getValue());
         Assert.assertEquals(faultMessageExpected, status.getFaultMessage());
     }
 
@@ -79,7 +79,7 @@ public class AsyncInstanceCreationManagerTest {
 
         // verify
         AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
-        Assert.assertEquals(AsyncInstanceCreationManager.StatusType.CREATING, status.getType());
+        Assert.assertEquals(AsyncInstanceCreationManager.StatusValue.CREATING, status.getValue());
 
         // exercise
         this.asyncInstanceCreationManagerPlugin.endCreation(instanceId);
