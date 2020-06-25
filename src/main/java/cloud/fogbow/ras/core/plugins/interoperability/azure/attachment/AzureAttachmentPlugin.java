@@ -4,8 +4,8 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.Messages;
@@ -125,7 +125,12 @@ public class AzureAttachmentPlugin implements AttachmentPlugin<AzureUser>, Azure
     @VisibleForTesting
     AttachmentInstance doGetInstance(Azure azure, String resourceId) throws FogbowException {
         Disk disk = doGetDiskSDK(azure, resourceId);
-        return buildAttachmentInstance(disk);
+        AttachmentInstance attachmentInstance = buildAttachmentInstance(disk);
+        // It happens because o Fogbow Core waits an InstanceNotFoundException as instance unattached.
+        if (attachmentInstance.getCloudState().equals(AzureStateMapper.UNATTACHED_STATE)) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+        return attachmentInstance;
     }
 
     @VisibleForTesting
