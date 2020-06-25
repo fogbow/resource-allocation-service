@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
@@ -20,6 +21,7 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
+
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Level;
 import org.junit.Assert;
@@ -179,7 +181,7 @@ public class CloudStackVolumePluginTest extends BaseUnitTests {
                 thenReturn(response);
 
         // verify
-        this.expectedException.expect(InternalServerErrorException.class);
+        this.expectedException.expect(InstanceNotFoundException.class);
 
         // exercise
         this.plugin.doGetInstance(request, this.cloudStackUser);
