@@ -127,7 +127,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
             this.azureVirtualMachineOperation
                     .doCreateInstance(virtualMachineRef, finishCreationCallbacks, azureUser);
         } catch (Exception e) {
-            finishCreationCallbacks.runOnError();
+            finishCreationCallbacks.runOnError(e.getMessage());
             throw e;
         }
     }

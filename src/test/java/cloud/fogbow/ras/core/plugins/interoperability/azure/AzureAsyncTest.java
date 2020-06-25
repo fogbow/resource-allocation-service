@@ -11,7 +11,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMappe
 import org.apache.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -25,6 +27,8 @@ public class AzureAsyncTest {
 
     private AzureWrapper azureWrapper;
 
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
     private LoggerAssert loggerTestChecking = new LoggerAssert(AzureAsync.class);
 
     @Before
@@ -108,9 +112,10 @@ public class AzureAsyncTest {
     public void testGetCreatingInstanceSuccessfullyWhenIsFailed() throws InternalServerErrorException {
         // set up
         String instanceId = TestUtils.ANY_VALUE;
+        String faultMessageExpected = TestUtils.ANY_VALUE;
 
         AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = this.azureWrapper.startInstanceCreation(instanceId);
-        finishCreationCallbacks.runOnError();
+        finishCreationCallbacks.runOnError(faultMessageExpected);
         finishCreationCallbacks.runOnComplete();
 
         // exercise
@@ -118,11 +123,32 @@ public class AzureAsyncTest {
 
         // verify
         Assert.assertEquals(AzureStateMapper.FAILED_STATE, creatingInstance.getCloudState());
+        Assert.assertEquals(faultMessageExpected, creatingInstance.getFaultMessage());
+    }
+
+    // test case: When calling the waitAndCheckForInstanceCreationFailed method and the status is null,
+    // it must verify if It throw a InternalServerErrorException.
+    @Test
+    public void testWaitAndCheckForInstanceCreationFailedSuccessfullyWhenIsNull()
+            throws InterruptedException, FogbowException {
+        // set up
+        String instanceId = TestUtils.EMPTY_STRING;
+
+        PowerMockito.mockStatic(Thread.class);
+        PowerMockito.doNothing().when(Thread.class);
+        Thread.sleep(Mockito.anyLong());
+
+        // verify
+        this.expectedException.expect(InternalServerErrorException.class);
+        this.expectedException.expectMessage(Messages.Exception.UNEXPECTED_ERROR);
+
+        // exercise
+        this.azureWrapper.waitAndCheckForInstanceCreationFailed(instanceId);
     }
 
     // test case: When calling the waitAndCheckForInstanceCreationFailed method and there is a failed,
     // it must verify if It throw a FogbowException.
-    @Test(expected = FogbowException.class)
+    @Test
     public void testWaitAndCheckForInstanceCreationFailedSuccessfullyWhenIsFailed()
             throws InterruptedException, FogbowException {
         // set up
@@ -133,13 +159,14 @@ public class AzureAsyncTest {
         Thread.sleep(Mockito.anyLong());
 
         AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = this.azureWrapper.startInstanceCreation(instanceId);
-        finishCreationCallbacks.runOnError();
+        finishCreationCallbacks.runOnError(TestUtils.ANY_VALUE);
+
+        // verify
+        this.expectedException.expect(FogbowException.class);
+        this.expectedException.expectMessage(Messages.Log.ERROR_ON_REQUEST_ASYNC_PLUGIN);
 
         // exercise
         this.azureWrapper.waitAndCheckForInstanceCreationFailed(instanceId);
-
-        // verify
-        this.loggerTestChecking.verifyIfEmpty();
     }
 
     // test case: When calling the waitAndCheckForInstanceCreationFailed method and there is not a failed,
@@ -201,6 +228,7 @@ public class AzureAsyncTest {
         public OrderInstance buildCreatingInstance(String instanceId) {
             return new OrderInstance(instanceId);
         }
+
     }
 
 }

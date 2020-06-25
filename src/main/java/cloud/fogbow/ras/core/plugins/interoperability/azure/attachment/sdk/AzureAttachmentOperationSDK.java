@@ -34,7 +34,7 @@ public class AzureAttachmentOperationSDK {
     Observable<VirtualMachine> setAttachDiskBehaviour(Observable<VirtualMachine> observable,
                                                       AsyncInstanceCreationManager.Callbacks finishCreationCallbacks) {
         return observable.onErrorReturn((error -> {
-            finishCreationCallbacks.runOnError();
+            finishCreationCallbacks.runOnError(error.getMessage());
             LOGGER.error(Messages.Log.ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR, error);
             return null;
         })).doOnCompleted(() -> {

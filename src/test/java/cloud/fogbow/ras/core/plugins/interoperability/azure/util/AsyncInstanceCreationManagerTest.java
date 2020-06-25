@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
+import cloud.fogbow.ras.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,8 +28,8 @@ public class AsyncInstanceCreationManagerTest {
                 this.asyncInstanceCreationManagerPlugin.startCreation(instanceId);
 
         // verify
-        Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING,
-                this.asyncInstanceCreationManagerPlugin.getStatus(instanceId));
+        AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
+        Assert.assertEquals(AsyncInstanceCreationManager.StatusValue.CREATING, status.getValue());
 
         // exercise
         finishCreationAsyncInstanceCreationCallbacks.runOnComplete();
@@ -45,6 +46,7 @@ public class AsyncInstanceCreationManagerTest {
     public void testCreationContextSuccessfullyWhenInstanceCreationFails() {
         // set up
         String instanceId = "instanceId";
+        String faultMessageExpected = TestUtils.ANY_VALUE;
 
         // exercise
         AsyncInstanceCreationManager.Callbacks finishCreationAsyncInstanceCreationCallbacks =
@@ -52,15 +54,16 @@ public class AsyncInstanceCreationManagerTest {
 
         // verify
         AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
-        Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING, status);
+        Assert.assertEquals(AsyncInstanceCreationManager.StatusValue.CREATING, status.getValue());
 
         // exercise
-        finishCreationAsyncInstanceCreationCallbacks.runOnError();
+        finishCreationAsyncInstanceCreationCallbacks.runOnError(faultMessageExpected);
         finishCreationAsyncInstanceCreationCallbacks.runOnComplete();
 
         // verify
         status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
-        Assert.assertEquals(AsyncInstanceCreationManager.Status.FAILED, status);
+        Assert.assertEquals(AsyncInstanceCreationManager.StatusValue.FAILED, status.getValue());
+        Assert.assertEquals(faultMessageExpected, status.getFaultMessage());
     }
 
     // test case: When calling the endCreation method,
@@ -76,7 +79,26 @@ public class AsyncInstanceCreationManagerTest {
 
         // verify
         AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
-        Assert.assertEquals(AsyncInstanceCreationManager.Status.CREATING, status);
+        Assert.assertEquals(AsyncInstanceCreationManager.StatusValue.CREATING, status.getValue());
+
+        // exercise
+        this.asyncInstanceCreationManagerPlugin.endCreation(instanceId);
+
+        // verify
+        status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
+        Assert.assertNull(status);
+    }
+
+    // test case: When calling the endCreation method when there is no Status,
+    // it must verify if the Status is null.
+    @Test
+    public void testEndCreationSuccessfullyWhenThereIsNoStatus() {
+        // set up
+        String instanceId = "instanceId";
+
+        // verify
+        AsyncInstanceCreationManager.Status status = this.asyncInstanceCreationManagerPlugin.getStatus(instanceId);
+        Assert.assertNull(status);
 
         // exercise
         this.asyncInstanceCreationManagerPlugin.endCreation(instanceId);

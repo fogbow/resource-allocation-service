@@ -113,7 +113,7 @@ public class AzureVirtualMachineOperationSDK {
 
         return virtualMachineObservable
                 .onErrorReturn((error -> {
-                    finishCreationCallbacks.runOnError();
+                    finishCreationCallbacks.runOnError(error.getMessage());
                     LOGGER.error(Messages.Log.ERROR_CREATE_VM_ASYNC_BEHAVIOUR, error);
                     return null;
                 }))
