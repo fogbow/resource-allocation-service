@@ -198,7 +198,7 @@ public class AzureNetworkPluginTest {
         AzureCreateVirtualNetworkRef azureCreateVirtualNetworkRef = Mockito.mock(AzureCreateVirtualNetworkRef.class);
         AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
-        FogbowException fogbowException = new FogbowException("");
+        FogbowException fogbowException = new FogbowException(TestUtils.ANY_VALUE);
         Mockito.doThrow(fogbowException)
                 .when(this.azureVirtualNetworkOperation)
                 .doCreateInstance(Mockito.any(), Mockito.any(), Mockito.eq(finishCreationCallbacks));

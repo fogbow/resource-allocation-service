@@ -284,7 +284,7 @@ public class AzureComputePluginTest {
         AzureCreateVirtualMachineRef azureCreateVirtualMachineRef = Mockito.mock(AzureCreateVirtualMachineRef.class);
         AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
 
-        FogbowException fogbowException = new FogbowException("");
+        FogbowException fogbowException = new FogbowException(TestUtils.ANY_VALUE);
         Mockito.doThrow(fogbowException).when(this.azureVirtualMachineOperation)
                 .doCreateInstance(Mockito.eq(azureCreateVirtualMachineRef), Mockito.eq(finishCreationCallbacks),
                 Mockito.eq(this.azureUser));

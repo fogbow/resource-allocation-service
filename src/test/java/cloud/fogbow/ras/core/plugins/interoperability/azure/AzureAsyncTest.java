@@ -161,6 +161,7 @@ public class AzureAsyncTest {
         AsyncInstanceCreationManager.Callbacks finishCreationCallbacks = this.azureWrapper.startInstanceCreation(instanceId);
         finishCreationCallbacks.runOnError(TestUtils.ANY_VALUE);
 
+        // verify
         this.expectedException.expect(FogbowException.class);
         this.expectedException.expectMessage(Messages.Log.ERROR_ON_REQUEST_ASYNC_PLUGIN);
 
