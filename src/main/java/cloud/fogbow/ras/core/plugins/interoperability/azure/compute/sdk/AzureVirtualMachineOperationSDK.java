@@ -18,6 +18,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.network.Network;
+import com.microsoft.azure.management.network.PublicIPAddress;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
 import org.apache.log4j.Logger;
@@ -26,10 +27,7 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 public class AzureVirtualMachineOperationSDK {
@@ -173,9 +171,17 @@ public class AzureVirtualMachineOperationSDK {
         String virtualMachineSizeName = virtualMachine.size().toString();
         String cloudState = virtualMachine.provisioningState();
         String id = virtualMachine.inner().id();
-        String primaryPrivateIp = virtualMachine.getPrimaryNetworkInterface().primaryPrivateIP();
-        List<String> ipAddresses = Arrays.asList(primaryPrivateIp);
         Map tags = virtualMachine.tags();
+
+        List<String> ipAddresses = new ArrayList<>();
+        String primaryPrivateIp = virtualMachine.getPrimaryNetworkInterface().primaryPrivateIP();
+        ipAddresses.add(primaryPrivateIp);
+
+        PublicIPAddress primaryPublicIPAddress = virtualMachine.getPrimaryPublicIPAddress();
+        if (primaryPublicIPAddress != null) {
+            String publicIp = primaryPublicIPAddress.ipAddress();
+            ipAddresses.add(publicIp);
+        }
 
         VirtualMachineSize virtualMachineSize = findVirtualMachineSize(virtualMachineSizeName, this.regionName, azure);
         int vCPU = virtualMachineSize.numberOfCores();
