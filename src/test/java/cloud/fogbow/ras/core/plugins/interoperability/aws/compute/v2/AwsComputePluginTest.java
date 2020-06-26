@@ -357,7 +357,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAllDisksSize(Mockito.eq(volumes));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getIpAddresses(Mockito.eq(instance));
     }
-	
+
     // test case: When calling the getIpAddresses method, it must verify
     // that is call was successful.
     @Test
@@ -446,7 +446,31 @@ public class AwsComputePluginTest extends BaseUnitTests {
         // verify
         Assert.assertEquals(expected, memory);
     }
-    
+
+    // test case: When calling the checkTerminatedStateFrom method with an
+    // instance terminated, it must verify if an InstanceNotFoundException has
+    // been thrown.
+    @Test
+    public void testCheckTerminatedStateFromInstance() {
+        // set up
+        Instance instance = Instance.builder()
+                .state(InstanceState.builder()
+                        .name(AwsV2StateMapper.TERMINATED_STATE)
+                        .build())
+                .build();
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.checkTerminatedStateFrom(instance );
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
     // test case: When calling the doRequestInstance method, it must verify
     // that is call was successful.
     @Test
