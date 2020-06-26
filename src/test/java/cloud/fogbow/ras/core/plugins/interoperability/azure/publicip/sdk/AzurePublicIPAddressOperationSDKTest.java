@@ -127,7 +127,7 @@ public class AzurePublicIPAddressOperationSDKTest {
         Creatable<NetworkSecurityGroup> creatable = Mockito.mock(Creatable.class);
         PowerMockito.mockStatic(AzurePublicIPAddressSDK.class);
         PowerMockito.doReturn(creatable).when(AzurePublicIPAddressSDK.class, "buildNetworkSecurityGroupCreatable",
-                Mockito.eq(azure), Mockito.eq(publicIPAddress));
+                Mockito.eq(azure), Mockito.eq(publicIPAddress), Mockito.eq(networkInterface));
 
         Observable<NetworkInterface> observable = Mockito.mock(Observable.class);
         PowerMockito.doReturn(observable).when(AzurePublicIPAddressSDK.class, "associateNetworkSecurityGroupAsync",
@@ -144,7 +144,8 @@ public class AzurePublicIPAddressOperationSDKTest {
                 Mockito.eq(instanceId));
 
         PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
-        AzurePublicIPAddressSDK.buildNetworkSecurityGroupCreatable(Mockito.eq(azure), Mockito.eq(publicIPAddress));
+        AzurePublicIPAddressSDK.buildNetworkSecurityGroupCreatable(
+                Mockito.eq(azure), Mockito.eq(publicIPAddress), Mockito.eq(networkInterface));
 
         PowerMockito.verifyStatic(AzurePublicIPAddressSDK.class, Mockito.times(TestUtils.RUN_ONCE));
         AzurePublicIPAddressSDK.associateNetworkSecurityGroupAsync(Mockito.eq(networkInterface), Mockito.eq(creatable));

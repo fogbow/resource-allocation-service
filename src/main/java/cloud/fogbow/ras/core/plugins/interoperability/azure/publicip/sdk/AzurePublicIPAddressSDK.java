@@ -35,13 +35,13 @@ public class AzurePublicIPAddressSDK {
     }
     
     public static Creatable<NetworkSecurityGroup> buildNetworkSecurityGroupCreatable(
-            Azure azure, PublicIPAddress publicIPAddress) {
+            Azure azure, PublicIPAddress publicIPAddress, NetworkInterface nic) {
 
         String regionName = publicIPAddress.regionName();
         String resourceGroupName = publicIPAddress.resourceGroupName();
         String securityGroupName = publicIPAddress.name();
         String securityRuleName = AzureGeneralUtil.generateResourceName();
-        String ipAddress = publicIPAddress.ipAddress();
+        String ipAddress = nic.primaryPrivateIP();
 
         return azure.networkSecurityGroups()
                 .define(securityGroupName)

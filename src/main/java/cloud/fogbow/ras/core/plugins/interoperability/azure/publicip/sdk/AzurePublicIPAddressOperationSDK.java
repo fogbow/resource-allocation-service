@@ -66,7 +66,7 @@ public class AzurePublicIPAddressOperationSDK {
     void doAssociateNetworkSecurityGroupAsync(Azure azure, String resourceName, NetworkInterface nic) {
         PublicIPAddress publicIPAddress = doGetPublicIPAddress(azure, resourceName);
         Creatable<NetworkSecurityGroup> creatable = AzurePublicIPAddressSDK
-                .buildNetworkSecurityGroupCreatable(azure, publicIPAddress);
+                .buildNetworkSecurityGroupCreatable(azure, publicIPAddress, nic);
 
         Observable<NetworkInterface> observable = AzurePublicIPAddressSDK
                 .associateNetworkSecurityGroupAsync(nic, creatable);
