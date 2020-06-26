@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -15,11 +16,16 @@ import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
+
 import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
 import javax.validation.constraints.NotNull;
+
 import java.util.Properties;
 
 public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUser> {
@@ -103,7 +109,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
 
         String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
         AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
-        return loadInstanceByJobStatus(attachmentOrder.getInstanceId(), response);
+        return loadInstanceByJobStatus(attachmentOrder, response, cloudStackUser);
     }
 
     @VisibleForTesting
@@ -134,22 +140,45 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
 
     @NotNull
     @VisibleForTesting
-    AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,
-                                               @NotNull AttachmentJobStatusResponse response)
-            throws InternalServerErrorException {
+    AttachmentInstance loadInstanceByJobStatus(
+            @NotNull AttachmentOrder attachmentOrder,
+            @NotNull AttachmentJobStatusResponse response,
+            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
         
         int status = response.getJobStatus();
         switch (status) {
             case CloudStackCloudUtils.JOB_STATUS_PENDING:
-                return buildInstance(attachmentInstanceId, CloudStackCloudUtils.PENDING_STATE);
+                return buildInstance(response.getJobId(), CloudStackCloudUtils.PENDING_STATE);
             case CloudStackCloudUtils.JOB_STATUS_COMPLETE:
+                checkVolumeAttached(attachmentOrder, cloudStackUser);
                 AttachmentJobStatusResponse.Volume volume = response.getVolume();
                 return buildCompleteInstance(volume);
             case CloudStackCloudUtils.JOB_STATUS_FAILURE:
                 logFailure(response);
-                return buildInstance(attachmentInstanceId, CloudStackCloudUtils.FAILURE_STATE);
+                return buildInstance(response.getJobId(), CloudStackCloudUtils.FAILURE_STATE);
             default:
                 throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_JOB_STATUS);
+        }
+    }
+
+    @NotNull
+    @VisibleForTesting
+    void checkVolumeAttached(
+            @NotNull AttachmentOrder attachmentOrder,
+            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+
+        GetVolumeRequest request = new GetVolumeRequest.Builder()
+                .id(attachmentOrder.getVolumeId())
+                .virtualMachineId(attachmentOrder.getComputeId())
+                .build(this.cloudStackUrl);
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
+        GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
+        if (response == null) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
     }
 
