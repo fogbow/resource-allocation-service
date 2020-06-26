@@ -217,9 +217,8 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         PowerMockito.when(AttachmentJobStatusResponse.fromJson(Mockito.eq(resposeStr))).thenReturn(response);
 
         AttachmentInstance attachmentInstanceExpected = Mockito.mock(AttachmentInstance.class);
-        String instanceId = this.attachmentOrder.getInstanceId();
         Mockito.doReturn(attachmentInstanceExpected).when(this.plugin).loadInstanceByJobStatus(
-                Mockito.eq(instanceId), Mockito.eq(response));
+                Mockito.eq(this.attachmentOrder), Mockito.eq(response), Mockito.eq(this.cloudStackUser));
 
         // exercise
         AttachmentInstance attachmentInstance = this.plugin.doGetInstance(
@@ -254,36 +253,40 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         } finally {
             // verify
             Mockito.verify(this.plugin, Mockito.times(TestUtils.NEVER_RUN)).loadInstanceByJobStatus(
-                    Mockito.anyString(), Mockito.any());
+                    Mockito.any(), Mockito.any(), Mockito.any());
         }
     }
 
     // test case: When calling the loadInstanceByJobStatus method with status complete,
     // it must verify if It returns a complete AttachmentInstance.
     @Test
-    public void testLoadInstanceByJobStatusWithCompleteInstance() throws InternalServerErrorException {
+    public void testLoadInstanceByJobStatusWithCompleteInstance() throws FogbowException {
         // set up
-        String attachmentInstanceId = "id";
         Integer deviceIdExpected = 1;
         String jobIdExpected = "jobId";
         String stateExpected= "state";
         String virtualMachineIdExpected = "vmId";
         String volumeIdExpected = "volumeId";
 
+        Mockito.doNothing().when(this.plugin).checkVolumeAttached(Mockito.eq(this.attachmentOrder),
+                Mockito.eq(this.cloudStackUser));
+
         AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
         Integer jobStatus = CloudStackCloudUtils.JOB_STATUS_COMPLETE;
         Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
+
         AttachmentJobStatusResponse.Volume volume = Mockito.mock(AttachmentJobStatusResponse.Volume.class);
         Mockito.when(volume.getId()).thenReturn(volumeIdExpected);
         Mockito.when(volume.getDeviceId()).thenReturn(deviceIdExpected);
         Mockito.when(volume.getJobId()).thenReturn(jobIdExpected);
         Mockito.when(volume.getState()).thenReturn(stateExpected);
         Mockito.when(volume.getVirtualMachineId()).thenReturn(virtualMachineIdExpected);
+
         Mockito.when(response.getVolume()).thenReturn(volume);
 
         // exercise
         AttachmentInstance attachmentInstance = this.plugin.loadInstanceByJobStatus(
-                attachmentInstanceId, response);
+                this.attachmentOrder, response, this.cloudStackUser);
 
         // verify
         Assert.assertEquals(jobIdExpected, attachmentInstance.getId());
@@ -296,54 +299,54 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     // test case: When calling the loadInstanceByJobStatus method with status pending,
     // it must verify if It returns a pending AttachmentInstance.
     @Test
-    public void testLoadInstanceByJobStatusWithPendingInstance() throws InternalServerErrorException {
+    public void testLoadInstanceByJobStatusWithPendingInstance() throws FogbowException {
         // set up
-        String attachmentInstanceId = "id";
+        String jobId = "jobId";
+        Integer jobStatus = CloudStackCloudUtils.JOB_STATUS_PENDING;
 
         AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
-        Integer jobStatus = CloudStackCloudUtils.JOB_STATUS_PENDING;
+        Mockito.when(response.getJobId()).thenReturn(jobId);
         Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
 
         // exercise
         AttachmentInstance attachmentInstance = this.plugin.loadInstanceByJobStatus(
-                attachmentInstanceId, response);
+                this.attachmentOrder, response, this.cloudStackUser);
 
         // verify
-        Assert.assertEquals(attachmentInstanceId, attachmentInstance.getId());
+        Assert.assertEquals(jobId, attachmentInstance.getId());
         Assert.assertEquals(CloudStackCloudUtils.PENDING_STATE, attachmentInstance.getCloudState());
     }
 
     // test case: When calling the loadInstanceByJobStatus method with status failed,
     // it must verify if It returns a failed AttachmentInstance.
     @Test
-    public void testLoadInstanceByJobStatusWithFailedInstance() throws InternalServerErrorException {
+    public void testLoadInstanceByJobStatusWithFailedInstance() throws FogbowException {
         // set up
-        String attachmentInstanceId = "id";
+        String jobId = "jobId";
+        Integer jobStatus = CloudStackCloudUtils.JOB_STATUS_FAILURE;
 
         AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
-        Integer jobStatus = CloudStackCloudUtils.JOB_STATUS_FAILURE;
+        Mockito.when(response.getJobId()).thenReturn(jobId);
         Mockito.when(response.getJobStatus()).thenReturn(jobStatus);
 
         Mockito.doNothing().when(this.plugin).logFailure(Mockito.eq(response));
 
         // exercise
         AttachmentInstance attachmentInstance = this.plugin.loadInstanceByJobStatus(
-                attachmentInstanceId, response);
+                this.attachmentOrder, response, this.cloudStackUser);
 
         // verify
-        Assert.assertEquals(attachmentInstanceId, attachmentInstance.getId());
+        Assert.assertEquals(jobId, attachmentInstance.getId());
         Assert.assertEquals(CloudStackCloudUtils.FAILURE_STATE, attachmentInstance.getCloudState());
     }
 
     // test case: When calling the loadInstanceByJobStatus method with unknown status code,
     // it must verify if It returns an
     @Test
-    public void testLoadInstanceByJobStatusFail() throws InternalServerErrorException {
+    public void testLoadInstanceByJobStatusFail() throws FogbowException {
         // set up
-        String attachmentInstanceId = "id";
-
-        AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
         Integer jobStatusUnknown = -1;
+        AttachmentJobStatusResponse response = Mockito.mock(AttachmentJobStatusResponse.class);
         Mockito.when(response.getJobStatus()).thenReturn(jobStatusUnknown);
 
         // verify
@@ -351,7 +354,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         this.expectedException.expectMessage(Messages.Exception.UNEXPECTED_JOB_STATUS);
 
         // exercise
-        this.plugin.loadInstanceByJobStatus(attachmentInstanceId, response);
+        this.plugin.loadInstanceByJobStatus(this.attachmentOrder, response, this.cloudStackUser);
     }
 
     // test case: When calling the logFailure method, it must verify if It shows the error log expected.
