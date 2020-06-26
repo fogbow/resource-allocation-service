@@ -73,10 +73,14 @@ public class AzurePublicIPAddressSDKTest {
     @Test
     public void testBuildNetworkSecurityGroupCreatableSuccessfully() throws Exception {
         // set up
+        String ipAddress = "0.0.0.0";
+        NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
+        Mockito.when(networkInterface.primaryPrivateIP()).thenReturn(ipAddress);
+
         Azure azure = PowerMockito.mock(Azure.class);
         PublicIPAddress publicIPAddress = mockPublicIPAddress();
         PowerMockito.doCallRealMethod().when(AzurePublicIPAddressSDK.class, "buildNetworkSecurityGroupCreatable",
-                Mockito.eq(azure), Mockito.eq(publicIPAddress));
+                Mockito.eq(azure), Mockito.eq(publicIPAddress), Mockito.eq(networkInterface));
 
         String resourceName = AzureTestUtils.RESOURCE_NAME;
         PowerMockito.mockStatic(AzureGeneralUtil.class);
@@ -116,7 +120,6 @@ public class AzurePublicIPAddressSDKTest {
                 .mock(NetworkSecurityRule.DefinitionStages.WithDestinationAddress.class);
         Mockito.when(withSourcePort.fromAnyPort()).thenReturn(withDestinationAddress);
 
-        String ipAddress = "0.0.0.0";
         NetworkSecurityRule.DefinitionStages.WithDestinationPort withDestinationPort = Mockito
                 .mock(NetworkSecurityRule.DefinitionStages.WithDestinationPort.class);
         Mockito.when(withDestinationAddress.toAddress(Mockito.eq(ipAddress))).thenReturn(withDestinationPort);
@@ -133,13 +136,13 @@ public class AzurePublicIPAddressSDKTest {
         Mockito.when(withAttach.attach()).thenReturn(withCreate);
 
         // exercise
-        AzurePublicIPAddressSDK.buildNetworkSecurityGroupCreatable(azure, publicIPAddress);
+        AzurePublicIPAddressSDK.buildNetworkSecurityGroupCreatable(azure, publicIPAddress, networkInterface);
 
         // verify
         Mockito.verify(publicIPAddress, Mockito.times(TestUtils.RUN_ONCE)).regionName();
         Mockito.verify(publicIPAddress, Mockito.times(TestUtils.RUN_ONCE)).resourceGroupName();
         Mockito.verify(publicIPAddress, Mockito.times(TestUtils.RUN_ONCE)).name();
-        Mockito.verify(publicIPAddress, Mockito.times(TestUtils.RUN_ONCE)).ipAddress();
+        Mockito.verify(networkInterface, Mockito.times(TestUtils.RUN_ONCE)).primaryPrivateIP();
 
         Mockito.verify(azure, Mockito.times(TestUtils.RUN_ONCE)).networkSecurityGroups();
         Mockito.verify(networkSecurityGroups, Mockito.times(TestUtils.RUN_ONCE)).define(Mockito.eq(resourceName));
