@@ -167,19 +167,25 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
             @NotNull AttachmentOrder attachmentOrder,
             @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
-        GetVolumeRequest request = new GetVolumeRequest.Builder()
-                .id(attachmentOrder.getVolumeId())
-                .virtualMachineId(attachmentOrder.getComputeId())
-                .build(this.cloudStackUrl);
-
+        GetVolumeRequest request = buildGetVolumeRequest(attachmentOrder);
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
 
         String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
         GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
-        if (response == null) {
+        if (response.getVolumes().isEmpty()) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
+    }
+
+    @VisibleForTesting
+    GetVolumeRequest buildGetVolumeRequest(AttachmentOrder attachmentOrder) throws FogbowException {
+        GetVolumeRequest request = new GetVolumeRequest.Builder()
+                .id(attachmentOrder.getVolumeId())
+                .virtualMachineId(attachmentOrder.getComputeId())
+                .build(this.cloudStackUrl);
+
+        return request;
     }
 
     @VisibleForTesting
