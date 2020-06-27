@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudStackUser;
@@ -20,6 +21,9 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
+
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Level;
 import org.junit.Assert;
@@ -35,9 +39,16 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import java.io.IOException;
 import java.util.Properties;
 
-@PrepareForTest({SharedOrderHolders.class, CloudStackUrlUtil.class, DetachVolumeResponse.class,
-        DatabaseManager.class, AttachVolumeResponse.class, CloudStackCloudUtils.class,
-        DetachVolumeResponse.class, AttachmentJobStatusResponse.class})
+@PrepareForTest({
+    AttachmentJobStatusResponse.class,
+    AttachVolumeResponse.class,
+    CloudStackCloudUtils.class,
+    CloudStackUrlUtil.class,
+    DatabaseManager.class,
+    DetachVolumeResponse.class,
+    GetVolumeResponse.class,
+    SharedOrderHolders.class
+})
 public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
     @Rule
@@ -355,6 +366,53 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
 
         // exercise
         this.plugin.loadInstanceByJobStatus(this.attachmentOrder, response, this.cloudStackUser);
+    }
+
+    // test case: When calling the checkVolumeAttached method and the query
+    // request for the volume attached to the VM returns an empty list, it
+    // must verify that an InstanceNotFoundExeception was been throw.
+    @Test
+    public void testCheckVolumeAttachedFail() throws Exception {
+        // set up
+        GetVolumeRequest request = new GetVolumeRequest.Builder().build("");
+        Mockito.doReturn(request).when(this.plugin)
+                .buildGetVolumeRequest(Mockito.eq(this.attachmentOrder));
+
+        String jsonResponse = "{\"listvolumesresponse\":{}}";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.class, "doRequest", Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))
+                .thenReturn(jsonResponse);
+
+        GetVolumeResponse response = Mockito.mock(GetVolumeResponse.class);
+        PowerMockito.mockStatic(GetVolumeResponse.class);
+        PowerMockito.when(GetVolumeResponse.class, "fromJson", Mockito.eq(jsonResponse))
+                .thenReturn(response);
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.checkVolumeAttached(this.attachmentOrder, this.cloudStackUser);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: When calling the buildGetVolumeRequest method with a valid
+    // attachment order, it must verify if the expected URL was been returned.
+    @Test
+    public void testBuildGetVolumeRequestSuccesfully() throws FogbowException {
+        // set up
+        String expected = "https://localhost:8080/client/api?command=listVolumes&response=json&id=1&virtualmachineid=2";
+
+        // exercise
+        GetVolumeRequest request = this.plugin.buildGetVolumeRequest(this.attachmentOrder);
+
+        // verify
+        Assert.assertEquals(expected, request.getUriBuilder().toString());
     }
 
     // test case: When calling the logFailure method, it must verify if It shows the error log expected.
