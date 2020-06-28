@@ -173,7 +173,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
 
         String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
         GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
-        if (response.getVolumes().isEmpty()) {
+        if (response.getVolumes() == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
     }

@@ -369,7 +369,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     }
 
     // test case: When calling the checkVolumeAttached method and the query
-    // request for the volume attached to the VM returns an empty list, it
+    // request for the volume attached to the VM returns an null list, it
     // must verify that an InstanceNotFoundExeception was been throw.
     @Test
     public void testCheckVolumeAttachedFail() throws Exception {
@@ -383,11 +383,6 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
         PowerMockito.when(CloudStackCloudUtils.class, "doRequest", Mockito.eq(this.client),
                 Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))
                 .thenReturn(jsonResponse);
-
-        GetVolumeResponse response = Mockito.mock(GetVolumeResponse.class);
-        PowerMockito.mockStatic(GetVolumeResponse.class);
-        PowerMockito.when(GetVolumeResponse.class, "fromJson", Mockito.eq(jsonResponse))
-                .thenReturn(response);
 
         String expected = Messages.Exception.INSTANCE_NOT_FOUND;
 
