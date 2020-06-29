@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudStackUser;
@@ -16,12 +17,15 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
+
 import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -115,8 +119,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
         GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
         List<GetVolumeResponse.Volume> volumes = response.getVolumes();
-        if (volumes.isEmpty()) {
-            throw new InternalServerErrorException();
+        if (volumes == null || volumes.isEmpty()) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
         // since an id were specified, there should be no more than one volume in the response
         GetVolumeResponse.Volume volume = volumes.listIterator().next();

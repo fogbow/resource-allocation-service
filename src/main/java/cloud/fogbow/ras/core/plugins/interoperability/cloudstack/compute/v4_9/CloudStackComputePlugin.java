@@ -402,12 +402,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             throws InstanceNotFoundException {
 
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = response.getVirtualMachines();
-        if (!virtualMachines.isEmpty()) {
-            GetVirtualMachineResponse.VirtualMachine virtualMachine = virtualMachines.get(0);
+        if (virtualMachines == null || virtualMachines.isEmpty()) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        } else {
+            GetVirtualMachineResponse.VirtualMachine virtualMachine = virtualMachines.listIterator().next();
             int disk = getVirtualMachineDiskSize(virtualMachine.getId(), cloudStackUser);
             return createComputeInstance(virtualMachine, disk);
-        } else {
-            throw new InstanceNotFoundException();
         }
     }
 

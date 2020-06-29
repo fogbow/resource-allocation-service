@@ -26,7 +26,8 @@ import static cloud.fogbow.common.constants.CloudStackConstants.Attachment.*;
  *              "state": "Ready",
  *              "jobid": "a0e403db-0342-45f1-b9e0-8ff94cc1652f"
  *          }
- *      }
+ *      },
+ *      "jobid": "a0e403db-0342-45f1-b9e0-8ff94cc1652f"
  *   }
  * }
  * <p>
@@ -46,8 +47,14 @@ public class AttachmentJobStatusResponse {
         private int jobStatus;
         @SerializedName(JOB_RESULT_KEY_JSON)
         private JobResult jobResult;
+        @SerializedName(JOB_ID_KEY_JSON)
+        private String jobId;
     }
     
+    public String getJobId() {
+        return response.jobId;
+    }
+
     public int getJobStatus() {
         return response.jobStatus;
     }

@@ -159,8 +159,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
             throws InstanceNotFoundException {
 
         List<GetNetworkResponse.Network> networks = response.getNetworks();
-        if (networks.isEmpty()) {
-            throw new InstanceNotFoundException();
+        if (networks == null || networks.isEmpty()) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
         // since an id was specified, there should be no more than one network in the getNetworkResponse
         GetNetworkResponse.Network network = response.getNetworks().listIterator().next();
