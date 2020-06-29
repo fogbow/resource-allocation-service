@@ -21,6 +21,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloud
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListPublicIpAddressRequest;
+
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Level;
 import org.junit.Assert;
@@ -43,8 +45,6 @@ import static cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip
         SuccessfulAssociateIpAddressResponse.class, CloudStackUrlUtil.class, CloudStackCloudUtils.class,
         CreateFirewallRuleAsyncResponse.class, AssociateIpAddressAsyncJobIdResponse.class})
 public class CloudStackPublicIpPluginTest extends BaseUnitTests {
-
-    private final int FIRST_POSITION_LOG = 1;
 
     @Rule
     private ExpectedException expectedException = ExpectedException.none();
@@ -532,6 +532,60 @@ public class CloudStackPublicIpPluginTest extends BaseUnitTests {
         Assert.assertEquals(CloudStackStateMapper.READY_STATUS, publicIpInstance.getCloudState());
         Assert.assertEquals(ipExpected, publicIpInstance.getIp());
         Assert.assertEquals(instanceIdExpected, publicIpInstance.getId());
+    }
+
+    // test case: When calling the checkIpAddressExist method and the request to
+    // obtain the public IP address from its ID returns a null list, it must
+    // check if an InstanceNotFoundExeception has been launched.
+    @Test
+    public void testCheckIpAddressExistFail() throws Exception {
+        // set up
+        String publicIpAddressId = TestUtils.FAKE_INSTANCE_ID;
+        AsyncRequestInstanceState asyncRequestInstanceState = Mockito
+                .mock(AsyncRequestInstanceState.class);
+
+        Mockito.when(asyncRequestInstanceState.getIpInstanceId()).thenReturn(publicIpAddressId);
+
+        ListPublicIpAddressRequest request = new ListPublicIpAddressRequest.Builder()
+                .build(TestUtils.EMPTY_STRING);
+
+        Mockito.doReturn(request).when(this.plugin).buildPublicIpAddressRequest(publicIpAddressId);
+
+        String jsonResponse = "{\"listpublicipaddressesresponse\":{}}";
+        PowerMockito.mockStatic(CloudStackCloudUtils.class);
+        PowerMockito.when(CloudStackCloudUtils.class, "doRequest", Mockito.eq(this.client),
+                Mockito.eq(request.getUriBuilder().toString()), Mockito.eq(this.cloudStackUser))
+                .thenReturn(jsonResponse);
+
+        String expected = Messages.Exception.INSTANCE_NOT_FOUND;
+
+        try {
+            // exercise
+            this.plugin.checkIpAddressExist(asyncRequestInstanceState, this.cloudStackUser);
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: When calling the buildPublicIpAddressRequest method, passing a
+    // public IP address ID, it must verify if the expected URL was been
+    // returned.
+    @Test
+    public void testBuildPublicIpAddressRequestSuccessfully() throws FogbowException {
+        // set up
+        String publicIpAddressId = TestUtils.FAKE_INSTANCE_ID;
+        String expected = "https://localhost:8080/client/api"
+                +"?command=listPublicIpAddresses"
+                + "&response=json"
+                + "&id=fake-instance-id";
+
+        // exercise
+        ListPublicIpAddressRequest request = this.plugin.buildPublicIpAddressRequest(publicIpAddressId);
+
+        // verify
+        Assert.assertEquals(expected, request.getUriBuilder().toString());
     }
 
     // test case: When calling the buildCreatingFirewallPublicIpInstance method,
