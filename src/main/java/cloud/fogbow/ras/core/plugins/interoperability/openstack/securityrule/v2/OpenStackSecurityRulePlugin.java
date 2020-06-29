@@ -15,7 +15,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityRulesResponse.SecurityGroupRule;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2.GetSecurityGroupsResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2.GetSecurityGroupsResponse.SecurityGroup;
@@ -41,7 +41,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
 
     public OpenStackSecurityRulePlugin(String confFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.prefixEndpoint = properties.getProperty(OpenStackCloudUtils.NETWORK_NEUTRON_URL_KEY)
+        this.prefixEndpoint = properties.getProperty(OpenStackPluginUtils.NETWORK_NEUTRON_URL_KEY)
                 + OpenStackConstants.NEUTRON_V2_API_ENDPOINT;
 
         initClient();

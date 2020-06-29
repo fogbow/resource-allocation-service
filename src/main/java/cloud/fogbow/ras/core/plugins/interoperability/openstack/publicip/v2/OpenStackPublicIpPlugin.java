@@ -23,8 +23,8 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.AddSecurityGroupToServerRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
@@ -60,7 +60,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
 
     @Override
     public String requestInstance(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         // Network port id is the connection between the virtual machine and the network
         String networkPortId = getNetworkPortId(order, cloudUser);
         String floatingNetworkId = getExternalNetworkId();
@@ -106,7 +106,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
     
     protected void disassociateSecurityGroup(String name, PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String computeId = order.getComputeId();
         String endpoint = getComputeAssociationEndpoint(projectId, computeId);
         
@@ -174,7 +174,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     protected void associateSecurityGroup(String securityGroupId, String floatingIpId, PublicIpOrder order,
             OpenStackV3User cloudUser) throws FogbowException {
         
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String computeId = order.getComputeId();
         String endpoint = getComputeAssociationEndpoint(projectId, computeId);
         String securityGroupName = getSecurityGroupName(floatingIpId);
@@ -195,7 +195,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     protected String getComputeAssociationEndpoint(String projectId, String computeId) {
-        return this.properties.getProperty(OpenStackCloudUtils.COMPUTE_NOVA_URL_KEY)
+        return this.properties.getProperty(OpenStackPluginUtils.COMPUTE_NOVA_URL_KEY)
                 + OpenStackConstants.NOVA_V2_API_ENDPOINT
                 + OpenStackConstants.ENDPOINT_SEPARATOR
                 + projectId 
@@ -244,7 +244,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
 
     protected String doCreateSecurityGroup(String floatingIpId, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String securityGroupName = getSecurityGroupName(floatingIpId);
         
         CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
@@ -367,15 +367,15 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     }
     
     protected String getNeutronPrefixEndpoint() {
-        return this.properties.getProperty(OpenStackCloudUtils.NETWORK_NEUTRON_URL_KEY);
+        return this.properties.getProperty(OpenStackPluginUtils.NETWORK_NEUTRON_URL_KEY);
     }
     
     protected String getExternalNetworkId() {
-        return this.properties.getProperty(OpenStackCloudUtils.EXTERNAL_NETWORK_ID_KEY);
+        return this.properties.getProperty(OpenStackPluginUtils.EXTERNAL_NETWORK_ID_KEY);
     }
     
     protected String getDefaultNetworkId() {
-        return this.properties.getProperty(OpenStackCloudUtils.DEFAULT_NETWORK_ID_KEY);
+        return this.properties.getProperty(OpenStackPluginUtils.DEFAULT_NETWORK_ID_KEY);
     }
 
     protected void setClient(OpenStackHttpClient client) {

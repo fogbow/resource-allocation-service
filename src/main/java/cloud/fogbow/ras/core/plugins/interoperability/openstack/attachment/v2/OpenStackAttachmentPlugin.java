@@ -19,8 +19,8 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
 
 public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3User> {
     
@@ -48,7 +48,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String endpoint = getPrefixEndpoint(projectId) 
                 + OpenStackConstants.SERVERS_ENDPOINT
@@ -66,7 +66,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId) 
@@ -82,7 +82,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public AttachmentInstance getInstance(AttachmentOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId) 
@@ -157,7 +157,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     }
     
     protected String getPrefixEndpoint(String projectId) {
-        return this.properties.getProperty(OpenStackCloudUtils.COMPUTE_NOVA_URL_KEY) +
+        return this.properties.getProperty(OpenStackPluginUtils.COMPUTE_NOVA_URL_KEY) +
                 OpenStackConstants.NOVA_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR + projectId;
     }
 

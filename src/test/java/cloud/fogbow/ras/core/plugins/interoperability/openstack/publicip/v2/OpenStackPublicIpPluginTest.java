@@ -28,8 +28,8 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.AddSecurityGroupToServerRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
@@ -43,7 +43,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.Remov
     GetFloatingIpResponse.class, 
     GetNetworkPortsResponse.class, 
     GetSecurityGroupsResponse.class, 
-    OpenStackCloudUtils.class, 
+    OpenStackPluginUtils.class,
     HttpErrorConditionToFogbowExceptionMapper.class
 })
 public class OpenStackPublicIpPluginTest extends BaseUnitTests {
@@ -136,8 +136,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         String instanceId = TestUtils.FAKE_INSTANCE_ID;
         String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
 
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
 
         Mockito.doReturn(FAKE_NETWORK_PORT_ID).when(this.plugin).getNetworkPortId(Mockito.eq(order),
                 Mockito.eq(cloudUser));
@@ -154,8 +154,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         this.plugin.requestInstance(order, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getExternalNetworkId();
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkPortId(Mockito.eq(order),
@@ -295,8 +295,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
         order.setInstanceId(instanceId);
 
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
 
         String endpoint = COMPUTE_PREFIX_ENDPOINT 
                 + OpenStackConstants.NOVA_V2_API_ENDPOINT
@@ -317,8 +317,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         this.plugin.disassociateSecurityGroup(name, order, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .getComputeAssociationEndpoint(Mockito.eq(cloudUser.getProjectId()), Mockito.eq(order.getComputeId()));
@@ -519,8 +519,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         order.setInstanceId(instanceId);
 
         OpenStackV3User cloudUser = this.testUtils.createOpenStackUser();
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
         
         String endpoint = COMPUTE_PREFIX_ENDPOINT 
                 + OpenStackConstants.NOVA_V2_API_ENDPOINT
@@ -543,8 +543,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         this.plugin.associateSecurityGroup(securityGroupId, instanceId, order, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .getComputeAssociationEndpoint(Mockito.eq(cloudUser.getProjectId()), Mockito.eq(order.getComputeId()));
@@ -735,8 +735,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         PublicIpOrder order = this.testUtils.createLocalPublicIpOrder(TestUtils.FAKE_COMPUTE_ID);
         order.setInstanceId(instanceId);
 
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
 
         String endpoint = NEUTRON_PREFIX_ENDPOINT 
                 + OpenStackConstants.NEUTRON_V2_API_ENDPOINT
@@ -759,8 +759,8 @@ public class OpenStackPublicIpPluginTest extends BaseUnitTests {
         this.plugin.doCreateSecurityGroup(instanceId, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getSecurityGroupName(Mockito.eq(instanceId));
         Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).doPostRequest(Mockito.eq(endpoint),

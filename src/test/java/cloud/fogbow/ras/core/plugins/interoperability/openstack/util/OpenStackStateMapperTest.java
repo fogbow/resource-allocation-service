@@ -1,7 +1,8 @@
-package cloud.fogbow.ras.core.plugins.interoperability.openstack;
+package cloud.fogbow.ras.core.plugins.interoperability.openstack.util;
 
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
 import org.junit.Assert;
 import org.junit.Test;
 

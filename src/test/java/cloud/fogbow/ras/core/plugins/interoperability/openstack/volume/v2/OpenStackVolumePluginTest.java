@@ -8,7 +8,6 @@ import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
-import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,10 +27,10 @@ import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
 
-@PrepareForTest({ DatabaseManager.class, OpenStackCloudUtils.class, HttpErrorConditionToFogbowExceptionMapper.class })
+@PrepareForTest({ DatabaseManager.class, OpenStackPluginUtils.class, HttpErrorConditionToFogbowExceptionMapper.class })
 public class OpenStackVolumePluginTest extends BaseUnitTests {
 
     private static final String ANY_VALUE = "anything";
@@ -147,8 +146,8 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         VolumeOrder order = this.testUtils.createLocalVolumeOrder();
         OpenStackV3User cloudUser = createOpenStackUser();
 
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser))).thenCallRealMethod();
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackConstants.VOLUMES_ENDPOINT, null);
         GetVolumeResponse response = GetVolumeResponse.fromJson(FAKE_VOLUME_JSON_RESPONSE);
@@ -161,8 +160,8 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         this.plugin.requestInstance(order, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).findVolumeTypeId(
                 Mockito.eq(order.getRequirements()), Mockito.eq(cloudUser.getProjectId()), Mockito.eq(cloudUser));
@@ -206,8 +205,8 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
 
         OpenStackV3User cloudUser = createOpenStackUser();
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
                 .thenCallRealMethod();
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackConstants.VOLUMES_ENDPOINT,
@@ -220,8 +219,8 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         this.plugin.getInstance(order, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .getPrefixEndpoint(Mockito.eq(cloudUser.getProjectId()));
@@ -238,8 +237,8 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
 
         OpenStackV3User cloudUser = createOpenStackUser();
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
                 .thenCallRealMethod();
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(), OpenStackConstants.VOLUMES_ENDPOINT,
@@ -251,8 +250,8 @@ public class OpenStackVolumePluginTest extends BaseUnitTests {
         this.plugin.deleteInstance(order, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .getPrefixEndpoint(Mockito.eq(cloudUser.getProjectId()));

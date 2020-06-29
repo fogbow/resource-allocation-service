@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.openstack;
+package cloud.fogbow.ras.core.plugins.interoperability.openstack.util;
 
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.OpenStackV3User;
@@ -7,7 +7,7 @@ import cloud.fogbow.ras.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class OpenStackCloudUtilsTest {
+public class OpenStackPluginUtilsTest {
 
     private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
@@ -22,7 +22,7 @@ public class OpenStackCloudUtilsTest {
 
         try {
             // exercise
-            OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+            OpenStackPluginUtils.getProjectIdFrom(cloudUser);
             Assert.fail();
         } catch (Exception e) {
             // verify
@@ -38,7 +38,7 @@ public class OpenStackCloudUtilsTest {
         OpenStackV3User cloudUser = createOpenStackUser();
 
         // exercise
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
 
         // verify
         Assert.assertEquals(this.FAKE_PROJECT_ID, projectId);

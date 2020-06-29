@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.openstack;
+package cloud.fogbow.ras.core.plugins.interoperability.openstack.util;
 
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
