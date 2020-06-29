@@ -147,13 +147,13 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
             // is restarted. Unfortunately, even if the operation succeeded, we cannot retrieve this information
             // and will have to signal that the order has failed.
             LOGGER.error(Messages.Log.INSTANCE_S_OPERATIONAL_LOST_MEMORY_FAILURE);
-            return buildFailedPublicIpInstance();
+            return createFailedPublicIpInstance();
         }
 
         if (asyncRequestInstanceState.isReady()) {
-            return buildReadyPublicIpInstance(asyncRequestInstanceState, cloudStackUser);
+            return createReadyPublicIpInstance(asyncRequestInstanceState, cloudStackUser);
         } else {
-            return buildCurrentPublicIpInstance(asyncRequestInstanceState, publicIpOrder, cloudStackUser);
+            return createCurrentPublicIpInstance(asyncRequestInstanceState, publicIpOrder, cloudStackUser);
         }
     }
 
@@ -163,7 +163,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
      */
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildCurrentPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+    PublicIpInstance createCurrentPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
                                                   @NotNull PublicIpOrder publicIpOrder,
                                                   @NotNull CloudStackUser cloudStackUser)
             throws FogbowException {
@@ -175,14 +175,14 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
         switch (response.getJobStatus()) {
             case CloudStackQueryJobResult.PROCESSING:
-                return buildProcessingPublicIpInstance();
+                return createProcessingPublicIpInstance();
             case CloudStackQueryJobResult.SUCCESS:
                 try {
-                    return buildNextOperationPublicIpInstance(
+                    return createNextOperationPublicIpInstance(
                             asyncRequestInstanceState, cloudStackUser, jsonResponse);
                 } catch (FogbowException e) {
                     LOGGER.error(Messages.Log.ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP, e);
-                    return buildFailedPublicIpInstance();
+                    return createFailedPublicIpInstance();
                 }
             case CloudStackQueryJobResult.FAILURE:
                 try {
@@ -191,7 +191,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                     LOGGER.error(String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S,
                                                 PUBLIC_IP_RESOURCE, publicIpOrder.getInstanceId()));
                 }
-                return buildFailedPublicIpInstance();
+                return createFailedPublicIpInstance();
             default:
                 LOGGER.error(Messages.Log.UNEXPECTED_JOB_STATUS);
                 return null;
@@ -203,7 +203,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
      */
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildNextOperationPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+    PublicIpInstance createNextOperationPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
                                                         @NotNull CloudStackUser cloudStackUser,
                                                         String jsonResponse)
             throws FogbowException {
@@ -212,10 +212,10 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         switch (currentInstanceState) {
             case ASSOCIATING_IP_ADDRESS:
                 doCreatingFirewallOperation(asyncRequestInstanceState, cloudStackUser, jsonResponse);
-                return buildCreatingFirewallPublicIpInstance(asyncRequestInstanceState);
+                return createPublicIpInstance(asyncRequestInstanceState, CloudStackStateMapper.CREATING_FIREWALL_RULE_STATUS);
             case CREATING_FIREWALL_RULE:
                 finishAsyncRequestInstanceSteps(asyncRequestInstanceState);
-                return buildPublicIpInstance(asyncRequestInstanceState, CloudStackStateMapper.READY_STATUS);
+                return createPublicIpInstance(asyncRequestInstanceState, CloudStackStateMapper.READY_STATUS);
             default:
                 LOGGER.error(Messages.Log.UNEXPECTED_ERROR);
                 return null;
@@ -319,14 +319,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildCreatingFirewallPublicIpInstance(
-            @NotNull AsyncRequestInstanceState asyncRequestInstanceState) {
-        return buildPublicIpInstance(asyncRequestInstanceState, CloudStackStateMapper.CREATING_FIREWALL_RULE_STATUS);
-    }
-
-    @NotNull
-    @VisibleForTesting
-    PublicIpInstance buildReadyPublicIpInstance(
+    PublicIpInstance createReadyPublicIpInstance(
             @NotNull AsyncRequestInstanceState asyncRequestInstanceState,
             @NotNull CloudStackUser cloudStackUser) throws FogbowException {
 
@@ -338,7 +331,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
          * with the cloud if the resource remains active.
          */
         checkIpAddressExist(asyncRequestInstanceState, cloudStackUser);
-        return buildPublicIpInstance(asyncRequestInstanceState, CloudStackStateMapper.READY_STATUS);
+        return createPublicIpInstance(asyncRequestInstanceState, CloudStackStateMapper.READY_STATUS);
     }
 
     @NotNull
@@ -374,19 +367,19 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildFailedPublicIpInstance() {
-        return buildPublicIpInstance(null, CloudStackStateMapper.FAILURE_STATUS);
+    PublicIpInstance createFailedPublicIpInstance() {
+        return createPublicIpInstance(null, CloudStackStateMapper.FAILURE_STATUS);
     }
 
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildProcessingPublicIpInstance() {
-        return buildPublicIpInstance(null, CloudStackStateMapper.PROCESSING_STATUS);
+    PublicIpInstance createProcessingPublicIpInstance() {
+        return createPublicIpInstance(null, CloudStackStateMapper.PROCESSING_STATUS);
     }
 
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+    PublicIpInstance createPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
                                            String state) {
         String id = null;
         String ip = null;

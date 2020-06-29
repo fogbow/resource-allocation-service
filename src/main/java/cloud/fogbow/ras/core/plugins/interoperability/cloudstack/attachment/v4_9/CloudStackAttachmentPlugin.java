@@ -109,7 +109,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
 
         String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
         AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
-        return loadInstanceByJobStatus(attachmentOrder, response, cloudStackUser);
+        return createInstanceByJobStatus(attachmentOrder, response, cloudStackUser);
     }
 
     @VisibleForTesting
@@ -140,7 +140,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
 
     @NotNull
     @VisibleForTesting
-    AttachmentInstance loadInstanceByJobStatus(
+    AttachmentInstance createInstanceByJobStatus(
             @NotNull AttachmentOrder attachmentOrder,
             @NotNull AttachmentJobStatusResponse response,
             @NotNull CloudStackUser cloudStackUser) throws FogbowException {
@@ -148,7 +148,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         int status = response.getJobStatus();
         switch (status) {
             case CloudStackCloudUtils.JOB_STATUS_PENDING:
-                return buildInstance(response.getJobId(), CloudStackCloudUtils.PENDING_STATE);
+                return createInstance(response.getJobId(), CloudStackCloudUtils.PENDING_STATE);
             case CloudStackCloudUtils.JOB_STATUS_COMPLETE:
                 /*
                  * The jobId used as an identifier in the verification of the status
@@ -159,10 +159,10 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
                  */
                 checkVolumeAttached(attachmentOrder, cloudStackUser);
                 AttachmentJobStatusResponse.Volume volume = response.getVolume();
-                return buildCompleteInstance(volume);
+                return createCompleteInstance(volume);
             case CloudStackCloudUtils.JOB_STATUS_FAILURE:
                 logFailure(response);
-                return buildInstance(response.getJobId(), CloudStackCloudUtils.FAILURE_STATE);
+                return createInstance(response.getJobId(), CloudStackCloudUtils.FAILURE_STATE);
             default:
                 throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_JOB_STATUS);
         }
@@ -204,7 +204,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @NotNull
-    private AttachmentInstance buildCompleteInstance(@NotNull AttachmentJobStatusResponse.Volume volume) {
+    private AttachmentInstance createCompleteInstance(@NotNull AttachmentJobStatusResponse.Volume volume) {
         String source = volume.getVirtualMachineId();
         String target = volume.getId();
         String jobId = volume.getJobId();
@@ -215,7 +215,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @NotNull
-    private AttachmentInstance buildInstance(String attachmentInstanceId, String state) {
+    private AttachmentInstance createInstance(String attachmentInstanceId, String state) {
         return new AttachmentInstance(attachmentInstanceId, state,null, null, null);
     }
 
