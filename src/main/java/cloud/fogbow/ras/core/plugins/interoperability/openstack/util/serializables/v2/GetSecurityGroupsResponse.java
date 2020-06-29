@@ -1,13 +1,24 @@
-package cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2;
+package cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2;
 
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static cloud.fogbow.common.constants.OpenStackConstants.Compute.ID_KEY_JSON;
-import static cloud.fogbow.common.constants.OpenStackConstants.Compute.SECURITY_GROUPS_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Network.ID_KEY_JSON;
+import static cloud.fogbow.common.constants.OpenStackConstants.Network.SECURITY_GROUPS_KEY_JSON;
 
+/**
+ * Documentation: https://developer.openstack.org/api-ref/network/v2/?expanded=list-security-groups-detail#list-security-groups
+ *
+ * {
+ *     "security_groups": [
+ *         {
+ *             "id": "85cc3048-abc3-43cc-89b3-377341426ac5"
+ *         }
+ *     ]
+ * }
+ */
 public class GetSecurityGroupsResponse {
 
     @SerializedName(SECURITY_GROUPS_KEY_JSON)

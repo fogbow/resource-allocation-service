@@ -1,36 +1,28 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
-import cloud.fogbow.common.exceptions.FatalErrorException;
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.CidrUtils;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.api.parameters.SecurityRule.Direction;
 import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
 import cloud.fogbow.ras.api.parameters.SecurityRule.Protocol;
-import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityGroupsResponse.SecurityGroup;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityRulesResponse.SecurityGroupRule;
-
-import org.apache.http.client.HttpResponseException;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2.GetSecurityGroupsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2.GetSecurityGroupsResponse.SecurityGroup;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import javax.ws.rs.core.UriBuilder;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;

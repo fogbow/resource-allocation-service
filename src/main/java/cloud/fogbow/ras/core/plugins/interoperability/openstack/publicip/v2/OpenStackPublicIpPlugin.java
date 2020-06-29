@@ -6,14 +6,13 @@ import java.util.Properties;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
-import org.apache.http.client.HttpResponseException;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2.GetSecurityGroupsResponse;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonSyntaxException;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
@@ -33,7 +32,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.Creat
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.RemoveSecurityGroupFromServerRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2.GetFloatingIpResponse.FloatingIp;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2.GetNetworkPortsResponse.Port;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2.GetSecurityGroupsResponse.SecurityGroup;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2.GetSecurityGroupsResponse.SecurityGroup;
 
 public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> {
 
