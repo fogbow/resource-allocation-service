@@ -150,6 +150,13 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
             case CloudStackCloudUtils.JOB_STATUS_PENDING:
                 return buildInstance(response.getJobId(), CloudStackCloudUtils.PENDING_STATE);
             case CloudStackCloudUtils.JOB_STATUS_COMPLETE:
+                /*
+                 * The jobId used as an identifier in the verification of the status
+                 * of completion of the processing of the association of the
+                 * resources does not include in the response content, data that
+                 * confirm its dissociation, being necessary to check together with
+                 * the cloud if the resources are still associated.
+                 */
                 checkVolumeAttached(attachmentOrder, cloudStackUser);
                 AttachmentJobStatusResponse.Volume volume = response.getVolume();
                 return buildCompleteInstance(volume);
