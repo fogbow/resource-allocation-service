@@ -17,8 +17,8 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityRulesResponse.SecurityGroupRule;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2.GetSecurityGroupsResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2.GetSecurityGroupsResponse.SecurityGroup;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.GetSecurityGroupsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.GetSecurityGroupsResponse.SecurityGroup;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 

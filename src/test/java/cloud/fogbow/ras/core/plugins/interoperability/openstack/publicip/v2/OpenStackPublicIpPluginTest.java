@@ -5,7 +5,7 @@ import java.io.File;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2.GetSecurityGroupsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.GetSecurityGroupsResponse;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;

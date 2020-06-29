@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.openstack.util.serializables.v2;
+package cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables;
 
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
