@@ -374,7 +374,7 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     @Test
     public void testCheckVolumeAttachedFail() throws Exception {
         // set up
-        GetVolumeRequest request = new GetVolumeRequest.Builder().build("");
+        GetVolumeRequest request = new GetVolumeRequest.Builder().build(TestUtils.EMPTY_STRING);
         Mockito.doReturn(request).when(this.plugin)
                 .buildGetVolumeRequest(Mockito.eq(this.attachmentOrder));
 
@@ -401,7 +401,11 @@ public class CloudStackAttachmentPluginTest extends BaseUnitTests {
     @Test
     public void testBuildGetVolumeRequestSuccesfully() throws FogbowException {
         // set up
-        String expected = "https://localhost:8080/client/api?command=listVolumes&response=json&id=1&virtualmachineid=2";
+        String expected = "https://localhost:8080/client/api"
+                +"?command=listVolumes"
+                + "&response=json"
+                + "&id=1"
+                + "&virtualmachineid=2";
 
         // exercise
         GetVolumeRequest request = this.plugin.buildGetVolumeRequest(this.attachmentOrder);
