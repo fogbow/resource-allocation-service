@@ -540,6 +540,8 @@ public class AzureVolumePluginTest {
         AsyncInstanceCreationManager.Callbacks finishCreationCallback = Mockito.mock(AsyncInstanceCreationManager.Callbacks.class);
         Mockito.doReturn(finishCreationCallback).when(this.plugin).startInstanceCreation(Mockito.eq(instanceId));
 
+        Mockito.doNothing().when(this.plugin).waitAndCheckForInstanceCreationFailed(Mockito.eq(instanceId));
+
         VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
         Mockito.doNothing().when(this.operation).subscribeCreateDisk(Mockito.eq(observable), Mockito.eq(finishCreationCallback));
         Mockito.doNothing().when(this.plugin).updateInstanceAllocation(Mockito.eq(volumeOrder));

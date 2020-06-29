@@ -482,7 +482,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
             // exercise
             AwsV2CloudUtil.doDescribeAddressesRequests(request, this.client);
             Assert.fail();
-        } catch (InternalServerErrorException e) {
+        } catch (InstanceNotFoundException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
@@ -622,7 +622,7 @@ public class AwsV2CloudUtilTest extends BaseUnitTests {
             // exercise
             AwsV2CloudUtil.doDescribeSubnetsRequest(request, this.client);
             Assert.fail();
-        } catch (InternalServerErrorException e) {
+        } catch (InstanceNotFoundException e) {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }

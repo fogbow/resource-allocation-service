@@ -46,11 +46,11 @@ public class AwsV2CloudUtil {
     }
     
     public static DescribeImagesResponse doDescribeImagesRequest(DescribeImagesRequest request, Ec2Client client)
-            throws InternalServerErrorException {
+            throws FogbowException {
         try {
             return client.describeImages(request);
         } catch (Exception e) {
-            throw new InternalServerErrorException(e.getMessage());
+            throw new InstanceNotFoundException(e.getMessage());
         }
     }
     
@@ -66,7 +66,7 @@ public class AwsV2CloudUtil {
         try {
             return client.describeVolumes(request);
         } catch (SdkException e) {
-            throw new InternalServerErrorException(e.getMessage());
+            throw new InstanceNotFoundException(e.getMessage());
         }
     }
     
@@ -135,7 +135,7 @@ public class AwsV2CloudUtil {
         try {
             return client.describeInstances(describeInstancesRequest);
         } catch (SdkException e) {
-            throw new InternalServerErrorException(e.getMessage());
+            throw new InstanceNotFoundException(e.getMessage());
         }
     }
 
@@ -200,7 +200,7 @@ public class AwsV2CloudUtil {
         try {
             return client.describeAddresses(request);
         } catch (SdkException e) {
-            throw new InternalServerErrorException(e.getMessage());
+            throw new InstanceNotFoundException(e.getMessage());
         }
     }
     
@@ -225,7 +225,7 @@ public class AwsV2CloudUtil {
         try {
             return client.describeSubnets(request);
         } catch (SdkException e) {
-            throw new InternalServerErrorException(e.getMessage());
+            throw new InstanceNotFoundException(e.getMessage());
         }
     }
     

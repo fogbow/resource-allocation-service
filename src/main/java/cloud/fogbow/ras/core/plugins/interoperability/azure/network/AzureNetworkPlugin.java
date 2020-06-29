@@ -78,7 +78,7 @@ public class AzureNetworkPlugin implements NetworkPlugin<AzureUser>, AzureAsync<
             this.azureVirtualNetworkOperationSDK
                     .doCreateInstance(azureCreateVirtualNetworkRef, azureUser, finishCreationCallbacks);
         } catch (Exception e) {
-            finishCreationCallbacks.runOnError();
+            finishCreationCallbacks.runOnError(e.getMessage());
             throw e;
         }
     }

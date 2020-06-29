@@ -139,6 +139,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     protected ComputeInstance doGetInstance(String instanceId, Ec2Client client) throws FogbowException {
         DescribeInstancesResponse response = AwsV2CloudUtil.doDescribeInstanceById(instanceId, client);
         Instance instance = AwsV2CloudUtil.getInstanceFrom(response);
+        checkTerminatedStateFrom(instance);
         List<Volume> volumes = AwsV2CloudUtil.getInstanceVolumes(instance, client);
         return buildComputeInstance(instance, volumes);
     }
@@ -220,7 +221,14 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         }
         return 0;
     }
-	
+
+    protected void checkTerminatedStateFrom(Instance instance) throws InstanceNotFoundException {
+        String state = instance.state().nameAsString();
+        if (state.equals(AwsV2StateMapper.TERMINATED_STATE)) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+    }
+
     protected String doRequestInstance(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
             RunInstancesRequest request, Ec2Client client) throws InternalServerErrorException {
         

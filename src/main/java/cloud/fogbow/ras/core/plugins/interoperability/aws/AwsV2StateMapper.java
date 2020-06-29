@@ -32,6 +32,7 @@ public class AwsV2StateMapper {
 	public static final String RUNNING_STATE = "running";
 	public static final String SHUTTING_DOWN_STATE = "deleting";
 	public static final String STOPPING_STATE = "stopping";
+	public static final String TERMINATED_STATE = "terminated";
 	public static final String TRANSIENT_STATE = "transient";
 	public static final String UNKNOWN_TO_SDK_VERSION_STATE = "unknown_to_sdk_version";
 

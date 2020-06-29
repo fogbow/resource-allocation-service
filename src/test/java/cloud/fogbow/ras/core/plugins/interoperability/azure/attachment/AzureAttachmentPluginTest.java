@@ -3,8 +3,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.attachment;
 import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.AzureUser;
-import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
@@ -389,6 +389,7 @@ public class AzureAttachmentPluginTest {
         Mockito.doReturn(disk).when(this.plugin).doGetDiskSDK(Mockito.eq(azure), Mockito.eq(resourceId));
 
         AttachmentInstance attachmentInstance = Mockito.mock(AttachmentInstance.class);
+        Mockito.when(attachmentInstance.getCloudState()).thenReturn(AzureStateMapper.ATTACHED_STATE);
         Mockito.doReturn(attachmentInstance).when(this.plugin).buildAttachmentInstance(Mockito.eq(disk));
 
         // exercise
@@ -399,6 +400,29 @@ public class AzureAttachmentPluginTest {
                 Mockito.eq(resourceId));
         
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildAttachmentInstance(Mockito.eq(disk));
+    }
+
+    // test case: When calling the doGetInstance method with instance unattached,
+    // it must verify if it throws an InstanceNotFoundException.
+    @Test
+    public void testDoGetInstanceSuccessfullyWhenIsUnattached() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String resourceId = "resource-id";
+
+        Disk disk = Mockito.mock(Disk.class);
+        Mockito.doReturn(disk).when(this.plugin).doGetDiskSDK(Mockito.eq(azure), Mockito.eq(resourceId));
+
+        AttachmentInstance attachmentInstance = Mockito.mock(AttachmentInstance.class);
+        Mockito.when(attachmentInstance.getCloudState()).thenReturn(AzureStateMapper.UNATTACHED_STATE);
+        Mockito.doReturn(attachmentInstance).when(this.plugin).buildAttachmentInstance(Mockito.eq(disk));
+
+        // verify
+        this.expectedException.expect(InstanceNotFoundException.class);
+        this.expectedException.expectMessage(cloud.fogbow.ras.constants.Messages.Exception.INSTANCE_NOT_FOUND);
+
+        // exercise
+        this.plugin.doGetInstance(azure, resourceId);
     }
     
     // test case: When calling the buildAttachmentInstance method with a disk state

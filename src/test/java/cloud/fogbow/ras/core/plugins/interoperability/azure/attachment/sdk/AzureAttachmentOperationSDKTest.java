@@ -43,7 +43,7 @@ public class AzureAttachmentOperationSDKTest {
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.INFO, Messages.Log.END_ATTACH_DISK_ASYNC_BEHAVIOUR);
-        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.NEVER_RUN)).runOnError();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.NEVER_RUN)).runOnError(Mockito.anyString());
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
     
@@ -61,7 +61,7 @@ public class AzureAttachmentOperationSDKTest {
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR);
-        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError(Mockito.anyString());
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
     

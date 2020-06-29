@@ -29,6 +29,7 @@ import com.microsoft.azure.management.compute.VirtualMachineSizeTypes;
 import com.microsoft.azure.management.compute.implementation.VirtualMachineInner;
 import com.microsoft.azure.management.network.Network;
 import com.microsoft.azure.management.network.NetworkInterface;
+import com.microsoft.azure.management.network.PublicIPAddress;
 import com.microsoft.azure.management.network.Subnet;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.resources.fluentcore.model.Indexable;
@@ -52,6 +53,7 @@ import rx.Observable;
 import rx.schedulers.Schedulers;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -92,6 +94,32 @@ public class AzureVirtualMachineOperationSDKTest {
     // it must verify if It returns the right AzureGetVirtualMachineRef.
     @Test
     public void testDoGetInstanceSuccessfully() throws Exception {
+        BiConsumer<VirtualMachine, List<String>> mockPublicIp = (virtualMachine, ipAddressesExpected) -> {
+            Mockito.when(virtualMachine.getPrimaryPublicIPAddress()).thenReturn(null);
+        };
+        performTestDoGetInstanceSuccessfully(mockPublicIp);
+    }
+
+    // test case: When calling the doGetInstance method with methods mocked with public ip,
+    // it must verify if It returns the right AzureGetVirtualMachineRef.
+    @Test
+    public void testDoGetInstanceSuccessfullyWhenThereIsPublicIp() throws Exception {
+        BiConsumer<VirtualMachine, List<String>> mockPublicIp = (virtualMachine, ipAddressesExpected) -> {
+            String publicIp = "primaryPublicIp";
+            PublicIPAddress publicIPAddress = Mockito.mock(PublicIPAddress.class);
+            Mockito.when(publicIPAddress.ipAddress()).thenReturn(publicIp);
+            Mockito.when(virtualMachine.getPrimaryPublicIPAddress()).thenReturn(publicIPAddress);
+
+            ipAddressesExpected.add(publicIp);
+        };
+
+        performTestDoGetInstanceSuccessfully(mockPublicIp);
+    }
+
+    public void performTestDoGetInstanceSuccessfully(
+            BiConsumer<VirtualMachine, List<String>> mockPublicIp)
+            throws Exception {
+
         // set up
         Azure azure = PowerMockito.mock(Azure.class);
         PowerMockito.mockStatic(AzureClientCacheManager.class);
@@ -126,10 +154,13 @@ public class AzureVirtualMachineOperationSDKTest {
         Mockito.when(virtualMachine.inner()).thenReturn(virtualMachineInner);
 
         String primaryPrivateIp = "primaryPrivateIp";
-        List<String> ipAddresses = Arrays.asList(primaryPrivateIp);
+        List<String> ipAddresses = new ArrayList<>();
+        ipAddresses.add(primaryPrivateIp);
         NetworkInterface networkInterface = Mockito.mock(NetworkInterface.class);
         Mockito.when(networkInterface.primaryPrivateIP()).thenReturn(primaryPrivateIp);
         Mockito.when(virtualMachine.getPrimaryNetworkInterface()).thenReturn(networkInterface);
+
+        mockPublicIp.accept(virtualMachine, ipAddresses);
 
         String orderName = AzureTestUtils.ORDER_NAME;
         Map<String, String> tags = Collections.singletonMap(AzureConstants.TAG_NAME, orderName);
@@ -431,7 +462,7 @@ public class AzureVirtualMachineOperationSDKTest {
 
         // verify
         this.loggerAssert.assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_CREATE_VM_ASYNC_BEHAVIOUR);
-        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError();
+        Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnError(Mockito.anyString());
         Mockito.verify(finishCreationCallbacks, Mockito.times(TestUtils.RUN_ONCE)).runOnComplete();
     }
 
