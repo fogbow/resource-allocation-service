@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.*;
@@ -13,11 +14,16 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListPublicIpAddressRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListPublicIpAddressResponse;
+
 import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
 import javax.validation.constraints.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -145,7 +151,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
         }
 
         if (asyncRequestInstanceState.isReady()) {
-            return buildReadyPublicIpInstance(asyncRequestInstanceState);
+            return buildReadyPublicIpInstance(asyncRequestInstanceState, cloudStackUser);
         } else {
             return buildCurrentPublicIpInstance(asyncRequestInstanceState, publicIpOrder, cloudStackUser);
         }
@@ -209,7 +215,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
                 return buildCreatingFirewallPublicIpInstance(asyncRequestInstanceState);
             case CREATING_FIREWALL_RULE:
                 finishAsyncRequestInstanceSteps(asyncRequestInstanceState);
-                return buildReadyPublicIpInstance(asyncRequestInstanceState);
+                return buildPublicIpInstance(asyncRequestInstanceState, CloudStackStateMapper.READY_STATUS);
             default:
                 LOGGER.error(Messages.Log.UNEXPECTED_ERROR);
                 return null;
@@ -320,8 +326,50 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
 
     @NotNull
     @VisibleForTesting
-    PublicIpInstance buildReadyPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState) {
+    PublicIpInstance buildReadyPublicIpInstance(
+            @NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+
+        /*
+         * The jobId used as an identifier in the verification of the status of
+         * completion of the processing of the creation and association of the
+         * resources does not include in the response content, data that confirm
+         * the dissociation and removal of the address, being necessary to check
+         * with the cloud if the resource remains active.
+         */
+        checkIpAddressExist(asyncRequestInstanceState, cloudStackUser);
         return buildPublicIpInstance(asyncRequestInstanceState, CloudStackStateMapper.READY_STATUS);
+    }
+
+    @NotNull
+    @VisibleForTesting
+    void checkIpAddressExist(
+            @NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+
+        String publicIpAddressId = asyncRequestInstanceState.getIpInstanceId();
+        ListPublicIpAddressRequest request = buildPublicIpAddressRequest(publicIpAddressId);
+
+        URIBuilder uriRequest = request.getUriBuilder();
+        CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
+
+        String jsonResponse = CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
+        ListPublicIpAddressResponse response = ListPublicIpAddressResponse.fromJson(jsonResponse);
+        if (response.getPublicIpAddresses() == null) {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+    }
+
+    @NotNull
+    @VisibleForTesting
+    ListPublicIpAddressRequest buildPublicIpAddressRequest(@NotNull String publicIpAddressId)
+            throws InternalServerErrorException {
+
+        ListPublicIpAddressRequest request = new ListPublicIpAddressRequest.Builder()
+                .id(publicIpAddressId)
+                .build(this.cloudStackUrl);
+
+        return request;
     }
 
     @NotNull
@@ -337,7 +385,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackUser> 
     }
 
     @NotNull
-    private PublicIpInstance buildPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
+    @VisibleForTesting
+    PublicIpInstance buildPublicIpInstance(@NotNull AsyncRequestInstanceState asyncRequestInstanceState,
                                            String state) {
         String id = null;
         String ip = null;
