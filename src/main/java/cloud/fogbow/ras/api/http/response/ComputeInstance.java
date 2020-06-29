@@ -41,9 +41,20 @@ public class ComputeInstance extends OrderInstance {
         this.ipAddresses = ipAddresses;
     }
 
+    @Deprecated
     public ComputeInstance(String id, String cloudState, String name, int vCPU, int ram, int disk,
                            List<String> ipAddresses) {
         super(id, cloudState);
+        this.name = name;
+        this.vCPU = vCPU;
+        this.ram = ram;
+        this.disk = disk;
+        this.ipAddresses = ipAddresses;
+    }
+
+    public ComputeInstance(String id, String cloudState, String name, int vCPU, int ram, int disk,
+                           List<String> ipAddresses, String faultMessage) {
+        super(id, cloudState, faultMessage);
         this.name = name;
         this.vCPU = vCPU;
         this.ram = ram;

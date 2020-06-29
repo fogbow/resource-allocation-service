@@ -15,7 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import cloud.fogbow.common.exceptions.*;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
@@ -36,22 +36,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandG
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
-import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.Image;
-import software.amazon.awssdk.services.ec2.model.Instance;
-import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceAssociation;
-import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceSpecification;
-import software.amazon.awssdk.services.ec2.model.InstancePrivateIpAddress;
-import software.amazon.awssdk.services.ec2.model.InstanceType;
-import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
-import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.Subnet;
-import software.amazon.awssdk.services.ec2.model.Tag;
-import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
-import software.amazon.awssdk.services.ec2.model.Volume;
+import software.amazon.awssdk.services.ec2.model.*;
 
 public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
 
@@ -167,7 +152,18 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         int memory = getMemoryValueFrom(instance.instanceType());
         int disk = getAllDisksSize(volumes);
         List<String> ipAddresses = getIpAddresses(instance);
-        return new ComputeInstance(id, cloudState, name, cpu, memory, disk, ipAddresses);
+        String faultMessage = getFaultMessage(instance);
+        return new ComputeInstance(id, cloudState, name, cpu, memory, disk, ipAddresses, faultMessage);
+    }
+
+    @VisibleForTesting
+    protected String getFaultMessage(Instance instance) {
+        String faultMessage = null;
+        String stateTransitionReason = instance.stateTransitionReason();
+        if (!stateTransitionReason.isEmpty()) {
+            faultMessage = instance.stateReason().message();
+        }
+        return faultMessage;
     }
 
     protected List<String> getIpAddresses(Instance instance) {
@@ -340,10 +336,9 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
 
         updateHardwareRequirements(cloudUser);
         TreeSet<AwsHardwareRequirements> resultset = getFlavorsByRequirements(computeOrder.getRequirements());
-        int memoryInGB = computeOrder.getRam()/ONE_GIGABYTE; 
         for (AwsHardwareRequirements hardwareRequirements : resultset) {
             if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-                    && hardwareRequirements.getRam() >= memoryInGB
+                    && hardwareRequirements.getRam() >= computeOrder.getRam()
                     && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
                 return hardwareRequirements;
             }

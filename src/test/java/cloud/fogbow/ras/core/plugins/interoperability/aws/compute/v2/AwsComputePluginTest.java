@@ -35,30 +35,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2StateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
-import software.amazon.awssdk.services.ec2.model.CpuOptions;
-import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.EbsBlockDevice;
-import software.amazon.awssdk.services.ec2.model.EbsInstanceBlockDevice;
-import software.amazon.awssdk.services.ec2.model.Image;
-import software.amazon.awssdk.services.ec2.model.Instance;
-import software.amazon.awssdk.services.ec2.model.InstanceBlockDeviceMapping;
-import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterface;
-import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceAssociation;
-import software.amazon.awssdk.services.ec2.model.InstanceNetworkInterfaceSpecification;
-import software.amazon.awssdk.services.ec2.model.InstancePrivateIpAddress;
-import software.amazon.awssdk.services.ec2.model.InstanceState;
-import software.amazon.awssdk.services.ec2.model.InstanceType;
-import software.amazon.awssdk.services.ec2.model.Reservation;
-import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
-import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.Subnet;
-import software.amazon.awssdk.services.ec2.model.Tag;
-import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
-import software.amazon.awssdk.services.ec2.model.TerminateInstancesResponse;
-import software.amazon.awssdk.services.ec2.model.Volume;
+import software.amazon.awssdk.services.ec2.model.*;
 
 @PrepareForTest({ AwsV2ClientUtil.class, AwsV2CloudUtil.class, DatabaseManager.class })
 public class AwsComputePluginTest extends BaseUnitTests {
@@ -348,6 +325,8 @@ public class AwsComputePluginTest extends BaseUnitTests {
         List<String> ipAddresses = buildIpAdressesCollection();
         Mockito.doReturn(ipAddresses).when(this.plugin).getIpAddresses(Mockito.eq(instance));
 
+        Mockito.doReturn(null).when(this.plugin).getFaultMessage(Mockito.eq(instance));
+
         // exercise
         this.plugin.buildComputeInstance(instance, volumes);
 
@@ -356,6 +335,48 @@ public class AwsComputePluginTest extends BaseUnitTests {
                 .getMemoryValueFrom(Mockito.eq(instance.instanceType()));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getAllDisksSize(Mockito.eq(volumes));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getIpAddresses(Mockito.eq(instance));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getFaultMessage(Mockito.eq(instance));
+    }
+
+    // test case: When calling the getFaultMessage method and the state
+    // transition reason is not empty, it must verify if it returns the reason
+    @Test
+    public void testGetFaultMessage() {
+        // set up
+        String stateTransitionReason = "User initiated (2020-06-25 14:29:10 GMT)";
+        String expectedFaultMessage = "Client.UserInitiated: User initiated shutdown";
+
+        StateReason stateReason = StateReason.builder()
+                .message(expectedFaultMessage)
+                .build();
+
+        Instance instance = Instance.builder()
+                .stateTransitionReason(stateTransitionReason)
+                .stateReason(stateReason)
+                .build();
+
+        // exercise
+        String faultMessage = this.plugin.getFaultMessage(instance);
+
+        // verify
+        Assert.assertNotNull(faultMessage);
+        Assert.assertEquals(expectedFaultMessage, faultMessage);
+    }
+
+    // test case: When calling the getFaultMessage method and the state
+    // transition reason is empty, it must verify if it returns null
+    @Test
+    public void testGetFaultMessageEmptyReason() {
+        // set up
+        Instance instance = Instance.builder()
+                .stateTransitionReason("")
+                .build();
+
+        // exercise
+        String faultMessage = this.plugin.getFaultMessage(instance);
+
+        // verify
+        Assert.assertNull(faultMessage);
     }
 
     // test case: When calling the getIpAddresses method, it must verify
