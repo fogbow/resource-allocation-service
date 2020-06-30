@@ -20,6 +20,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPl
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.OpenStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateSecurityGroupRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.CreateNetworkResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.CreateSecurityGroupResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSubnetResponse;
 import com.google.gson.JsonSyntaxException;
 import org.apache.http.client.HttpResponseException;
 import org.json.JSONArray;

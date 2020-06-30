@@ -2,8 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.GetSecurityGroupsResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.GetSecurityGroupsResponse.SecurityGroup;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSecurityGroupsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSecurityGroupsResponse.SecurityGroup;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 

@@ -4,6 +4,9 @@ import java.io.File;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetComputeQuotasResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetNetworkQuotasResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetVolumeQuotasResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,8 +29,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPl
 @PrepareForTest({ 
     DatabaseManager.class, 
     GetComputeQuotasResponse.class,
-    GetVolumeQuotasResponse.class, 
-    GetNetworkQuotasResponse.class, 
+    GetVolumeQuotasResponse.class,
+    GetNetworkQuotasResponse.class,
     OpenStackPluginUtils.class,
     HttpErrorConditionToFogbowExceptionMapper.class
 })

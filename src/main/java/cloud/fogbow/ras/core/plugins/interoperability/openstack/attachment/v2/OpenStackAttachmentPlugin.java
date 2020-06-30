@@ -4,6 +4,9 @@ import java.util.Properties;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateAttachmentRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.CreateAttachmentResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAttachmentResponse;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonSyntaxException;

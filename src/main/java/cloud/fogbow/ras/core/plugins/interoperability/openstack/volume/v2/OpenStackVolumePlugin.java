@@ -6,6 +6,9 @@ import java.util.Properties;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAllTypesResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetVolumeResponse;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -27,7 +30,7 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2.GetAllTypesResponse.Type;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAllTypesResponse.Type;
 
 public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     

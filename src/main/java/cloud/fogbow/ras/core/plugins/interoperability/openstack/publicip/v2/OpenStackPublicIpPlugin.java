@@ -6,7 +6,8 @@ import java.util.Properties;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.GetSecurityGroupsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.*;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.*;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonSyntaxException;
@@ -25,14 +26,9 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.AddSecurityGroupToServerRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupRuleRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.RemoveSecurityGroupFromServerRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2.GetFloatingIpResponse.FloatingIp;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.publicip.v2.GetNetworkPortsResponse.Port;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.GetSecurityGroupsResponse.SecurityGroup;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetFloatingIpResponse.FloatingIp;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetNetworkPortsResponse.Port;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSecurityGroupsResponse.SecurityGroup;
 
 public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> {
 
