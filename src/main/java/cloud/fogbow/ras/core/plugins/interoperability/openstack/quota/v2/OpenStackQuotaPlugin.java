@@ -6,7 +6,9 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
-import org.apache.http.client.HttpResponseException;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetComputeQuotasResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetNetworkQuotasResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetVolumeQuotasResponse;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -19,7 +21,7 @@ import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 
 public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
@@ -116,7 +118,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     String getVolumeQuotaEndpoint(@NotBlank String tenantId) {
-        return this.properties.getProperty(OpenStackCloudUtils.VOLUME_CINDER_URL_KEY)
+        return this.properties.getProperty(OpenStackPluginUtils.VOLUME_CINDER_URL_KEY)
                 .concat(OpenStackConstants.CINDER_V3_API_ENDPOINT)
                 .concat(OpenStackConstants.ENDPOINT_SEPARATOR)
                 .concat(tenantId)
@@ -133,7 +135,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     String getNetworkQuotaEndpoint(@NotBlank String tenantId) {
-        return this.properties.getProperty(OpenStackCloudUtils.NETWORK_NEUTRON_URL_KEY)
+        return this.properties.getProperty(OpenStackPluginUtils.NETWORK_NEUTRON_URL_KEY)
                 .concat(OpenStackConstants.NEUTRON_V2_API_ENDPOINT)
                 .concat(OpenStackConstants.QUOTAS_ENDPOINT)
                 .concat(OpenStackConstants.ENDPOINT_SEPARATOR)
@@ -143,7 +145,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     
     @VisibleForTesting
     String getTenantId(@NotNull OpenStackV3User cloudUser) throws FogbowException {
-        return OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        return OpenStackPluginUtils.getProjectIdFrom(cloudUser);
     }
 
     @VisibleForTesting
@@ -155,7 +157,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     
     @VisibleForTesting
     String getComputeQuotaEndpoint() {
-        return this.properties.getProperty(OpenStackCloudUtils.COMPUTE_NOVA_URL_KEY)
+        return this.properties.getProperty(OpenStackPluginUtils.COMPUTE_NOVA_URL_KEY)
                 .concat(OpenStackConstants.NOVA_V2_API_ENDPOINT)
                 .concat(OpenStackConstants.LIMITS_ENDPOINT);
     }

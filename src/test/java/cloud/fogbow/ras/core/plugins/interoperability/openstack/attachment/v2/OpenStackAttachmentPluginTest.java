@@ -5,7 +5,8 @@ import java.io.File;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
-import org.apache.http.client.HttpResponseException;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.CreateAttachmentResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAttachmentResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,9 +27,9 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 
-@PrepareForTest({ DatabaseManager.class, GetAttachmentResponse.class, OpenStackCloudUtils.class, HttpErrorConditionToFogbowExceptionMapper.class })
+@PrepareForTest({ DatabaseManager.class, GetAttachmentResponse.class, OpenStackPluginUtils.class, HttpErrorConditionToFogbowExceptionMapper.class })
 public class OpenStackAttachmentPluginTest extends BaseUnitTests {
 
     private static final String FAKE_JSON_REQUEST = "{\"volumeAttachment\":{\"volumeId\":\"fake-volume-id\",\"device\":\"fake-device\"}}";
@@ -71,8 +72,8 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         AttachmentOrder order = createAttachmentOrder();
         OpenStackV3User cloudUser = createOpenStackUser();
 
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
                 .thenReturn(cloudUser.getProjectId());
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(), order.getComputeId(), null);
@@ -84,8 +85,8 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         this.plugin.requestInstance(order, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .getPrefixEndpoint(Mockito.eq(cloudUser.getProjectId()));
@@ -103,8 +104,8 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         AttachmentOrder order = createAttachmentOrder();
         OpenStackV3User cloudUser = createOpenStackUser();
         
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
                 .thenReturn(cloudUser.getProjectId());
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(),order.getComputeId(), order.getVolumeId());
@@ -114,8 +115,8 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         this.plugin.deleteInstance(order, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
         
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .getPrefixEndpoint(Mockito.eq(cloudUser.getProjectId()));
@@ -131,8 +132,8 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         AttachmentOrder order = createAttachmentOrder();
         OpenStackV3User cloudUser = createOpenStackUser();
         
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.when(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.when(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
                 .thenReturn(cloudUser.getProjectId());
 
         String endpoint = generateEndpoint(cloudUser.getProjectId(),order.getComputeId(), order.getVolumeId());
@@ -143,8 +144,8 @@ public class OpenStackAttachmentPluginTest extends BaseUnitTests {
         this.plugin.getInstance(order, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
         
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .getPrefixEndpoint(Mockito.eq(cloudUser.getProjectId()));

@@ -4,8 +4,9 @@ import java.io.File;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.http.client.HttpResponseException;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetComputeQuotasResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetNetworkQuotasResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetVolumeQuotasResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
@@ -24,14 +24,14 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 
 @PrepareForTest({ 
     DatabaseManager.class, 
     GetComputeQuotasResponse.class,
-    GetVolumeQuotasResponse.class, 
-    GetNetworkQuotasResponse.class, 
-    OpenStackCloudUtils.class,
+    GetVolumeQuotasResponse.class,
+    GetNetworkQuotasResponse.class,
+    OpenStackPluginUtils.class,
     HttpErrorConditionToFogbowExceptionMapper.class
 })
 public class OpenStackQuotaPluginTest extends BaseUnitTests {
@@ -294,16 +294,16 @@ public class OpenStackQuotaPluginTest extends BaseUnitTests {
     @Test
     public void testGetTenantId() throws Exception {
         // set up
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        PowerMockito.doReturn(FAKE_TENANT_ID).when(OpenStackCloudUtils.class, METHOD_GET_PROJECT_ID_FROM,
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        PowerMockito.doReturn(FAKE_TENANT_ID).when(OpenStackPluginUtils.class, METHOD_GET_PROJECT_ID_FROM,
                 Mockito.eq(this.cloudUser));
 
         // exercise
         this.plugin.getTenantId(this.cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class, Mockito.times(TestUtils.RUN_ONCE));
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(this.cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class, Mockito.times(TestUtils.RUN_ONCE));
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(this.cloudUser));
     }
     
     // test case: When calling the getComputeQuotas method, it must verify that

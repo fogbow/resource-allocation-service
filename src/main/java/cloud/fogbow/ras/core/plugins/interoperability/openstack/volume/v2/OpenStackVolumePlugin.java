@@ -6,8 +6,10 @@ import java.util.Properties;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAllTypesResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetVolumeResponse;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 
@@ -26,9 +28,9 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2.GetAllTypesResponse.Type;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAllTypesResponse.Type;
 
 public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     
@@ -54,7 +56,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public String requestInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String size = String.valueOf(order.getVolumeSize());
         String name = order.getName();
         String volumeTypeId = findVolumeTypeId(order.getRequirements(), projectId, cloudUser);
@@ -77,7 +79,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public VolumeInstance getInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId) 
                 + OpenStackConstants.VOLUMES_ENDPOINT
                 + OpenStackConstants.ENDPOINT_SEPARATOR
@@ -88,7 +90,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public void deleteInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String projectId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId) 
                 + OpenStackConstants.VOLUMES_ENDPOINT
                 + OpenStackConstants.ENDPOINT_SEPARATOR
@@ -132,7 +134,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
     }
     
     protected String getPrefixEndpoint(String projectId) {
-        return this.properties.getProperty(OpenStackCloudUtils.VOLUME_NOVA_URL_KEY) +
+        return this.properties.getProperty(OpenStackPluginUtils.VOLUME_NOVA_URL_KEY) +
                 OpenStackConstants.CINDER_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR + projectId;
     }
     

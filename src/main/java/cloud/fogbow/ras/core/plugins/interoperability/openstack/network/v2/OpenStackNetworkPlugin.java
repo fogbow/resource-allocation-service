@@ -1,22 +1,32 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
-import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.NetworkInstance;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.OpenStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateSecurityGroupRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateSubnetRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.CreateNetworkResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.CreateSecurityGroupResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetNetworkResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSubnetResponse;
 import com.google.gson.JsonSyntaxException;
-import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,7 +50,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     public OpenStackNetworkPlugin(String confFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.networkV2APIEndpoint = properties.getProperty(OpenStackCloudUtils.NETWORK_NEUTRON_URL_KEY) +
+        this.networkV2APIEndpoint = properties.getProperty(OpenStackPluginUtils.NETWORK_NEUTRON_URL_KEY) +
                 OpenStackConstants.NEUTRON_V2_API_ENDPOINT;
         setDNSList(properties);
         initClient();
@@ -58,12 +68,12 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     @Override
     public String requestInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        String tenantId = OpenStackCloudUtils.getProjectIdFrom(cloudUser);
+        String tenantId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
 
         CreateNetworkResponse createNetworkResponse = createNetwork(order.getName(), cloudUser, tenantId);
         String createdNetworkId = createNetworkResponse.getId();
         createSubNet(cloudUser, order, createdNetworkId, tenantId);
-        String securityGroupName = OpenStackCloudUtils.getNetworkSecurityGroupName(createdNetworkId);
+        String securityGroupName = OpenStackPluginUtils.getNetworkSecurityGroupName(createdNetworkId);
         CreateSecurityGroupResponse securityGroupResponse = createSecurityGroup(cloudUser, securityGroupName,
                 tenantId, createdNetworkId);
         createSecurityGroupRules(order, cloudUser, createdNetworkId, securityGroupResponse.getId());
@@ -80,7 +90,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     @Override
     public void deleteInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String instanceId = order.getInstanceId();
-        String securityGroupName = OpenStackCloudUtils.getNetworkSecurityGroupName(instanceId);
+        String securityGroupName = OpenStackPluginUtils.getNetworkSecurityGroupName(instanceId);
         String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
         doDeleteInstance(instanceId, securityGroupId, cloudUser);
     }

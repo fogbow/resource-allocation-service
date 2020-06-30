@@ -1,29 +1,15 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import cloud.fogbow.common.exceptions.InternalServerErrorException;
-import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpResponseException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.common.util.CidrUtils;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
@@ -38,8 +24,23 @@ import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityGroupsResponse.SecurityGroup;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.securityrule.v2.GetSecurityRulesResponse.SecurityGroupRule;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateSecurityRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.CreateSecurityRuleResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSecurityRulesResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSecurityRulesResponse.SecurityGroupRule;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSecurityGroupsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSecurityGroupsResponse.SecurityGroup;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @PrepareForTest({
         CreateSecurityRuleResponse.class,

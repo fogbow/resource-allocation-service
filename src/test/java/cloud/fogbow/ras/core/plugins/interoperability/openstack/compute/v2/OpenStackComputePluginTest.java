@@ -14,7 +14,11 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.OpenStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateComputeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAllFlavorsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetFlavorExtraSpecsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetFlavorResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -29,7 +33,7 @@ import java.util.*;
 
 @PrepareForTest({DatabaseManager.class, GetFlavorResponse.class,
         PropertiesUtil.class, HttpErrorConditionToFogbowExceptionMapper.class,
-        OpenStackCloudUtils.class, GetFlavorExtraSpecsResponse.class,
+        OpenStackPluginUtils.class, GetFlavorExtraSpecsResponse.class,
         GetAllFlavorsResponse.class})
 public class OpenStackComputePluginTest extends BaseUnitTests {
 
@@ -383,8 +387,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testFlavorHasRequirements() throws FogbowException, HttpResponseException {
         // set up
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        BDDMockito.given(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
                 .willReturn(ANY_STRING);
 
         Mockito.doReturn(ANY_URL).when(this.computePlugin)
@@ -407,8 +411,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         // verify
         Assert.assertTrue(hasRequirement);
 
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class);
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class);
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
@@ -424,8 +428,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testFlavorHasNotRequirements() throws FogbowException, HttpResponseException {
         // set up
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        BDDMockito.given(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
                 .willReturn(ANY_STRING);
 
         Mockito.doReturn(ANY_URL).when(this.computePlugin)
@@ -448,8 +452,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         // verify
         Assert.assertFalse(hasRequirement);
 
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class);
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class);
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
@@ -466,8 +470,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testUpdateFlavorsSuccessfully() throws FogbowException, HttpResponseException {
         // set up
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        BDDMockito.given(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
                 .willReturn(ANY_STRING);
 
         Mockito.doReturn(ANY_URL).when(this.computePlugin)
@@ -497,8 +501,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         this.computePlugin.updateFlavors(computeOrder, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class);
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class);
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
@@ -557,8 +561,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     @Test
     public void testGetInstanceSuccessfully() throws FogbowException {
         // set up
-        PowerMockito.mockStatic(OpenStackCloudUtils.class);
-        BDDMockito.given(OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        BDDMockito.given(OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser)))
                 .willReturn(ANY_STRING);
 
         Mockito.doReturn(ANY_URL).when(this.computePlugin)
@@ -578,8 +582,8 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         this.computePlugin.getInstance(computeOrder, cloudUser);
 
         // verify
-        PowerMockito.verifyStatic(OpenStackCloudUtils.class);
-        OpenStackCloudUtils.getProjectIdFrom(Mockito.eq(cloudUser));
+        PowerMockito.verifyStatic(OpenStackPluginUtils.class);
+        OpenStackPluginUtils.getProjectIdFrom(Mockito.eq(cloudUser));
 
         Mockito.verify(computePlugin, Mockito.times(testUtils.RUN_ONCE))
                 .getComputeEndpoint(Mockito.anyString(), Mockito.anyString());
@@ -727,9 +731,9 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
     private Properties getPropertiesMock() {
         Properties properties = Mockito.mock(Properties.class);
 
-        Mockito.when(properties.getProperty(OpenStackCloudUtils.COMPUTE_NOVA_URL_KEY))
+        Mockito.when(properties.getProperty(OpenStackPluginUtils.COMPUTE_NOVA_URL_KEY))
                 .thenReturn(this.computeNovaV2UrlKey);
-        Mockito.when(properties.getProperty(OpenStackCloudUtils.DEFAULT_NETWORK_ID_KEY))
+        Mockito.when(properties.getProperty(OpenStackPluginUtils.DEFAULT_NETWORK_ID_KEY))
                 .thenReturn(defaultNetworkId);
 
         return properties;
