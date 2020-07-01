@@ -81,9 +81,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         String templateId = getTemplateId(computeOrder);
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
         String networksId = normalizeNetworksID(computeOrder);
+        String rootDiskSize = String.valueOf(computeOrder.getDisk());
         GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
                 getServiceOffering(computeOrder, cloudUser);
-        GetAllDiskOfferingsResponse.DiskOffering diskOffering = getDiskOffering(computeOrder, cloudUser);
         String instanceName = normalizeInstanceName(computeOrder.getName());
 
         DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
@@ -91,13 +91,13 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .templateId(templateId)
                 .zoneId(this.zoneId)
                 .name(instanceName)
-                .diskOfferingId(diskOffering.getId())
+                .rootDiskSize(rootDiskSize)
                 .userData(userData)
                 .networksId(networksId)
                 .build(this.cloudStackUrl);
 
         return doRequestInstance(request,
-                serviceOffering, diskOffering, computeOrder, cloudUser);
+                serviceOffering, rootDiskSize, computeOrder, cloudUser);
     }
 
     @Override
@@ -137,12 +137,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @VisibleForTesting
     String doRequestInstance(@NotNull DeployVirtualMachineRequest request,
                              @NotNull GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
-                             @NotNull GetAllDiskOfferingsResponse.DiskOffering diskOffering,
+                             @NotNull String diskSize,
                              @NotNull ComputeOrder computeOrder,
                              @NotNull CloudStackUser cloudUser) throws FogbowException {
 
         DeployVirtualMachineResponse response = requestDeployVirtualMachine(request, cloudUser);
-        updateComputeOrder(computeOrder, serviceOffering, diskOffering);
+        updateComputeOrder(computeOrder, serviceOffering, diskSize);
         return response.getId();
     }
 
@@ -227,28 +227,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
         String jsonResponse = doGet(uriRequest.toString(), cloudStackUser);
         return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
-    }
-
-    @NotNull
-    @VisibleForTesting
-    GetAllDiskOfferingsResponse.DiskOffering getDiskOffering(@NotNull ComputeOrder computeOrder,
-                                                             @NotNull CloudStackUser cloudUser)
-            throws FogbowException {
-
-        GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudUser);
-        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = diskOfferingsResponse.getDiskOfferings();
-
-        int diskSize = computeOrder.getDisk();
-        if (!diskOfferings.isEmpty()) {
-            for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
-                if (diskOffering.getDiskSize() >= diskSize) {
-                    return diskOffering;
-                }
-            }
-        }
-
-        throw new UnacceptableOperationException(
-                Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
     }
 
     @NotNull
@@ -355,13 +333,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @VisibleForTesting
     void updateComputeOrder(@NotNull ComputeOrder computeOrder,
                             @NotNull GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
-                            @NotNull GetAllDiskOfferingsResponse.DiskOffering diskOffering) {
+                            @NotNull String diskSize) {
 
         synchronized (computeOrder) {
+            int disk = Integer.parseInt(diskSize);
             ComputeAllocation actualAllocation = new ComputeAllocation(
                     AMOUNT_INSTANCE, serviceOffering.getCpuNumber(),
                     serviceOffering.getMemory(),
-                    diskOffering.getDiskSize());
+                    disk);
             computeOrder.setActualAllocation(actualAllocation);
         }
     }

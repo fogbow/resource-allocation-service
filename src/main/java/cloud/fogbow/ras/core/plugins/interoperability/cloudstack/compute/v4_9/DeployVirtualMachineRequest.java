@@ -9,7 +9,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
     public static final String TEMPLATE_ID_KEY = "templateid";
     public static final String ZONE_ID_KEY = "zoneid";
     public static final String NAME_KEY = "name";
-    public static final String DISK_OFFERING_ID = "diskofferingid";
+    public static final String ROOT_DISK_SIZE = "rootdisksize";
     public static final String USER_DATA = "userdata";
     public static final String NETWORKS_ID = "networkids";
     public static final String KEYPAIR = "keypair";
@@ -21,7 +21,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
         addParameter(TEMPLATE_ID_KEY, builder.templateId);
         addParameter(ZONE_ID_KEY, builder.zoneId);
         addParameter(NAME_KEY, builder.name);
-        addParameter(DISK_OFFERING_ID, builder.diskOfferingId);
+        addParameter(ROOT_DISK_SIZE, builder.rootDiskSize);
         addParameter(USER_DATA, builder.userData);
         addParameter(NETWORKS_ID, builder.networksId);
         addParameter(KEYPAIR, builder.keypair);
@@ -43,7 +43,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
         private String templateId;
         private String zoneId;
         private String name;
-        private String diskOfferingId;
+        private String rootDiskSize;
         private String userData;
         private String networksId;
         private String keypair;
@@ -68,8 +68,8 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
             return this;
         }
 
-        public Builder diskOfferingId(String diskOfferingId) {
-            this.diskOfferingId = diskOfferingId;
+        public Builder rootDiskSize(String rootDiskSize) {
+            this.rootDiskSize = rootDiskSize;
             return this;
         }
 
