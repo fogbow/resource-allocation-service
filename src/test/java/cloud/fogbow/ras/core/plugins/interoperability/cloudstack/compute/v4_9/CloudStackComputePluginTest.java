@@ -28,6 +28,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.Get
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+
 import org.apache.http.client.utils.URIBuilder;
 import org.hamcrest.Matcher;
 import org.junit.Assert;
@@ -142,8 +143,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         GetAllServiceOfferingsResponse.ServiceOffering serviceOffice =
                 Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
         DeployVirtualMachineRequest request = Mockito.mock(DeployVirtualMachineRequest.class);
-        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
 
         String instanceIdExpected = "instanceId";
         DeployVirtualMachineResponse response = Mockito.mock(DeployVirtualMachineResponse.class);
@@ -151,17 +150,18 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(response).when(this.plugin)
                 .requestDeployVirtualMachine(Mockito.eq(request), Mockito.eq(cloudStackUser));
 
+        String diskSize = String.valueOf(TestUtils.DISK_VALUE);
         Mockito.doNothing().when(this.plugin).updateComputeOrder(Mockito.eq(computeOrder),
-                Mockito.eq(serviceOffice), Mockito.eq(diskOffering));
+                Mockito.eq(serviceOffice), Mockito.eq(diskSize));
 
         // exercise
         String instanceId = this.plugin.doRequestInstance(
-                request, serviceOffice, diskOffering, computeOrder, cloudStackUser);
+                request, serviceOffice, diskSize, computeOrder, cloudStackUser);
 
         // verify
         Assert.assertEquals(instanceIdExpected, instanceId);
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).updateComputeOrder(
-                Mockito.eq(computeOrder), Mockito.eq(serviceOffice), Mockito.eq(diskOffering));
+                Mockito.eq(computeOrder), Mockito.eq(serviceOffice), Mockito.eq(diskSize));
     }
 
     // test case: When calling the doRequestInstance method, it is threw a FogbowException in the
@@ -173,21 +173,23 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
         GetAllServiceOfferingsResponse.ServiceOffering serviceOffice =
                 Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
-        DeployVirtualMachineRequest request = Mockito.mock(DeployVirtualMachineRequest.class);
-        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
 
-        Mockito.doThrow(new FogbowException("")).when(this.plugin)
+        DeployVirtualMachineRequest request = Mockito.mock(DeployVirtualMachineRequest.class);
+
+        Mockito.doThrow(new FogbowException(TestUtils.EMPTY_STRING)).when(this.plugin)
                 .requestDeployVirtualMachine(Mockito.any(), Mockito.any());
+
+        String diskSize = String.valueOf(TestUtils.DISK_VALUE);
 
         // exercise
         try {
-            this.plugin.doRequestInstance(request, serviceOffice, diskOffering, computeOrder, cloudStackUser);
+            this.plugin.doRequestInstance(request, serviceOffice, diskSize, computeOrder, cloudStackUser);
             Assert.fail();
         } catch (Exception e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(TestUtils.NEVER_RUN))
-                    .updateComputeOrder(Mockito.eq(computeOrder), Mockito.eq(serviceOffice), Mockito.eq(diskOffering));
+                    .updateComputeOrder(Mockito.eq(computeOrder), Mockito.eq(serviceOffice),
+                    Mockito.eq(diskSize));
         }
 
     }
@@ -458,11 +460,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(serviceOffering).when(this.plugin).getServiceOffering(
                 Mockito.eq(order) , Mockito.any(CloudStackUser.class));
 
-        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
-                Mockito.eq(order), Mockito.any(CloudStackUser.class));
-
         String fakeUserDataString = "anystring";
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any(ComputeOrder.class)))
                 .thenReturn(fakeUserDataString);
@@ -472,15 +469,16 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(deployVirtualMachineResponse).when(this.plugin)
                 .requestDeployVirtualMachine(Mockito.any(), Mockito.eq(cloudStackUser));
 
+        String rootDiskSize = String.valueOf(TestUtils.DISK_VALUE);
         Mockito.doNothing().when(this.plugin).updateComputeOrder(
-                Mockito.eq(order), Mockito.eq(serviceOffering), Mockito.eq(diskOffering));
+                Mockito.eq(order), Mockito.eq(serviceOffering), Mockito.eq(rootDiskSize));
 
         DeployVirtualMachineRequest requestExpected = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOffering.getId())
                 .templateId(order.getImageId())
                 .zoneId(this.zoneId)
                 .name(order.getName())
-                .diskOfferingId(diskOffering.getId())
+                .rootDiskSize(rootDiskSize )
                 .userData(fakeUserDataString)
                 .networksId(networksIds)
                 .build(this.cloudstackUrl);
@@ -493,7 +491,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
                 Mockito.argThat(matcher),
                 Mockito.eq(serviceOffering),
-                Mockito.eq(diskOffering),
+                Mockito.eq(rootDiskSize),
                 Mockito.eq(order),
                 Mockito.eq(cloudStackUser));
     }
@@ -521,42 +519,9 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         } catch (UnacceptableOperationException e) {
             // verify
             Mockito.verify(this.plugin, Mockito.times(TestUtils.NEVER_RUN))
-                    .getDiskOffering(Mockito.any(ComputeOrder.class), Mockito.eq(cloudStackUser));
+                    .normalizeInstanceName(Mockito.anyString());
         }
 
-    }
-
-    // test case: When calling the requestInstance method with occcurs an exception in the
-    // getDiskOffering, it must verify if a UnacceptableOperationException was threw and
-    // it was interrupted the method execution.
-    @Test
-    public void testRequestInstanceFailOnDiskOffering() throws FogbowException {
-        // set up
-        ComputeOrder order = createComputeOrder(new ArrayList<>(), "fake-image-id");
-        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
-
-        String networksIds = "networksId";
-        Mockito.doReturn(networksIds).when(this.plugin)
-                .normalizeNetworksID(Mockito.any(ComputeOrder.class));
-
-        GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
-                Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
-        Mockito.doReturn(serviceOffering).when(this.plugin).getServiceOffering(
-                Mockito.eq(order) , Mockito.any(CloudStackUser.class));
-
-        Mockito.doThrow(new UnacceptableOperationException()).when(this.plugin).getDiskOffering(
-                Mockito.eq(order), Mockito.eq(cloudStackUser));
-
-        // exercise
-        try {
-            this.plugin.requestInstance(order, cloudStackUser);
-        } catch (UnacceptableOperationException e) {
-            // verify
-            Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                    .getServiceOffering(Mockito.eq(order), Mockito.eq(cloudStackUser));
-            Mockito.verify(this.plugin, Mockito.times(TestUtils.NEVER_RUN))
-                    .normalizeInstanceName(Mockito.any());
-        }
     }
 
     // test case: When calling the requestInstance method with occcurs an exception in the
@@ -573,11 +538,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         GetAllServiceOfferingsResponse.ServiceOffering serviceOffering =
                 Mockito.mock(GetAllServiceOfferingsResponse.ServiceOffering.class);
         Mockito.doReturn(serviceOffering).when(this.plugin).getServiceOffering(
-                Mockito.eq(order), Mockito.any(CloudStackUser.class));
-
-        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.doReturn(diskOffering).when(this.plugin).getDiskOffering(
                 Mockito.eq(order), Mockito.any(CloudStackUser.class));
 
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(
@@ -1074,102 +1034,6 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(AMOUNT_EXTRA_SERVICE_OFFERING , serviceOfferingsFilted.size());
     }
 
-    // test case: When calling the getDiskOffering method with secondary methods mocked,
-    // it must verify if it returns the right diskOffering that it matchs with size required.
-    @Test
-    public void testGetDiskOfferingSuccessfully() throws FogbowException {
-        // set up
-        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
-        int diskExpected = 1;
-        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        Mockito.when(computeOrder.getDisk()).thenReturn(diskExpected);
-
-        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = Mockito.mock(GetAllDiskOfferingsResponse.class);
-        Mockito.doReturn(getAllDiskOfferingsResponse)
-                .when(this.plugin).getDiskOfferings(Mockito.eq(cloudStackUser));
-        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = new ArrayList<>();
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingNotMatch =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingNotMatch.getDiskSize()).thenReturn(diskExpected - 1);
-
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingMatch =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingMatch.getDiskSize()).thenReturn(diskExpected);
-
-        diskOfferings.add(diskOfferingNotMatch);
-        diskOfferings.add(diskOfferingMatch);
-
-        Mockito.doReturn(diskOfferings).when(getAllDiskOfferingsResponse).getDiskOfferings();
-
-        // exercise
-        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
-                this.plugin.getDiskOffering(computeOrder, cloudStackUser);
-
-        // verify
-        Assert.assertEquals(diskOfferingMatch.getDiskSize(), diskOffering.getDiskSize());
-    }
-
-    // test case: When calling the getDiskOffering method with secondary methods mocked,
-    // it must verify if it returns an exception because no disk offering match with disk required
-    @Test
-    public void testGetDiskOfferingFailWhenNotMatch() throws FogbowException {
-        // set up
-        int diskExpected = 1;
-        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        Mockito.when(computeOrder.getDisk()).thenReturn(diskExpected);
-        int diskNotMatch = diskExpected - 1;
-        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
-
-        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse = Mockito.mock(GetAllDiskOfferingsResponse.class);
-        Mockito.doReturn(getAllDiskOfferingsResponse)
-                .when(this.plugin).getDiskOfferings(Mockito.eq(cloudStackUser));
-        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = Mockito.spy(new ArrayList<>());
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingNotMatchOne =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingNotMatchOne.getDiskSize()).thenReturn(diskNotMatch);
-
-        GetAllDiskOfferingsResponse.DiskOffering diskOfferingNotMatchTwo =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        Mockito.when(diskOfferingNotMatchTwo.getDiskSize()).thenReturn(diskNotMatch);
-
-        diskOfferings.add(diskOfferingNotMatchOne);
-        diskOfferings.add(diskOfferingNotMatchTwo);
-
-        Mockito.doReturn(diskOfferings).when(getAllDiskOfferingsResponse).getDiskOfferings();
-
-        // verify
-        this.expectedException.expect(UnacceptableOperationException.class);
-        this.expectedException.expectMessage(
-                Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
-
-        // exercise
-        this.plugin.getDiskOffering(computeOrder, cloudStackUser);
-    }
-
-    // test case: When calling the getDiskOffering method with secondary methods mocked,
-    // it must verify if it returns an exception because there are not disks.
-    @Test
-    public void testGetDiskOfferingFailWhenThereAreNotDisck() throws FogbowException {
-        // set up
-        CloudStackUser cloudStackUser = CloudstackTestUtils.CLOUD_STACK_USER;
-        ComputeOrder anyComputeOrder = this.testUtils.createLocalComputeOrder();
-
-        GetAllDiskOfferingsResponse getAllDiskOfferingsResponse =
-                Mockito.mock(GetAllDiskOfferingsResponse.class);
-        Mockito.doReturn(getAllDiskOfferingsResponse).when(this.plugin)
-                .getDiskOfferings(Mockito.eq(cloudStackUser));
-        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = new ArrayList<>();
-        Mockito.doReturn(diskOfferings).when(getAllDiskOfferingsResponse).getDiskOfferings();
-
-        // verify
-        this.expectedException.expect(UnacceptableOperationException.class);
-        this.expectedException.expectMessage(
-                Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_DISK_OFFERING_CLOUDSTACK);
-
-        // exercise
-        this.plugin.getDiskOffering(anyComputeOrder, cloudStackUser);
-    }
-
     // test case: When calling the doGet method with secondary methods mocked,
     // it must verify if It returns the response correct.
     @Test
@@ -1267,10 +1131,9 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         int cpuExpected = 3;
         Mockito.when(serviceOffering.getMemory()).thenReturn(memoryExpected);
         Mockito.when(serviceOffering.getCpuNumber()).thenReturn(cpuExpected);
-        GetAllDiskOfferingsResponse.DiskOffering diskOffering =
-                Mockito.mock(GetAllDiskOfferingsResponse.DiskOffering.class);
-        int diskExpected = 10;
-        Mockito.when(diskOffering.getDiskSize()).thenReturn(diskExpected);
+
+        int diskExpected = TestUtils.DISK_VALUE;
+        String diskSize = String.valueOf(diskExpected);
 
         // verify before
         ComputeAllocation actualAllocationBefore = computeOrder.getActualAllocation();
@@ -1281,7 +1144,7 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
         Assert.assertEquals(DEFAULT_VALUE, actualAllocationBefore.getvCPU());
 
         // exercise
-        this.plugin.updateComputeOrder(computeOrder, serviceOffering, diskOffering);
+        this.plugin.updateComputeOrder(computeOrder, serviceOffering, diskSize);
 
         // verify after
         ComputeAllocation actualAllocationAfter = computeOrder.getActualAllocation();
