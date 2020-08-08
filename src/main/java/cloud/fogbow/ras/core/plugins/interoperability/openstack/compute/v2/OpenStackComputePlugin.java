@@ -6,6 +6,7 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.models.OpenStackV3User;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -51,6 +52,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, cloudUser);
         String flavorId = hardwareRequirements.getFlavorId();
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
@@ -77,6 +79,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
     @Override
     public ComputeInstance getInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT + "/" + computeOrder.getInstanceId());
 
@@ -91,6 +95,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @Override
     public void deleteInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT + "/" + computeOrder.getInstanceId());
         this.doDeleteRequest(endpoint, cloudUser);

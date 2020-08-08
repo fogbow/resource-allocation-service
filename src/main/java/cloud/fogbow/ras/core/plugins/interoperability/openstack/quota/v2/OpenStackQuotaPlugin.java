@@ -37,6 +37,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     
     @Override
     public ResourceQuota getUserQuota(@NotNull OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.GETTING_QUOTA);
         GetComputeQuotasResponse computeQuotas = getComputeQuotas(cloudUser);
         GetNetworkQuotasResponse networkQuotas = getNetworkQuotas(cloudUser);
         GetVolumeQuotasResponse volumeQuotas = getVolumeQuotas(cloudUser);

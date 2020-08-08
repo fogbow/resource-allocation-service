@@ -51,9 +51,10 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
-        String endpoint = getPrefixEndpoint(projectId) 
+        String endpoint = getPrefixEndpoint(projectId)
                 + OpenStackConstants.SERVERS_ENDPOINT
                 + OpenStackConstants.ENDPOINT_SEPARATOR
                 + serverId 
@@ -69,6 +70,9 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = attachmentOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
+
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
@@ -85,6 +89,9 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public AttachmentInstance getInstance(AttachmentOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
+
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();

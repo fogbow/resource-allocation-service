@@ -56,6 +56,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public String requestInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String size = String.valueOf(order.getVolumeSize());
         String name = order.getName();
@@ -79,6 +80,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public VolumeInstance getInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId) 
                 + OpenStackConstants.VOLUMES_ENDPOINT
@@ -90,6 +93,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public void deleteInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId) 
                 + OpenStackConstants.VOLUMES_ENDPOINT

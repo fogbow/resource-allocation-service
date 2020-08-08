@@ -56,6 +56,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
 
     @Override
     public String requestInstance(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         // Network port id is the connection between the virtual machine and the network
         String networkPortId = getNetworkPortId(order, cloudUser);
@@ -77,7 +78,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     @Override
     public PublicIpInstance getInstance(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String instanceId = order.getInstanceId();
-        String endpoint = getFloatingIpEndpoint() 
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
+        String endpoint = getFloatingIpEndpoint()
                 + OpenStackConstants.ENDPOINT_SEPARATOR
                 + instanceId;
         
@@ -87,6 +89,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     @Override
     public void deleteInstance(PublicIpOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         String securityGroupName = getSecurityGroupName(instanceId);
         String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
         disassociateSecurityGroup(securityGroupName, order, cloudUser);

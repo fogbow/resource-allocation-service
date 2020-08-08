@@ -68,6 +68,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     @Override
     public String requestInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String tenantId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
 
         CreateNetworkResponse createNetworkResponse = createNetwork(order.getName(), cloudUser, tenantId);
@@ -82,6 +83,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     @Override
     public NetworkInstance getInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         String endpoint = this.networkV2APIEndpoint + OpenStackConstants.NETWORK_ENDPOINT + "/" + order.getInstanceId();
         String responseStr = doGetInstance(endpoint, cloudUser);
         return buildInstance(responseStr, cloudUser);
@@ -90,6 +93,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     @Override
     public void deleteInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         String securityGroupName = OpenStackPluginUtils.getNetworkSecurityGroupName(instanceId);
         String securityGroupId = retrieveSecurityGroupId(securityGroupName, cloudUser);
         doDeleteInstance(instanceId, securityGroupId, cloudUser);

@@ -8,15 +8,19 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAllImagesResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetImageResponse;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.*;
 
 public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
+    private static final Logger LOGGER = Logger.getLogger(OpenStackImagePlugin.class);
+
     private Properties properties;
     private OpenStackHttpClient client;
 
@@ -27,12 +31,14 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
 
     @Override
     public List<ImageSummary> getAllImages(OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_GET_ALL_FROM_PROVIDER);
         List<ImageSummary> availableImages = getAvailableImages(cloudUser);
         return availableImages;
     }
 
     @Override
     public ImageInstance getImage(String imageId, OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         GetImageResponse getImageResponse = getImageResponse(imageId, cloudUser);
         String id = getImageResponse.getId();
         String status = getImageResponse.getStatus();
