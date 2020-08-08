@@ -22,6 +22,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializ
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.*;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -102,12 +103,14 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         this.doDeleteRequest(endpoint, cloudUser);
     }
 
-    protected String doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    String doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         return jsonResponse;
     }
 
-    protected List<NetworkSummary> getComputeNetworks() {
+    @VisibleForTesting
+    List<NetworkSummary> getComputeNetworks() {
         // The default network is always included in the order by the OpenStack plugin, thus it should be added
         // in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
         // are appended by the LocalCloudConnector.
@@ -117,7 +120,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return computeNetworks;
     }
 
-    protected List<String> getNetworkIds(ComputeOrder computeOrder) {
+    @VisibleForTesting
+    List<String> getNetworkIds(ComputeOrder computeOrder) {
         List<String> networkIds = new ArrayList<>();
         String defaultNetworkId = this.properties.getProperty(OpenStackPluginUtils.DEFAULT_NETWORK_ID_KEY);
         networkIds.add(defaultNetworkId);
@@ -128,7 +132,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return networkIds;
     }
 
-    protected String doRequestInstance(String projectId, String keyName, String body, OpenStackV3User cloudUser)
+    @VisibleForTesting
+    String doRequestInstance(String projectId, String keyName, String body, OpenStackV3User cloudUser)
             throws FogbowException {
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT);
 
@@ -149,7 +154,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return instanceId;
     }
 
-    protected void setAllocationToOrder(ComputeOrder computeOrder, HardwareRequirements hardwareRequirements) {
+    @VisibleForTesting
+    void setAllocationToOrder(ComputeOrder computeOrder, HardwareRequirements hardwareRequirements) {
         synchronized (computeOrder) {
             ComputeAllocation actualAllocation = new ComputeAllocation(
                     1, hardwareRequirements.getCpu(),
@@ -171,7 +177,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         this.client = new OpenStackHttpClient();
     }
 
-    protected String getKeyName(String projectId, String publicKey, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    String getKeyName(String projectId, String publicKey, OpenStackV3User cloudUser) throws FogbowException {
         String keyName = null;
 
         if (publicKey != null && !publicKey.isEmpty()) {
@@ -189,23 +196,27 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return keyName;
     }
 
-    protected void doCreateKeyName(String osKeypairEndpoint, String body, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    void doCreateKeyName(String osKeypairEndpoint, String body, OpenStackV3User cloudUser) throws FogbowException {
         this.client.doPostRequest(osKeypairEndpoint, body, cloudUser);
     }
 
-    protected String getComputeEndpoint(String projectId, String suffix) {
+    @VisibleForTesting
+    String getComputeEndpoint(String projectId, String suffix) {
         return this.properties.getProperty(OpenStackPluginUtils.COMPUTE_NOVA_URL_KEY) +
                 OpenStackConstants.NOVA_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR + projectId + suffix;
     }
 
-    protected void deleteKeyName(String projectId, String keyName, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    void deleteKeyName(String projectId, String keyName, OpenStackV3User cloudUser) throws FogbowException {
         String suffixEndpoint = OpenStackConstants.KEYPAIRS_ENDPOINT + "/" + keyName;
         String keyNameEndpoint = getComputeEndpoint(projectId, suffixEndpoint);
 
         doDeleteRequest(keyNameEndpoint, cloudUser);
     }
 
-    protected CreateComputeRequest getRequestBody(String instanceName, String imageRef, String flavorRef, String userdata,
+    @VisibleForTesting
+    CreateComputeRequest getRequestBody(String instanceName, String imageRef, String flavorRef, String userdata,
                                                   String keyName, List<String> networksIds) {
         List<CreateComputeRequest.Network> networks = new ArrayList<>();
         List<CreateComputeRequest.SecurityGroup> securityGroups = new ArrayList<>();
@@ -222,7 +233,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return getCreateComputeRequest(instanceName, imageRef, flavorRef, userdata, keyName, networks, securityGroups);
     }
 
-    protected CreateComputeRequest getCreateComputeRequest(String instanceName, String imageRef, String flavorRef,
+    @VisibleForTesting
+    CreateComputeRequest getCreateComputeRequest(String instanceName, String imageRef, String flavorRef,
                                                         String userdata, String keyName, List<CreateComputeRequest.Network> networks,
                                                         List<CreateComputeRequest.SecurityGroup> securityGroups) {
         // do not specify security groups if no additional network was given
@@ -241,7 +253,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return createComputeRequest;
     }
 
-    protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, OpenStackV3User cloudUser)
+    @VisibleForTesting
+    HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, OpenStackV3User cloudUser)
             throws FogbowException {
         HardwareRequirements bestFlavor = getBestFlavor(computeOrder, cloudUser);
         if (bestFlavor == null) {
@@ -250,7 +263,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return bestFlavor;
     }
 
-    protected HardwareRequirements getBestFlavor(ComputeOrder computeOrder, OpenStackV3User cloudUser)
+    @VisibleForTesting
+    HardwareRequirements getBestFlavor(ComputeOrder computeOrder, OpenStackV3User cloudUser)
             throws FogbowException {
         updateFlavors(computeOrder, cloudUser);
         TreeSet<HardwareRequirements> hardwareRequirementsList = getHardwareRequirementsList();
@@ -264,7 +278,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return null;
     }
 
-    protected void updateFlavors(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    void updateFlavors(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String flavorsEndpoint = getComputeEndpoint(projectId, OpenStackConstants.FLAVORS_ENDPOINT);
 
@@ -286,7 +301,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         setHardwareRequirementsList(newHardwareRequirements);
     }
 
-    protected boolean flavorHasRequirements(OpenStackV3User cloudUser, Map<String, String> requirements,
+    @VisibleForTesting
+    boolean flavorHasRequirements(OpenStackV3User cloudUser, Map<String, String> requirements,
                                           String flavorId) throws FogbowException {
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String specsEndpoint = getComputeEndpoint(projectId, OpenStackConstants.FLAVORS_ENDPOINT)  + "/" + flavorId +
@@ -305,7 +321,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return true;
     }
 
-    protected TreeSet<HardwareRequirements> detailFlavors(String endpoint, List<String> flavorsIds, OpenStackV3User cloudUser)
+    @VisibleForTesting
+    TreeSet<HardwareRequirements> detailFlavors(String endpoint, List<String> flavorsIds, OpenStackV3User cloudUser)
             throws FogbowException {
         TreeSet<HardwareRequirements> newHardwareRequirements = new TreeSet<>();
         TreeSet<HardwareRequirements> flavorsCopy = getHardwareRequirementsList();
@@ -329,7 +346,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return newHardwareRequirements;
     }
 
-    protected HardwareRequirements fetchHardwareRequirements(String endpoint, String flavorId, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    HardwareRequirements fetchHardwareRequirements(String endpoint, String flavorId, OpenStackV3User cloudUser) throws FogbowException {
         String hardwareRequirementsEndpoint = endpoint + "/" + flavorId;
 
         String getJsonResponse = null;
@@ -346,7 +364,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return new HardwareRequirements(name, id, vcpusCount, memory, disk);
     }
 
-    protected ComputeInstance getInstanceFromJson(String getRawResponse) {
+    @VisibleForTesting
+    ComputeInstance getInstanceFromJson(String getRawResponse) {
         GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(getRawResponse);
 
         String openStackState = getComputeResponse.getStatus();
@@ -368,22 +387,26 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return new ComputeInstance(instanceId, openStackState, hostName, ipAddresses, faultMessage);
     }
 
-    protected String doGetRequest(String endpoint, OpenStackV3User clouUser) throws FogbowException {
+    @VisibleForTesting
+    String doGetRequest(String endpoint, OpenStackV3User clouUser) throws FogbowException {
         String responseStr = this.client.doGetRequest(endpoint, clouUser);
         return responseStr;
     }
 
-    protected void doDeleteRequest(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    void doDeleteRequest(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         this.client.doDeleteRequest(endpoint, cloudUser);
     }
 
-    protected TreeSet<HardwareRequirements> getHardwareRequirementsList() {
+    @VisibleForTesting
+    TreeSet<HardwareRequirements> getHardwareRequirementsList() {
         synchronized (this.hardwareRequirementsList) {
             return new TreeSet<HardwareRequirements>(this.hardwareRequirementsList);
         }
     }
 
-    protected void setHardwareRequirementsList(TreeSet<HardwareRequirements> hardwareRequirementsList) {
+    @VisibleForTesting
+    void setHardwareRequirementsList(TreeSet<HardwareRequirements> hardwareRequirementsList) {
         synchronized (this.hardwareRequirementsList) {
             this.hardwareRequirementsList = hardwareRequirementsList;
         }
@@ -393,12 +416,13 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         return UUID.randomUUID().toString();
     }
 
-    // for testing only
-    protected void setClient(OpenStackHttpClient client) {
+    @VisibleForTesting
+    void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 
-    protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+    @VisibleForTesting
+    void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
         this.launchCommandGenerator = launchCommandGenerator;
     }
 }
