@@ -41,20 +41,26 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
     public ImageInstance getImage(String imageId, OpenStackV3User cloudUser) throws FogbowException {
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         GetImageResponse getImageResponse = getImageResponse(imageId, cloudUser);
-        String id = getImageResponse.getId();
         String status = getImageResponse.getStatus();
+
+        ImageInstance imageInstance = null;
+
         if (status.equals(OpenStackConstants.ACTIVE_STATE)) {
-            ImageInstance imageInstance = new ImageInstance(id,
-                    getImageResponse.getName(),
-                    getImageResponse.getSize(),
-                    getImageResponse.getMinDisk(),
-                    getImageResponse.getMinRam(),
-                    status
-            );
-            return imageInstance;
+            imageInstance = buildImageInstance(getImageResponse);
         }
 
-        return null;
+        return imageInstance;
+    }
+
+    @VisibleForTesting
+    ImageInstance buildImageInstance(GetImageResponse getImageResponse) {
+        String id = getImageResponse.getId();
+        String status = getImageResponse.getStatus();
+        String name = getImageResponse.getName();
+        Long size = getImageResponse.getSize();
+        Long minDisk = getImageResponse.getMinDisk();
+        Long minRam = getImageResponse.getMinRam();
+        return new ImageInstance(id, name, size, minDisk, minRam, status);
     }
 
     @VisibleForTesting
