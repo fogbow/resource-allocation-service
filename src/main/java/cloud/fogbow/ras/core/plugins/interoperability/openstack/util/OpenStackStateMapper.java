@@ -3,10 +3,17 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.util;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.volume.v2.OpenStackVolumePlugin;
 import org.apache.log4j.Logger;
 
 public class OpenStackStateMapper {
     private static final Logger LOGGER = Logger.getLogger(OpenStackStateMapper.class);
+
+    public static final String COMPUTE_PLUGIN = OpenStackComputePlugin.class.getSimpleName();
+    public static final String VOLUME_PLUGIN = OpenStackVolumePlugin.class.getSimpleName();
+    public static final String NETWORK_PLUGIN = OpenStackNetworkPlugin.class.getSimpleName();
 
     public static final String ACTIVE_STATUS = "active";
     public static final String ATTACHING_STATUS = "attaching";
@@ -14,7 +21,6 @@ public class OpenStackStateMapper {
     public static final String AWAITING_TRANSFER_STATUS = "awaiting-transfer";
     public static final String BACKING_UP_STATUS = "backing-up";
     public static final String BUILD_STATUS = "build";
-    public static final String COMPUTE_PLUGIN = "OpenstackComputePlugin";
     public static final String CREATING_STATUS = "creating";
     public static final String DELETED_STATUS = "deleted";
     public static final String DELETING_STATUS = "deleting";
@@ -31,7 +37,6 @@ public class OpenStackStateMapper {
     public static final String IN_USE_STATUS = "in-use";
     public static final String MAINTENANCE_STATUS = "maintenance";
     public static final String MIGRATING_STATUS = "migrating";
-    public static final String NETWORK_PLUGIN = "OpenstackNetworkPlugin";
     public static final String PASSWORD_STATUS = "password";
     public static final String PAUSED_STATUS = "paused";
     public static final String REBOOT_STATUS = "reboot";
@@ -49,8 +54,6 @@ public class OpenStackStateMapper {
     public static final String UNKNOWN_STATUS = "unknown";
     public static final String UPLOADING_STATUS = "uploading";
     public static final String VERIFY_RESIZE_STATUS = "verify_resize";
-    public static final String VOLUME_PLUGIN = "OpenstackVolumePlugin";
-
 
     public static InstanceState map(ResourceType type, String openStackState) {
 
