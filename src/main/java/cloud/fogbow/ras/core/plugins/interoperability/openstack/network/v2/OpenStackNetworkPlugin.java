@@ -49,6 +49,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     @VisibleForTesting
     static final String DEFAULT_NETWORK_CIDR = "192.168.0.1/24";
 
+    private static final String SUBNET_PREFIX = "-subnet";
+
     private OpenStackHttpClient client;
     private String networkV2APIEndpoint;
     private String[] dnsList;
@@ -90,7 +92,10 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     public NetworkInstance getInstance(NetworkOrder order, OpenStackV3User cloudUser) throws FogbowException {
         String instanceId = order.getInstanceId();
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
-        String endpoint = this.networkV2APIEndpoint + OpenStackConstants.NETWORK_ENDPOINT + "/" + order.getInstanceId();
+        String endpoint = this.networkV2APIEndpoint
+                + OpenStackConstants.NETWORK_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + order.getInstanceId();
         String responseStr = doGetInstance(endpoint, cloudUser);
         return buildNetworkInstance(responseStr, cloudUser);
     }
@@ -252,15 +257,20 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     String retrieveSecurityGroupId(String securityGroupName, OpenStackV3User cloudUser) throws FogbowException {
-        String endpoint = this.networkV2APIEndpoint + OpenStackConstants.SECURITY_GROUPS_ENDPOINT +
-                OpenStackConstants.QUERY_NAME + securityGroupName;
+        String endpoint = this.networkV2APIEndpoint
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT
+                + OpenStackConstants.QUERY_NAME
+                + securityGroupName;
         String responseStr = doGetRequest(cloudUser, endpoint);
         return OpenStackCloudUtils.getSecurityGroupIdFromGetResponse(responseStr);
     }
 
     @VisibleForTesting
     void removeSecurityGroup(OpenStackV3User cloudUser, String securityGroupId) throws FogbowException {
-        String endpoint = this.networkV2APIEndpoint + OpenStackConstants.SECURITY_GROUPS_ENDPOINT + "/" + securityGroupId;
+        String endpoint = this.networkV2APIEndpoint
+                + OpenStackConstants.SECURITY_GROUPS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + securityGroupId;
         this.client.doDeleteRequest(endpoint, cloudUser);
     }
 
@@ -301,7 +311,10 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     GetSubnetResponse getSubnetInformation(OpenStackV3User cloudUser, String subnetId) throws FogbowException {
-        String endpoint = this.networkV2APIEndpoint + OpenStackConstants.SUBNET_ENDPOINT + "/" + subnetId;
+        String endpoint = this.networkV2APIEndpoint
+                + OpenStackConstants.SUBNET_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + subnetId;
         String response = this.client.doGetRequest(endpoint, cloudUser);
         GetSubnetResponse getSubnetResponse = GetSubnetResponse.fromJson(response);
         return getSubnetResponse;
@@ -323,7 +336,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     String generateJsonEntityToCreateSubnet(String networkId, String tenantId, NetworkOrder order) {
-        String subnetName = order.getName() + "-subnet";
+        String subnetName = order.getName() + SUBNET_PREFIX;
         int ipVersion = DEFAULT_IP_VERSION;
 
         String gateway = order.getGateway();
@@ -351,7 +364,10 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     void removeNetwork(OpenStackV3User cloudUser, String networkId) throws InternalServerErrorException, FogbowException {
-        String endpoint = this.networkV2APIEndpoint + OpenStackConstants.NETWORK_ENDPOINT + "/" + networkId;
+        String endpoint = this.networkV2APIEndpoint
+                + OpenStackConstants.NETWORK_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + networkId;
         this.client.doDeleteRequest(endpoint, cloudUser);
     }
 
