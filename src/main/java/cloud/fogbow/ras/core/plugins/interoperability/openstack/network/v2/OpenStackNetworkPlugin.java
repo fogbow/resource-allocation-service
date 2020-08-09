@@ -92,7 +92,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         String endpoint = this.networkV2APIEndpoint + OpenStackConstants.NETWORK_ENDPOINT + "/" + order.getInstanceId();
         String responseStr = doGetInstance(endpoint, cloudUser);
-        return buildInstance(responseStr, cloudUser);
+        return buildNetworkInstance(responseStr, cloudUser);
     }
 
     @Override
@@ -265,7 +265,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    NetworkInstance buildInstance(String json, OpenStackV3User cloudUser) throws FogbowException {
+    NetworkInstance buildNetworkInstance(String json, OpenStackV3User cloudUser) throws FogbowException {
         GetNetworkResponse getNetworkResponse = GetNetworkResponse.fromJson(json);
         String networkId = getNetworkResponse.getId();
         String name = getNetworkResponse.getName();
