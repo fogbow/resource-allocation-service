@@ -32,7 +32,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     
     public OpenStackQuotaPlugin(@NotBlank String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.client = new OpenStackHttpClient();
+        this.initClient();
     }
     
     @Override
@@ -181,4 +181,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
         this.client = client;
     }
 
+    private void initClient() {
+        this.client = new OpenStackHttpClient();
+    }
 }

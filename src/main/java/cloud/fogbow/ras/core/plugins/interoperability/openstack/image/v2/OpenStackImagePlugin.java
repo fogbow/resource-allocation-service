@@ -27,7 +27,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
 
     public OpenStackImagePlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.client = new OpenStackHttpClient();
+        this.initClient();
     }
 
     @Override
@@ -151,5 +151,9 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
     @VisibleForTesting
     void setProperties(Properties properties) {
         this.properties = properties;
+    }
+
+    private void initClient() {
+        this.client = new OpenStackHttpClient();
     }
 }
