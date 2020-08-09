@@ -83,7 +83,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         String instanceId = computeOrder.getInstanceId();
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
-        String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT + "/" + computeOrder.getInstanceId());
+        String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
 
         String jsonResponse = doGetInstance(endpoint, cloudUser);
 
@@ -99,7 +100,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         String instanceId = computeOrder.getInstanceId();
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
-        String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT + "/" + computeOrder.getInstanceId());
+        String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
         this.doDeleteRequest(endpoint, cloudUser);
     }
 
@@ -209,7 +211,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @VisibleForTesting
     void deleteKeyName(String projectId, String keyName, OpenStackV3User cloudUser) throws FogbowException {
-        String suffixEndpoint = OpenStackConstants.KEYPAIRS_ENDPOINT + "/" + keyName;
+        String suffixEndpoint = OpenStackConstants.KEYPAIRS_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR + keyName;
         String keyNameEndpoint = getComputeEndpoint(projectId, suffixEndpoint);
 
         doDeleteRequest(keyNameEndpoint, cloudUser);
@@ -305,8 +307,10 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     boolean flavorHasRequirements(OpenStackV3User cloudUser, Map<String, String> requirements,
                                           String flavorId) throws FogbowException {
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
-        String specsEndpoint = getComputeEndpoint(projectId, OpenStackConstants.FLAVORS_ENDPOINT)  + "/" + flavorId +
-                OpenStackConstants.EXTRA_SPECS_ENDPOINT;
+        String specsEndpoint = getComputeEndpoint(projectId, OpenStackConstants.FLAVORS_ENDPOINT)
+                + OpenStackConstants.ENDPOINT_SEPARATOR
+                + flavorId
+                + OpenStackConstants.EXTRA_SPECS_ENDPOINT;
 
         String jsonResponse = doGetRequest(specsEndpoint, cloudUser);
         GetFlavorExtraSpecsResponse getFlavorExtraSpecsResponse = GetFlavorExtraSpecsResponse.fromJson(jsonResponse);
@@ -348,7 +352,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @VisibleForTesting
     HardwareRequirements fetchHardwareRequirements(String endpoint, String flavorId, OpenStackV3User cloudUser) throws FogbowException {
-        String hardwareRequirementsEndpoint = endpoint + "/" + flavorId;
+        String hardwareRequirementsEndpoint = endpoint + OpenStackConstants.ENDPOINT_SEPARATOR + flavorId;
 
         String getJsonResponse = null;
 
