@@ -353,9 +353,9 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
     String buildNetworkPortsEndpoint(String deviceId, String networkId, String endpoint)
             throws InternalServerErrorException {
         
-        GetNetworkPortsResquest resquest = null;
+        GetNetworkPortsRequest request = null;
         try {
-            resquest = new GetNetworkPortsResquest.Builder()
+            request = new GetNetworkPortsRequest.Builder()
                     .deviceId(deviceId)
                     .networkId(networkId)
                     .url(endpoint)
@@ -364,7 +364,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         } catch (URISyntaxException e) {
             throw new InternalServerErrorException(String.format(Messages.Exception.WRONG_URI_SYNTAX_S, endpoint));
         }
-        return resquest.getUrl();
+        return request.getUrl();
     }
     
     @VisibleForTesting
