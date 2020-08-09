@@ -280,10 +280,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> 
         } catch (JsonSyntaxException e) {
             String message = String.format(Messages.Log.ERROR_WHILE_CREATING_RESOURCE_S,
                     OpenStackConstants.SECURITY_GROUP_RESOURCE);
-            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CREATING_RESOURCE_S,
-                    OpenStackConstants.SECURITY_GROUP_RESOURCE), e);
-            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_CREATING_RESOURCE_S,
-                    OpenStackConstants.SECURITY_GROUP_RESOURCE));
+            LOGGER.error(message, e);
+            throw new InternalServerErrorException(message);
         }
     }
 
