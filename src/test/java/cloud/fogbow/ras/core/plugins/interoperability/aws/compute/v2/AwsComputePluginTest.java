@@ -11,6 +11,8 @@ import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.util.StorageUnit;
+import com.google.common.annotations.VisibleForTesting;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,7 +61,8 @@ public class AwsComputePluginTest extends BaseUnitTests {
     private static final int FLAVOR_MEMORY_VALUE = 1;
     private static final int INSTANCE_TYPE_LIMIT_VALUE = 5;
     private static final int ZERO_VALUE = 0;
-	
+    final int ONE_GIGABYTE = (int) StorageUnit.gigabyte(1).asMegabyte();
+    
     private AwsComputePlugin plugin;
     private Ec2Client client;
     private LaunchCommandGenerator launchCommandGenerator;
@@ -320,7 +323,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
         Mockito.doReturn(FLAVOR_MEMORY_VALUE).when(this.plugin).getMemoryValueFrom(Mockito.eq(instance.instanceType()));
 
         List<Volume> volumes = createVolumesCollection();
-        Mockito.doReturn(AwsComputePlugin.ONE_GIGABYTE).when(this.plugin).getAllDisksSize(Mockito.eq(volumes));
+        Mockito.doReturn(ONE_GIGABYTE).when(this.plugin).getAllDisksSize(Mockito.eq(volumes));
 
         List<String> ipAddresses = buildIpAdressesCollection();
         Mockito.doReturn(ipAddresses).when(this.plugin).getIpAddresses(Mockito.eq(instance));
@@ -441,7 +444,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
     public void testGetAllDisksSize() {
         // set up
         List volumes = createVolumesCollection();
-        int expected = AwsComputePlugin.ONE_GIGABYTE;
+        int expected = ONE_GIGABYTE;
         
         // exercise
         int size = this.plugin.getAllDisksSize(volumes);
@@ -563,7 +566,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
         Image image = buildImage();
 
         Mockito.doReturn(image).when(this.plugin).getImageById(Mockito.eq(imageId), Mockito.eq(client));
-        Mockito.doReturn(AwsComputePlugin.ONE_GIGABYTE).when(this.plugin).getImageSize(Mockito.eq(image));
+        Mockito.doReturn(ONE_GIGABYTE).when(this.plugin).getImageSize(Mockito.eq(image));
 
         // exercise
         this.plugin.updateInstanceAllocation(order, flavor, instance, client);
@@ -1059,7 +1062,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
 
     private EbsBlockDevice buildEbsBlockDevice() {
         EbsBlockDevice ebsBlockDevice = EbsBlockDevice.builder()
-                .volumeSize(AwsComputePlugin.ONE_GIGABYTE)
+                .volumeSize(ONE_GIGABYTE)
                 .build();
         
         return ebsBlockDevice;
@@ -1096,7 +1099,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
         Volume[] volumes = { 
                 Volume.builder()
                     .volumeId(TestUtils.FAKE_VOLUME_ID)
-                    .size(AwsComputePlugin.ONE_GIGABYTE)
+                    .size(ONE_GIGABYTE)
                     .build() 
                 };
         return Arrays.asList(volumes);
