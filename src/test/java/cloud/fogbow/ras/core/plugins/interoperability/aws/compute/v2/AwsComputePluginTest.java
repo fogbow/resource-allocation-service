@@ -11,8 +11,7 @@ import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.util.StorageUnit;
-import com.google.common.annotations.VisibleForTesting;
+import cloud.fogbow.common.util.BinaryUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +60,7 @@ public class AwsComputePluginTest extends BaseUnitTests {
     private static final int FLAVOR_MEMORY_VALUE = 1;
     private static final int INSTANCE_TYPE_LIMIT_VALUE = 5;
     private static final int ZERO_VALUE = 0;
-    final int ONE_GIGABYTE = (int) StorageUnit.gigabyte(1).asMegabyte();
+    final int ONE_GIGABYTE = (int) BinaryUnit.gigabytes(1).asMegabytes();
     
     private AwsComputePlugin plugin;
     private Ec2Client client;

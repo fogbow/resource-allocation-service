@@ -15,7 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import cloud.fogbow.common.exceptions.*;
-import cloud.fogbow.common.util.StorageUnit;
+import cloud.fogbow.common.util.BinaryUnit;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -472,7 +472,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);
 
         double memoryInGB = Double.parseDouble(requirements[MEMORY_COLUMN]);
-        double memoryInMB = StorageUnit.gigabyte(memoryInGB).asMegabyte();
+        double memoryInMB = BinaryUnit.gigabytes(memoryInGB).asMegabytes();
         int memory = Double.valueOf(memoryInMB).intValue();
 
         int disk = imageEntry.getValue();
