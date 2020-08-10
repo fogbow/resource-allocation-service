@@ -15,6 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.util.StorageUnit;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -82,8 +83,6 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     static final int INSTANCES_LAUNCH_NUMBER = 1;
     @VisibleForTesting
     static final int MAXIMUM_SIZE_ALLOWED = 1;
-    @VisibleForTesting
-    static final int ONE_GIGABYTE = 1024;
 
     private String defaultSubnetId;
     private String flavorsFilePath;
@@ -471,11 +470,15 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         String name = requirements[INSTANCE_TYPE_COLUMN];
         String flavorId = generateFlavorId();
         int cpu = Integer.parseInt(requirements[VCPU_COLUMN]);
-        Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
+
+        double memoryInGB = Double.parseDouble(requirements[MEMORY_COLUMN]);
+        double memoryInMB = StorageUnit.gigabyte(memoryInGB).asMegabyte();
+        int memory = Double.valueOf(memoryInMB).intValue();
+
         int disk = imageEntry.getValue();
         String imageId = imageEntry.getKey();
         Map<String, String> requirementsMap = loadRequirementsMap(requirements);
-        return new AwsHardwareRequirements(name, flavorId, cpu, memory.intValue(), disk, imageId, requirementsMap);
+        return new AwsHardwareRequirements(name, flavorId, cpu, memory, disk, imageId, requirementsMap);
     }
 
     @VisibleForTesting
