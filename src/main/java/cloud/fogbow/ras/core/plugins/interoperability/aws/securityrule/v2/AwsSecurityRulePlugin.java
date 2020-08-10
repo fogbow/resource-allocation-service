@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.constants.AwsConstants;
@@ -58,11 +59,15 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
     private static final int SECURITY_RULE_ID_FIELDS_NUMBER = 8;
     private static final int TYPE_FIELD_POSITION = 7;
     
-    protected static final String ALL_PROTOCOLS = "-1";
-    protected static final String CIDR_SEPARATOR = "/";
-    protected static final String SECURITY_RULE_IDENTIFIER_FORMAT = "%s@%s@%s@%s@%s@%s@%s@%s";
+    @VisibleForTesting
+    static final String ALL_PROTOCOLS = "-1";
+    @VisibleForTesting
+    static final String CIDR_SEPARATOR = "/";
+    @VisibleForTesting
+    static final String SECURITY_RULE_IDENTIFIER_FORMAT = "%s@%s@%s@%s@%s@%s@%s@%s";
     
-    protected static final int FIRST_POSITION = 0;
+    @VisibleForTesting
+    static final int FIRST_POSITION = 0;
     
     private String region;
 
@@ -98,7 +103,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         doDeleteSecurityRule(securityRuleId, client);
     }
 
-    protected void doDeleteSecurityRule(String securityRuleId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void doDeleteSecurityRule(String securityRuleId, Ec2Client client) throws FogbowException {
         String instanceId = extractFieldFrom(securityRuleId, FIRST_POSITION);
         String type = extractFieldFrom(securityRuleId, TYPE_FIELD_POSITION);
         ResourceType resourceType = type.equals(PUBLIC_IP_RESOURCE_TYPE) 
@@ -117,7 +123,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
 
-    protected void revokeEgressRule(String groupId, SecurityRule rule, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void revokeEgressRule(String groupId, SecurityRule rule, Ec2Client client) throws FogbowException {
         IpPermission ipPermission = buildIpPermission(rule);
 
         RevokeSecurityGroupEgressRequest request = RevokeSecurityGroupEgressRequest.builder()
@@ -131,7 +138,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
 
-    protected void revokeIngressRule(String groupId, SecurityRule rule, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void revokeIngressRule(String groupId, SecurityRule rule, Ec2Client client) throws FogbowException {
         IpPermission ipPermission = buildIpPermission(rule);
 
         RevokeSecurityGroupIngressRequest request = RevokeSecurityGroupIngressRequest.builder()
@@ -145,7 +153,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
 
-    protected SecurityRule doUnpackingSecurityRuleId(String securityRuleId) {
+    @VisibleForTesting
+    SecurityRule doUnpackingSecurityRuleId(String securityRuleId) {
         String[] fields = securityRuleId.split(AwsConstants.SECURITY_RULE_ID_SEPARATOR);
         if (fields.length == SECURITY_RULE_ID_FIELDS_NUMBER) {
             int portFrom = Integer.valueOf(fields[PORT_FROM_FIELD_POSITION]);
@@ -159,13 +168,15 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         throw new InvalidParameterException(String.format(Messages.Exception.INVALID_PARAMETER_S, securityRuleId));
     }
 
-    protected Direction getDirectionValueFrom(String fieldValue) {
+    @VisibleForTesting
+    Direction getDirectionValueFrom(String fieldValue) {
         return Direction.valueOf(fieldValue.equals(INGRESS_VALUE) 
                 ? INGRESS_DIRECTION 
                 : EGRESS_DIRECTION);
     }
     
-    protected String extractFieldFrom(String securityRuleId, int position) {
+    @VisibleForTesting
+    String extractFieldFrom(String securityRuleId, int position) {
         String[] fields = securityRuleId.split(AwsConstants.SECURITY_RULE_ID_SEPARATOR);
         if (fields.length == SECURITY_RULE_ID_FIELDS_NUMBER) {
             return fields[position];
@@ -173,7 +184,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         throw new InvalidParameterException(String.format(Messages.Exception.INVALID_PARAMETER_S, securityRuleId));
     }
     
-    protected List<SecurityRuleInstance> doGetSecurityRules(String instanceId, ResourceType resourceType,
+    @VisibleForTesting
+    List<SecurityRuleInstance> doGetSecurityRules(String instanceId, ResourceType resourceType,
             Ec2Client client) throws FogbowException {
 
         String securityGroupId = getSecurityGroupId(instanceId, resourceType, client);
@@ -188,7 +200,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return resultList;
     }
     
-    protected List<SecurityRuleInstance> loadSecurityRuleInstances(String instanceId, ResourceType resourceType,
+    @VisibleForTesting
+    List<SecurityRuleInstance> loadSecurityRuleInstances(String instanceId, ResourceType resourceType,
             Direction direction, List<IpPermission> ipPermissions) {
         
         List<SecurityRuleInstance> instancesList = new ArrayList<>();
@@ -205,7 +218,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return instancesList;
     }
     
-    protected SecurityRuleInstance buildSecurityRuleInstance(String instanceId, ResourceType resourceType,
+    @VisibleForTesting
+    SecurityRuleInstance buildSecurityRuleInstance(String instanceId, ResourceType resourceType,
             Direction direction, IpPermission ipPermission) {
         
         int portFrom = ipPermission.fromPort();
@@ -218,20 +232,23 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
     }
     
-    protected Protocol getProtocolFrom(String ipProtocol) {
+    @VisibleForTesting
+    Protocol getProtocolFrom(String ipProtocol) {
         return ipProtocol == ALL_PROTOCOLS 
                 ? Protocol.ANY 
                 : Protocol.valueOf(ipProtocol.toUpperCase());
     }
 
-    protected boolean validateIpPermission(IpPermission ipPermission) {
+    @VisibleForTesting
+    boolean validateIpPermission(IpPermission ipPermission) {
         return ipPermission.fromPort() != null 
                 && ipPermission.toPort() != null 
                 && ipPermission.ipProtocol() != null
                 && !ipPermission.ipRanges().isEmpty();
     }
     
-    protected SecurityGroup getSecurityGroupById(String groupId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    SecurityGroup getSecurityGroupById(String groupId, Ec2Client client) throws FogbowException {
         DescribeSecurityGroupsRequest request = DescribeSecurityGroupsRequest.builder()
                 .groupIds(groupId)
                 .build();
@@ -240,7 +257,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return getSecurityGroupFrom(response);
     }
 
-    protected SecurityGroup getSecurityGroupFrom(DescribeSecurityGroupsResponse response)
+    @VisibleForTesting
+    SecurityGroup getSecurityGroupFrom(DescribeSecurityGroupsResponse response)
             throws FogbowException {
         
         if (response != null && !response.securityGroups().isEmpty()) {
@@ -249,7 +267,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
 
-    protected DescribeSecurityGroupsResponse doDescribeSecurityGroupsRequest(DescribeSecurityGroupsRequest request,
+    @VisibleForTesting
+    DescribeSecurityGroupsResponse doDescribeSecurityGroupsRequest(DescribeSecurityGroupsRequest request,
             Ec2Client client) throws FogbowException {
         try {
             return client.describeSecurityGroups(request);
@@ -258,7 +277,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
     
-    protected String doPackingSecurityRuleId(String instanceId, SecurityRule securityRule, ResourceType resourceType) {
+    @VisibleForTesting
+    String doPackingSecurityRuleId(String instanceId, SecurityRule securityRule, ResourceType resourceType) {
         String[] cidrSlice = securityRule.getCidr().split(CIDR_SEPARATOR);
         String securityRuleId = String.format(SECURITY_RULE_IDENTIFIER_FORMAT, 
                 instanceId, 
@@ -273,7 +293,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return securityRuleId;
     }
     
-    protected void addRuleToSecurityGroup(String groupId, SecurityRule securityRule, Ec2Client client)
+    @VisibleForTesting
+    void addRuleToSecurityGroup(String groupId, SecurityRule securityRule, Ec2Client client)
             throws FogbowException {
         
         IpPermission ipPermission = buildIpPermission(securityRule);
@@ -288,7 +309,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
 
-    protected void addEgressRule(String groupId, IpPermission ipPermission, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void addEgressRule(String groupId, IpPermission ipPermission, Ec2Client client) throws FogbowException {
         AuthorizeSecurityGroupEgressRequest request = AuthorizeSecurityGroupEgressRequest.builder()
                 .groupId(groupId)
                 .ipPermissions(ipPermission)
@@ -300,7 +322,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
     
-    protected void addIngressRule(String groupId, IpPermission ipPermission, Ec2Client client)
+    @VisibleForTesting
+    void addIngressRule(String groupId, IpPermission ipPermission, Ec2Client client)
             throws FogbowException {
         
         AuthorizeSecurityGroupIngressRequest request = AuthorizeSecurityGroupIngressRequest.builder()
@@ -314,7 +337,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
     
-    protected IpPermission buildIpPermission(SecurityRule securityRule) {
+    @VisibleForTesting
+    IpPermission buildIpPermission(SecurityRule securityRule) {
         int fromPort = securityRule.getPortFrom();
         int toPort = securityRule.getPortTo();
         String ipProtocol = defineIpProtocolFrom(securityRule.getProtocol());
@@ -331,13 +355,15 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return ipPermission;
     }
 
-    protected String defineIpProtocolFrom(Protocol protocol) {
+    @VisibleForTesting
+    String defineIpProtocolFrom(Protocol protocol) {
         return protocol.equals(Protocol.ANY) 
                 ? ALL_PROTOCOLS
                 : protocol.toString();
     }
     
-    protected IpRange buildIpAddressRange(SecurityRule securityRule) {
+    @VisibleForTesting
+    IpRange buildIpAddressRange(SecurityRule securityRule) {
         String cidrIp = securityRule.getCidr();
         validateIpAddress(cidrIp);
         
@@ -348,7 +374,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         return ipRange;
     }
     
-    protected void validateIpAddress(String cidrIp) {
+    @VisibleForTesting
+    void validateIpAddress(String cidrIp) {
         Ipv4AddressValidator validator = new Ipv4AddressValidator();
         String[] cidrSlice = cidrIp.split(CIDR_SEPARATOR);
         String ipAddress = cidrSlice[0];
@@ -357,7 +384,8 @@ public class AwsSecurityRulePlugin implements SecurityRulePlugin<AwsV2User> {
         }
     }
     
-    protected String getSecurityGroupId(String instanceId, ResourceType resourceType, Ec2Client client)
+    @VisibleForTesting
+    String getSecurityGroupId(String instanceId, ResourceType resourceType, Ec2Client client)
             throws FogbowException {
 
         switch (resourceType) {

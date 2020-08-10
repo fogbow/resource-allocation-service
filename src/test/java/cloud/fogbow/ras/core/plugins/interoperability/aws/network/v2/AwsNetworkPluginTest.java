@@ -749,7 +749,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.plugin).doAttachInternetGateway(Mockito.eq(gatewayId), Mockito.eq(vpcId),
                 Mockito.eq(this.client));
-        Mockito.doNothing().when(this.plugin).doCreateRouteTables(Mockito.eq(cidr), Mockito.eq(gatewayId),
+        Mockito.doNothing().when(this.plugin).doCreateRouteTables(Mockito.eq(gatewayId),
                 Mockito.eq(vpcId), Mockito.eq(this.client));
 
         // exercise
@@ -762,8 +762,8 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
                 Mockito.eq(this.client));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doAttachInternetGateway(Mockito.eq(gatewayId),
                 Mockito.eq(vpcId), Mockito.eq(this.client));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doCreateRouteTables(Mockito.eq(cidr),
-                Mockito.eq(gatewayId), Mockito.eq(vpcId), Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doCreateRouteTables(Mockito.eq(gatewayId),
+                Mockito.eq(vpcId), Mockito.eq(this.client));
     }
 
     // test case: When calling the doCreateAndConfigureVpc method, and an
@@ -806,7 +806,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
         Mockito.when(this.client.createRoute(Mockito.any(CreateRouteRequest.class))).thenReturn(response);
 
         // exercise
-        this.plugin.doCreateRouteTables(cidr, gatewayId, vpcId, this.client);
+        this.plugin.doCreateRouteTables(gatewayId, vpcId, this.client);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getRouteTables(Mockito.eq(vpcId),
@@ -839,7 +839,7 @@ public class AwsNetworkPluginTest extends BaseUnitTests {
 
         try {
             // exercise
-            this.plugin.doCreateRouteTables(cidr, gatewayId, vpcId, this.client);
+            this.plugin.doCreateRouteTables(gatewayId, vpcId, this.client);
             Assert.fail();
         } catch (InternalServerErrorException e) {
             // verify

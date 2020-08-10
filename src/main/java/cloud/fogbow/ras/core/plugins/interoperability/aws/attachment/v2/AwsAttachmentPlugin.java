@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.attachment.v2;
 import java.util.Properties;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -32,8 +33,10 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsVolumePlugin.class);
 	
-	protected static final String DEFAULT_DEVICE_NAME = "/dev/sdb";
-	protected static final String RESOURCE_NAME = "Attachment";
+	@VisibleForTesting
+	static final String DEFAULT_DEVICE_NAME = "/dev/sdb";
+	@VisibleForTesting
+	static final String RESOURCE_NAME = "Attachment";
 
 	private String region;
 
@@ -86,18 +89,20 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
         return doGetInstance(attachmentId, client);
     }
 
-    protected AttachmentInstance doGetInstance(String attachmentId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    AttachmentInstance doGetInstance(String attachmentId, Ec2Client client) throws FogbowException {
         DescribeVolumesRequest request = DescribeVolumesRequest.builder()
                 .volumeIds(attachmentId)
                 .build();
-        
+
         DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
         return buildAttachmentInstance(response);
     }
 
-    protected void doDeleteInstance(String volumeId, Ec2Client client)
+    @VisibleForTesting
+    void doDeleteInstance(String volumeId, Ec2Client client)
             throws InternalServerErrorException {
-        
+
         DetachVolumeRequest request = DetachVolumeRequest.builder()
                 .volumeId(volumeId)
                 .build();
@@ -110,7 +115,8 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
         }
     }
 
-	protected AttachmentInstance buildAttachmentInstance(DescribeVolumesResponse response)
+	@VisibleForTesting
+    AttachmentInstance buildAttachmentInstance(DescribeVolumesResponse response)
 			throws FogbowException {
 
 	    Volume volume = AwsV2CloudUtil.getVolumeFrom(response);
@@ -122,14 +128,16 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
 		return new AttachmentInstance(volumeId, cloudState, computeId, volumeId, device);
 	}
 
-	protected VolumeAttachment getAttachmentBy(Volume volume) throws FogbowException {
+	@VisibleForTesting
+    VolumeAttachment getAttachmentBy(Volume volume) throws FogbowException {
 		if (!volume.attachments().isEmpty()) {
 			return volume.attachments().listIterator().next();
 		}
 		throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
 	}
-	
-	protected String doRequestInstance(AttachVolumeRequest request, Ec2Client client)
+
+	@VisibleForTesting
+    String doRequestInstance(AttachVolumeRequest request, Ec2Client client)
             throws FogbowException {
 
         String attachmentId;
@@ -148,7 +156,8 @@ public class AwsAttachmentPlugin implements AttachmentPlugin<AwsV2User> {
      * change it depending on circumstances, as with other operating systems that
      * behave differently.
      */
-    protected String getAttachedDeviceName(String deviceName) {
+    @VisibleForTesting
+    String getAttachedDeviceName(String deviceName) {
         /*
          * By default, "/dev/sd[a-z]" is provided as an example for Debian based linux
          * distributions, and "/dev/xvd[a-z]" for Red Hat based distributions and their

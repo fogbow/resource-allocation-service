@@ -7,7 +7,6 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
-import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.BaseUnitTests;
 import cloud.fogbow.ras.core.TestUtils;
@@ -292,8 +291,7 @@ public class AwsQuotaPluginTest extends BaseUnitTests {
 
         Instance instance = instances.listIterator().next();
         ComputeAllocation allocation = createComputeAllocation();
-        Mockito.doReturn(allocation).when(this.plugin).buildAllocatedInstance(Mockito.eq(instance),
-                Mockito.eq(this.client));
+        Mockito.doReturn(allocation).when(this.plugin).buildAllocatedInstance(Mockito.eq(instance));
 
         String expectedMapKey = InstanceType.T1_MICRO.toString();
 
@@ -302,8 +300,7 @@ public class AwsQuotaPluginTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getInstanceReservations(Mockito.eq(this.client));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildAllocatedInstance(Mockito.eq(instance),
-                Mockito.eq(this.client));
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildAllocatedInstance(Mockito.eq(instance));
 
         Assert.assertTrue(this.plugin.getComputeAllocationMap().containsKey(expectedMapKey));
         Assert.assertEquals(allocation, this.plugin.getComputeAllocationMap().get(expectedMapKey));
@@ -396,7 +393,7 @@ public class AwsQuotaPluginTest extends BaseUnitTests {
         int ramExpected = TestUtils.MEMORY_VALUE;
 
         // exercise
-        ComputeAllocation allocation = this.plugin.buildAllocatedInstance(instance, this.client);
+        ComputeAllocation allocation = this.plugin.buildAllocatedInstance(instance);
 
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getTotalComputeAllocationMap();

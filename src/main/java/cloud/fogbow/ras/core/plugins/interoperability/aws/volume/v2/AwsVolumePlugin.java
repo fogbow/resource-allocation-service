@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.volume.v2;
 import java.util.Properties;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -81,7 +82,8 @@ public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
 		doDeleteInstance(volumeId, client);
 	}
 
-	protected void doDeleteInstance(String volumeId, Ec2Client client) throws InternalServerErrorException {
+	@VisibleForTesting
+    void doDeleteInstance(String volumeId, Ec2Client client) throws InternalServerErrorException {
 	    DeleteVolumeRequest request = DeleteVolumeRequest.builder()
 	            .volumeId(volumeId)
 	            .build();
@@ -93,7 +95,8 @@ public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
 		}
 	}
 	
-    protected VolumeInstance doGetInstance(String volumeId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    VolumeInstance doGetInstance(String volumeId, Ec2Client client) throws FogbowException {
         DescribeVolumesRequest request = DescribeVolumesRequest.builder()
                 .volumeIds(volumeId)
                 .build();
@@ -102,7 +105,8 @@ public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
         return buildVolumeInstance(response);
     }
 
-    protected VolumeInstance buildVolumeInstance(DescribeVolumesResponse response) throws FogbowException {
+    @VisibleForTesting
+    VolumeInstance buildVolumeInstance(DescribeVolumesResponse response) throws FogbowException {
         Volume volume = AwsV2CloudUtil.getVolumeFrom(response);
         String id = volume.volumeId();
         String cloudState = volume.stateAsString();
@@ -111,7 +115,8 @@ public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
         return new VolumeInstance(id, cloudState, name, size);
     }
 	
-    protected String doRequestInstance(CreateVolumeRequest request, VolumeOrder order, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    String doRequestInstance(CreateVolumeRequest request, VolumeOrder order, Ec2Client client) throws FogbowException {
         String volumeId;
         try {
             CreateVolumeResponse response = client.createVolume(request);
@@ -124,7 +129,8 @@ public class AwsVolumePlugin implements VolumePlugin<AwsV2User> {
         return volumeId;
     }
 
-    protected void updateVolumeAllocation(VolumeOrder volumeOrder, CreateVolumeResponse volumeResponse) {
+    @VisibleForTesting
+    void updateVolumeAllocation(VolumeOrder volumeOrder, CreateVolumeResponse volumeResponse) {
         synchronized (volumeOrder) {
             VolumeAllocation actualAllocation = new VolumeAllocation(volumeResponse.size());
             volumeOrder.setActualAllocation(actualAllocation);
