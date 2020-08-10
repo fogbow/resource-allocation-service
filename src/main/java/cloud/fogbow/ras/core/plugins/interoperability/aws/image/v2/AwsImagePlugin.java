@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
@@ -21,8 +22,6 @@ import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.Image;
 
 public class AwsImagePlugin implements ImagePlugin<AwsV2User> {
-
-	private static final int ONE_THOUSAND_BYTES = 1024;
 	
 	@VisibleForTesting
     static final Integer NO_VALUE_FLAG = -1;
@@ -72,14 +71,12 @@ public class AwsImagePlugin implements ImagePlugin<AwsV2User> {
 
     @VisibleForTesting
     long getImageSize(List<BlockDeviceMapping> blockDeviceMappings) {
-    	long kilobyte = ONE_THOUSAND_BYTES;
-    	long megabyte = kilobyte * ONE_THOUSAND_BYTES;
-    	long gigabyte = megabyte * ONE_THOUSAND_BYTES;
     	long size = 0;
         for (BlockDeviceMapping blockDeviceMapping : blockDeviceMappings) {
             size += blockDeviceMapping.ebs().volumeSize();
         }
-        return size * gigabyte;
+        double sizeInBytes = BinaryUnit.gigabytes(size).asBytes();
+        return (long) Math.ceil(sizeInBytes);
     }
     
     @VisibleForTesting
