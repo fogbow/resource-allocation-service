@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
@@ -55,8 +56,6 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     static final int MEMORY_COLUMN = 2;
     @VisibleForTesting
     static final int LIMITS_COLUMN = 11;
-    @VisibleForTesting
-    static final int ONE_GIGABYTE = 1024;
 
     public static int maximumStorage;
     public static int maximumNetworks;
@@ -245,8 +244,9 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     ComputeAllocation buildAvailableInstance(@NotNull String[] requirements) {
         int instances = Integer.parseInt(requirements[LIMITS_COLUMN]);
         int vCPU = Integer.parseInt(requirements[VCPU_COLUMN]);
-        Double memory = Double.parseDouble(requirements[MEMORY_COLUMN]) * ONE_GIGABYTE;
-        int ram = memory.intValue();
+        Double memoryInGB = Double.parseDouble(requirements[MEMORY_COLUMN]);
+        double memoryInMB = BinaryUnit.gigabytes(memoryInGB).asMegabytes();
+        int ram = (int) Math.ceil(memoryInMB);
         return new ComputeAllocation(instances, vCPU, ram);
     }
 
