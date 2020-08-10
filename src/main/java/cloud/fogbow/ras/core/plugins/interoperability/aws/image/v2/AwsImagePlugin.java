@@ -71,11 +71,11 @@ public class AwsImagePlugin implements ImagePlugin<AwsV2User> {
 
     @VisibleForTesting
     long getImageSize(List<BlockDeviceMapping> blockDeviceMappings) {
-    	long size = 0;
+    	long sizeInGB = 0;
         for (BlockDeviceMapping blockDeviceMapping : blockDeviceMappings) {
-            size += blockDeviceMapping.ebs().volumeSize();
+            sizeInGB += blockDeviceMapping.ebs().volumeSize();
         }
-        double sizeInBytes = BinaryUnit.gigabytes(size).asBytes();
+        double sizeInBytes = BinaryUnit.gigabytes(sizeInGB).asBytes();
         return (long) Math.ceil(sizeInBytes);
     }
     
