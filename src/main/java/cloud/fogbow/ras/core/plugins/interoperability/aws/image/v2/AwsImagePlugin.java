@@ -13,6 +13,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
+import com.google.common.annotations.VisibleForTesting;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.BlockDeviceMapping;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
@@ -23,7 +24,8 @@ public class AwsImagePlugin implements ImagePlugin<AwsV2User> {
 
 	private static final int ONE_THOUSAND_BYTES = 1024;
 	
-	protected static final Integer NO_VALUE_FLAG = -1;
+	@VisibleForTesting
+    static final Integer NO_VALUE_FLAG = -1;
 
     private String region;
 
@@ -57,7 +59,8 @@ public class AwsImagePlugin implements ImagePlugin<AwsV2User> {
         return buildImageInstance(retrievedImage);
     }
     
-	protected ImageInstance buildImageInstance(Image image) {
+	@VisibleForTesting
+    ImageInstance buildImageInstance(Image image) {
         String id = image.imageId();
         String name = image.name();
 		String status = image.stateAsString();
@@ -67,7 +70,8 @@ public class AwsImagePlugin implements ImagePlugin<AwsV2User> {
         return new ImageInstance(id, name, size, minDisk, minRam, status);
     }
 
-    protected long getImageSize(List<BlockDeviceMapping> blockDeviceMappings) {
+    @VisibleForTesting
+    long getImageSize(List<BlockDeviceMapping> blockDeviceMappings) {
     	long kilobyte = ONE_THOUSAND_BYTES;
     	long megabyte = kilobyte * ONE_THOUSAND_BYTES;
     	long gigabyte = megabyte * ONE_THOUSAND_BYTES;
@@ -78,7 +82,8 @@ public class AwsImagePlugin implements ImagePlugin<AwsV2User> {
         return size * gigabyte;
     }
     
-    protected List<ImageSummary> buildImagesSummary(DescribeImagesResponse response) {
+    @VisibleForTesting
+    List<ImageSummary> buildImagesSummary(DescribeImagesResponse response) {
         List<ImageSummary> images = new ArrayList<>();
         
         List<Image> retrievedImages = response.images();

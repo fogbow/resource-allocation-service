@@ -42,14 +42,21 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
 
     private static final Logger LOGGER = Logger.getLogger(AwsQuotaPlugin.class);
 
-    protected static final String COMMENTED_LINE_PREFIX = "#";
-    protected static final String CSV_COLUMN_SEPARATOR = ",";
+    @VisibleForTesting
+    static final String COMMENTED_LINE_PREFIX = "#";
+    @VisibleForTesting
+    static final String CSV_COLUMN_SEPARATOR = ",";
 
-    protected static final int INSTANCE_TYPE_COLUMN = 0;
-    protected static final int VCPU_COLUMN = 1;
-    protected static final int MEMORY_COLUMN = 2;
-    protected static final int LIMITS_COLUMN = 11;
-    protected static final int ONE_GIGABYTE = 1024;
+    @VisibleForTesting
+    static final int INSTANCE_TYPE_COLUMN = 0;
+    @VisibleForTesting
+    static final int VCPU_COLUMN = 1;
+    @VisibleForTesting
+    static final int MEMORY_COLUMN = 2;
+    @VisibleForTesting
+    static final int LIMITS_COLUMN = 11;
+    @VisibleForTesting
+    static final int ONE_GIGABYTE = 1024;
 
     public static int maximumStorage;
     public static int maximumNetworks;

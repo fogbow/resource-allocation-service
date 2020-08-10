@@ -57,20 +57,33 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     private static final int STORAGE_COLUMN = 3;
     private static final int VCPU_COLUMN = 1;
 
-    protected static final String BANDWIDTH_REQUIREMENT = "bandwidth";
-    protected static final String GRAPHIC_EMULATION_REQUIREMENT = "FPGAs";
-    protected static final String GRAPHIC_MEMORY_REQUIREMENT = "memory-GPU";
-    protected static final String GRAPHIC_PROCESSOR_REQUIREMENT = "GPUs";
-    protected static final String GRAPHIC_SHARING_REQUIREMENT = "p2p-between-GPUs";
-    protected static final String PERFORMANCE_REQUIREMENT = "performance";
-    protected static final String PROCESSOR_REQUIREMENT = "processor";
-    protected static final String RESOURCE_NAME = "Compute";
-    protected static final String STORAGE_REQUIREMENT = "storage";
+    @VisibleForTesting
+    static final String BANDWIDTH_REQUIREMENT = "bandwidth";
+    @VisibleForTesting
+    static final String GRAPHIC_EMULATION_REQUIREMENT = "FPGAs";
+    @VisibleForTesting
+    static final String GRAPHIC_MEMORY_REQUIREMENT = "memory-GPU";
+    @VisibleForTesting
+    static final String GRAPHIC_PROCESSOR_REQUIREMENT = "GPUs";
+    @VisibleForTesting
+    static final String GRAPHIC_SHARING_REQUIREMENT = "p2p-between-GPUs";
+    @VisibleForTesting
+    static final String PERFORMANCE_REQUIREMENT = "performance";
+    @VisibleForTesting
+    static final String PROCESSOR_REQUIREMENT = "processor";
+    @VisibleForTesting
+    static final String RESOURCE_NAME = "Compute";
+    @VisibleForTesting
+    static final String STORAGE_REQUIREMENT = "storage";
 	
-    protected static final int DEFAULT_DEVICE_INDEX = 0;
-    protected static final int INSTANCES_LAUNCH_NUMBER = 1;
-    protected static final int MAXIMUM_SIZE_ALLOWED = 1;
-    protected static final int ONE_GIGABYTE = 1024;
+    @VisibleForTesting
+    static final int DEFAULT_DEVICE_INDEX = 0;
+    @VisibleForTesting
+    static final int INSTANCES_LAUNCH_NUMBER = 1;
+    @VisibleForTesting
+    static final int MAXIMUM_SIZE_ALLOWED = 1;
+    @VisibleForTesting
+    static final int ONE_GIGABYTE = 1024;
 
     private String defaultSubnetId;
     private String flavorsFilePath;
@@ -124,7 +137,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return false;
     }
 
-    protected void doDeleteInstance(String instanceId, Ec2Client client) throws InternalServerErrorException {
+    @VisibleForTesting
+    void doDeleteInstance(String instanceId, Ec2Client client) throws InternalServerErrorException {
         TerminateInstancesRequest request = TerminateInstancesRequest.builder()
                 .instanceIds(instanceId)
                 .build();
@@ -136,7 +150,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         }
     }
 	
-    protected ComputeInstance doGetInstance(String instanceId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    ComputeInstance doGetInstance(String instanceId, Ec2Client client) throws FogbowException {
         DescribeInstancesResponse response = AwsV2CloudUtil.doDescribeInstanceById(instanceId, client);
         Instance instance = AwsV2CloudUtil.getInstanceFrom(response);
         checkTerminatedStateFrom(instance);
@@ -144,7 +159,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return buildComputeInstance(instance, volumes);
     }
 	
-    protected ComputeInstance buildComputeInstance(Instance instance, List<Volume> volumes) {
+    @VisibleForTesting
+    ComputeInstance buildComputeInstance(Instance instance, List<Volume> volumes) {
         String id = instance.instanceId();
         String cloudState = instance.state().nameAsString();
         String name = instance.tags().listIterator().next().value();
@@ -157,7 +173,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    protected String getFaultMessage(Instance instance) {
+    String getFaultMessage(Instance instance) {
         String faultMessage = null;
         String stateTransitionReason = instance.stateTransitionReason();
         if (!stateTransitionReason.isEmpty()) {
@@ -166,7 +182,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return faultMessage;
     }
 
-    protected List<String> getIpAddresses(Instance instance) {
+    @VisibleForTesting
+    List<String> getIpAddresses(Instance instance) {
         List<String> ipAddresses = new ArrayList<>();
         List<String> privateIpaddresses;
         String publicIpAddress;
@@ -183,7 +200,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return ipAddresses;
     }
 
-    protected String getPublicIpAddresses(Instance awsInstance, int index) {
+    @VisibleForTesting
+    String getPublicIpAddresses(Instance awsInstance, int index) {
         String ipAddress = null;
         InstanceNetworkInterfaceAssociation association;
         association = awsInstance.networkInterfaces().get(index).association();
@@ -193,7 +211,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return ipAddress;
     }
 
-    protected List<String> getPrivateIpAddresses(Instance awsInstance, int index) {
+    @VisibleForTesting
+    List<String> getPrivateIpAddresses(Instance awsInstance, int index) {
         List<String> ipAddresses = new ArrayList<String>();
         List<InstancePrivateIpAddress> instancePrivateIpAddresses;
         instancePrivateIpAddresses = awsInstance.networkInterfaces().get(index).privateIpAddresses();
@@ -205,7 +224,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return ipAddresses;
     }
 
-    protected int getAllDisksSize(List<Volume> volumes) {
+    @VisibleForTesting
+    int getAllDisksSize(List<Volume> volumes) {
         int size = 0;
         for (Volume volume : volumes) {
             size += volume.size();
@@ -213,7 +233,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return size;
     }
 
-    protected int getMemoryValueFrom(InstanceType instanceType) {
+    @VisibleForTesting
+    int getMemoryValueFrom(InstanceType instanceType) {
         for (AwsHardwareRequirements flavor : getFlavors()) {
             if (flavor.getName().equals(instanceType.toString())) {
                 return flavor.getRam();
@@ -222,14 +243,16 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return 0;
     }
 
-    protected void checkTerminatedStateFrom(Instance instance) throws InstanceNotFoundException {
+    @VisibleForTesting
+    void checkTerminatedStateFrom(Instance instance) throws InstanceNotFoundException {
         String state = instance.state().nameAsString();
         if (state.equals(AwsV2StateMapper.TERMINATED_STATE)) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
     }
 
-    protected String doRequestInstance(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
+    @VisibleForTesting
+    String doRequestInstance(ComputeOrder computeOrder, AwsHardwareRequirements flavor,
             RunInstancesRequest request, Ec2Client client) throws InternalServerErrorException {
         
         try {
@@ -249,7 +272,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         }
     }
 
-    protected void updateInstanceAllocation(ComputeOrder computeOrder, AwsHardwareRequirements flavor, Instance instance,
+    @VisibleForTesting
+    void updateInstanceAllocation(ComputeOrder computeOrder, AwsHardwareRequirements flavor, Instance instance,
             Ec2Client client) throws FogbowException {
 
         synchronized (computeOrder) {
@@ -264,7 +288,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         }
     }
     
-    protected Image getImageById(String imageId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    Image getImageById(String imageId, Ec2Client client) throws FogbowException {
         DescribeImagesRequest request = DescribeImagesRequest.builder()
                 .imageIds(imageId)
                 .build();
@@ -276,7 +301,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         throw new InstanceNotFoundException(Messages.Exception.IMAGE_NOT_FOUND);
     }
 
-    protected RunInstancesRequest buildRequestInstance(ComputeOrder order, AwsHardwareRequirements flavor, Subnet subnet)
+    @VisibleForTesting
+    RunInstancesRequest buildRequestInstance(ComputeOrder order, AwsHardwareRequirements flavor, Subnet subnet)
             throws FogbowException {
 
         String imageId = flavor.getImageId();
@@ -296,7 +322,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return request;
     }
 	
-    protected InstanceNetworkInterfaceSpecification buildNetworkInterface(Subnet subnet) throws FogbowException {
+    @VisibleForTesting
+    InstanceNetworkInterfaceSpecification buildNetworkInterface(Subnet subnet) throws FogbowException {
         List<Tag> subnetTags = subnet.tags();
         String groupId = AwsV2CloudUtil.getGroupIdFrom(subnetTags);
         String subnetId = subnet.subnetId();
@@ -310,13 +337,15 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return networkInterface;
     }
 
-    protected Subnet getNetworkSelected(ComputeOrder order, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    Subnet getNetworkSelected(ComputeOrder order, Ec2Client client) throws FogbowException {
         List<String> networkIds = order.getNetworkIds();
         String subnetId = selectNetworkId(networkIds);
         return AwsV2CloudUtil.getSubnetById(subnetId, client);
     }
 
-    protected String selectNetworkId(List<String> networkIdList) throws FogbowException {
+    @VisibleForTesting
+    String selectNetworkId(List<String> networkIdList) throws FogbowException {
         String networkId = this.defaultSubnetId;
         if (!networkIdList.isEmpty()) {
             checkNetworkIdListIntegrity(networkIdList);
@@ -325,13 +354,15 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return networkId;
     }
 
-    protected void checkNetworkIdListIntegrity(List<String> networkIdList) throws FogbowException {
+    @VisibleForTesting
+    void checkNetworkIdListIntegrity(List<String> networkIdList) throws FogbowException {
         if (networkIdList.size() > MAXIMUM_SIZE_ALLOWED) {
             throw new InvalidParameterException(Messages.Exception.MANY_NETWORKS_NOT_ALLOWED);
         }
     }
 
-    protected AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
+    @VisibleForTesting
+    AwsHardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, AwsV2User cloudUser)
             throws FogbowException {
 
         updateHardwareRequirements(cloudUser);
@@ -355,7 +386,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
      * @param orderRequirements: a map of requirements in the compute order request.
      * @return a set of requirements-filtered flavors or the current set of flavors.
      */
-    protected TreeSet<AwsHardwareRequirements> getFlavorsByRequirements(Map<String, String> orderRequirements) {
+    @VisibleForTesting
+    TreeSet<AwsHardwareRequirements> getFlavorsByRequirements(Map<String, String> orderRequirements) {
         TreeSet<AwsHardwareRequirements> resultSet = getFlavors();
         List<AwsHardwareRequirements> resultList = null;
         if (orderRequirements != null && !orderRequirements.isEmpty()) {
@@ -369,13 +401,15 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return resultSet;
     }
 
-    protected TreeSet<AwsHardwareRequirements> parseToTreeSet(List<AwsHardwareRequirements> list) {
+    @VisibleForTesting
+    TreeSet<AwsHardwareRequirements> parseToTreeSet(List<AwsHardwareRequirements> list) {
         TreeSet<AwsHardwareRequirements> resultSet = new TreeSet<AwsHardwareRequirements>();
         resultSet.addAll(list);
         return resultSet;
     }
 
-    protected List<AwsHardwareRequirements> filterFlavors(TreeSet<AwsHardwareRequirements> flavors,
+    @VisibleForTesting
+    List<AwsHardwareRequirements> filterFlavors(TreeSet<AwsHardwareRequirements> flavors,
             Entry<String, String> requirements) {
 
         String key = requirements.getKey().trim();
@@ -385,7 +419,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
                 .collect(Collectors.toList());
     }
 
-    protected TreeSet<AwsHardwareRequirements> getFlavors() {
+    @VisibleForTesting
+    TreeSet<AwsHardwareRequirements> getFlavors() {
         synchronized (this.flavors) {
             return this.flavors;
         }
@@ -399,7 +434,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
      * @param cloudUser: the user of the AWS cloud.
      * @throws FogbowException: if any error occurs.
      */
-    protected void updateHardwareRequirements(AwsV2User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    void updateHardwareRequirements(AwsV2User cloudUser) throws FogbowException {
         List<String> lines = loadLinesFromFlavorFile();
         String[] requirements = null;
         AwsHardwareRequirements flavor = null;
@@ -416,7 +452,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         }
     }
 
-    protected List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
+    @VisibleForTesting
+    List<String> loadLinesFromFlavorFile() throws ConfigurationErrorException {
         String file = getFlavorsFilePath();
         Path path = Paths.get(file);
         try {
@@ -427,7 +464,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         }
     }
 	
-    protected AwsHardwareRequirements buildHardwareRequirements(Entry<String, Integer> imageEntry,
+    @VisibleForTesting
+    AwsHardwareRequirements buildHardwareRequirements(Entry<String, Integer> imageEntry,
             String[] requirements) {
 
         String name = requirements[INSTANCE_TYPE_COLUMN];
@@ -440,7 +478,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return new AwsHardwareRequirements(name, flavorId, cpu, memory.intValue(), disk, imageId, requirementsMap);
     }
 
-    protected Map<String, String> loadRequirementsMap(String[] requirements) {
+    @VisibleForTesting
+    Map<String, String> loadRequirementsMap(String[] requirements) {
         Map<String, String> requirementsMap = new HashMap<String, String>();
         requirementsMap.put(BANDWIDTH_REQUIREMENT, requirements[DEDICATED_EBS_BANDWIDTH_COLUMN]);
         requirementsMap.put(GRAPHIC_EMULATION_REQUIREMENT, requirements[GRAPHIC_EMULATION_COLUMN]);
@@ -453,7 +492,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return requirementsMap;
     }
 
-    protected Map<String, Integer> generateImagesSizeMap(AwsV2User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    Map<String, Integer> generateImagesSizeMap(AwsV2User cloudUser) throws FogbowException {
 
         Map<String, Integer> imageMap = new HashMap<String, Integer>();
         String cloudUserId = cloudUser.getId();
@@ -472,7 +512,8 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         return imageMap;
     }
 
-    protected int getImageSize(Image image) {
+    @VisibleForTesting
+    int getImageSize(Image image) {
         int size = 0;
         for (BlockDeviceMapping device : image.blockDeviceMappings()) {
             size = device.ebs().volumeSize();
@@ -482,15 +523,18 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
 
     // The following methods are used to assist in testing.
 	
-    protected String generateFlavorId() {
+    @VisibleForTesting
+    String generateFlavorId() {
         return UUID.randomUUID().toString();
     }
 	
-    protected String getFlavorsFilePath() {
+    @VisibleForTesting
+    String getFlavorsFilePath() {
         return flavorsFilePath;
     }
 	
-    protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+    @VisibleForTesting
+    void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
         this.launchCommandGenerator = launchCommandGenerator;
     }
 

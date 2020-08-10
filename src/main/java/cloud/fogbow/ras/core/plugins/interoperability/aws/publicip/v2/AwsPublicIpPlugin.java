@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.aws.publicip.v2;
 import java.util.List;
 import java.util.Properties;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -43,12 +44,18 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
 
     private static final Logger LOGGER = Logger.getLogger(AwsPublicIpPlugin.class);
 
-    protected static final String AWS_TAG_ASSOCIATION_ID = "associationId";
-    protected static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
-    protected static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow public IP.";
-    protected static final String TCP_PROTOCOL = "tcp";
-    protected static final int PUBLIC_IP_ALLOCATION_NUMBER = 1;
-    protected static final int SSH_DEFAULT_PORT = 22;
+    @VisibleForTesting
+    static final String AWS_TAG_ASSOCIATION_ID = "associationId";
+    @VisibleForTesting
+    static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
+    @VisibleForTesting
+    static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow public IP.";
+    @VisibleForTesting
+    static final String TCP_PROTOCOL = "tcp";
+    @VisibleForTesting
+    static final int PUBLIC_IP_ALLOCATION_NUMBER = 1;
+    @VisibleForTesting
+    static final int SSH_DEFAULT_PORT = 22;
 
     private String defaultGroupId;
     private String region;
@@ -93,7 +100,8 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         return AwsV2StateMapper.map(ResourceType.PUBLIC_IP, instanceState).equals(InstanceState.FAILED);
     }
 
-    protected void doDeleteInstance(String allocationId, String instanceId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void doDeleteInstance(String allocationId, String instanceId, Ec2Client client) throws FogbowException {
         Address address = AwsV2CloudUtil.getAddressById(allocationId, client);
         String networkInterfaceId = address.networkInterfaceId();
         String defaultGroupId = getDefaultGroupId(instanceId, client);
@@ -124,7 +132,8 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_ERROR);
     }
 
-    protected void doDisassociateAddresses(String associationId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void doDisassociateAddresses(String associationId, Ec2Client client) throws FogbowException {
         DisassociateAddressRequest request = DisassociateAddressRequest.builder()
                 .associationId(associationId)
                 .build();
@@ -135,12 +144,14 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         }
     }
 
-    protected PublicIpInstance doGetInstance(String allocationId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    PublicIpInstance doGetInstance(String allocationId, Ec2Client client) throws FogbowException {
         Address address = AwsV2CloudUtil.getAddressById(allocationId, client);
         return buildPublicIpInstance(address);
     }
 
-    protected PublicIpInstance buildPublicIpInstance(Address address) {
+    @VisibleForTesting
+    PublicIpInstance buildPublicIpInstance(Address address) {
         String id = address.allocationId();
         String cloudState = setPublicIpInstanceState(address);
         String ip = address.publicIp();
@@ -148,14 +159,16 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         return publicIpInstance;
     }
     
-    protected String setPublicIpInstanceState(Address address) {
+    @VisibleForTesting
+    String setPublicIpInstanceState(Address address) {
         if (address.instanceId() != null) {
             return AwsV2StateMapper.AVAILABLE_STATE;
         }
         return AwsV2StateMapper.ERROR_STATE;
     }
 
-    protected String doRequestInstance(PublicIpOrder order, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    String doRequestInstance(PublicIpOrder order, Ec2Client client) throws FogbowException {
         String allocationId = doAllocateAddresses(client);
         String computeId = order.getComputeId();
         Instance instance = getInstanceReservation(computeId, client);
@@ -166,7 +179,8 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         return allocationId;
     }
 
-    protected void doAssociateAddress(String allocationId, String networkInterfaceId, Ec2Client client)
+    @VisibleForTesting
+    void doAssociateAddress(String allocationId, String networkInterfaceId, Ec2Client client)
             throws FogbowException {
 
         AssociateAddressRequest request = AssociateAddressRequest.builder()
@@ -182,7 +196,8 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         }
     }
 
-    protected String getDefaultGroupId(String instanceId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    String getDefaultGroupId(String instanceId, Ec2Client client) throws FogbowException {
         Instance instance = getInstanceReservation(instanceId, client);
         String subnetId = instance.subnetId();
         Subnet subnet = AwsV2CloudUtil.getSubnetById(subnetId, client);
@@ -190,7 +205,8 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         return AwsV2CloudUtil.getGroupIdFrom(subnetTags);
     }
 
-    protected void doModifyNetworkInterfaceAttributes(String allocationId, String groupId, String networkInterfaceId,
+    @VisibleForTesting
+    void doModifyNetworkInterfaceAttributes(String allocationId, String groupId, String networkInterfaceId,
             Ec2Client client) throws FogbowException {
 
         ModifyNetworkInterfaceAttributeRequest request = ModifyNetworkInterfaceAttributeRequest.builder()
@@ -211,7 +227,8 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         }
     }
 
-    protected void doReleaseAddresses(String allocationId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void doReleaseAddresses(String allocationId, Ec2Client client) throws FogbowException {
         ReleaseAddressRequest request = ReleaseAddressRequest.builder()
                 .allocationId(allocationId)
                 .build();
@@ -222,11 +239,13 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         }
     }
 
-    protected String getNetworkInterfaceIdFrom(Instance instance) {
+    @VisibleForTesting
+    String getNetworkInterfaceIdFrom(Instance instance) {
         return instance.networkInterfaces().listIterator().next().networkInterfaceId();
     }
 
-    protected String handleSecurityIssues(String allocationId, Instance instance, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    String handleSecurityIssues(String allocationId, Instance instance, Ec2Client client) throws FogbowException {
         String groupName = SystemConstants.PIP_SECURITY_GROUP_PREFIX + allocationId;
         String vpcId = instance.vpcId();
         try {
@@ -249,7 +268,8 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         }
     }
     
-    protected Instance getInstanceReservation(String instanceId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    Instance getInstanceReservation(String instanceId, Ec2Client client) throws FogbowException {
         DescribeInstancesResponse response = AwsV2CloudUtil.doDescribeInstanceById(instanceId, client);
         if (response != null && !response.reservations().isEmpty()) {
             Reservation reservation = response.reservations().listIterator().next();
@@ -260,7 +280,8 @@ public class AwsPublicIpPlugin implements PublicIpPlugin<AwsV2User> {
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
 
-    protected String doAllocateAddresses(Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    String doAllocateAddresses(Ec2Client client) throws FogbowException {
         AllocateAddressRequest request = AllocateAddressRequest.builder()
                 .domain(DomainType.VPC)
                 .build();

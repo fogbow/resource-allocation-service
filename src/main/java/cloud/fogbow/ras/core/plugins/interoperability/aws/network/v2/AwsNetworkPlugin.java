@@ -55,13 +55,20 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
 
     private static final Logger LOGGER = Logger.getLogger(AwsNetworkPlugin.class);
 
-    protected static final String ALL_PROTOCOLS = "-1";
-    protected static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
-    protected static final String GATEWAY_RESOURCE = "Gateway";
-    protected static final String LOCAL_GATEWAY_DESTINATION = "local";
-    protected static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
-    protected static final String SUBNET_RESOURCE = "Subnet";
-    protected static final String VPC_RESOURCE = "VPC";
+    @VisibleForTesting
+    static final String ALL_PROTOCOLS = "-1";
+    @VisibleForTesting
+    static final String DEFAULT_DESTINATION_CIDR = "0.0.0.0/0";
+    @VisibleForTesting
+    static final String GATEWAY_RESOURCE = "Gateway";
+    @VisibleForTesting
+    static final String LOCAL_GATEWAY_DESTINATION = "local";
+    @VisibleForTesting
+    static final String SECURITY_GROUP_DESCRIPTION = "Security group associated with a fogbow network.";
+    @VisibleForTesting
+    static final String SUBNET_RESOURCE = "Subnet";
+    @VisibleForTesting
+    static final String VPC_RESOURCE = "VPC";
 
     private String region;
     private String zone;
@@ -229,7 +236,8 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
         throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
     }
 
-    protected void doDeleteSubnet(String subnetId, Ec2Client client) throws FogbowException {
+    @VisibleForTesting
+    void doDeleteSubnet(String subnetId, Ec2Client client) throws FogbowException {
         DeleteSubnetRequest request = DeleteSubnetRequest.builder()
                 .subnetId(subnetId)
                 .build();
