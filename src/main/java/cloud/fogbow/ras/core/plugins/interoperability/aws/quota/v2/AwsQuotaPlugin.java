@@ -73,8 +73,8 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
         maximumPublicIpAddresses = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_ELASTIC_IP_ADDRESSES_QUOTA_KEY));
         this.region = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_REGION_SELECTION_KEY);
         this.flavorsFilePath = properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_FLAVORS_TYPES_FILE_PATH_KEY);
-        this.totalComputeAllocationMap = new HashMap<String, ComputeAllocation>();
-        this.computeAllocationMap = new HashMap<String, ComputeAllocation>();
+        this.totalComputeAllocationMap = new HashMap<>();
+        this.computeAllocationMap = new HashMap<>();
     }
 
     @Override
