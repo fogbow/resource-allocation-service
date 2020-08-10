@@ -66,7 +66,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     private String flavorsFilePath;
     private String region;
 
-    public AwsQuotaPlugin(@NotNull String confFilePath) {
+    public AwsQuotaPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         maximumStorage = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_STORAGE_QUOTA_KEY));
         maximumNetworks = Integer.parseInt(properties.getProperty(AwsV2ConfigurationPropertyKeys.AWS_VPC_QUOTA_KEY));
@@ -78,7 +78,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @Override
-    public ResourceQuota getUserQuota(@NotNull AwsV2User cloudUser) throws FogbowException {
+    public ResourceQuota getUserQuota(AwsV2User cloudUser) throws FogbowException {
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
 
         loadAvailableAllocations();
@@ -90,7 +90,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    ResourceAllocation calculateUsedQuota(@NotNull Ec2Client client) throws FogbowException {
+    ResourceAllocation calculateUsedQuota(Ec2Client client) throws FogbowException {
         ComputeAllocation computeAllocation = this.calculateComputeUsedQuota();
         int storage = this.calculateUsedStorage(client);
         int elasticIps = this.calculateUsedElasticIp(client);
@@ -117,20 +117,20 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    int calculateUsedNetworks(@NotNull Ec2Client client) throws FogbowException {
+    int calculateUsedNetworks(Ec2Client client) throws FogbowException {
         List<Vpc> vpcs = client.describeVpcs().vpcs();
         return vpcs.size();
     }
 
     @VisibleForTesting
-    int calculateUsedElasticIp(@NotNull Ec2Client client) throws FogbowException {
+    int calculateUsedElasticIp(Ec2Client client) throws FogbowException {
         DescribeAddressesRequest request = DescribeAddressesRequest.builder().build();
         DescribeAddressesResponse response = AwsV2CloudUtil.doDescribeAddressesRequests(request, client);
         return response.addresses().size();
     }
 
     @VisibleForTesting
-    int calculateUsedStorage(@NotNull Ec2Client client) throws FogbowException {
+    int calculateUsedStorage(Ec2Client client) throws FogbowException {
         DescribeVolumesRequest request = DescribeVolumesRequest.builder().build();
         DescribeVolumesResponse response = AwsV2CloudUtil.doDescribeVolumesRequest(request, client);
         return getAllVolumesSize(response.volumes());
@@ -182,7 +182,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    void loadInstancesAllocated(@NotNull Ec2Client client) throws FogbowException {
+    void loadInstancesAllocated(Ec2Client client) throws FogbowException {
         List<Instance> instances = getInstanceReservations(client);
         ComputeAllocation allocation;
         if (!instances.isEmpty()) {
@@ -195,7 +195,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    ComputeAllocation buildAllocatedInstance(@NotNull Instance instance, @NotNull Ec2Client client) throws FogbowException {
+    ComputeAllocation buildAllocatedInstance(Instance instance, Ec2Client client) throws FogbowException {
         String instanceType = instance.instanceTypeAsString();
         ComputeAllocation totalAllocation = getTotalComputeAllocationMap().get(instanceType);
         ComputeAllocation allocatedInstance = getComputeAllocationMap().get(instanceType);
@@ -206,7 +206,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    int getAllVolumesSize(@NotNull List<Volume> volumes) {
+    int getAllVolumesSize(List<Volume> volumes) {
         int size = 0;
         for (Volume volume : volumes) {
             size += volume.size();
@@ -215,7 +215,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    List<Instance> getInstanceReservations(@NotNull Ec2Client client) throws FogbowException {
+    List<Instance> getInstanceReservations(Ec2Client client) throws FogbowException {
         DescribeInstancesResponse response = AwsV2CloudUtil.doDescribeInstances(client);
         List<Instance> instances = new ArrayList<>();
         for (Reservation reservation : response.reservations()) {
@@ -241,7 +241,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    ComputeAllocation buildAvailableInstance(@NotNull String[] requirements) {
+    ComputeAllocation buildAvailableInstance(String[] requirements) {
         int instances = Integer.parseInt(requirements[LIMITS_COLUMN]);
         int vCPU = Integer.parseInt(requirements[VCPU_COLUMN]);
         Double memoryInGB = Double.parseDouble(requirements[MEMORY_COLUMN]);
