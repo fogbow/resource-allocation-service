@@ -296,7 +296,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
             doModifyVpcAttributes(vpcId, client);
             String gatewayId = doCreateInternetGateway(vpcId, client);
             doAttachInternetGateway(gatewayId, vpcId, client);
-            doCreateRouteTables(cidr, gatewayId, vpcId, client);
+            doCreateRouteTables(gatewayId, vpcId, client);
             return vpcId;
         } catch (SdkException e) {
             throw new InternalServerErrorException(e.getMessage());
@@ -304,7 +304,7 @@ public class AwsNetworkPlugin implements NetworkPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    void doCreateRouteTables(String cidr, String gatewayId, String vpcId, Ec2Client client)
+    void doCreateRouteTables(String gatewayId, String vpcId, Ec2Client client)
             throws FogbowException {
 
         RouteTable routeTable = getRouteTables(vpcId, client);
