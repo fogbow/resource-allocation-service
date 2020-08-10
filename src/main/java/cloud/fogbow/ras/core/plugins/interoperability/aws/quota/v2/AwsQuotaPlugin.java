@@ -24,14 +24,11 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2CloudUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.AwsV2ConfigurationPropertyKeys;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * This class calculates the quota of available instances according to the
@@ -117,7 +114,7 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
     }
 
     @VisibleForTesting
-    int calculateUsedNetworks(Ec2Client client) throws FogbowException {
+    int calculateUsedNetworks(Ec2Client client) {
         List<Vpc> vpcs = client.describeVpcs().vpcs();
         return vpcs.size();
     }
@@ -188,14 +185,14 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
         if (!instances.isEmpty()) {
             for (Instance instance : instances) {
                 String instanceType = instance.instanceTypeAsString();
-                allocation = buildAllocatedInstance(instance, client);
+                allocation = buildAllocatedInstance(instance);
                 this.computeAllocationMap.put(instanceType, allocation);
             }
         }
     }
 
     @VisibleForTesting
-    ComputeAllocation buildAllocatedInstance(Instance instance, Ec2Client client) throws FogbowException {
+    ComputeAllocation buildAllocatedInstance(Instance instance) {
         String instanceType = instance.instanceTypeAsString();
         ComputeAllocation totalAllocation = getTotalComputeAllocationMap().get(instanceType);
         ComputeAllocation allocatedInstance = getComputeAllocationMap().get(instanceType);
@@ -261,8 +258,6 @@ public class AwsQuotaPlugin implements QuotaPlugin<AwsV2User> {
             throw new ConfigurationErrorException(e.getMessage());
         }
     }
-
-    // These methods are used to assist in testing.
 
     @VisibleForTesting
     Map<String, ComputeAllocation> getTotalComputeAllocationMap() {
