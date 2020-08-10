@@ -1,5 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws;
 
+import cloud.fogbow.ras.core.plugins.interoperability.aws.attachment.v2.AwsAttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.compute.v2.AwsComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.image.v2.AwsImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.network.v2.AwsNetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.publicip.v2.AwsPublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.volume.v2.AwsVolumePlugin;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -9,12 +15,12 @@ import cloud.fogbow.ras.core.models.ResourceType;
 public class AwsV2StateMapper {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2StateMapper.class);
-	private static final String ATTACHMENT_PLUGIN = "AwsV2AttachmentPlugin";
-	private static final String COMPUTE_PLUGIN = "AwsV2ComputePlugin";
-	private static final String IMAGE_PLUGIN = "AwsV2ImagePlugin";
-	private static final String NETWORK_PLUGIN = "AwsV2NetworkPlugin";
-	private static final String PUBLIC_IP_PLUGIN = "AwsV2PublicIpPlugin";
-	private static final String VOLUME_PLUGIN = "AwsV2VolumePlugin";
+	private static final String ATTACHMENT_PLUGIN = AwsAttachmentPlugin.class.getSimpleName();
+	private static final String COMPUTE_PLUGIN = AwsComputePlugin.class.getSimpleName();
+	private static final String IMAGE_PLUGIN = AwsImagePlugin.class.getSimpleName();
+	private static final String NETWORK_PLUGIN = AwsNetworkPlugin.class.getSimpleName();
+	private static final String PUBLIC_IP_PLUGIN = AwsPublicIpPlugin.class.getSimpleName();
+	private static final String VOLUME_PLUGIN = AwsVolumePlugin.class.getSimpleName();
 
 	public static final String ATTACHED_STATE = "attached";
 	public static final String ATTACHING_STATE = "attaching";
