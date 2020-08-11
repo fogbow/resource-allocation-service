@@ -9,6 +9,7 @@ import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
 import com.google.common.annotations.VisibleForTesting;
@@ -19,12 +20,15 @@ import com.microsoft.azure.management.compute.Disk;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.network.NetworkUsage;
+import org.apache.log4j.Logger;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
+
+    public static final Logger LOGGER = Logger.getLogger(AzureQuotaPlugin.class);
 
     @VisibleForTesting
     static final String QUOTA_VM_INSTANCES_KEY = "virtualMachines";
@@ -58,6 +62,7 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
 
     @Override
     public ResourceQuota getUserQuota(AzureUser cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.GETTING_QUOTA);
         Azure azure = AzureClientCacheManager.getAzure(cloudUser);
 
         Map<String, ComputeUsage> computeUsages = this.getComputeUsageMap(azure);
