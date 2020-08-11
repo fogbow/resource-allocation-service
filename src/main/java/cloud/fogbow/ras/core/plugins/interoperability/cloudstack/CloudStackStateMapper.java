@@ -3,6 +3,11 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.CloudStackAttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.CloudStackComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CloudStackNetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
 import org.apache.log4j.Logger;
 
 /**
@@ -11,6 +16,12 @@ import org.apache.log4j.Logger;
 
 public class CloudStackStateMapper {
     private static final Logger LOGGER = Logger.getLogger(CloudStackStateMapper.class);
+
+    public static final String COMPUTE_PLUGIN = CloudStackComputePlugin.class.getSimpleName();
+    public static final String VOLUME_PLUGIN = CloudStackVolumePlugin.class.getSimpleName();
+    public static final String ATTACHMENT_PLUGIN = CloudStackAttachmentPlugin.class.getSimpleName();
+    public static final String NETWORK_PLUGIN = CloudStackNetworkPlugin.class.getSimpleName();
+    public static final String PUBLIC_IP_PLUGIN = CloudStackPublicIpPlugin.class.getSimpleName();
 
     public static final String ASSOCIATING_IP_ADDRESS_STATUS = "associating IP address";
     public static final String CREATING_FIREWALL_RULE_STATUS = "creating firewall rule";
@@ -54,7 +65,7 @@ public class CloudStackStateMapper {
                         return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, cloudStackState,
-                                "CloudStackComputePlugin"));
+                                COMPUTE_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case VOLUME:
@@ -69,7 +80,7 @@ public class CloudStackStateMapper {
                         return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, cloudStackState,
-                                "CloudStackVolumePlugin"));
+                                VOLUME_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case ATTACHMENT:
@@ -83,7 +94,7 @@ public class CloudStackStateMapper {
                         return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, cloudStackState,
-                                "CloudStackAttachmentPlugin"));
+                                ATTACHMENT_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case NETWORK:
@@ -98,7 +109,7 @@ public class CloudStackStateMapper {
                         return InstanceState.BUSY;
                     default:
                         LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, cloudStackState,
-                                "CloudStackNetworkPlugin"));
+                                NETWORK_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case PUBLIC_IP:
@@ -113,7 +124,7 @@ public class CloudStackStateMapper {
                         return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, cloudStackState,
-                                "CloudStackPublicIpPlugin"));
+                                PUBLIC_IP_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             default:
