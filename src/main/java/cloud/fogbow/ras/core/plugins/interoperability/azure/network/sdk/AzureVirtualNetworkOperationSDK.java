@@ -170,10 +170,10 @@ public class AzureVirtualNetworkOperationSDK {
         Azure azure = AzureClientCacheManager.getAzure(azureUser);
 
         if (AzureResourceGroupOperationUtil.existsResourceGroup(azure, resourceName)) {
-            Completable deteteResourceGroupCompletable = AzureResourceGroupOperationUtil
+            Completable deleteResourceGroupCompletable = AzureResourceGroupOperationUtil
                     .deleteResourceGroupAsync(azure, resourceName);
 
-            setDeleteVirtualNetworkBehaviour(deteteResourceGroupCompletable)
+            setDeleteVirtualNetworkBehaviour(deleteResourceGroupCompletable)
                     .subscribeOn(this.scheduler)
                     .subscribe();
         } else {
