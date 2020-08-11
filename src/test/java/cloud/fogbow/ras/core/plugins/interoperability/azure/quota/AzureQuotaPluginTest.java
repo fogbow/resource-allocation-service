@@ -1,9 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.azure.quota;
 
+import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
@@ -11,6 +13,8 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.AzureVirtualMachineSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.quota.sdk.AzureQuotaSDK;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.*;
@@ -30,7 +34,8 @@ import java.util.stream.Stream;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
-        AzureClientCacheManager.class
+        AzureClientCacheManager.class,
+        AzureQuotaSDK.class
 })
 public class AzureQuotaPluginTest extends TestUtils {
 
@@ -42,6 +47,7 @@ public class AzureQuotaPluginTest extends TestUtils {
     private AzureQuotaPlugin plugin;
     private AzureUser azureUser;
     private Azure azure;
+    private String defaultRegionName;
 
     @Before
     public void setUp() {
@@ -49,6 +55,8 @@ public class AzureQuotaPluginTest extends TestUtils {
                 SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + AzureTestUtils.AZURE_CLOUD_NAME + File.separator
                 + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        Properties properties = PropertiesUtil.readProperties(azureConfFilePath);
+        this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         this.plugin = Mockito.spy(new AzureQuotaPlugin(azureConfFilePath));
         this.azureUser = AzureTestUtils.createAzureUser();
         this.azure = null;
@@ -67,7 +75,9 @@ public class AzureQuotaPluginTest extends TestUtils {
 
         Mockito.doReturn(computeUsageMap).when(this.plugin).getComputeUsageMap(Mockito.eq(this.azure));
         Mockito.doReturn(networkUsageMap).when(this.plugin).getNetworkUsageMap(Mockito.eq(this.azure));
-        Mockito.doReturn(disks).when(this.plugin).getDisks(Mockito.eq(this.azure));
+
+        PowerMockito.mockStatic(AzureQuotaSDK.class);
+        PowerMockito.when(AzureQuotaSDK.getDisks(Mockito.eq(azure))).thenReturn(disks);
 
         ResourceAllocation totalQuota = createTotalQuota();
         ResourceAllocation usedQuota = createUsedQuota();
@@ -85,12 +95,10 @@ public class AzureQuotaPluginTest extends TestUtils {
         // verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkUsageMap(Mockito.eq(this.azure));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getComputeUsageMap(Mockito.eq(this.azure));
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getDisks(Mockito.eq(this.azure));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getUsedQuota(Mockito.eq(computeUsageMap),
                 Mockito.eq(networkUsageMap), Mockito.eq(disks), Mockito.eq(this.azure));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getTotalQuota(Mockito.eq(computeUsageMap),
                 Mockito.eq(networkUsageMap));
-
         Assert.assertNotNull(quota);
         Assert.assertEquals(totalQuota, quota.getTotalQuota());
         Assert.assertEquals(usedQuota, quota.getUsedQuota());
@@ -551,14 +559,15 @@ public class AzureQuotaPluginTest extends TestUtils {
         Stream<ComputeUsage> mockStream = computeUsageList.stream();
 
         Mockito.when(computeUsages.stream()).thenReturn(mockStream);
-        Mockito.doReturn(computeUsages).when(this.plugin).getComputeUsage(Mockito.eq(this.azure));
+
+        PowerMockito.mockStatic(AzureQuotaSDK.class);
+        PowerMockito.when(AzureQuotaSDK.getComputeUsageByRegion(Mockito.eq(azure), Mockito.eq(this.defaultRegionName)))
+            .thenReturn(computeUsages);
 
         // exercise
         Map<String, ComputeUsage> computeUsageMap = this.plugin.getComputeUsageMap(this.azure);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getComputeUsage(Mockito.eq(this.azure));
-
         ComputeUsage vmUsage = computeUsageMap.get(AzureQuotaPlugin.QUOTA_VM_INSTANCES_KEY);
         ComputeUsage coresUsage = computeUsageMap.get(AzureQuotaPlugin.QUOTA_VM_CORES_KEY);
         Assert.assertNotNull(vmUsage);
@@ -582,14 +591,14 @@ public class AzureQuotaPluginTest extends TestUtils {
         Stream<NetworkUsage> mockStream = networkUsageList.stream();
 
         Mockito.when(networkUsages.stream()).thenReturn(mockStream);
-        Mockito.doReturn(networkUsages).when(this.plugin).getNetworkUsage(Mockito.eq(this.azure));
+        PowerMockito.mockStatic(AzureQuotaSDK.class);
+        PowerMockito.when(AzureQuotaSDK.getNetworkUsageByRegion(Mockito.eq(azure), Mockito.eq(this.defaultRegionName)))
+                .thenReturn(networkUsages);
 
         // exercise
         Map<String, NetworkUsage> networkUsageMap = this.plugin.getNetworkUsageMap(this.azure);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getNetworkUsage(Mockito.eq(this.azure));
-
         NetworkUsage publicIpUsage = networkUsageMap.get(AzureQuotaPlugin.QUOTA_PUBLIC_IP_ADDRESSES);
         NetworkUsage networkUsage = networkUsageMap.get(AzureQuotaPlugin.QUOTA_NETWORK_INSTANCES);
         Assert.assertNotNull(publicIpUsage);
@@ -686,13 +695,14 @@ public class AzureQuotaPluginTest extends TestUtils {
         Stream<VirtualMachineSize> mockStream = this.createVirtualMachineSizeStream();
         Mockito.when(mockedSizes.stream()).thenReturn(mockStream);
 
-        Mockito.doReturn(mockedSizes).when(this.plugin).getVirtualMachineSizes(Mockito.eq(this.azure));
+        PowerMockito.mockStatic(AzureQuotaSDK.class);
+        PowerMockito.when(AzureQuotaSDK.getVirtualMachineSizesByRegion(Mockito.eq(azure),
+                Mockito.eq(this.defaultRegionName))).thenReturn(mockedSizes);
 
         // exercise
         Map<String, VirtualMachineSize> virtualMachineSizes = this.plugin.getVirtualMachineSizesInUse(sizeNames, this.azure);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getVirtualMachineSizes(Mockito.eq(this.azure));
         for (String sizeName : virtualMachineSizes.keySet()) {
             Assert.assertTrue(sizeNames.contains(sizeName));
         }
@@ -718,13 +728,13 @@ public class AzureQuotaPluginTest extends TestUtils {
 
         Mockito.when(virtualMachines.stream()).thenReturn(mockStream);
 
-        Mockito.doReturn(virtualMachines).when(this.plugin).getVirtualMachines(Mockito.eq(this.azure));
+        PowerMockito.mockStatic(AzureQuotaSDK.class);
+        PowerMockito.when(AzureQuotaSDK.getVirtualMachines(Mockito.eq(azure))).thenReturn(virtualMachines);
 
         // exercise
         List<String> sizeNamesInUse = this.plugin.getVirtualMachineSizeNamesInUse(this.azure);
 
         // verify
-        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).getVirtualMachines(Mockito.eq(this.azure));
         Assert.assertTrue(sizeNamesInUse.contains(vm1SizeType.toString()));
         Assert.assertTrue(sizeNamesInUse.contains(vm2SizeType.toString()));
     }
