@@ -4,6 +4,7 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
@@ -40,14 +41,12 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
     @VisibleForTesting
     static final int NO_USAGE = 0;
 
-    private static final int ONE_PETABYTE_IN_GIGABYTES = 1048576;
-
     /**
      * This value is hardcoded because at the time this plugin was developed, a value for maximum storage capacity was
      * not provided by the SDK. The current value is informed in the documentation.
      */
     @VisibleForTesting
-    static final int MAXIMUM_STORAGE_ACCOUNT_CAPACITY = 50 * ONE_PETABYTE_IN_GIGABYTES;
+    static final int MAXIMUM_STORAGE_ACCOUNT_CAPACITY = (int) BinaryUnit.petabytes(50).asGigabytes();
 
     private final String defaultRegionName;
 
