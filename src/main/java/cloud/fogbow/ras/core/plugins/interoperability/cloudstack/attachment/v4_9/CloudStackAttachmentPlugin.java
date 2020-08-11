@@ -53,8 +53,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @Override
-    public String requestInstance(@NotNull AttachmentOrder attachmentOrder,
-                                  @NotNull CloudStackUser cloudStackUser)
+    public String requestInstance(AttachmentOrder attachmentOrder,
+                                  CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
@@ -70,8 +70,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @Override
-    public void deleteInstance(@NotNull AttachmentOrder attachmentOrder,
-                               @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+    public void deleteInstance(AttachmentOrder attachmentOrder,
+                               CloudStackUser cloudStackUser) throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, attachmentOrder.getInstanceId()));
 
@@ -84,8 +84,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @Override
-    public AttachmentInstance getInstance(@NotNull AttachmentOrder attachmentOrder,
-                                          @NotNull CloudStackUser cloudStackUser)
+    public AttachmentInstance getInstance(AttachmentOrder attachmentOrder,
+                                          CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, attachmentOrder.getInstanceId()));
@@ -98,11 +98,10 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         return doGetInstance(attachmentOrder, request, cloudStackUser);
     }
 
-    @NotNull
     @VisibleForTesting
-    AttachmentInstance doGetInstance(@NotNull AttachmentOrder attachmentOrder,
-                                     @NotNull AttachmentJobStatusRequest request,
-                                     @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+    AttachmentInstance doGetInstance(AttachmentOrder attachmentOrder,
+                                     AttachmentJobStatusRequest request,
+                                     CloudStackUser cloudStackUser) throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
@@ -113,8 +112,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @VisibleForTesting
-    void doDeleteInstance(@NotNull DetachVolumeRequest request ,
-                          @NotNull CloudStackUser cloudStackUser)
+    void doDeleteInstance(DetachVolumeRequest request ,
+                          CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -124,10 +123,9 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         DetachVolumeResponse.fromJson(jsonResponse);
     }
 
-    @NotNull
     @VisibleForTesting
-    String doRequestInstance(@NotNull AttachVolumeRequest request,
-                             @NotNull CloudStackUser cloudStackUser)
+    String doRequestInstance(AttachVolumeRequest request,
+                             CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -138,12 +136,11 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         return response.getJobId();
     }
 
-    @NotNull
     @VisibleForTesting
     AttachmentInstance createInstanceByJobStatus(
-            @NotNull AttachmentOrder attachmentOrder,
-            @NotNull AttachmentJobStatusResponse response,
-            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+            AttachmentOrder attachmentOrder,
+            AttachmentJobStatusResponse response,
+            CloudStackUser cloudStackUser) throws FogbowException {
         
         int status = response.getJobStatus();
         switch (status) {
@@ -168,11 +165,10 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         }
     }
 
-    @NotNull
     @VisibleForTesting
     void checkVolumeAttached(
-            @NotNull AttachmentOrder attachmentOrder,
-            @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+            AttachmentOrder attachmentOrder,
+            CloudStackUser cloudStackUser) throws FogbowException {
 
         GetVolumeRequest request = buildGetVolumeRequest(attachmentOrder);
         URIBuilder uriRequest = request.getUriBuilder();
@@ -196,15 +192,14 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
     }
 
     @VisibleForTesting
-    void logFailure(@NotNull AttachmentJobStatusResponse response) throws InternalServerErrorException {
+    void logFailure(AttachmentJobStatusResponse response) throws InternalServerErrorException {
         CloudStackErrorResponse errorResponse = response.getErrorResponse();
         String errorText = String.format(FAILED_ATTACH_ERROR_MESSAGE,
                 errorResponse.getErrorCode(), errorResponse.getErrorText());
         LOGGER.error(String.format(Messages.Log.ERROR_WHILE_ATTACHING_VOLUME_GENERAL_S, errorText));
     }
 
-    @NotNull
-    private AttachmentInstance createCompleteInstance(@NotNull AttachmentJobStatusResponse.Volume volume) {
+    private AttachmentInstance createCompleteInstance(AttachmentJobStatusResponse.Volume volume) {
         String source = volume.getVirtualMachineId();
         String target = volume.getId();
         String jobId = volume.getJobId();
@@ -214,7 +209,6 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         return new AttachmentInstance(jobId, state, source, target, device);
     }
 
-    @NotNull
     private AttachmentInstance createInstance(String attachmentInstanceId, String state) {
         return new AttachmentInstance(attachmentInstanceId, state,null, null, null);
     }

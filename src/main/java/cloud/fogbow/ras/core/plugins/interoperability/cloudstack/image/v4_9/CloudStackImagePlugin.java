@@ -37,7 +37,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     }
 
     @Override
-    public List<ImageSummary> getAllImages(@NotNull CloudStackUser cloudStackUser)
+    public List<ImageSummary> getAllImages(CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(Messages.Log.REQUESTING_GET_ALL_FROM_PROVIDER);
@@ -49,7 +49,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     }
 
     @Override
-    public ImageInstance getImage(String imageId, @VisibleForTesting CloudStackUser cloudStackUser)
+    public ImageInstance getImage(String imageId, CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
@@ -61,10 +61,9 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
         return buildImageInstance(request, cloudStackUser);
     }
 
-    @NotNull
     @VisibleForTesting
-    ImageInstance buildImageInstance(@NotNull GetAllImagesRequest request,
-                                     @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+    ImageInstance buildImageInstance(GetAllImagesRequest request,
+                                     CloudStackUser cloudStackUser) throws FogbowException {
 
         GetAllImagesResponse response = doDescribeImagesRequest(request, cloudStackUser);
         List<GetAllImagesResponse.Image> images = response.getImages();
@@ -78,10 +77,9 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
                 DEFAULT_MIN_DISK_VALUE, DEFAULT_MIN_RAM_VALUE, DEFAULT_STATUS_VALUE);
     }
 
-    @NotNull
     @VisibleForTesting
-    List<ImageSummary> buildImagesSummary(@NotNull GetAllImagesRequest request,
-                                          @NotNull CloudStackUser cloudStackUser)
+    List<ImageSummary> buildImagesSummary(GetAllImagesRequest request,
+                                          CloudStackUser cloudStackUser)
             throws FogbowException {
 
         GetAllImagesResponse response = doDescribeImagesRequest(request, cloudStackUser);
@@ -96,10 +94,9 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
         return idToImageNames;
     }
 
-    @NotNull
     @VisibleForTesting
-    GetAllImagesResponse doDescribeImagesRequest(@NotNull GetAllImagesRequest request,
-                                                 @NotNull CloudStackUser cloudStackUser)
+    GetAllImagesResponse doDescribeImagesRequest(GetAllImagesRequest request,
+                                                 CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();

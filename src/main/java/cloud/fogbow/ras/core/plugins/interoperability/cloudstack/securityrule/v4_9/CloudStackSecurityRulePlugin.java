@@ -43,9 +43,9 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
 
     @Override
-    public String requestSecurityRule(@NotNull SecurityRule securityRule,
-                                      @NotNull Order majorOrder,
-                                      @NotNull CloudStackUser cloudStackUser)
+    public String requestSecurityRule(SecurityRule securityRule,
+                                      Order majorOrder,
+                                      CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
@@ -68,8 +68,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
 
     @Override
-    public List<SecurityRuleInstance> getSecurityRules(@NotNull Order majorOrder,
-                                                       @NotNull CloudStackUser cloudStackUser)
+    public List<SecurityRuleInstance> getSecurityRules(Order majorOrder,
+                                                       CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, majorOrder.getInstanceId()));
@@ -77,7 +77,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, @NotNull CloudStackUser cloudStackUser)
+    public void deleteSecurityRule(String securityRuleId, CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, securityRuleId));
@@ -88,10 +88,9 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         doDeleteInstance(request, cloudStackUser);
     }
 
-    @NotNull
     @VisibleForTesting
-    List<SecurityRuleInstance> doGetSecurityRules(@NotNull Order majorOrder,
-                                                  @NotNull CloudStackUser cloudStackUser)
+    List<SecurityRuleInstance> doGetSecurityRules(Order majorOrder,
+                                                  CloudStackUser cloudStackUser)
             throws FogbowException {
 
         switch (majorOrder.getType()) {
@@ -107,8 +106,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
 
     @VisibleForTesting
-    void doDeleteInstance(@NotNull DeleteFirewallRuleRequest request,
-                          @NotNull CloudStackUser cloudStackUser)
+    void doDeleteInstance(DeleteFirewallRuleRequest request,
+                          CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -122,8 +121,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
 
     @VisibleForTesting
-    void checkRequestSecurityParameters(@NotNull SecurityRule securityRule,
-                                        @NotNull Order majorOrder) throws InvalidParameterException {
+    void checkRequestSecurityParameters(SecurityRule securityRule,
+                                        Order majorOrder) throws InvalidParameterException {
 
         if (securityRule.getDirection() == SecurityRule.Direction.OUT) {
             throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
@@ -133,10 +132,9 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         }
     }
 
-    @NotNull
     @VisibleForTesting
-    String doRequestInstance(@NotNull CreateFirewallRuleRequest request,
-                             @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+    String doRequestInstance(CreateFirewallRuleRequest request,
+                             CloudStackUser cloudStackUser) throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
         CloudStackUrlUtil.sign(uriRequest, cloudStackUser.getToken());
@@ -153,9 +151,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         }
     }
 
-    @NotNull
     @VisibleForTesting
-    List<SecurityRuleInstance> getFirewallRules(String ipAddressId, @NotNull CloudStackUser cloudStackUser)
+    List<SecurityRuleInstance> getFirewallRules(String ipAddressId, CloudStackUser cloudStackUser)
             throws FogbowException {
 
         ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
@@ -171,10 +168,9 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         return convertToFogbowSecurityRules(securityRulesResponse);
     }
 
-    @NotNull
     @VisibleForTesting
     List<SecurityRuleInstance> convertToFogbowSecurityRules(
-            @NotNull List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse) {
+            List<ListFirewallRulesResponse.SecurityRuleResponse> securityRulesResponse) {
 
         List<SecurityRuleInstance> securityRuleInstances = new ArrayList<SecurityRuleInstance>();
         for (ListFirewallRulesResponse.SecurityRuleResponse securityRuleResponse : securityRulesResponse) {

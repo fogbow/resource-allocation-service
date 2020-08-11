@@ -58,7 +58,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     }
 
     @Override
-    public String requestInstance(@NotNull VolumeOrder volumeOrder, @NotNull CloudStackUser cloudStackUser)
+    public String requestInstance(VolumeOrder volumeOrder, CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
@@ -69,7 +69,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     }
 
     @Override
-    public VolumeInstance getInstance(@NotNull VolumeOrder volumeOrder, @NotNull CloudStackUser cloudStackUser)
+    public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, volumeOrder.getInstanceId()));
@@ -81,7 +81,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     }
 
     @Override
-    public void deleteInstance(@NotNull VolumeOrder volumeOrder, @NotNull CloudStackUser cloudStackUser)
+    public void deleteInstance(VolumeOrder volumeOrder, CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, volumeOrder.getInstanceId()));
@@ -92,9 +92,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         doDeleteInstance(request, cloudStackUser);
     }
 
-    @NotNull
+    
     @VisibleForTesting
-    void doDeleteInstance(@NotNull DeleteVolumeRequest request, @NotNull CloudStackUser cloudStackUser)
+    void doDeleteInstance(DeleteVolumeRequest request, CloudStackUser cloudStackUser)
         throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -108,9 +108,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         }
     }
 
-    @NotNull
+    
     @VisibleForTesting
-    VolumeInstance doGetInstance(@NotNull GetVolumeRequest request, @NotNull CloudStackUser cloudStackUser)
+    VolumeInstance doGetInstance(GetVolumeRequest request, CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -127,10 +127,10 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         return buildVolumeInstance(volume);
     }
 
-    @NotNull
+    
     @VisibleForTesting
-    CreateVolumeRequest buildCreateVolumeRequest(@NotNull VolumeOrder volumeOrder,
-                                                 @NotNull CloudStackUser cloudStackUser)
+    CreateVolumeRequest buildCreateVolumeRequest(VolumeOrder volumeOrder,
+                                                 CloudStackUser cloudStackUser)
             throws FogbowException {
 
         List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering =
@@ -155,9 +155,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         throw new UnacceptableOperationException();
     }
 
-    @NotNull
+    
     @VisibleForTesting
-    String doRequestInstance(@NotNull CreateVolumeRequest request, @NotNull CloudStackUser cloudStackUser)
+    String doRequestInstance(CreateVolumeRequest request, CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -175,11 +175,11 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         }
     }
 
-    @NotNull
+    
     @VisibleForTesting
     List<GetAllDiskOfferingsResponse.DiskOffering> filterDisksOfferingByRequirements(
-            @NotNull List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering,
-            @NotNull VolumeOrder volumeOrder) {
+            List<GetAllDiskOfferingsResponse.DiskOffering> disksOffering,
+            VolumeOrder volumeOrder) {
 
         List<GetAllDiskOfferingsResponse.DiskOffering> disksOfferingFilted = disksOffering;
         Map<String, String> requirements = volumeOrder.getRequirements();
@@ -202,11 +202,24 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
 
         return disksOfferingFilted;
     }
+    
+    @VisibleForTesting
+    String getDiskOfferingIdCompatible(VolumeOrder volumeOrder,
+                                       List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings) {
 
-    @Nullable
+        int orderVolumeSize = volumeOrder.getVolumeSize();
+        for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
+            int diskSize = diskOffering.getDiskSize();
+            if (diskSize == orderVolumeSize) {
+                return diskOffering.getId();
+            }
+        }
+        return null;
+    }
+    
     @VisibleForTesting
     String getDiskOfferingIdCustomized(
-            @NotNull List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings) {
+            List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings) {
 
         for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
             boolean customized = diskOffering.isCustomized();
@@ -218,24 +231,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
         return null;
     }
 
-    @Nullable
     @VisibleForTesting
-    String getDiskOfferingIdCompatible(@NotNull VolumeOrder volumeOrder,
-                                       @NotNull List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings) {
-
-        int orderVolumeSize = volumeOrder.getVolumeSize();
-        for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
-            int diskSize = diskOffering.getDiskSize();
-            if (diskSize == orderVolumeSize) {
-                return diskOffering.getId();
-            }
-        }
-        return null;
-    }
-
-    @NotNull
-    @VisibleForTesting
-    CreateVolumeRequest buildVolumeCustomized(@NotNull VolumeOrder volumeOrder, String diskOfferingId)
+    CreateVolumeRequest buildVolumeCustomized(VolumeOrder volumeOrder, String diskOfferingId)
             throws InternalServerErrorException {
 
         String name = normalizeInstanceName(volumeOrder.getName());
@@ -248,9 +245,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
                 .build(this.cloudStackUrl);
     }
 
-    @NotNull
     @VisibleForTesting
-    CreateVolumeRequest buildVolumeCompatible(@NotNull VolumeOrder volumeOrder, String diskOfferingId)
+    CreateVolumeRequest buildVolumeCompatible(VolumeOrder volumeOrder, String diskOfferingId)
             throws InternalServerErrorException {
 
         String name = normalizeInstanceName(volumeOrder.getName());
@@ -261,7 +257,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
                 .build(this.cloudStackUrl);
     }
 
-    @NotNull
     @VisibleForTesting
     VolumeInstance buildVolumeInstance(GetVolumeResponse.Volume volume) {
         String id = volume.getId();
