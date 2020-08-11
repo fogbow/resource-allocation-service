@@ -57,6 +57,7 @@ public class CloudStackQuotaPlugin implements QuotaPlugin<CloudStackUser> {
 
     @Override
     public ResourceQuota getUserQuota(CloudStackUser cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.GETTING_QUOTA);
         ResourceAllocation totalQuota = getTotalQuota(cloudUser);
         ResourceAllocation usedQuota = getUsedQuota(cloudUser);
         return new ResourceQuota(totalQuota, usedQuota);
