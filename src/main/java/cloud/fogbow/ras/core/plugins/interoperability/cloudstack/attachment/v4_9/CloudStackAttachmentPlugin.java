@@ -24,8 +24,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
-import javax.validation.constraints.NotNull;
-
 import java.util.Properties;
 
 public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUser> {
@@ -157,7 +155,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
                  */
                 checkVolumeAttached(attachmentOrder, cloudStackUser);
                 AttachmentJobStatusResponse.Volume volume = response.getVolume();
-                return createCompleteInstance(volume);
+                return buildAttachmentInstance(volume);
             case CloudStackCloudUtils.JOB_STATUS_FAILURE:
                 logFailure(response);
                 return createInstance(response.getJobId(), CloudStackCloudUtils.FAILURE_STATE);
@@ -200,7 +198,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUs
         LOGGER.error(String.format(Messages.Log.ERROR_WHILE_ATTACHING_VOLUME_GENERAL_S, errorText));
     }
 
-    private AttachmentInstance createCompleteInstance(AttachmentJobStatusResponse.Volume volume) {
+    private AttachmentInstance buildAttachmentInstance(AttachmentJobStatusResponse.Volume volume) {
         String source = volume.getVirtualMachineId();
         String target = volume.getId();
         String jobId = volume.getJobId();
