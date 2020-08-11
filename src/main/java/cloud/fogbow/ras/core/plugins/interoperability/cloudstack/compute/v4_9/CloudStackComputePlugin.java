@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
@@ -314,7 +315,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             if (!volumes.isEmpty()) {
                 GetVolumeResponse.Volume firstVolume = volumes.get(0);
                 long sizeInBytes = firstVolume.getSize();
-                return convertBytesToGigabyte(sizeInBytes);
+                return (int) BinaryUnit.bytes(sizeInBytes).asGigabytes();
             }
         } catch (Exception e) {
             LOGGER.debug(Messages.Log.ERROR_WHILE_GETTING_DISK_SIZE, e);
@@ -326,11 +327,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @VisibleForTesting
     String doGet(String url, CloudStackUser cloudUser) throws FogbowException {
         return this.client.doGetRequest(url, cloudUser);
-    }
-
-    @VisibleForTesting
-    int convertBytesToGigabyte(long bytes) {
-        return (int) (bytes / GIGABYTE_IN_BYTES);
     }
 
     @VisibleForTesting
