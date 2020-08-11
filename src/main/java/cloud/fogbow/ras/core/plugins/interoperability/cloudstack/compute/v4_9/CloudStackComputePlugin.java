@@ -85,7 +85,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @Override
     public String requestInstance(ComputeOrder computeOrder, CloudStackUser cloudUser)
             throws FogbowException {
-
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String templateId = getTemplateId(computeOrder);
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
         String networksId = normalizeNetworksID(computeOrder);
@@ -112,9 +112,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     public ComputeInstance getInstance(ComputeOrder order,
                                        CloudStackUser cloudUser)
             throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
-                .id(order.getInstanceId())
+                .id(instanceId)
                 .build(this.cloudStackUrl);
 
         return doGetInstance(request, cloudUser);
@@ -123,13 +125,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     @Override
     public void deleteInstance(ComputeOrder order, CloudStackUser cloudUser)
             throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
 
         DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
-                .id(order.getInstanceId())
+                .id(instanceId)
                 .expunge(this.expungeOnDestroy)
                 .build(this.cloudStackUrl);
 
-        doDeleteInstance(request, cloudUser, order.getInstanceId());
+        doDeleteInstance(request, cloudUser, instanceId);
     }
 
     @VisibleForTesting
