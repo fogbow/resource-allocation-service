@@ -157,7 +157,7 @@ public class AzureVirtualMachineSDKTest {
         // set up
         String text = "windows";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindowsOn(text);
         // verify
         Assert.assertTrue(containsWindows);
     }
@@ -169,7 +169,7 @@ public class AzureVirtualMachineSDKTest {
         // set up
         String text = "WINDOWS";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindowsOn(text);
         // verify
         Assert.assertTrue(containsWindows);
     }
@@ -181,7 +181,7 @@ public class AzureVirtualMachineSDKTest {
         // set up
         String text = "abc - windows WINDOWS  1204.65.78.9.8.7.86 _()}Ç:,vm";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindowsOn(text);
         // verify
         Assert.assertTrue(containsWindows);
     }
@@ -193,7 +193,7 @@ public class AzureVirtualMachineSDKTest {
         // set up
         String text = "linux-v2";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindowsOn(text);
         // verify
         Assert.assertFalse(containsWindows);
     }
@@ -205,7 +205,7 @@ public class AzureVirtualMachineSDKTest {
         // set up
         String text = "linux-wind.wos-WINDOW-S";
         // exercise
-        boolean containsWindows = AzureVirtualMachineSDK.containsWindownsOn(text);
+        boolean containsWindows = AzureVirtualMachineSDK.containsWindowsOn(text);
         // verify
         Assert.assertFalse(containsWindows);
     }
