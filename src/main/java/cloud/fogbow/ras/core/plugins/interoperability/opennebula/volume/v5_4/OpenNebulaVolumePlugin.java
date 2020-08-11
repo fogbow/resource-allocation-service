@@ -142,7 +142,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		return image;
 	}
 
-	@Nullable
 	protected Integer getDataStoreId(Client client, long diskSize) throws InternalServerErrorException {
 		DatastorePool datastorePool = OpenNebulaClientUtil.getDatastorePool(client);
 

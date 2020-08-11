@@ -42,23 +42,23 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     private String endpoint;
 
-    public OpenNebulaAttachmentPlugin(@NotBlank String confFilePath) throws FatalErrorException {
+    public OpenNebulaAttachmentPlugin(String confFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.endpoint = properties.getProperty(OpenNebulaConfigurationPropertyKeys.OPENNEBULA_RPC_ENDPOINT_KEY);
     }
 
     @Override
-    public boolean isReady(@NotBlank String cloudState) {
+    public boolean isReady(String cloudState) {
         return OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.READY);
     }
 
     @Override
-    public boolean hasFailed(@NotBlank String cloudState) {
+    public boolean hasFailed(String cloudState) {
         return OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, cloudState).equals(InstanceState.FAILED);
     }
 
     @Override
-    public String requestInstance(@NotNull AttachmentOrder order, @NotNull CloudUser cloudUser) throws FogbowException {
+    public String requestInstance(AttachmentOrder order, CloudUser cloudUser) throws FogbowException {
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         String virtualMachineId = order.getComputeId();
         String imageId = order.getVolumeId();
@@ -75,7 +75,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
     }
 
     @Override
-    public void deleteInstance(@NotNull AttachmentOrder order, @NotNull CloudUser cloudUser) throws FogbowException {
+    public void deleteInstance(AttachmentOrder order, CloudUser cloudUser) throws FogbowException {
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
@@ -86,7 +86,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
     }
 
     @Override
-    public AttachmentInstance getInstance(@NotNull AttachmentOrder order, @NotNull CloudUser cloudUser)
+    public AttachmentInstance getInstance(AttachmentOrder order, CloudUser cloudUser)
             throws FogbowException {
 
         if (order == null) {
@@ -101,9 +101,9 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     @VisibleForTesting
     String getImageDiskId(
-            @NotNull Client client, 
-            @NotBlank String virtualMachineId, 
-            @NotBlank String imageId) throws FogbowException {
+            Client client, 
+            String virtualMachineId, 
+            String imageId) throws FogbowException {
 
         VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
         String imageIdPath = String.format(DISK_ID_PATH_FORMAT, imageId);
@@ -113,10 +113,10 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     @VisibleForTesting
     void doRequestInstance(
-            @NotNull Client client, 
-            @NotBlank String virtualMachineId, 
-            @NotBlank String imageId,
-            @NotBlank String template) throws FogbowException {
+            Client client, 
+            String virtualMachineId, 
+            String imageId,
+            String template) throws FogbowException {
 
         VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, virtualMachineId);
         OneResponse response = virtualMachine.diskAttach(template);
@@ -128,7 +128,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
     }
 
     @VisibleForTesting
-    String normalizeDeviceTarget(@NotNull AttachmentOrder order) {
+    String normalizeDeviceTarget(AttachmentOrder order) {
         // Expecting a default target device such as "/dev/sdb".
         String[] pathSplited = order.getDevice().split(DEVICE_PATH_SEPARATOR);
         String target = pathSplited.length == DEVICE_PATH_LENGTH 
@@ -140,9 +140,9 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     @VisibleForTesting
     void doDeleteInstance(
-            @NotNull Client client, 
-            @NotBlank String computeId, 
-            @NotBlank String instanceId) throws FogbowException {
+            Client client, 
+            String computeId, 
+            String instanceId) throws FogbowException {
 
         VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeId);
         int diskId = Integer.parseInt(instanceId);
@@ -156,10 +156,10 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     @VisibleForTesting
     AttachmentInstance doGetInstance(
-            @NotNull Client client, 
-            @NotBlank String instanceId, 
-            @NotBlank String computeId,
-            @NotBlank String volumeId) throws FogbowException {
+            Client client, 
+            String instanceId, 
+            String computeId,
+            String volumeId) throws FogbowException {
 
         VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeId);
         String deviceTargetPath = String.format(TARGET_PATH_FORMAT, volumeId);
@@ -170,7 +170,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
     }
 
     @VisibleForTesting
-    String getImageState(@NotNull Client client, @NotBlank String volumeId) throws FogbowException {
+    String getImageState(Client client, String volumeId) throws FogbowException {
         ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
         Image image = imagePool.getById(Integer.parseInt(volumeId));
         if (image == null)

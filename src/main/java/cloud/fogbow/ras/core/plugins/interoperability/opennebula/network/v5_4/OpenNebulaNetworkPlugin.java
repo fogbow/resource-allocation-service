@@ -153,7 +153,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		}
 	}
 
-	@Nullable
 	protected Integer getAddressRangeIndex(VirtualNetwork virtualNetwork, String lowAddress, int addressRangeSize)
 			throws InvalidParameterException {
 
@@ -305,7 +304,6 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		}
 	}
 
-	@Nullable
 	protected SecurityGroup getSecurityGroupForVirtualNetwork(Client client, VirtualNetwork virtualNetwork, String instanceId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		SecurityGroup securityGroup = null;

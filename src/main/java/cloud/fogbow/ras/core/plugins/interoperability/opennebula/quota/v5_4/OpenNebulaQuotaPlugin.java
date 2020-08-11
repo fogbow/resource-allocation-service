@@ -47,7 +47,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     private String defaultPublicNetwork;
     private String endpoint;
 
-    public OpenNebulaQuotaPlugin(@NotBlank String confFilePath) {
+    public OpenNebulaQuotaPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultDatastore = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_DATASTORE_ID_KEY);
         this.defaultPublicNetwork = properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_PUBLIC_NETWORK_ID_KEY);
@@ -55,7 +55,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     }
 
     @Override
-    public ResourceQuota getUserQuota(@NotNull CloudUser cloudUser) throws FogbowException {
+    public ResourceQuota getUserQuota(CloudUser cloudUser) throws FogbowException {
         LOGGER.info(Messages.Log.GETTING_QUOTA);
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         UserPool userPool = OpenNebulaClientUtil.getUserPool(client);
@@ -68,7 +68,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     }
 
     @VisibleForTesting
-    ResourceAllocation getUsedAllocation(@NotNull User user, @NotNull Client client) throws FogbowException {
+    ResourceAllocation getUsedAllocation(User user, Client client) throws FogbowException {
         String diskSizeQuotaUsedPath = String.format(FORMAT_QUOTA_DATASTORE_S_SIZE_USED_PATH, this.defaultDatastore);
         String volumeQuotaUsedPath = String.format(FORMAT_QUOTA_DATASTORE_S_IMAGES_USED_PATH, this.defaultDatastore);
         String publicIpQuotaUsedPath = String.format(FORMAT_QUOTA_NETWORK_S_USED_PATH, this.defaultPublicNetwork);
@@ -102,7 +102,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     }
 
     @VisibleForTesting
-    ResourceAllocation getTotalAllocation(@NotNull User user) {
+    ResourceAllocation getTotalAllocation(User user) {
         String diskSizeQuotaPath = String.format(FORMAT_QUOTA_DATASTORE_S_SIZE_PATH, this.defaultDatastore);
         String volumeQuotaPath = String.format(FORMAT_QUOTA_DATASTORE_S_IMAGES_PATH, this.defaultDatastore);
         String publicIpQuotaPath = String.format(FORMAT_QUOTA_NETWORK_S_PATH, this.defaultPublicNetwork);
