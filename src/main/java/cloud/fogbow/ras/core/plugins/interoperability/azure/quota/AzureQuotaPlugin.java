@@ -50,7 +50,7 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
 
     private final String defaultRegionName;
 
-    public AzureQuotaPlugin(@NotNull String confFilePath) {
+    public AzureQuotaPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         AzureGeneralPolicy.checkRegionName(this.defaultRegionName);
