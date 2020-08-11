@@ -232,7 +232,7 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
                 .reduce(initialValue, Integer::sum);
     }
 
-   @VisibleForTesting
+    @VisibleForTesting
     Map<String, VirtualMachineSize> getVirtualMachineSizesInUse(List<String> sizeNames, Azure azure) {
         Map<String, VirtualMachineSize> sizes = new HashMap<>();
         AzureQuotaSDK.getVirtualMachineSizesByRegion(azure, this.defaultRegionName).stream()
