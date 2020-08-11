@@ -71,7 +71,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         String name = computeOrder.getName();
         String regionName = this.defaultRegionName;
         String resourceName = AzureGeneralUtil.generateResourceName();
-        String virtualNetworkName = getVirtualNetworkResourceName(computeOrder, azureUser);
+        String virtualNetworkName = getVirtualNetworkResourceName(computeOrder);
         String imageId = computeOrder.getImageId();
         String decodedImageId = AzureImageOperationUtil.decode(imageId);
         AzureGetImageRef imageRef = AzureImageOperationUtil.buildAzureVirtualMachineImageBy(decodedImageId);
@@ -138,7 +138,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     }
     
     @VisibleForTesting
-    String getVirtualNetworkResourceName(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
+    String getVirtualNetworkResourceName(ComputeOrder computeOrder) throws FogbowException {
         List<String> networkIdList = computeOrder.getNetworkIds();
         String resourceName = this.defaultVirtualNetworkName;
         if (!networkIdList.isEmpty()) {

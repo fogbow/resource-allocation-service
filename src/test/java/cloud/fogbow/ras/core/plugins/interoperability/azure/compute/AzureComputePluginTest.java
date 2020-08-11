@@ -122,7 +122,7 @@ public class AzureComputePluginTest {
 
         // exercise
         String virtualNetworkId = this.azureComputePlugin
-                .getVirtualNetworkResourceName(computeOrder, this.azureUser);
+                .getVirtualNetworkResourceName(computeOrder);
 
         // verify
         Assert.assertEquals(expected, virtualNetworkId);
@@ -142,7 +142,7 @@ public class AzureComputePluginTest {
         
         // exercise
         String virtualNetworkId = this.azureComputePlugin
-                .getVirtualNetworkResourceName(computeOrder, this.azureUser);
+                .getVirtualNetworkResourceName(computeOrder);
 
         // verify
         Assert.assertEquals(expected, virtualNetworkId);
@@ -188,7 +188,7 @@ public class AzureComputePluginTest {
 
         String virtualNetworkName = "virtualNetworkName";
         Mockito.doReturn(virtualNetworkName).when(this.azureComputePlugin)
-                .getVirtualNetworkResourceName(Mockito.eq(computeOrder), Mockito.eq(this.azureUser));
+                .getVirtualNetworkResourceName(Mockito.eq(computeOrder));
 
         String decodeImageId = "decodeImageId";
         PowerMockito.mockStatic(AzureImageOperationUtil.class);
