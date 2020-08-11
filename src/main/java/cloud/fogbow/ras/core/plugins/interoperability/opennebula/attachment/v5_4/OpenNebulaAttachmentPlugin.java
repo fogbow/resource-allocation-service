@@ -65,6 +65,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     @Override
     public String requestInstance(AttachmentOrder order, CloudUser cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         String virtualMachineId = order.getComputeId();
         String imageId = order.getVolumeId();
@@ -82,11 +83,14 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     @Override
     public void deleteInstance(AttachmentOrder order, CloudUser cloudUser) throws FogbowException {
+        String instanceId1 = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId1));
+
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-        String instanceId = order.getInstanceId();
+        String instanceId = instanceId1;
         String computeId = order.getComputeId();
         doDeleteInstance(client, computeId, instanceId);
     }
@@ -94,12 +98,12 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
     @Override
     public AttachmentInstance getInstance(AttachmentOrder order, CloudUser cloudUser)
             throws FogbowException {
-
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-        String instanceId = order.getInstanceId();
         String computeId = order.getComputeId();
         String volumeId = order.getVolumeId();
         return doGetInstance(client, instanceId, computeId, volumeId);
