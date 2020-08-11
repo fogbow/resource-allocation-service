@@ -4,6 +4,7 @@ import java.util.*;
 
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.image.ImagePool;
@@ -24,9 +25,12 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaImagePlugin.class);
 
-	protected static final String FORMAT_IMAGE_TYPE_PATH = "//IMAGE[%s]/TYPE";
-	protected static final String IMAGE_SIZE_PATH = "/IMAGE/SIZE";
-	protected static final String OPERATIONAL_SYSTEM_IMAGE_TYPE = "0";
+	@VisibleForTesting
+    static final String FORMAT_IMAGE_TYPE_PATH = "//IMAGE[%s]/TYPE";
+	@VisibleForTesting
+    static final String IMAGE_SIZE_PATH = "/IMAGE/SIZE";
+	@VisibleForTesting
+    static final String OPERATIONAL_SYSTEM_IMAGE_TYPE = "0";
 
 	private String endpoint;
 	
@@ -49,7 +53,8 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		return mount(image);
 	}
 
-	protected List<ImageSummary> getImageSummaryList(ImagePool imagePool) {
+	@VisibleForTesting
+    List<ImageSummary> getImageSummaryList(ImagePool imagePool) {
 		String type;
 		int index = 1;
 		List<ImageSummary> images = new ArrayList<>();
@@ -64,7 +69,8 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		return images;
 	}
 	
-	protected ImageInstance mount(org.opennebula.client.image.Image image) {
+	@VisibleForTesting
+    ImageInstance mount(org.opennebula.client.image.Image image) {
 		String id = image.getId();
 		String name = image.getName();
 		String imageSize = image.xpath(IMAGE_SIZE_PATH);
@@ -77,7 +83,8 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		return new ImageInstance(id, name, size, minDisk, minRam, status);
 	}
 	
-	protected int convertToInteger(String number) {
+	@VisibleForTesting
+    int convertToInteger(String number) {
 	    int size = 0;
 		try {
 			size =  Integer.parseInt(number);

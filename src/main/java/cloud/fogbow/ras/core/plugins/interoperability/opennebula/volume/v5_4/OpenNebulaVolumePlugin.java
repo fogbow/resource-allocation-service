@@ -33,15 +33,23 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaVolumePlugin.class);
 
-	protected static final String BLOCK_DISK_TYPE = "BLOCK";
-	protected static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
-	protected static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
-	protected static final String DRIVER_RAW = "raw";
-	protected static final String PERSISTENT_DISK_CONFIRMATION = "YES";
-	protected static final int CONVERT_DISK = 1024;
+	@VisibleForTesting
+    static final String BLOCK_DISK_TYPE = "BLOCK";
+	@VisibleForTesting
+    static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
+	@VisibleForTesting
+    static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
+	@VisibleForTesting
+    static final String DRIVER_RAW = "raw";
+	@VisibleForTesting
+    static final String PERSISTENT_DISK_CONFIRMATION = "YES";
+	@VisibleForTesting
+    static final int CONVERT_DISK = 1024;
 
-	protected static final String DATASTORE_FREE_PATH_FORMAT = "//DATASTORE[%s]/FREE_MB";
-	protected static final String IMAGE_TYPE = "IMAGE";
+	@VisibleForTesting
+    static final String DATASTORE_FREE_PATH_FORMAT = "//DATASTORE[%s]/FREE_MB";
+	@VisibleForTesting
+    static final String IMAGE_TYPE = "IMAGE";
 
 	private String endpoint;
 
@@ -119,7 +127,8 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		}
 	}
 
-	protected String doRequestInstance(CreateVolumeRequest createVolumeRequest, Client client)
+	@VisibleForTesting
+    String doRequestInstance(CreateVolumeRequest createVolumeRequest, Client client)
 			throws UnacceptableOperationException, InternalServerErrorException, InvalidParameterException {
 		VolumeImage volumeImage = createVolumeRequest.getVolumeImage();
 
@@ -132,7 +141,8 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		return OpenNebulaClientUtil.allocateImage(client, template, datastoreId);
 	}
 
-	protected Image doGetInstance(Client client, String instanceId) throws InternalServerErrorException, InstanceNotFoundException {
+	@VisibleForTesting
+    Image doGetInstance(Client client, String instanceId) throws InternalServerErrorException, InstanceNotFoundException {
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		Image image = imagePool.getById(Integer.parseInt(instanceId));
 		if (image == null) {
@@ -142,7 +152,8 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		return image;
 	}
 
-	protected Integer getDataStoreId(Client client, long diskSize) throws InternalServerErrorException {
+	@VisibleForTesting
+    Integer getDataStoreId(Client client, long diskSize) throws InternalServerErrorException {
 		DatastorePool datastorePool = OpenNebulaClientUtil.getDatastorePool(client);
 
 		int index = 1;
@@ -167,7 +178,8 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		return null;
 	}
 
-	protected int getImageSize(String size) {
+	@VisibleForTesting
+    int getImageSize(String size) {
 		int imageSize = 0;
 		try {
 			imageSize = Integer.parseInt(size) / CONVERT_DISK;
@@ -178,7 +190,8 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		return imageSize;
 	}
 
-	protected String getRandomUUID() {
+	@VisibleForTesting
+    String getRandomUUID() {
 		return UUID.randomUUID().toString();
 	}
 }

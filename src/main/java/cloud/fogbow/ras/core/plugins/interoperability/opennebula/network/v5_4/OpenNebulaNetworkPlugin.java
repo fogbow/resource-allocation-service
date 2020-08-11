@@ -8,6 +8,7 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.log4j.Logger;
@@ -43,19 +44,30 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 
 	private static final int BASE_VALUE = 2;
 
-	protected static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
-	protected static final String SECURITY_GROUPS_SEPARATOR = ",";
-	protected static final String VNET_ADDRESS_RANGE_IP_PATH = "/VNET/AR_POOL/AR/IP";
-	protected static final String VNET_ADDRESS_RANGE_SIZE_PATH = "/VNET/AR_POOL/AR/SIZE";
-	protected static final String VNET_TEMPLATE_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
-	protected static final String VNET_TEMPLATE_VLAN_ID_PATH = "/VNET/TEMPLATE/VLAN_ID";
+	@VisibleForTesting
+    static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
+	@VisibleForTesting
+    static final String SECURITY_GROUPS_SEPARATOR = ",";
+	@VisibleForTesting
+    static final String VNET_ADDRESS_RANGE_IP_PATH = "/VNET/AR_POOL/AR/IP";
+	@VisibleForTesting
+    static final String VNET_ADDRESS_RANGE_SIZE_PATH = "/VNET/AR_POOL/AR/SIZE";
+	@VisibleForTesting
+    static final String VNET_TEMPLATE_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+	@VisibleForTesting
+    static final String VNET_TEMPLATE_VLAN_ID_PATH = "/VNET/TEMPLATE/VLAN_ID";
 
-	protected static final String ADDRESS_RANGE_ID_PATH_FORMAT = "/VNET/AR_POOL/AR[%s]/AR_ID";
-	protected static final String ADDRESS_RANGE_IP_PATH_FORMAT = "/VNET/AR_POOL/AR[%s]/IP";
-	protected static final String ADDRESS_RANGE_SIZE_PATH_FORMAT = "/VNET/AR_POOL/AR[%s]/SIZE";
-	protected static final String ADDRESS_RANGE_USED_LEASES_PATH_FORMAT = "/VNET/AR_POOL/AR[%s]/USED_LEASES";
+	@VisibleForTesting
+    static final String ADDRESS_RANGE_ID_PATH_FORMAT = "/VNET/AR_POOL/AR[%s]/AR_ID";
+	@VisibleForTesting
+    static final String ADDRESS_RANGE_IP_PATH_FORMAT = "/VNET/AR_POOL/AR[%s]/IP";
+	@VisibleForTesting
+    static final String ADDRESS_RANGE_SIZE_PATH_FORMAT = "/VNET/AR_POOL/AR[%s]/SIZE";
+	@VisibleForTesting
+    static final String ADDRESS_RANGE_USED_LEASES_PATH_FORMAT = "/VNET/AR_POOL/AR[%s]/USED_LEASES";
 
-	protected static final int IPV4_AMOUNT_BITS = 32;
+	@VisibleForTesting
+    static final int IPV4_AMOUNT_BITS = 32;
 
 	private String endpoint;
 	private String defaultNetwork;
@@ -106,7 +118,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		this.doDeleteInstance(virtualNetwork);
 	}
 
-	protected String doRequestInstance(Client client, String networkOrderId, CreateNetworkReserveRequest createNetworkReserveRequest)
+	@VisibleForTesting
+    String doRequestInstance(Client client, String networkOrderId, CreateNetworkReserveRequest createNetworkReserveRequest)
 			throws InvalidParameterException, InstanceNotFoundException, UnauthorizedRequestException {
 
 		int defaultNetworkId = this.convertToInteger(this.defaultNetwork);
@@ -117,7 +130,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return OpenNebulaClientUtil.updateVirtualNetwork(client, this.convertToInteger(networkInstanceId), networkUpdateTemplate);
 	}
 
-	protected NetworkInstance doGetInstance(VirtualNetwork virtualNetwork) throws InvalidParameterException {
+	@VisibleForTesting
+    NetworkInstance doGetInstance(VirtualNetwork virtualNetwork) throws InvalidParameterException {
 		String id = virtualNetwork.getId();
 		String name = virtualNetwork.getName();
 		String vLan = virtualNetwork.xpath(VNET_TEMPLATE_VLAN_ID_PATH);
@@ -145,7 +159,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return networkInstance;
 	}
 
-	protected void doDeleteInstance(VirtualNetwork virtualNetwork) throws InternalServerErrorException {
+	@VisibleForTesting
+    void doDeleteInstance(VirtualNetwork virtualNetwork) throws InternalServerErrorException {
 		OneResponse response = virtualNetwork.delete();
 		if (response.isError()) {
 			throw new InternalServerErrorException(String.format(
@@ -153,7 +168,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		}
 	}
 
-	protected Integer getAddressRangeIndex(VirtualNetwork virtualNetwork, String lowAddress, int addressRangeSize)
+	@VisibleForTesting
+    Integer getAddressRangeIndex(VirtualNetwork virtualNetwork, String lowAddress, int addressRangeSize)
 			throws InvalidParameterException {
 
 		for (int i = 1; i < Integer.MAX_VALUE; i++) {
@@ -180,7 +196,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return null;
 	}
 
-	protected String getAddressRangeId(VirtualNetwork virtualNetwork, Integer addressRangeIndex, String cidr)
+	@VisibleForTesting
+    String getAddressRangeId(VirtualNetwork virtualNetwork, Integer addressRangeIndex, String cidr)
 			throws UnacceptableOperationException {
 
 		if (addressRangeIndex != null) {
@@ -191,7 +208,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		}
 	}
 
-	protected String getNextAvailableAddress(VirtualNetwork virtualNetwork, Integer addressRangeIndex)
+	@VisibleForTesting
+    String getNextAvailableAddress(VirtualNetwork virtualNetwork, Integer addressRangeIndex)
 			throws InvalidParameterException {
 
 		String addressRangeFirstIp = virtualNetwork.xpath(String.format(ADDRESS_RANGE_IP_PATH_FORMAT, addressRangeIndex));
@@ -210,7 +228,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return addressRangeFirstIp;
 	}
 
-	protected CreateNetworkReserveRequest getCreateNetworkReserveRequest(NetworkOrder networkOrder, VirtualNetwork virtualNetwork)
+	@VisibleForTesting
+    CreateNetworkReserveRequest getCreateNetworkReserveRequest(NetworkOrder networkOrder, VirtualNetwork virtualNetwork)
 			throws InvalidParameterException, UnacceptableOperationException {
 		String cidr = networkOrder.getCidr();
 		SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(cidr).getInfo();
@@ -230,7 +249,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 				.build();
 	}
 
-	protected String getNetworkUpdateTemplate(Client client, String networkInstanceId)
+	@VisibleForTesting
+    String getNetworkUpdateTemplate(Client client, String networkInstanceId)
 			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
 
 		String securityGroupId = this.createSecurityGroup(client, networkInstanceId);
@@ -242,7 +262,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return updateRequest.getVirtualNetworkUpdate().marshalTemplate();
 	}
 
-	protected String createSecurityGroup(Client client, String virtualNetworkId)
+	@VisibleForTesting
+    String createSecurityGroup(Client client, String virtualNetworkId)
 			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
 
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
@@ -297,14 +318,16 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 	}
 
-	protected void deleteSecurityGroup(SecurityGroup securityGroup) {
+	@VisibleForTesting
+    void deleteSecurityGroup(SecurityGroup securityGroup) {
 		OneResponse response = securityGroup.delete();
 		if (response.isError()) {
 			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_REMOVING_RESOURCE_S_S, SECURITY_GROUP_RESOURCE, response.getMessage()));
 		}
 	}
 
-	protected SecurityGroup getSecurityGroupForVirtualNetwork(Client client, VirtualNetwork virtualNetwork, String instanceId)
+	@VisibleForTesting
+    SecurityGroup getSecurityGroupForVirtualNetwork(Client client, VirtualNetwork virtualNetwork, String instanceId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		SecurityGroup securityGroup = null;
 		String securityGroupIdsStr = virtualNetwork.xpath(VNET_TEMPLATE_SECURITY_GROUPS_PATH);
@@ -326,15 +349,18 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return securityGroup;
 	}
 
-	protected String generateSecurityGroupName(String instanceId) {
+	@VisibleForTesting
+    String generateSecurityGroupName(String instanceId) {
 		return SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
 	}
 	
-	protected String generateAddressCidr(String address, String rangeSize) throws InvalidParameterException {
+	@VisibleForTesting
+    String generateAddressCidr(String address, String rangeSize) throws InvalidParameterException {
 		return String.format(CIDR_FORMAT, address, this.calculateCidr(this.convertToInteger(rangeSize)));
 	}
 	
-	protected int calculateCidr(int size) {
+	@VisibleForTesting
+    int calculateCidr(int size) {
 		int exponent = 1;
 		int value = 0;
 		for (int i = 0; i < IPV4_AMOUNT_BITS; i++) {
@@ -349,7 +375,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		return value;
 	}
 
-	protected int convertToInteger(String number) throws InvalidParameterException {
+	@VisibleForTesting
+    int convertToInteger(String number) throws InvalidParameterException {
 		try {
 			return Integer.parseInt(number);
 		} catch (NumberFormatException e) {

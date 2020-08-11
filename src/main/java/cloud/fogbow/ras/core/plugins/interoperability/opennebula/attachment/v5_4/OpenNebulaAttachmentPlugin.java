@@ -32,13 +32,19 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaAttachmentPlugin.class);
 
-    protected static final String DEFAULT_TARGET = "hdb";
-    protected static final String DEVICE_PATH_SEPARATOR = "/";
-    protected static final String DISK_ID_PATH_FORMAT = "TEMPLATE/DISK[IMAGE_ID=%s]/DISK_ID";
-    protected static final String TARGET_PATH_FORMAT = "TEMPLATE/DISK[IMAGE_ID=%s]/TARGET";
+    @VisibleForTesting
+    static final String DEFAULT_TARGET = "hdb";
+    @VisibleForTesting
+    static final String DEVICE_PATH_SEPARATOR = "/";
+    @VisibleForTesting
+    static final String DISK_ID_PATH_FORMAT = "TEMPLATE/DISK[IMAGE_ID=%s]/DISK_ID";
+    @VisibleForTesting
+    static final String TARGET_PATH_FORMAT = "TEMPLATE/DISK[IMAGE_ID=%s]/TARGET";
 
-    protected static final int DEVICE_PATH_LENGTH = 3;
-    protected static final int TARGET_INDEX = 2;
+    @VisibleForTesting
+    static final int DEVICE_PATH_LENGTH = 3;
+    @VisibleForTesting
+    static final int TARGET_INDEX = 2;
 
     private String endpoint;
 
