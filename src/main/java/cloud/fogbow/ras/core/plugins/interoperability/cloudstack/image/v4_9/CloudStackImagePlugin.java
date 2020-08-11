@@ -23,9 +23,12 @@ import java.util.Properties;
 public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackImagePlugin.class);
 
-    protected static final int DEFAULT_MIN_DISK_VALUE = -1;
-    protected static final int DEFAULT_MIN_RAM_VALUE = -1;
-    protected static final String DEFAULT_STATUS_VALUE = null;
+    @VisibleForTesting
+    static final int DEFAULT_MIN_DISK_VALUE = -1;
+    @VisibleForTesting
+    static final int DEFAULT_MIN_RAM_VALUE = -1;
+    @VisibleForTesting
+    static final String DEFAULT_STATUS_VALUE = null;
 
     private String cloudStackUrl;
     private CloudStackHttpClient client;

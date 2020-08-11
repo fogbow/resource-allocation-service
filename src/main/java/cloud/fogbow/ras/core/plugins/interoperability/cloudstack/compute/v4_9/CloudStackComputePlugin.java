@@ -34,17 +34,25 @@ import java.util.stream.Collectors;
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    protected static final String EXPUNGE_ON_DESTROY_KEY_CONF = "expunge_on_destroy";
-    protected static final String CLOUDSTACK_URL_CONF = "cloudstack_api_url";
-    protected static final String ZONE_ID_KEY_CONF = "zone_id";
+    @VisibleForTesting
+    static final String EXPUNGE_ON_DESTROY_KEY_CONF = "expunge_on_destroy";
+    @VisibleForTesting
+    static final String CLOUDSTACK_URL_CONF = "cloudstack_api_url";
+    @VisibleForTesting
+    static final String ZONE_ID_KEY_CONF = "zone_id";
 
     private static final String DEFAULT_EXPUNGE_ON_DEPLOY_VALUE = "true";
-    protected static final String DEFAULT_VOLUME_TYPE_VALUE = "ROOT";
-    protected static final int UNKNOWN_DISK_VALUE = -1;
+    @VisibleForTesting
+    static final String DEFAULT_VOLUME_TYPE_VALUE = "ROOT";
+    @VisibleForTesting
+    static final int UNKNOWN_DISK_VALUE = -1;
 
-    protected static final String FOGBOW_TAG_SEPARATOR = ":";
-    protected static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
-    protected static final int AMOUNT_INSTANCE = 1;
+    @VisibleForTesting
+    static final String FOGBOW_TAG_SEPARATOR = ":";
+    @VisibleForTesting
+    static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
+    @VisibleForTesting
+    static final int AMOUNT_INSTANCE = 1;
 
     private LaunchCommandGenerator launchCommandGenerator;
     private CloudStackHttpClient client;

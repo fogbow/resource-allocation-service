@@ -34,7 +34,8 @@ import java.util.stream.Collectors;
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
-    protected static final int CUSTOMIZED_DISK_SIZE_EXPECTED = 0;
+    @VisibleForTesting
+    static final int CUSTOMIZED_DISK_SIZE_EXPECTED = 0;
 
     private CloudStackHttpClient client;
     private String zoneId;

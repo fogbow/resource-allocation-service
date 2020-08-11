@@ -31,7 +31,8 @@ import java.util.Properties;
 public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackAttachmentPlugin.class);
 
-    protected static final String FAILED_ATTACH_ERROR_MESSAGE = "code: %s, description: %s.";
+    @VisibleForTesting
+    static final String FAILED_ATTACH_ERROR_MESSAGE = "code: %s, description: %s.";
 
     private CloudStackHttpClient client;
     private String cloudStackUrl;
