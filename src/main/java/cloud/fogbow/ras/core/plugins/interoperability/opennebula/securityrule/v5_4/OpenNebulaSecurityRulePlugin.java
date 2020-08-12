@@ -95,7 +95,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     public void deleteSecurityRule(String securityRuleId, CloudUser cloudUser) throws FogbowException {
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, securityRuleId));
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-        Rule rule = doUnpakingSecurityRuleId(securityRuleId);
+        Rule rule = doUnpackingSecurityRuleId(securityRuleId);
         String securityGroupId = rule.getGroupId();
         doDeleteSecurityRule(client, rule, securityGroupId);
     }
@@ -143,7 +143,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<CloudUse
     }
 
     @VisibleForTesting
-    Rule doUnpakingSecurityRuleId(String securityRuleId) throws FogbowException {
+    Rule doUnpackingSecurityRuleId(String securityRuleId) throws FogbowException {
         String[] fields = securityRuleId.split(ID_SEPARATOR);
         if (fields.length == SECURITY_RULE_ID_FIELDS_NUMBER) {
             String groupId = getValueFrom(fields[GROUP_ID_INDEX]);
