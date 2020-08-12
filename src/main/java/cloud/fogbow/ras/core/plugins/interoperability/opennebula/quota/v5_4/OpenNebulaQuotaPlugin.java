@@ -5,6 +5,7 @@ import java.util.Properties;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import cloud.fogbow.common.util.BinaryUnit;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.user.User;
@@ -41,8 +42,6 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     protected static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
     protected static final int UNLIMITED_NETWORK_QUOTA_VALUE = -1;
 
-    private static final int ONE_GIGABYTE_IN_MEGABYTES = 1024;
-
     private String defaultDatastore;
     private String defaultPublicNetwork;
     private String endpoint;
@@ -75,8 +74,8 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
         VirtualNetworkPool networkPool = OpenNebulaClientUtil.getNetworkPoolByUser(client);
 
         int cpuInUse = convertToInteger(user.xpath(QUOTA_CPU_USED_PATH));
-        int diskInUse = convertToInteger(user.xpath(diskSizeQuotaUsedPath));
-        int diskInUseGB = convertMegabytesIntoGigabytes(diskInUse);
+        int diskInUseMB = convertToInteger(user.xpath(diskSizeQuotaUsedPath));
+        int diskInUseGB = (int) BinaryUnit.megabytes(diskInUseMB).asGigabytes();
         int instancesInUse = convertToInteger(user.xpath(QUOTA_VMS_USED_PATH));
         int memoryInUse = convertToInteger(user.xpath(QUOTA_MEMORY_USED_PATH));
         int networksInUse = networkPool.getLength();
@@ -97,19 +96,14 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     }
 
     @VisibleForTesting
-    int convertMegabytesIntoGigabytes(int sizeInMb) {
-        return sizeInMb / ONE_GIGABYTE_IN_MEGABYTES;
-    }
-
-    @VisibleForTesting
     ResourceAllocation getTotalAllocation(User user) {
         String diskSizeQuotaPath = String.format(FORMAT_QUOTA_DATASTORE_S_SIZE_PATH, this.defaultDatastore);
         String volumeQuotaPath = String.format(FORMAT_QUOTA_DATASTORE_S_IMAGES_PATH, this.defaultDatastore);
         String publicIpQuotaPath = String.format(FORMAT_QUOTA_NETWORK_S_PATH, this.defaultPublicNetwork);
 
         int maxCpu = convertToInteger(user.xpath(QUOTA_CPU_PATH));
-        int maxDisk = convertToInteger(user.xpath(diskSizeQuotaPath));
-        int maxDiskGB = convertMegabytesIntoGigabytes(maxDisk);
+        int maxDiskMB = convertToInteger(user.xpath(diskSizeQuotaPath));
+        int maxDiskGB = (int) BinaryUnit.megabytes(maxDiskMB).asGigabytes();
         int maxInstances = convertToInteger(user.xpath(QUOTA_VMS_PATH));
         int maxMemory = convertToInteger(user.xpath(QUOTA_MEMORY_PATH));
         int maxPublicIps = convertToInteger(user.xpath(publicIpQuotaPath));
