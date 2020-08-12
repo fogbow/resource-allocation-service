@@ -7,6 +7,7 @@ import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.CreateAttachmentRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.CreateAttachmentResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAttachmentResponse;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import com.google.gson.JsonSyntaxException;
@@ -29,7 +30,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
     
     private static final Logger LOGGER = Logger.getLogger(OpenStackAttachmentPlugin.class);
 
-    protected static final String EMPTY_STRING = "";
+    @VisibleForTesting
+    static final String EMPTY_STRING = "";
 
     private Properties properties;
     private OpenStackHttpClient client;
@@ -51,9 +53,10 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
-        String endpoint = getPrefixEndpoint(projectId) 
+        String endpoint = getPrefixEndpoint(projectId)
                 + OpenStackConstants.SERVERS_ENDPOINT
                 + OpenStackConstants.ENDPOINT_SEPARATOR
                 + serverId 
@@ -69,6 +72,9 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = attachmentOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
+
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
@@ -85,6 +91,9 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
 
     @Override
     public AttachmentInstance getInstance(AttachmentOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
+
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
@@ -101,7 +110,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         return attachmentInstance;
     }
 
-    protected AttachmentInstance buildAttachmentInstanceFrom(GetAttachmentResponse response) {
+    @VisibleForTesting
+    AttachmentInstance buildAttachmentInstanceFrom(GetAttachmentResponse response) {
         String id = response.getId();
         String computeId = response.getServerId();
         String volumeId = response.getVolumeId();
@@ -116,12 +126,14 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         return attachmentInstance;
     }
 
-    protected GetAttachmentResponse doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    GetAttachmentResponse doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         return doGetAttachmentResponseFrom(jsonResponse);
     }
 
-    protected GetAttachmentResponse doGetAttachmentResponseFrom(String json) throws InternalServerErrorException {
+    @VisibleForTesting
+    GetAttachmentResponse doGetAttachmentResponseFrom(String json) throws InternalServerErrorException {
         try {
             return GetAttachmentResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
@@ -130,18 +142,21 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         }
     }
 
-    protected void doDeleteInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    void doDeleteInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         this.client.doDeleteRequest(endpoint, cloudUser);
     }
 
-    protected CreateAttachmentResponse doRequestInstance(String endpoint, String jsonRequest,
+    @VisibleForTesting
+    CreateAttachmentResponse doRequestInstance(String endpoint, String jsonRequest,
             OpenStackV3User cloudUser) throws FogbowException {
         
         String jsonResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
         return doCreateAttachmentResponseFrom(jsonResponse);
     }
 
-    protected CreateAttachmentResponse doCreateAttachmentResponseFrom(String json) throws InternalServerErrorException {
+    @VisibleForTesting
+    CreateAttachmentResponse doCreateAttachmentResponseFrom(String json) throws InternalServerErrorException {
         try {
             return CreateAttachmentResponse.fromJson(json);
         } catch (JsonSyntaxException e) {
@@ -150,7 +165,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         }
     }
 
-    protected String generateJsonRequest(String volumeId, String device) {
+    @VisibleForTesting
+    String generateJsonRequest(String volumeId, String device) {
         CreateAttachmentRequest request = new CreateAttachmentRequest.Builder()
                 .volumeId(volumeId)
                 .device(device)
@@ -159,7 +175,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         return request.toJson();
     }
     
-    protected String getPrefixEndpoint(String projectId) {
+    @VisibleForTesting
+    String getPrefixEndpoint(String projectId) {
         return this.properties.getProperty(OpenStackPluginUtils.COMPUTE_NOVA_URL_KEY) +
                 OpenStackConstants.NOVA_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR + projectId;
     }
@@ -168,7 +185,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Us
         this.client = new OpenStackHttpClient();
     }
 
-    protected void setClient(OpenStackHttpClient client) {
+    @VisibleForTesting
+    void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
     

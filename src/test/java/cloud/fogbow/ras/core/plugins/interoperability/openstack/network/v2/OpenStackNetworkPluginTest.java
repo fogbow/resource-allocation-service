@@ -119,7 +119,7 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
     public void testGetInstance() throws FogbowException {
         //setup
         Mockito.doReturn(TestUtils.EMPTY_STRING).when(openStackNetworkPlugin).doGetInstance(Mockito.any(), Mockito.any());
-        Mockito.doReturn(new NetworkInstance(NETWORK_ID)).when(openStackNetworkPlugin).buildInstance(Mockito.any(), Mockito.any());
+        Mockito.doReturn(new NetworkInstance(NETWORK_ID)).when(openStackNetworkPlugin).buildNetworkInstance(Mockito.any(), Mockito.any());
         NetworkOrder order = createNetworkOrder(NETWORK_ID, TestUtils.DEFAULT_CIDR, DEFAULT_GATEWAY_INFO, NetworkAllocationMode.DYNAMIC);
 
         //exercise
@@ -127,7 +127,7 @@ public class OpenStackNetworkPluginTest extends BaseUnitTests {
 
         //verify
         Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(Mockito.any(), Mockito.any());
-        Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).buildInstance(Mockito.any(), Mockito.any());
+        Mockito.verify(openStackNetworkPlugin, Mockito.times(TestUtils.RUN_ONCE)).buildNetworkInstance(Mockito.any(), Mockito.any());
     }
 
     //test case: Check if the method makes the expected calls

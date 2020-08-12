@@ -30,13 +30,14 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     private Properties properties;
     private OpenStackHttpClient client;
     
-    public OpenStackQuotaPlugin(@NotBlank String confFilePath) {
+    public OpenStackQuotaPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.client = new OpenStackHttpClient();
+        this.initClient();
     }
     
     @Override
-    public ResourceQuota getUserQuota(@NotNull OpenStackV3User cloudUser) throws FogbowException {
+    public ResourceQuota getUserQuota(OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.GETTING_QUOTA);
         GetComputeQuotasResponse computeQuotas = getComputeQuotas(cloudUser);
         GetNetworkQuotasResponse networkQuotas = getNetworkQuotas(cloudUser);
         GetVolumeQuotasResponse volumeQuotas = getVolumeQuotas(cloudUser);
@@ -45,9 +46,9 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     ResourceQuota buildResourceQuota(
-            @NotNull GetComputeQuotasResponse computeQuotas, 
-            @NotNull GetNetworkQuotasResponse networkQuotas,
-            @NotNull GetVolumeQuotasResponse volumeQuotas) {
+            GetComputeQuotasResponse computeQuotas, 
+            GetNetworkQuotasResponse networkQuotas,
+            GetVolumeQuotasResponse volumeQuotas) {
         
         ResourceAllocation totalQuota = getTotalQuota(computeQuotas, networkQuotas, volumeQuotas);
         ResourceAllocation usedQuota = getUsedQuota(computeQuotas, networkQuotas, volumeQuotas);
@@ -56,9 +57,9 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     
     @VisibleForTesting
     ResourceAllocation getUsedQuota(
-            @NotNull GetComputeQuotasResponse computeQuotas, 
-            @NotNull GetNetworkQuotasResponse networkQuotas,
-            @NotNull GetVolumeQuotasResponse volumeQuotas) {
+            GetComputeQuotasResponse computeQuotas, 
+            GetNetworkQuotasResponse networkQuotas,
+            GetVolumeQuotasResponse volumeQuotas) {
         
         int totalCoresUsed = computeQuotas.getTotalCoresUsed();
         int totalRamUsed = computeQuotas.getTotalRamUsed();
@@ -83,9 +84,9 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
 
     @VisibleForTesting
     ResourceAllocation getTotalQuota(
-            @NotNull GetComputeQuotasResponse computeQuotas, 
-            @NotNull GetNetworkQuotasResponse networkQuotas,
-            @NotNull GetVolumeQuotasResponse volumeQuotas) {
+            GetComputeQuotasResponse computeQuotas, 
+            GetNetworkQuotasResponse networkQuotas,
+            GetVolumeQuotasResponse volumeQuotas) {
         
         int maxTotalCores = computeQuotas.getMaxTotalCores();
         int maxTotalRamSize = computeQuotas.getMaxTotalRamSize();
@@ -109,7 +110,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    GetVolumeQuotasResponse getVolumeQuotas(@NotNull OpenStackV3User cloudUser) throws FogbowException {
+    GetVolumeQuotasResponse getVolumeQuotas(OpenStackV3User cloudUser) throws FogbowException {
         String tenantId = getTenantId(cloudUser);
         String endpoint = getVolumeQuotaEndpoint(tenantId);
         String response = doGetQuota(endpoint, cloudUser);
@@ -117,7 +118,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    String getVolumeQuotaEndpoint(@NotBlank String tenantId) {
+    String getVolumeQuotaEndpoint(String tenantId) {
         return this.properties.getProperty(OpenStackPluginUtils.VOLUME_CINDER_URL_KEY)
                 .concat(OpenStackConstants.CINDER_V3_API_ENDPOINT)
                 .concat(OpenStackConstants.ENDPOINT_SEPARATOR)
@@ -126,7 +127,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    GetNetworkQuotasResponse getNetworkQuotas(@NotNull OpenStackV3User cloudUser) throws FogbowException {
+    GetNetworkQuotasResponse getNetworkQuotas(OpenStackV3User cloudUser) throws FogbowException {
         String tenantId = getTenantId(cloudUser);
         String endpoint = getNetworkQuotaEndpoint(tenantId);
         String response = doGetQuota(endpoint, cloudUser);
@@ -134,7 +135,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    String getNetworkQuotaEndpoint(@NotBlank String tenantId) {
+    String getNetworkQuotaEndpoint(String tenantId) {
         return this.properties.getProperty(OpenStackPluginUtils.NETWORK_NEUTRON_URL_KEY)
                 .concat(OpenStackConstants.NEUTRON_V2_API_ENDPOINT)
                 .concat(OpenStackConstants.QUOTAS_ENDPOINT)
@@ -144,12 +145,12 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
     
     @VisibleForTesting
-    String getTenantId(@NotNull OpenStackV3User cloudUser) throws FogbowException {
+    String getTenantId(OpenStackV3User cloudUser) throws FogbowException {
         return OpenStackPluginUtils.getProjectIdFrom(cloudUser);
     }
 
     @VisibleForTesting
-    GetComputeQuotasResponse getComputeQuotas(@NotNull OpenStackV3User cloudUser) throws FogbowException {
+    GetComputeQuotasResponse getComputeQuotas(OpenStackV3User cloudUser) throws FogbowException {
         String endpoint = getComputeQuotaEndpoint();
         String response = doGetQuota(endpoint, cloudUser);
         return GetComputeQuotasResponse.fromJson(response);
@@ -163,7 +164,7 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
-    String doGetQuota(@NotBlank String endpoint, @NotNull OpenStackV3User cloudUser) throws FogbowException {
+    String doGetQuota(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         String response = null;
         try {
             LOGGER.debug(Messages.Log.GETTING_QUOTA);
@@ -176,8 +177,11 @@ public class OpenStackQuotaPlugin implements QuotaPlugin<OpenStackV3User> {
     }
     
     @VisibleForTesting
-    void setClient(@NotNull OpenStackHttpClient client) {
+    void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 
+    private void initClient() {
+        this.client = new OpenStackHttpClient();
+    }
 }

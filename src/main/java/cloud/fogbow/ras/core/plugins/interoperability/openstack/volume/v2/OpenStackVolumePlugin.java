@@ -56,6 +56,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public String requestInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String size = String.valueOf(order.getVolumeSize());
         String name = order.getName();
@@ -79,6 +80,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public VolumeInstance getInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId) 
                 + OpenStackConstants.VOLUMES_ENDPOINT
@@ -90,6 +93,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
 
     @Override
     public void deleteInstance(VolumeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId) 
                 + OpenStackConstants.VOLUMES_ENDPOINT
@@ -99,17 +104,20 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         doDeleteInstance(endpoint, cloudUser);
     }
 
-    protected void doDeleteInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    void doDeleteInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         this.client.doDeleteRequest(endpoint, cloudUser);
     }
     
-    protected VolumeInstance doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    VolumeInstance doGetInstance(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         String json = doGetResponseFromCloud(endpoint, cloudUser);
         GetVolumeResponse response = doGetVolumeResponseFrom(json);
         return buildVolumeInstanceFrom(response);
     }
     
-    protected VolumeInstance buildVolumeInstanceFrom(GetVolumeResponse response) {
+    @VisibleForTesting
+    VolumeInstance buildVolumeInstanceFrom(GetVolumeResponse response) {
         String id = response.getId();
         String status = response.getStatus();
         String name = response.getName();
@@ -117,14 +125,16 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         return new VolumeInstance(id, status, name, size);
     }
 
-    protected GetVolumeResponse doRequestInstance(String endpoint, String jsonRequest, OpenStackV3User cloudUser)
+    @VisibleForTesting
+    GetVolumeResponse doRequestInstance(String endpoint, String jsonRequest, OpenStackV3User cloudUser)
             throws FogbowException {
         
         String jsonResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
         return doGetVolumeResponseFrom(jsonResponse);
     }
 
-    protected GetVolumeResponse doGetVolumeResponseFrom(String jsonResponse) throws InternalServerErrorException {
+    @VisibleForTesting
+    GetVolumeResponse doGetVolumeResponseFrom(String jsonResponse) throws InternalServerErrorException {
         try {
             return GetVolumeResponse.fromJson(jsonResponse);
         } catch (JsonSyntaxException e) {
@@ -133,12 +143,14 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         }
     }
     
-    protected String getPrefixEndpoint(String projectId) {
+    @VisibleForTesting
+    String getPrefixEndpoint(String projectId) {
         return this.properties.getProperty(OpenStackPluginUtils.VOLUME_NOVA_URL_KEY) +
                 OpenStackConstants.CINDER_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR + projectId;
     }
     
-    protected String generateJsonRequest(String size, String name, String volumeTypeId) throws JSONException {
+    @VisibleForTesting
+    String generateJsonRequest(String size, String name, String volumeTypeId) throws JSONException {
         CreateVolumeRequest createVolumeRequest = new CreateVolumeRequest.Builder()
                 .name(name)
                 .size(size)
@@ -148,7 +160,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         return createVolumeRequest.toJson();
     }
 
-    protected String findVolumeTypeId(Map<String, String> requirements, String projectId, OpenStackV3User cloudUser)
+    @VisibleForTesting
+    String findVolumeTypeId(Map<String, String> requirements, String projectId, OpenStackV3User cloudUser)
             throws FogbowException {
 
         if (requirements == null || requirements.isEmpty()) {
@@ -179,7 +192,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         throw new UnacceptableOperationException(message);
     }
     
-    protected GetAllTypesResponse doGetAllTypesResponseFrom(String json) throws InternalServerErrorException {
+    @VisibleForTesting
+    GetAllTypesResponse doGetAllTypesResponseFrom(String json) throws InternalServerErrorException {
         try {
             return GetAllTypesResponse.fromJson(json);
         } catch (Exception e) {
@@ -188,7 +202,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         }
     }
 
-    protected String doGetResponseFromCloud(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    String doGetResponseFromCloud(String endpoint, OpenStackV3User cloudUser) throws FogbowException {
         String jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         return jsonResponse;
     }
@@ -197,7 +212,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3User> {
         this.client = new OpenStackHttpClient();
     }
 
-    public void setClient(OpenStackHttpClient client) {
+    @VisibleForTesting
+    void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 }

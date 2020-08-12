@@ -132,7 +132,6 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
     public void testGetUnavailableImage() throws FogbowException {
         //setup
         GetImageResponse getImageResponse = Mockito.mock(GetImageResponse.class);
-        Mockito.when(getImageResponse.getId()).thenReturn(TestUtils.FAKE_IMAGE_ID);
         Mockito.when(getImageResponse.getStatus()).thenReturn(UNAVAILABLE_STATE);
         Mockito.doReturn(getImageResponse).when(plugin).getImageResponse(Mockito.any(), Mockito.any());
         OpenStackV3User cloudUser = Mockito.mock(OpenStackV3User.class);
@@ -148,9 +147,11 @@ public class OpenStackImagePluginTest extends BaseUnitTests{
     public void testGetImage() throws FogbowException{
         //setup
         GetImageResponse getImageResponse = Mockito.mock(GetImageResponse.class);
-        Mockito.when(getImageResponse.getId()).thenReturn(TestUtils.FAKE_IMAGE_ID);
         Mockito.when(getImageResponse.getStatus()).thenReturn(ACTIVE_STATE);
         Mockito.doReturn(getImageResponse).when(plugin).getImageResponse(Mockito.any(), Mockito.any());
+        ImageInstance expectedImageInstance = Mockito.mock(ImageInstance.class);
+        Mockito.doReturn(expectedImageInstance).when(plugin).buildImageInstance(Mockito.eq(getImageResponse));
+
         OpenStackV3User cloudUser = Mockito.mock(OpenStackV3User.class);
         //exercise
         ImageInstance imageInstance = plugin.getImage(TestUtils.FAKE_IMAGE_ID, cloudUser);

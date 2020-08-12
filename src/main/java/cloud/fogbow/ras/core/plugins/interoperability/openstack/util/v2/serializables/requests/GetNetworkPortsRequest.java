@@ -10,14 +10,14 @@ import java.net.URISyntaxException;
  * Request Example :
  * http://{url_neutro}:{port_neutro}/v2.0/ports?device_id={vm_id}&network_id={network_id}
  */
-public class GetNetworkPortsResquest {
+public class GetNetworkPortsRequest {
 
     private URIBuilder uriBuilder;
 
     public static final String DEVICE_ID_KEY = "device_id";
     public static final String NETWORK_ID_KEY = "network_id";
 
-    public GetNetworkPortsResquest(Builder builder) throws URISyntaxException {
+    public GetNetworkPortsRequest(Builder builder) throws URISyntaxException {
         this.uriBuilder = new URIBuilder(builder.url);
         this.uriBuilder.addParameter(DEVICE_ID_KEY, builder.deviceId);
         this.uriBuilder.addParameter(NETWORK_ID_KEY, builder.networkId);
@@ -48,8 +48,8 @@ public class GetNetworkPortsResquest {
             return this;
         }
 
-        public GetNetworkPortsResquest build() throws URISyntaxException {
-            return new GetNetworkPortsResquest(this);
+        public GetNetworkPortsRequest build() throws URISyntaxException {
+            return new GetNetworkPortsRequest(this);
         }
     }
 
