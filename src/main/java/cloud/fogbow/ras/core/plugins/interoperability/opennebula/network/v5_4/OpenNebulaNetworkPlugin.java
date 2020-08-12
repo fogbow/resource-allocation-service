@@ -30,8 +30,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfi
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
 
-import javax.annotation.Nullable;
-
 public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaNetworkPlugin.class);
@@ -95,7 +93,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, this.defaultNetwork);
 		CreateNetworkReserveRequest request = this.getCreateNetworkReserveRequest(networkOrder, virtualNetwork);
 
-		String instanceId = this.doRequestInstance(client, networkOrder.getId(), request);
+		String instanceId = this.doRequestInstance(client, request);
 		return instanceId;
 	}
 
@@ -124,7 +122,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 	}
 
 	@VisibleForTesting
-    String doRequestInstance(Client client, String networkOrderId, CreateNetworkReserveRequest createNetworkReserveRequest)
+    String doRequestInstance(Client client, CreateNetworkReserveRequest createNetworkReserveRequest)
 			throws InvalidParameterException, InstanceNotFoundException, UnauthorizedRequestException {
 
 		int defaultNetworkId = this.convertToInteger(this.defaultNetwork);
