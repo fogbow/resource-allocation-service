@@ -367,7 +367,7 @@ public class OpenNebulaVolumePluginTest extends OpenNebulaBaseTests {
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doGetInstance(
 				Mockito.any(Client.class), Mockito.eq(this.volumeOrder.getInstanceId()));
 		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).isError();
-		Mockito.verify(response, Mockito.times(TestUtils.RUN_TWICE)).getMessage();
+		Mockito.verify(response, Mockito.times(TestUtils.RUN_ONCE)).getMessage();
 	}
 
 	private String getTemplate() {
