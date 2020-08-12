@@ -83,6 +83,7 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		int size = SIZE_ADDRESS_PUBLIC_IP;
@@ -99,16 +100,20 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 
 	@Override
 	public void deleteInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = publicIpOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
+
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		this.doDeleteInstance(client, publicIpOrder);
 	}
 
 	@Override
 	public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = publicIpOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		String publicIpInstanceId = publicIpOrder.getInstanceId();
 
-		return this.doGetInstance(client, publicIpInstanceId, publicIpOrder.getComputeId());
+		return this.doGetInstance(client, instanceId, publicIpOrder.getComputeId());
 	}
 
 	@VisibleForTesting

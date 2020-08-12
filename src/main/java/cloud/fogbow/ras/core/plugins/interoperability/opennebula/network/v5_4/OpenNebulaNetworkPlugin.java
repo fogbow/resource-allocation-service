@@ -90,6 +90,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, this.defaultNetwork);
 		CreateNetworkReserveRequest request = this.getCreateNetworkReserveRequest(networkOrder, virtualNetwork);
@@ -100,17 +101,21 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 
 	@Override
 	public NetworkInstance getInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = networkOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkOrder.getInstanceId());
+		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, instanceId);
 		return this.doGetInstance(virtualNetwork);
 	}
 
 	@Override
 	public void deleteInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = networkOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, networkOrder.getInstanceId());
+		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, instanceId);
 
-		SecurityGroup securityGroup = this.getSecurityGroupForVirtualNetwork(client, virtualNetwork, networkOrder.getInstanceId());
+		SecurityGroup securityGroup = this.getSecurityGroupForVirtualNetwork(client, virtualNetwork, instanceId);
 		if (securityGroup != null) {
 			this.deleteSecurityGroup(securityGroup);
 		}

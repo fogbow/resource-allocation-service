@@ -70,6 +70,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		String volumeName = volumeOrder.getName();
@@ -106,24 +107,29 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	@Override
 	public VolumeInstance getInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = volumeOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		Image image = this.doGetInstance(client, volumeOrder.getInstanceId());
 		int imageSize = this.getImageSize(image.xpath(OpenNebulaConstants.SIZE));
 
-		return new VolumeInstance(volumeOrder.getInstanceId(), image.stateString(), image.getName(), imageSize);
+		return new VolumeInstance(instanceId, image.stateString(), image.getName(), imageSize);
 	}
 
 	@Override
 	public void deleteInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = volumeOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
+
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		Image image = this.doGetInstance(client, volumeOrder.getInstanceId());
+		Image image = this.doGetInstance(client, instanceId);
 
 		OneResponse response = image.delete();
 		if (response.isError()) {
-			LOGGER.error(String.format(
-					Messages.Log.ERROR_WHILE_REMOVING_VOLUME_IMAGE_S_S, volumeOrder.getInstanceId(), response.getMessage()));
-			throw new InternalServerErrorException(String.format(
-					Messages.Exception.ERROR_WHILE_REMOVING_VOLUME_IMAGE_S_S, volumeOrder.getInstanceId(), response.getMessage()));
+			String message = String.format(
+					Messages.Log.ERROR_WHILE_REMOVING_VOLUME_IMAGE_S_S, instanceId, response.getMessage());
+			LOGGER.error(message);
+			throw new InternalServerErrorException(message);
 		}
 	}
 

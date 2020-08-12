@@ -83,14 +83,13 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     @Override
     public void deleteInstance(AttachmentOrder order, CloudUser cloudUser) throws FogbowException {
-        String instanceId1 = order.getInstanceId();
-        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId1));
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
 
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-        String instanceId = instanceId1;
         String computeId = order.getComputeId();
         doDeleteInstance(client, computeId, instanceId);
     }

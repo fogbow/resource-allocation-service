@@ -42,6 +42,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 	
 	@Override
 	public List<ImageSummary> getAllImages(CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(Messages.Log.RECEIVING_GET_ALL_IMAGES_REQUEST);
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		return getImageSummaryList(imagePool);
@@ -49,6 +50,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 
 	@Override
 	public ImageInstance getImage(String imageId, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Log.RECEIVING_GET_IMAGE_REQUEST_S, imageId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		Image image = OpenNebulaClientUtil.getImage(client, imageId);
 		return buildImageInstance(image);

@@ -91,6 +91,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		CreateComputeRequest request = this.getCreateComputeRequest(client, computeOrder);
 		VirtualMachineTemplate virtualMachine = request.getVirtualMachine();
@@ -103,6 +104,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = computeOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		return this.doGetInstance(virtualMachine);
@@ -110,12 +113,14 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = computeOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, instanceId);
 		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);
 		if (response.isError()) {
-			throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_VM_S_S, computeOrder.getInstanceId(),
-					response.getMessage()));
+			throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_VM_S_S,
+					instanceId, response.getMessage()));
 		}
 	}
 
