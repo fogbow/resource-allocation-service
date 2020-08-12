@@ -6,6 +6,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import cloud.fogbow.common.exceptions.*;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -41,18 +42,25 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
 	private static final String SECURITY_GROUP_SEPARATOR = ",";
-	protected static final String PUBLIC_IP_RESOURCE = "Public IP";
+	@VisibleForTesting
+    static final String PUBLIC_IP_RESOURCE = "Public IP";
 
 	private static final int SIZE_ADDRESS_PUBLIC_IP = 1;
 	private static final int ATTEMPTS_LIMIT_NUMBER = 5;
 
-	protected static final String EXPRESSION_IP_FROM_NETWORK_ID_S_FORMAT = "TEMPLATE/NIC[NETWORK_ID=%s]/IP";
-	protected static final String EXPRESSION_NIC_ID_FROM_NETWORK_ID_S_FORMAT = "TEMPLATE/NIC[NETWORK_ID=%s]/NIC_ID";
-	protected static final String SECURITY_GROUPS_PATH = "TEMPLATE/SECURITY_GROUPS";
-	protected static final String POWEROFF_STATE = "POWEROFF";
+	@VisibleForTesting
+    static final String EXPRESSION_IP_FROM_NETWORK_ID_S_FORMAT = "TEMPLATE/NIC[NETWORK_ID=%s]/IP";
+	@VisibleForTesting
+    static final String EXPRESSION_NIC_ID_FROM_NETWORK_ID_S_FORMAT = "TEMPLATE/NIC[NETWORK_ID=%s]/NIC_ID";
+	@VisibleForTesting
+    static final String SECURITY_GROUPS_PATH = "TEMPLATE/SECURITY_GROUPS";
+	@VisibleForTesting
+    static final String POWEROFF_STATE = "POWEROFF";
 	
-	protected static final long ONE_POINT_TWO_SECONDS = 1200;
-	protected static final boolean SHUT_OFF = true;
+	@VisibleForTesting
+    static final long ONE_POINT_TWO_SECONDS = 1200;
+	@VisibleForTesting
+    static final boolean SHUT_OFF = true;
 
 	private String endpoint;
 	private String defaultPublicNetwork;
@@ -75,6 +83,7 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 
 		int size = SIZE_ADDRESS_PUBLIC_IP;
@@ -91,19 +100,24 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 
 	@Override
 	public void deleteInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = publicIpOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
+
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		this.doDeleteInstance(client, publicIpOrder);
 	}
 
 	@Override
 	public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = publicIpOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		String publicIpInstanceId = publicIpOrder.getInstanceId();
 
-		return this.doGetInstance(client, publicIpInstanceId, publicIpOrder.getComputeId());
+		return this.doGetInstance(client, instanceId, publicIpOrder.getComputeId());
 	}
 
-	protected String doRequestInstance(Client client, PublicIpOrder publicIpOrder, CreateNetworkReserveRequest reserveRequest)
+	@VisibleForTesting
+    String doRequestInstance(Client client, PublicIpOrder publicIpOrder, CreateNetworkReserveRequest reserveRequest)
 			throws InvalidParameterException, InstanceNotFoundException, UnauthorizedRequestException {
 
 		int defaultPublicNetworkId = this.convertToInteger(this.defaultPublicNetwork);
@@ -118,7 +132,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		return instanceId;
 	}
 
-	protected void doDeleteInstance(Client client, PublicIpOrder order)
+	@VisibleForTesting
+    void doDeleteInstance(Client client, PublicIpOrder order)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException, InternalServerErrorException {
 		// NOTE(pauloewerton): ONe does not allow deleting a resource associated to a VM, so we're using a workaround
 		// by shutting down the VM, releasing network and secgroup resources, and then resuming it afterwards.
@@ -136,7 +151,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		}
 	}
 
-	protected void deletePublicIp(Client client, String virtualNetworkId)
+	@VisibleForTesting
+    void deletePublicIp(Client client, String virtualNetworkId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException, InternalServerErrorException {
 
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, virtualNetworkId);
@@ -147,7 +163,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		}
 	}
 
-	protected PublicIpInstance doGetInstance(Client client, String publicIpInstanceId, String computeId)
+	@VisibleForTesting
+    PublicIpInstance doGetInstance(Client client, String publicIpInstanceId, String computeId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeId);
@@ -156,7 +173,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		return new PublicIpInstance(publicIpInstanceId, OpenNebulaStateMapper.DEFAULT_READY_STATE, publicIp);
 	}
 
-	protected String createSecurityGroup(Client client, String instanceId) throws InvalidParameterException {
+	@VisibleForTesting
+    String createSecurityGroup(Client client, String instanceId) throws InvalidParameterException {
 		String name = generateSecurityGroupName(instanceId);
 
 		// "ALL" setting applies to all protocols if a port range is not defined
@@ -207,7 +225,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		return OpenNebulaClientUtil.allocateSecurityGroup(client, template);
 	}
 
-	protected void addSecurityGroupToPublicIp(Client client, String publicIpInstanceId, String securityGroupInstanceId)
+	@VisibleForTesting
+    void addSecurityGroupToPublicIp(Client client, String publicIpInstanceId, String securityGroupInstanceId)
 			throws InvalidParameterException {
 
 		CreateNetworkUpdateRequest updateSecurityGroupsRequest = new CreateNetworkUpdateRequest.Builder()
@@ -220,7 +239,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		OpenNebulaClientUtil.updateVirtualNetwork(client, virtualNetworkId, publicNetworkUpdateTemplate);
 	}
 
-	protected void attachPublicIpToCompute(Client client, String publicIpId, String computeInstanceId)
+	@VisibleForTesting
+    void attachPublicIpToCompute(Client client, String publicIpId, String computeInstanceId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
 		String template = this.createNicTemplate(publicIpId);
@@ -232,7 +252,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		}
 	}
 
-	protected String createNicTemplate(String virtualNetworkId) {
+	@VisibleForTesting
+    String createNicTemplate(String virtualNetworkId) {
 		CreateNicRequest request = new CreateNicRequest.Builder()
 				.networkId(virtualNetworkId)
 				.build();
@@ -240,7 +261,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		return request.getNic().marshalTemplate();
 	}
 
-	protected boolean isPowerOff(VirtualMachine virtualMachine) {
+	@VisibleForTesting
+    boolean isPowerOff(VirtualMachine virtualMachine) {
 		String state;
 		int count = 0;
 		while (count < ATTEMPTS_LIMIT_NUMBER) {
@@ -255,7 +277,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		return false;
 	}
 
-	protected void waitMoment() {
+	@VisibleForTesting
+    void waitMoment() {
 		try {
 			Thread.sleep(ONE_POINT_TWO_SECONDS);
 		} catch (InterruptedException e) {
@@ -263,7 +286,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		}
 	}
 
-	protected void detachPublicIpFromCompute(VirtualMachine virtualMachine, String publicIpInstanceId)
+	@VisibleForTesting
+    void detachPublicIpFromCompute(VirtualMachine virtualMachine, String publicIpInstanceId)
 			throws InvalidParameterException, InternalServerErrorException {
 
 		String nicId = virtualMachine.xpath(String.format(EXPRESSION_NIC_ID_FROM_NETWORK_ID_S_FORMAT, publicIpInstanceId));
@@ -275,7 +299,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		}
 	}
 
-	protected void deleteSecurityGroup(Client client, String publicIpInstanceId)
+	@VisibleForTesting
+    void deleteSecurityGroup(Client client, String publicIpInstanceId)
 			throws UnauthorizedRequestException, InvalidParameterException, InstanceNotFoundException, InternalServerErrorException {
 		SecurityGroup securityGroup = this.getSecurityGroupForPublicIpNetwork(client, publicIpInstanceId);
 
@@ -290,7 +315,8 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 	}
 
 	@Nullable
-	protected SecurityGroup getSecurityGroupForPublicIpNetwork(Client client, String publicIpInstanceId)
+	@VisibleForTesting
+    SecurityGroup getSecurityGroupForPublicIpNetwork(Client client, String publicIpInstanceId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
 		VirtualNetwork virtualNetwork = OpenNebulaClientUtil.getVirtualNetwork(client, publicIpInstanceId);
@@ -317,11 +343,13 @@ public class OpenNebulaPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 		return SystemConstants.PIP_SECURITY_GROUP_PREFIX + instanceId;
 	}
 
-	protected String getRandomUUID() {
+	@VisibleForTesting
+    String getRandomUUID() {
 		return UUID.randomUUID().toString();
 	}
 
-	protected int convertToInteger(String number) throws InvalidParameterException {
+	@VisibleForTesting
+    int convertToInteger(String number) throws InvalidParameterException {
 		try {
 			return Integer.parseInt(number);
 		} catch (NumberFormatException e) {

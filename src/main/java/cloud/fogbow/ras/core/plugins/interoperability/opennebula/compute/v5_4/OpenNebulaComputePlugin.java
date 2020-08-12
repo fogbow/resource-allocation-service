@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -32,24 +33,39 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaComputePlugin.class);
 
-	protected static final int ONE_GIGABYTE_IN_MEGABYTES = 1024;
-	protected static final int DEFAULT_NUMBER_OF_INSTANCES = 1;
+	@VisibleForTesting
+    static final int ONE_GIGABYTE_IN_MEGABYTES = 1024;
+	@VisibleForTesting
+    static final int DEFAULT_NUMBER_OF_INSTANCES = 1;
 
-	protected static final String DEFAULT_ARCHITECTURE = "x86_64";
-	protected static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
-	protected static final String DEFAULT_GRAPHIC_TYPE = "vnc";
-	protected static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
-	protected static final String NIC_IP_EXPRESSION = "//NIC/IP";
+	@VisibleForTesting
+    static final String DEFAULT_ARCHITECTURE = "x86_64";
+	@VisibleForTesting
+    static final String DEFAULT_GRAPHIC_ADDRESS = "0.0.0.0";
+	@VisibleForTesting
+    static final String DEFAULT_GRAPHIC_TYPE = "vnc";
+	@VisibleForTesting
+    static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
+	@VisibleForTesting
+    static final String NIC_IP_EXPRESSION = "//NIC/IP";
 
-	protected static final boolean SHUTS_DOWN_HARD = true;
-	protected static final int VALUE_NOT_DEFINED_BY_USER = 0;
-	protected static final int MINIMUM_VCPU_VALUE = 1;
-	protected static final int MINIMUM_RAM_VALUE = 1;
+	@VisibleForTesting
+    static final boolean SHUTS_DOWN_HARD = true;
+	@VisibleForTesting
+    static final int VALUE_NOT_DEFINED_BY_USER = 0;
+	@VisibleForTesting
+    static final int MINIMUM_VCPU_VALUE = 1;
+	@VisibleForTesting
+    static final int MINIMUM_RAM_VALUE = 1;
 
-	protected static final String IMAGE_SIZE_PATH = "SIZE";
-	protected static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
-	protected static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
-	protected static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
+	@VisibleForTesting
+    static final String IMAGE_SIZE_PATH = "SIZE";
+	@VisibleForTesting
+    static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
+	@VisibleForTesting
+    static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
+	@VisibleForTesting
+    static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
 
 	private String endpoint;
 	private TreeSet<HardwareRequirements> flavors;
@@ -75,6 +91,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+		LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		CreateComputeRequest request = this.getCreateComputeRequest(client, computeOrder);
 		VirtualMachineTemplate virtualMachine = request.getVirtualMachine();
@@ -87,6 +104,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = computeOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
 		return this.doGetInstance(virtualMachine);
@@ -94,16 +113,19 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 
 	@Override
 	public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+		String instanceId = computeOrder.getInstanceId();
+		LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, computeOrder.getInstanceId());
+		VirtualMachine virtualMachine = OpenNebulaClientUtil.getVirtualMachine(client, instanceId);
 		OneResponse response = virtualMachine.terminate(SHUTS_DOWN_HARD);
 		if (response.isError()) {
-			throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_VM_S_S, computeOrder.getInstanceId(),
-					response.getMessage()));
+			throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_VM_S_S,
+					instanceId, response.getMessage()));
 		}
 	}
 
-	protected String doRequestInstance(Client client, CreateComputeRequest request)
+	@VisibleForTesting
+    String doRequestInstance(Client client, CreateComputeRequest request)
 			throws InvalidParameterException, UnacceptableOperationException {
 
 		String template = request.getVirtualMachine().marshalTemplate();
@@ -112,7 +134,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return instanceId;
 	}
 
-	protected ComputeInstance doGetInstance(VirtualMachine virtualMachine) {
+	@VisibleForTesting
+    ComputeInstance doGetInstance(VirtualMachine virtualMachine) {
 		OneResponse response = virtualMachine.info();
 
 		String id = virtualMachine.getId();
@@ -133,7 +156,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return computeInstance;
 	}
 
-	protected CreateComputeRequest getCreateComputeRequest(Client client, ComputeOrder computeOrder)
+	@VisibleForTesting
+    CreateComputeRequest getCreateComputeRequest(Client client, ComputeOrder computeOrder)
 			throws InternalServerErrorException, UnacceptableOperationException {
 		String userName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SSH_COMMON_USER_KEY,
 				ConfigurationPropertyDefaults.SSH_COMMON_USER);
@@ -174,9 +198,10 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return request;
 	}
 
-	protected synchronized void setOrderAllocation(ComputeOrder computeOrder, VirtualMachineTemplate virtualMachine) {
+	@VisibleForTesting
+    synchronized void setOrderAllocation(ComputeOrder computeOrder, VirtualMachineTemplate virtualMachine) {
 		int sizeInMegabytes = Integer.parseInt(virtualMachine.getDisk().getSize());
-		int size = convertDiskSizeToGb(sizeInMegabytes);
+		int size = (int) BinaryUnit.megabytes(sizeInMegabytes).asGigabytes();
 		ComputeAllocation actualAllocation = new ComputeAllocation(
                 DEFAULT_NUMBER_OF_INSTANCES, Integer.parseInt(virtualMachine.getCpu()),
 				Integer.parseInt(virtualMachine.getMemory()),
@@ -189,7 +214,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return sizeInMegabytes / ONE_GIGABYTE_IN_MEGABYTES;
 	}
 
-	protected List<String> getNetworkIds(List<String> networkIds) {
+	@VisibleForTesting
+    List<String> getNetworkIds(List<String> networkIds) {
 		String defaultNetworkId = this.properties.getProperty(OpenNebulaConfigurationPropertyKeys.DEFAULT_NETWORK_ID_KEY);
 		List<String>  networks = new ArrayList<>();
 		networks.add(defaultNetworkId);
@@ -249,17 +275,20 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return Integer.parseInt(minimumImageSizeStr);
 	}
 
-	protected TreeSet<HardwareRequirements> getFlavors() {
+	@VisibleForTesting
+    TreeSet<HardwareRequirements> getFlavors() {
 		synchronized (this.flavors) {
 			return this.flavors;
 		}
 	}
 
-	protected int convertDiskSizeToMb(int diskSizeInGb) {
+	@VisibleForTesting
+    int convertDiskSizeToMb(int diskSizeInGb) {
 		return diskSizeInGb * ONE_GIGABYTE_IN_MEGABYTES;
 	}
 
-	protected Map<String, String> getImagesSizes(Client client) throws InternalServerErrorException {
+	@VisibleForTesting
+    Map<String, String> getImagesSizes(Client client) throws InternalServerErrorException {
 		Map<String, String> imagesSizeMap = new HashMap<>();
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		for (Image image : imagePool) {
@@ -269,7 +298,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return imagesSizeMap;
 	}
 
-	protected boolean containsFlavor(HardwareRequirements flavor) {
+	@VisibleForTesting
+    boolean containsFlavor(HardwareRequirements flavor) {
 		List<HardwareRequirements> list = new ArrayList<>(this.getFlavors());
 		for (HardwareRequirements item : list) {
 			if (item.getName().equals(flavor.getName())) {
@@ -279,7 +309,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		return false;
 	}
 
-	protected void setComputeInstanceNetworks(ComputeInstance computeInstance) {
+	@VisibleForTesting
+    void setComputeInstanceNetworks(ComputeInstance computeInstance) {
 		// The default network is always included in the order by the OpenNebula plugin, thus it should be added
 		// in the map of networks in the ComputeInstance by the plugin. The remaining networks passed by the user
 		// are appended by the LocalCloudConnector.
@@ -289,13 +320,15 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		computeInstance.setNetworks(computeNetworks);
 	}
 
-	protected void setFlavors(TreeSet<HardwareRequirements> flavors) {
+	@VisibleForTesting
+    void setFlavors(TreeSet<HardwareRequirements> flavors) {
 		synchronized (this.flavors) {
 			this.flavors = flavors;
 		}
 	}
 
-	protected void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+	@VisibleForTesting
+    void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
 		this.launchCommandGenerator = launchCommandGenerator;
 	}
 }

@@ -3,6 +3,12 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_4.OpenNebulaAttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4.OpenNebulaComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.image.v5_4.OpenNebulaImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4.OpenNebulaNetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4.OpenNebulaPublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4.OpenNebulaVolumePlugin;
 import org.apache.log4j.Logger;
 
 public class OpenNebulaStateMapper {
@@ -25,12 +31,12 @@ public class OpenNebulaStateMapper {
     public static final int IMAGE_READY_STATE = 1;
     public static final int IMAGE_ERROR_STATE = 5;
 
-    public static final String ATTACHMENT_PLUGIN = "OpenNebulaAttachmentPlugin";
-    public static final String COMPUTE_PLUGIN = "OpenNebulaComputePlugin";
-    public static final String IMAGE_PLUGIN = "OpenNebulaImagePlugin";
-    public static final String NETWORK_PLUGIN = "OpenNebulaComputePlugin";
-    public static final String PUBLIC_IP_PLUGIN = "OpenNebulaPublicIpPlugin";
-    public static final String VOLUME_PLUGIN = "OpenNebulaVolumePlugin";
+    public static final String ATTACHMENT_PLUGIN = OpenNebulaAttachmentPlugin.class.getSimpleName();
+    public static final String COMPUTE_PLUGIN = OpenNebulaComputePlugin.class.getSimpleName();
+    public static final String IMAGE_PLUGIN = OpenNebulaImagePlugin.class.getSimpleName();
+    public static final String NETWORK_PLUGIN = OpenNebulaNetworkPlugin.class.getSimpleName();
+    public static final String PUBLIC_IP_PLUGIN = OpenNebulaPublicIpPlugin.class.getSimpleName();
+    public static final String VOLUME_PLUGIN = OpenNebulaVolumePlugin.class.getSimpleName();
 
     public static InstanceState map(ResourceType type, String state){
         state = state.toLowerCase();

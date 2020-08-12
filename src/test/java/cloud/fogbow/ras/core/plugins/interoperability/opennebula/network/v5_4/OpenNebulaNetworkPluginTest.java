@@ -78,7 +78,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		Mockito.doReturn(request).when(this.plugin).getCreateNetworkReserveRequest(
 				Mockito.any(NetworkOrder.class), Mockito.any(VirtualNetwork.class));
 		Mockito.doReturn(this.networkOrder.getInstanceId()).when(this.plugin).doRequestInstance(
-				Mockito.any(Client.class), Mockito.anyString(), Mockito.any(CreateNetworkReserveRequest.class));
+				Mockito.any(Client.class),Mockito.any(CreateNetworkReserveRequest.class));
 
 		// exercise
 		this.plugin.requestInstance(this.networkOrder, this.cloudUser);
@@ -90,7 +90,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 		OpenNebulaClientUtil.getVirtualNetwork(Mockito.any(Client.class), Mockito.anyString());
 
 		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doRequestInstance(
-				Mockito.any(Client.class), Mockito.anyString(), Mockito.any(CreateNetworkReserveRequest.class));
+				Mockito.any(Client.class), Mockito.any(CreateNetworkReserveRequest.class));
 	}
 
 	// test case: when invoking getCreateNetworkReserveRequest with valid network order and virtual network,
@@ -221,7 +221,7 @@ public class OpenNebulaNetworkPluginTest extends OpenNebulaBaseTests {
 				Mockito.any(Client.class), Mockito.anyString());
 
 		// exercise
-		this.plugin.doRequestInstance(this.client, this.orderId, request);
+		this.plugin.doRequestInstance(this.client, request);
 
 		// verify
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class);

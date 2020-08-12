@@ -53,8 +53,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public String requestInstance(@NotNull NetworkOrder networkOrder,
-                                  @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+    public String requestInstance(NetworkOrder networkOrder,
+                                  CloudStackUser cloudStackUser) throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER));
         SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
@@ -78,8 +78,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public NetworkInstance getInstance(@NotNull NetworkOrder networkOrder,
-                                       @NotNull CloudStackUser cloudStackUser)
+    public NetworkInstance getInstance(NetworkOrder networkOrder,
+                                       CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, networkOrder.getInstanceId()));
@@ -91,8 +91,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @Override
-    public void deleteInstance(@NotNull NetworkOrder networkOrder,
-                               @NotNull CloudStackUser cloudStackUser)
+    public void deleteInstance(NetworkOrder networkOrder,
+                               CloudStackUser cloudStackUser)
             throws FogbowException {
 
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, networkOrder.getInstanceId()));
@@ -104,8 +104,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    void doDeleteInstance(@NotNull DeleteNetworkRequest request,
-                          @NotNull CloudStackUser cloudStackUser)
+    void doDeleteInstance(DeleteNetworkRequest request,
+                          CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -114,10 +114,9 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         CloudStackCloudUtils.doRequest(this.client, uriRequest.toString(), cloudStackUser);
     }
 
-    @NotNull
     @VisibleForTesting
-    NetworkInstance doGetInstance(@NotNull GetNetworkRequest request,
-                                  @NotNull CloudStackUser cloudStackUser)
+    NetworkInstance doGetInstance(GetNetworkRequest request,
+                                  CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -129,10 +128,9 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         return getNetworkInstance(response);
     }
 
-    @NotNull
     @VisibleForTesting
-    String doRequestInstance(@NotNull CreateNetworkRequest createNetworkRequest,
-                             @NotNull CloudStackUser cloudStackUser)
+    String doRequestInstance(CreateNetworkRequest createNetworkRequest,
+                             CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = createNetworkRequest.getUriBuilder();
@@ -143,7 +141,6 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         return response.getId();
     }
 
-    @NotNull
     @VisibleForTesting
     SubnetUtils.SubnetInfo getSubnetInfo(String cidrNotation) throws InvalidParameterException {
         try {
@@ -153,9 +150,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackUser> {
         }
     }
 
-    @NotNull
     @VisibleForTesting
-    NetworkInstance getNetworkInstance(@NotNull GetNetworkResponse response)
+    NetworkInstance getNetworkInstance(GetNetworkResponse response)
             throws InstanceNotFoundException {
 
         List<GetNetworkResponse.Network> networks = response.getNetworks();

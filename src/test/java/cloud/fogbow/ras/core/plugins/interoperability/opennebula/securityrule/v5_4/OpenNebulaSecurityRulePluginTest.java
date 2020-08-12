@@ -120,7 +120,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         String securityGroupId = TestUtils.FAKE_SECURITY_GROUP_ID;
 
         Rule rule = buildRule();
-        Mockito.doReturn(rule).when(this.plugin).doUnpakingSecurityRuleId(Mockito.eq(securityRuleId));
+        Mockito.doReturn(rule).when(this.plugin).doUnpackingSecurityRuleId(Mockito.eq(securityRuleId));
         Mockito.doNothing().when(this.plugin).doDeleteSecurityRule(Mockito.eq(this.client), Mockito.eq(rule),
                 Mockito.eq(securityGroupId));
 
@@ -132,7 +132,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         OpenNebulaClientUtil.createClient(Mockito.eq(this.endpoint), Mockito.eq(this.cloudUser.getToken()));
 
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
-                .doUnpakingSecurityRuleId(Mockito.eq(securityRuleId));
+                .doUnpackingSecurityRuleId(Mockito.eq(securityRuleId));
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).doDeleteSecurityRule(Mockito.eq(this.client),
                 Mockito.eq(rule), Mockito.eq(securityGroupId));
     }
@@ -210,7 +210,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         Rule expected = buildRule();
         
         // exercise
-        Rule rule = this.plugin.doUnpakingSecurityRuleId(securityRuleId);
+        Rule rule = this.plugin.doUnpackingSecurityRuleId(securityRuleId);
         
         // verify
         Assert.assertEquals(expected, rule);
@@ -228,7 +228,7 @@ public class OpenNebulaSecurityRulePluginTest extends OpenNebulaBaseTests {
         
         try {
             // exercise
-            this.plugin.doUnpakingSecurityRuleId(securityRuleId);
+            this.plugin.doUnpackingSecurityRuleId(securityRuleId);
             Assert.fail();
         } catch (InvalidParameterException e) {
             // verify

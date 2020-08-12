@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackUrlUtil;
@@ -34,17 +35,25 @@ import java.util.stream.Collectors;
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    protected static final String EXPUNGE_ON_DESTROY_KEY_CONF = "expunge_on_destroy";
-    protected static final String CLOUDSTACK_URL_CONF = "cloudstack_api_url";
-    protected static final String ZONE_ID_KEY_CONF = "zone_id";
+    @VisibleForTesting
+    static final String EXPUNGE_ON_DESTROY_KEY_CONF = "expunge_on_destroy";
+    @VisibleForTesting
+    static final String CLOUDSTACK_URL_CONF = "cloudstack_api_url";
+    @VisibleForTesting
+    static final String ZONE_ID_KEY_CONF = "zone_id";
 
     private static final String DEFAULT_EXPUNGE_ON_DEPLOY_VALUE = "true";
-    protected static final String DEFAULT_VOLUME_TYPE_VALUE = "ROOT";
-    protected static final int UNKNOWN_DISK_VALUE = -1;
+    @VisibleForTesting
+    static final String DEFAULT_VOLUME_TYPE_VALUE = "ROOT";
+    @VisibleForTesting
+    static final int UNKNOWN_DISK_VALUE = -1;
 
-    protected static final String FOGBOW_TAG_SEPARATOR = ":";
-    protected static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
-    protected static final int AMOUNT_INSTANCE = 1;
+    @VisibleForTesting
+    static final String FOGBOW_TAG_SEPARATOR = ":";
+    @VisibleForTesting
+    static final double GIGABYTE_IN_BYTES = Math.pow(1024, 3);
+    @VisibleForTesting
+    static final int AMOUNT_INSTANCE = 1;
 
     private LaunchCommandGenerator launchCommandGenerator;
     private CloudStackHttpClient client;
@@ -75,9 +84,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public String requestInstance(@NotNull ComputeOrder computeOrder, @NotNull CloudStackUser cloudUser)
+    public String requestInstance(ComputeOrder computeOrder, CloudStackUser cloudUser)
             throws FogbowException {
-
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String templateId = getTemplateId(computeOrder);
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
         String networksId = normalizeNetworksID(computeOrder);
@@ -101,45 +110,47 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
-    public ComputeInstance getInstance(@NotNull ComputeOrder order,
-                                       @NotNull CloudStackUser cloudUser)
+    public ComputeInstance getInstance(ComputeOrder order,
+                                       CloudStackUser cloudUser)
             throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
-                .id(order.getInstanceId())
+                .id(instanceId)
                 .build(this.cloudStackUrl);
 
         return doGetInstance(request, cloudUser);
     }
 
     @Override
-    public void deleteInstance(@NotNull ComputeOrder order, @NotNull CloudStackUser cloudUser)
+    public void deleteInstance(ComputeOrder order, CloudStackUser cloudUser)
             throws FogbowException {
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
 
         DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
-                .id(order.getInstanceId())
+                .id(instanceId)
                 .expunge(this.expungeOnDestroy)
                 .build(this.cloudStackUrl);
 
-        doDeleteInstance(request, cloudUser, order.getInstanceId());
+        doDeleteInstance(request, cloudUser, instanceId);
     }
 
-    @NotNull
     @VisibleForTesting
-    ComputeInstance doGetInstance(@NotNull GetVirtualMachineRequest request,
-                                  @NotNull CloudStackUser cloudStackUser) throws FogbowException {
+    ComputeInstance doGetInstance(GetVirtualMachineRequest request,
+                                  CloudStackUser cloudStackUser) throws FogbowException {
 
         GetVirtualMachineResponse response = requestGetVirtualMachine(request, cloudStackUser);
         return buildComputeInstance(response, cloudStackUser);
     }
 
-    @NotNull
     @VisibleForTesting
-    String doRequestInstance(@NotNull DeployVirtualMachineRequest request,
-                             @NotNull GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
-                             @NotNull String diskSize,
-                             @NotNull ComputeOrder computeOrder,
-                             @NotNull CloudStackUser cloudUser) throws FogbowException {
+    String doRequestInstance(DeployVirtualMachineRequest request,
+                             GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
+                             String diskSize,
+                             ComputeOrder computeOrder,
+                             CloudStackUser cloudUser) throws FogbowException {
 
         DeployVirtualMachineResponse response = requestDeployVirtualMachine(request, cloudUser);
         updateComputeOrder(computeOrder, serviceOffering, diskSize);
@@ -147,8 +158,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    void doDeleteInstance(@NotNull DestroyVirtualMachineRequest request,
-                          @NotNull CloudStackUser cloudStackUser, String instanceId)
+    void doDeleteInstance(DestroyVirtualMachineRequest request,
+                          CloudStackUser cloudStackUser, String instanceId)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -164,10 +175,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
     }
 
-    @NotNull
     @VisibleForTesting
     GetAllServiceOfferingsResponse.ServiceOffering getServiceOffering(
-            @NotNull ComputeOrder computeOrder, @NotNull CloudStackUser cloudUser)
+            ComputeOrder computeOrder, CloudStackUser cloudUser)
             throws FogbowException {
 
         GetAllServiceOfferingsResponse response = getServiceOfferings(cloudUser);
@@ -191,8 +201,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @VisibleForTesting
     List<GetAllServiceOfferingsResponse.ServiceOffering> filterServicesOfferingByRequirements(
-            @NotNull List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings,
-            @NotNull ComputeOrder computeOrder) {
+            List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings,
+            ComputeOrder computeOrder) {
 
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferingsFilted = serviceOfferings;
         Map<String, String> requirements = computeOrder.getRequirements();
@@ -214,9 +224,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return serviceOfferingsFilted;
     }
 
-    @NotNull
     @VisibleForTesting
-    GetAllServiceOfferingsResponse getServiceOfferings(@NotNull CloudStackUser cloudStackUser)
+    GetAllServiceOfferingsResponse getServiceOfferings(CloudStackUser cloudStackUser)
             throws FogbowException {
 
         GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder()
@@ -229,9 +238,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return GetAllServiceOfferingsResponse.fromJson(jsonResponse);
     }
 
-    @NotNull
     @VisibleForTesting
-    GetAllDiskOfferingsResponse getDiskOfferings(@NotNull CloudStackUser cloudUser)
+    GetAllDiskOfferingsResponse getDiskOfferings(CloudStackUser cloudUser)
             throws FogbowException {
 
         GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder()
@@ -244,9 +252,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return GetAllDiskOfferingsResponse.fromJson(jsonResponse);
     }
 
-    @NotNull
     @VisibleForTesting
-    String normalizeNetworksID(@NotNull ComputeOrder computeOrder) {
+    String normalizeNetworksID(ComputeOrder computeOrder) {
         List<String> networks = new ArrayList<>();
         networks.add(this.defaultNetworkId);
         List<String> userDefinedNetworks = computeOrder.getNetworkIds();
@@ -256,16 +263,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return StringUtils.join(networks, ",");
     }
 
-    @NotNull
     @VisibleForTesting
     String normalizeInstanceName(String instanceName) {
         return instanceName != null ? instanceName
                 : SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + getRandomUUID();
     }
 
-    @NotNull
     @VisibleForTesting
-    ComputeInstance createComputeInstance(@NotNull GetVirtualMachineResponse.VirtualMachine virtualMachine,
+    ComputeInstance createComputeInstance(GetVirtualMachineResponse.VirtualMachine virtualMachine,
                                           int disk) {
 
         String instanceId = virtualMachine.getId();
@@ -293,7 +298,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @VisibleForTesting
-    int getVirtualMachineDiskSize(String virtualMachineId, @NotNull CloudStackUser cloudUser) {
+    int getVirtualMachineDiskSize(String virtualMachineId, CloudStackUser cloudUser) {
         try {
             GetVolumeRequest request = new GetVolumeRequest.Builder()
                     .virtualMachineId(virtualMachineId)
@@ -310,7 +315,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
             if (!volumes.isEmpty()) {
                 GetVolumeResponse.Volume firstVolume = volumes.get(0);
                 long sizeInBytes = firstVolume.getSize();
-                return convertBytesToGigabyte(sizeInBytes);
+                return (int) BinaryUnit.bytes(sizeInBytes).asGigabytes();
             }
         } catch (Exception e) {
             LOGGER.debug(Messages.Log.ERROR_WHILE_GETTING_DISK_SIZE, e);
@@ -319,21 +324,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return UNKNOWN_DISK_VALUE;
     }
 
-    @NotNull
     @VisibleForTesting
-    String doGet(String url, @NotNull CloudStackUser cloudUser) throws FogbowException {
+    String doGet(String url, CloudStackUser cloudUser) throws FogbowException {
         return this.client.doGetRequest(url, cloudUser);
     }
 
     @VisibleForTesting
-    int convertBytesToGigabyte(long bytes) {
-        return (int) (bytes / GIGABYTE_IN_BYTES);
-    }
-
-    @VisibleForTesting
-    void updateComputeOrder(@NotNull ComputeOrder computeOrder,
-                            @NotNull GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
-                            @NotNull String diskSize) {
+    void updateComputeOrder(ComputeOrder computeOrder,
+                            GetAllServiceOfferingsResponse.ServiceOffering serviceOffering,
+                            String diskSize) {
 
         synchronized (computeOrder) {
             int disk = Integer.parseInt(diskSize);
@@ -345,11 +344,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
     }
 
-    @NotNull
     @VisibleForTesting
     DeployVirtualMachineResponse requestDeployVirtualMachine(
-            @NotNull DeployVirtualMachineRequest request,
-            @NotNull CloudStackUser cloudUser)
+            DeployVirtualMachineRequest request,
+            CloudStackUser cloudUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -360,10 +358,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return DeployVirtualMachineResponse.fromJson(jsonResponse);
     }
 
-    @NotNull
     @VisibleForTesting
-    GetVirtualMachineResponse requestGetVirtualMachine(@NotNull GetVirtualMachineRequest request,
-                                                       @NotNull CloudStackUser cloudStackUser)
+    GetVirtualMachineResponse requestGetVirtualMachine(GetVirtualMachineRequest request,
+                                                       CloudStackUser cloudStackUser)
             throws FogbowException {
 
         URIBuilder uriRequest = request.getUriBuilder();
@@ -374,10 +371,9 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         return GetVirtualMachineResponse.fromJson(jsonResponse);
     }
 
-    @NotNull
     @VisibleForTesting
-    ComputeInstance buildComputeInstance(@NotNull GetVirtualMachineResponse response,
-                                         @NotNull CloudStackUser cloudStackUser)
+    ComputeInstance buildComputeInstance(GetVirtualMachineResponse response,
+                                         CloudStackUser cloudStackUser)
             throws InstanceNotFoundException {
 
         List<GetVirtualMachineResponse.VirtualMachine> virtualMachines = response.getVirtualMachines();
@@ -390,9 +386,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         }
     }
 
-    @NotNull
     @VisibleForTesting
-    String getTemplateId(@NotNull ComputeOrder computeOrder) throws InvalidParameterException {
+    String getTemplateId(ComputeOrder computeOrder) throws InvalidParameterException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || templateId.isEmpty()) {
             throw new InvalidParameterException(Messages.Exception.UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK);

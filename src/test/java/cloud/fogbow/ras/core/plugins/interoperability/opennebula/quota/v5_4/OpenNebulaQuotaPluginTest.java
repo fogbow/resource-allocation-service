@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
+import cloud.fogbow.common.constants.FogbowConstants;
+import cloud.fogbow.common.util.BinaryUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -235,9 +237,9 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         int maxInstances = Integer.parseInt(VMS_MAX_VALUE);
         int maxCPU = Integer.parseInt(CPU_MAX_VALUE);
         int maxRam = Integer.parseInt(MEMORY_MAX_VALUE);
-        int maxDisk = Integer.parseInt(DISK_MAX_VALUE);
-        int maxDiskInGB = this.plugin.convertMegabytesIntoGigabytes(maxDisk);
-        int maxNetworks = OpenNebulaQuotaPlugin.UNLIMITED_NETWORK_QUOTA_VALUE;
+        int maxDiskInMB = Integer.parseInt(DISK_MAX_VALUE);
+        int maxDiskInGB = (int) BinaryUnit.megabytes(maxDiskInMB).asGigabytes();
+        int maxNetworks = FogbowConstants.UNLIMITED_RESOURCE;
         int maxPublicIps = Integer.parseInt(PUBLIC_IP_MAX_VALUE);
         int maxVolumes = Integer.parseInt(MAX_VOLUMES);
         
@@ -258,8 +260,8 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         int usedInstances = Integer.parseInt(VMS_USED_VALUE);
         int usedCPU = Integer.parseInt(CPU_USED_VALUE);
         int usedRam = Integer.parseInt(MEMORY_USED_VALUE);
-        int usedDisk = Integer.parseInt(DISK_USED_VALUE);
-        int usedDiskInGB = this.plugin.convertMegabytesIntoGigabytes(usedDisk);
+        int usedDiskMB = Integer.parseInt(DISK_USED_VALUE);
+        int usedDiskInGB = (int) BinaryUnit.megabytes(usedDiskMB).asGigabytes();
         int usedNetworks = Integer.parseInt(NETWORK_USED_VALUE);
         int usedPublicIps = Integer.parseInt(PUBLIC_IP_USED_VALUE);
         int usedVolumes = Integer.parseInt(USED_VOLUMES);
