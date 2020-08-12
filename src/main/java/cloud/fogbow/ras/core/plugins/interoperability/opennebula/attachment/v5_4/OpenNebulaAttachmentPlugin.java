@@ -140,9 +140,9 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
     @VisibleForTesting
     String normalizeDeviceTarget(AttachmentOrder order) {
         // Expecting a default target device such as "/dev/sdb".
-        String[] pathSplited = order.getDevice().split(DEVICE_PATH_SEPARATOR);
-        String target = pathSplited.length == DEVICE_PATH_LENGTH 
-                ? pathSplited[TARGET_INDEX]
+        String[] splitPath = order.getDevice().split(DEVICE_PATH_SEPARATOR);
+        String target = splitPath.length == DEVICE_PATH_LENGTH
+                ? splitPath[TARGET_INDEX]
                 : DEFAULT_TARGET;
 
         return target;
