@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 import java.util.UUID;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.SystemConstants;
 import com.google.common.annotations.VisibleForTesting;
@@ -43,8 +44,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
     static final String DRIVER_RAW = "raw";
 	@VisibleForTesting
     static final String PERSISTENT_DISK_CONFIRMATION = "YES";
-	@VisibleForTesting
-    static final int CONVERT_DISK = 1024;
 
 	@VisibleForTesting
     static final String DATASTORE_FREE_PATH_FORMAT = "//DATASTORE[%s]/FREE_MB";
@@ -80,11 +79,12 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 		String driver = DRIVER_RAW;
 		String diskType = BLOCK_DISK_TYPE;
 		String devicePrefix = DEFAULT_DATASTORE_DEVICE_PREFIX;
-		long size = volumeOrder.getVolumeSize() * CONVERT_DISK;
+		long sizeInGB = volumeOrder.getVolumeSize();
+		long sizeInMB = (long) BinaryUnit.gigabytes(sizeInGB).asMegabytes();
 
 		CreateVolumeRequest request = new CreateVolumeRequest.Builder()
 				.name(name)
-				.size(size)
+				.size(sizeInMB)
 				.imagePersistent(imagePersistent)
 				.imageType(imageType)
 				.driver(driver)
@@ -186,14 +186,15 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 
 	@VisibleForTesting
     int getImageSize(String size) {
-		int imageSize = 0;
+		int sizeInGB = 0;
 		try {
-			imageSize = Integer.parseInt(size) / CONVERT_DISK;
+			int sizeInMB = Integer.parseInt(size);
+			sizeInGB = (int) BinaryUnit.megabytes(sizeInMB).asGigabytes();
 		} catch (NumberFormatException e) {
 			LOGGER.error(e.getMessage());
 		}
 
-		return imageSize;
+		return sizeInGB;
 	}
 
 	@VisibleForTesting
