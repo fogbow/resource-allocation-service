@@ -55,7 +55,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackUser> {
     public ImageInstance getImage(String imageId, CloudStackUser cloudStackUser)
             throws FogbowException {
 
-        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
+        LOGGER.info(String.format(Messages.Log.RECEIVING_GET_IMAGE_REQUEST_S, imageId));
 
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
                 .id(imageId)
