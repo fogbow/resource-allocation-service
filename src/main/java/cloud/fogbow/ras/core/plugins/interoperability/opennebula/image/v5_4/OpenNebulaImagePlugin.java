@@ -7,6 +7,7 @@ import cloud.fogbow.ras.api.http.response.ImageSummary;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
+import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
@@ -49,8 +50,8 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 	@Override
 	public ImageInstance getImage(String imageId, CloudUser cloudUser) throws FogbowException {
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		org.opennebula.client.image.Image image = OpenNebulaClientUtil.getImage(client, imageId);
-		return mount(image);
+		Image image = OpenNebulaClientUtil.getImage(client, imageId);
+		return buildImageInstance(image);
 	}
 
 	@VisibleForTesting
@@ -58,7 +59,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		String type;
 		int index = 1;
 		List<ImageSummary> images = new ArrayList<>();
-		for (org.opennebula.client.image.Image image : imagePool) {
+		for (Image image : imagePool) {
 			type = image.xpath(String.format(FORMAT_IMAGE_TYPE_PATH, index));
 			if (type != null && type.equals(OPERATIONAL_SYSTEM_IMAGE_TYPE)) {
 				ImageSummary imageSummary = new ImageSummary(image.getId(), image.getName());
@@ -70,7 +71,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 	}
 	
 	@VisibleForTesting
-    ImageInstance mount(org.opennebula.client.image.Image image) {
+    ImageInstance buildImageInstance(Image image) {
 		String id = image.getId();
 		String name = image.getName();
 		String imageSize = image.xpath(IMAGE_SIZE_PATH);

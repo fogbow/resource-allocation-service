@@ -84,7 +84,7 @@ public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 		ImageInstance imageInstance = Mockito.mock(ImageInstance.class);
 
 		Mockito.when(OpenNebulaClientUtil.getImage(Mockito.any(Client.class), Mockito.anyString())).thenReturn(image);
-		Mockito.doReturn(imageInstance).when(this.plugin).mount(this.image);
+		Mockito.doReturn(imageInstance).when(this.plugin).buildImageInstance(this.image);
 
 		// exercise
 		this.plugin.getImage(FAKE_ID, cloudUser);
@@ -96,7 +96,7 @@ public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 		PowerMockito.verifyStatic(OpenNebulaClientUtil.class, Mockito.times(TestUtils.RUN_ONCE));
 		OpenNebulaClientUtil.getImage(Mockito.any(Client.class), Mockito.eq(FAKE_ID));
 
-		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).mount(Mockito.eq(this.image));
+		Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).buildImageInstance(Mockito.eq(this.image));
 	}
 
 	// test case: when calling getImageSummaryList with a valid image pool, return a list
@@ -136,7 +136,7 @@ public class OpenNebulaImagePluginTest extends OpenNebulaBaseTests {
 				.thenReturn(InstanceState.READY);
 
 		// exercise
-		ImageInstance instance = this.plugin.mount(this.image);
+		ImageInstance instance = this.plugin.buildImageInstance(this.image);
 
 		// verify
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE)).convertToInteger(ID_VALUE_ONE);
