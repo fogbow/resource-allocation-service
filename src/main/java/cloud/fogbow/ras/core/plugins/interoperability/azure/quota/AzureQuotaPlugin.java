@@ -4,11 +4,14 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.quota.sdk.AzureQuotaSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
@@ -18,12 +21,15 @@ import com.microsoft.azure.management.compute.Disk;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.network.NetworkUsage;
+import org.apache.log4j.Logger;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
+
+    public static final Logger LOGGER = Logger.getLogger(AzureQuotaPlugin.class);
 
     @VisibleForTesting
     static final String QUOTA_VM_INSTANCES_KEY = "virtualMachines";
@@ -40,18 +46,16 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
     @VisibleForTesting
     static final int NO_USAGE = 0;
 
-    private static final int ONE_PETABYTE_IN_GIGABYTES = 1048576;
-
     /**
      * This value is hardcoded because at the time this plugin was developed, a value for maximum storage capacity was
      * not provided by the SDK. The current value is informed in the documentation.
      */
     @VisibleForTesting
-    static final int MAXIMUM_STORAGE_ACCOUNT_CAPACITY = 50 * ONE_PETABYTE_IN_GIGABYTES;
+    static final int MAXIMUM_STORAGE_ACCOUNT_CAPACITY = (int) BinaryUnit.petabytes(50).asGigabytes();
 
     private final String defaultRegionName;
 
-    public AzureQuotaPlugin(@NotNull String confFilePath) {
+    public AzureQuotaPlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.defaultRegionName = properties.getProperty(AzureConstants.DEFAULT_REGION_NAME_KEY);
         AzureGeneralPolicy.checkRegionName(this.defaultRegionName);
@@ -59,11 +63,12 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
 
     @Override
     public ResourceQuota getUserQuota(AzureUser cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.GETTING_QUOTA);
         Azure azure = AzureClientCacheManager.getAzure(cloudUser);
 
         Map<String, ComputeUsage> computeUsages = this.getComputeUsageMap(azure);
         Map<String, NetworkUsage> networkUsages = this.getNetworkUsageMap(azure);
-        PagedList<Disk> disks = this.getDisks(azure);
+        PagedList<Disk> disks = AzureQuotaSDK.getDisks(azure);
 
         ResourceAllocation totalQuota = this.getTotalQuota(computeUsages, networkUsages);
         ResourceAllocation usedQuota = this.getUsedQuota(computeUsages, networkUsages, disks, azure);
@@ -192,7 +197,7 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
         Map<String, ComputeUsage> computeUsageMap = new HashMap<>();
         List<String> validComputeUsages = Arrays.asList(QUOTA_VM_INSTANCES_KEY, QUOTA_VM_CORES_KEY);
 
-        this.getComputeUsage(azure).stream()
+        AzureQuotaSDK.getComputeUsageByRegion(azure, this.defaultRegionName).stream()
                 .filter(computeUsage -> validComputeUsages.contains(computeUsage.name().value()))
                 .forEach(computeUsage -> computeUsageMap.put(computeUsage.name().value(), computeUsage));
 
@@ -200,25 +205,15 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
     }
 
     @VisibleForTesting
-    PagedList<ComputeUsage> getComputeUsage(Azure azure) {
-        return azure.computeUsages().listByRegion(this.defaultRegionName);
-    }
-
-    @VisibleForTesting
     Map<String, NetworkUsage> getNetworkUsageMap(Azure azure) {
         Map<String, NetworkUsage> networkUsageMap = new HashMap<>();
         List<String> validNetworkUsages = Arrays.asList(QUOTA_NETWORK_INSTANCES, QUOTA_PUBLIC_IP_ADDRESSES);
 
-        this.getNetworkUsage(azure).stream()
+        AzureQuotaSDK.getNetworkUsageByRegion(azure, this.defaultRegionName).stream()
                 .filter(networkUsage -> validNetworkUsages.contains(networkUsage.name().value()))
                 .forEach(networkUsage -> networkUsageMap.put(networkUsage.name().value(), networkUsage));
 
         return networkUsageMap;
-    }
-
-    @VisibleForTesting
-    PagedList<NetworkUsage> getNetworkUsage(Azure azure) {
-        return azure.networkUsages().listByRegion(this.defaultRegionName);
     }
 
     @VisibleForTesting
@@ -237,10 +232,10 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
                 .reduce(initialValue, Integer::sum);
     }
 
-   @VisibleForTesting
+    @VisibleForTesting
     Map<String, VirtualMachineSize> getVirtualMachineSizesInUse(List<String> sizeNames, Azure azure) {
         Map<String, VirtualMachineSize> sizes = new HashMap<>();
-        this.getVirtualMachineSizes(azure).stream()
+        AzureQuotaSDK.getVirtualMachineSizesByRegion(azure, this.defaultRegionName).stream()
                 .filter(virtualMachineSize -> sizeNames.contains(virtualMachineSize.name()))
                 .forEach(virtualMachineSize -> sizes.put(virtualMachineSize.name(), virtualMachineSize));
         return sizes;
@@ -248,23 +243,8 @@ public class AzureQuotaPlugin implements QuotaPlugin<AzureUser> {
 
     @VisibleForTesting
     List<String> getVirtualMachineSizeNamesInUse(Azure azure) {
-        return this.getVirtualMachines(azure).stream()
+        return AzureQuotaSDK.getVirtualMachines(azure).stream()
                 .map(virtualMachine -> virtualMachine.size().toString())
                 .collect(Collectors.toList());
-    }
-
-    @VisibleForTesting
-    PagedList<VirtualMachine> getVirtualMachines(Azure azure) {
-        return azure.virtualMachines().list();
-    }
-
-    @VisibleForTesting
-    PagedList<VirtualMachineSize> getVirtualMachineSizes(Azure azure) {
-        return azure.virtualMachines().sizes().listByRegion(this.defaultRegionName);
-    }
-
-    @VisibleForTesting
-    PagedList<Disk> getDisks(Azure azure) {
-        return azure.disks().list();
     }
 }

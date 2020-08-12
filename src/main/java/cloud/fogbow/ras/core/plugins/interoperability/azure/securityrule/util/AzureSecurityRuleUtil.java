@@ -17,9 +17,9 @@ public interface AzureSecurityRuleUtil {
     String UDP_VALUE = "UDP";
 
     String PORTS_SEPARATOR = "-";
-    String CIRD_SEPARATOR = "/";
+    String CIDR_SEPARATOR = "/";
 
-    int IP_CIRD_ARRAY_POSITION = 0;
+    int IP_CIDR_ARRAY_POSITION = 0;
     int FROM_PORT_ARRAY_POSITION = 0;
     int TO_PORT_ARRAY_POSITION = 1;
     int SINGLE_PORT_SIZE = 1;
@@ -51,9 +51,9 @@ public interface AzureSecurityRuleUtil {
     }
 
     @Nullable
-    static String getIpAddress(String cird) {
-        String[] cirdChunks = cird.split(CIRD_SEPARATOR);
-        String ip = cirdChunks[IP_CIRD_ARRAY_POSITION];
+    static String getIpAddress(String cidr) {
+        String[] cidrChunks = cidr.split(CIDR_SEPARATOR);
+        String ip = cidrChunks[IP_CIDR_ARRAY_POSITION];
         return CidrUtils.isIpv4(ip) || CidrUtils.isIpv6(ip) ? ip : null;
     }
 

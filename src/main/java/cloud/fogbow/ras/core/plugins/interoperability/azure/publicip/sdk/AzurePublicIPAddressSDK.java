@@ -22,8 +22,6 @@ import rx.Observable;
 public class AzurePublicIPAddressSDK {
 
     @VisibleForTesting
-    static final String RESOURCE_NAMES_SEPARATOR = "_";
-    @VisibleForTesting
     static final int SSH_ACCESS_PORT = 22;
 
     public static Observable<NetworkInterface> associatePublicIPAddressAsync(
