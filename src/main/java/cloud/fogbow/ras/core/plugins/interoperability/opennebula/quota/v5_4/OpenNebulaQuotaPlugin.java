@@ -5,6 +5,7 @@ import java.util.Properties;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.util.BinaryUnit;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
@@ -40,7 +41,6 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
     protected static final String QUOTA_CPU_USED_PATH = "VM_QUOTA/VM/CPU_USED";
     protected static final String QUOTA_MEMORY_USED_PATH = "VM_QUOTA/VM/MEMORY_USED";
     protected static final String QUOTA_VMS_USED_PATH = "VM_QUOTA/VM/VMS_USED";
-    protected static final int UNLIMITED_NETWORK_QUOTA_VALUE = -1;
 
     private String defaultDatastore;
     private String defaultPublicNetwork;
@@ -115,7 +115,7 @@ public class OpenNebulaQuotaPlugin implements QuotaPlugin<CloudUser> {
          * be created, so the value -1 will be adopted to inform this resource as
          * unlimited.
          */
-        int maxNetworks = UNLIMITED_NETWORK_QUOTA_VALUE;
+        int maxNetworks = FogbowConstants.UNLIMITED_RESOURCE;
         
         ResourceAllocation totalAllocation = ResourceAllocation.builder()
                 .instances(maxInstances)

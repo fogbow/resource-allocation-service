@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
+import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.util.BinaryUnit;
 import org.junit.Assert;
 import org.junit.Before;
@@ -238,7 +239,7 @@ public class OpenNebulaQuotaPluginTest extends OpenNebulaBaseTests {
         int maxRam = Integer.parseInt(MEMORY_MAX_VALUE);
         int maxDiskInMB = Integer.parseInt(DISK_MAX_VALUE);
         int maxDiskInGB = (int) BinaryUnit.megabytes(maxDiskInMB).asGigabytes();
-        int maxNetworks = OpenNebulaQuotaPlugin.UNLIMITED_NETWORK_QUOTA_VALUE;
+        int maxNetworks = FogbowConstants.UNLIMITED_RESOURCE;
         int maxPublicIps = Integer.parseInt(PUBLIC_IP_MAX_VALUE);
         int maxVolumes = Integer.parseInt(MAX_VOLUMES);
         
