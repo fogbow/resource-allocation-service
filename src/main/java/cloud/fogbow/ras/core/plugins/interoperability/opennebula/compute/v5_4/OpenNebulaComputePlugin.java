@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -195,7 +196,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	@VisibleForTesting
     synchronized void setOrderAllocation(ComputeOrder computeOrder, VirtualMachineTemplate virtualMachine) {
 		int sizeInMegabytes = Integer.parseInt(virtualMachine.getDisk().getSize());
-		int size = convertDiskSizeToGb(sizeInMegabytes);
+		int size = (int) BinaryUnit.megabytes(sizeInMegabytes).asGigabytes();
 		ComputeAllocation actualAllocation = new ComputeAllocation(
                 DEFAULT_NUMBER_OF_INSTANCES, Integer.parseInt(virtualMachine.getCpu()),
 				Integer.parseInt(virtualMachine.getMemory()),
