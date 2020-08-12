@@ -32,6 +32,8 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
     static final String IMAGE_SIZE_PATH = "/IMAGE/SIZE";
 	@VisibleForTesting
     static final String OPERATIONAL_SYSTEM_IMAGE_TYPE = "0";
+	@VisibleForTesting
+	static final int NO_VALUE_FLAG = -1;
 
 	private String endpoint;
 	
@@ -78,8 +80,8 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		String name = image.getName();
 		String imageSize = image.xpath(IMAGE_SIZE_PATH);
 		int size = convertToInteger(imageSize);
-		int minDisk = -1;
-		int minRam = -1;
+		int minDisk = NO_VALUE_FLAG;
+		int minRam = NO_VALUE_FLAG;
 		int state = image.state();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.IMAGE, state);
 		String status = instanceState.getValue();
