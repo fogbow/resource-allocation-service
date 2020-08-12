@@ -39,7 +39,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
 
     @Override
     public ImageInstance getImage(String imageId, OpenStackV3User cloudUser) throws FogbowException {
-        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
+        LOGGER.info(String.format(Messages.Log.RECEIVING_GET_IMAGE_REQUEST_S, imageId));
         GetImageResponse getImageResponse = getImageResponse(imageId, cloudUser);
         String status = getImageResponse.getStatus();
 
