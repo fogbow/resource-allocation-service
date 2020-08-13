@@ -11,7 +11,6 @@ In this section the installation explanation will be facing a possible contribut
 - Java 8
 - Maven
 - [Common module](https://github.com/fogbow/common/), which is a dependency for every fogbow service.
-- [Authentication Service](https://github.com/fogbow/authentication-service), which is used to authenticate the user and provide a token that will be required for most requests.
 
 ### Installing
 
