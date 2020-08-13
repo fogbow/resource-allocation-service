@@ -1,21 +1,46 @@
 # Resource Allocation Service
 
-This service provides a common REST interface for manage resources in an environment with different cloud providers (e.g, Amazon Web Service, OpenStack, Microsoft Azure, etc). The service offers a way to interconnect many Fogbow instances in a federation.
+This service provides a common REST interface for manage resources in an environment with different cloud providers (e.g, Amazon Web Service, OpenStack, Microsoft Azure, etc). It also offers a way to interconnect many Fogbow instances in a federation.
 
-## How to use (work in progress)
+## How to use
 
-For begin, you need to clone this repository and other fogbow modules. - The [common module](!) is a dependency for every fogbow service.
+In this section the installation explanation will be facing a possible contributor. If you are interested in deployment, please take a look at [fogbow-deploy](https://github.com/fogbow/fogbow-deploy).
+
+### Dependencies
+
+- Java 8
+- Maven
+- [Common module](https://github.com/fogbow/common/), which is a dependency for every fogbow service.
+- [Authentication Service](https://github.com/fogbow/authentication-service), which is used to authenticate the user and provide a token that will be required for most requests.
+
+### Installing
+
+First of all, create a directory to organize all fogbow modules/services then clone the required repositories.
 
 ```bash
 mkdir fogbow && cd fogbow
-git clone https://github.com/fogbow/resource-allocation-service.git
-cd resource-allocaton-service && mvn install -DskipTests
 
 git clone https://github.com/fogbow/common.git
 cd common && mvn install -DskipTests
+
+git clone https://github.com/fogbow/resource-allocation-service.git
+cd resource-allocaton-service && mvn install -DskipTests
 ```
 
-- Fogbow [common](https://www.github.com/fogbow/common) module
+### Configuration
+
+Insert here a guide about how to configurate the required files (resources/private directory and ras.conf)
+
+### Starting the services
+
+1. Start your IDE (IntelliJ, Eclipse, etc);
+2. Open the Resource Allocation Service (RAS) project;
+3. Add common as a module in the RAS project;
+4. Run the RAS application.
+
+### Optional tools
+
+- Postman, for REST requests.
 
 ## Contributing
 
