@@ -30,7 +30,35 @@ git checkout develop && mvn install -DskipTests
 
 ### Configuration
 
-Insert here a guide about how to configurate the required files (resources/private directory and ras.conf)
+This service requires some initial configuration. Most of them will have a template for help you to get started.
+
+First of all, you need to create a directory named *private* at `src/main/resources`, it will be holding your private settings (managed clouds, username and password for the clouds, etc.).
+
+#### prosody.lua file
+
+Insert here information about XMPP configuration.
+
+#### private/clouds/
+
+For each cloud that you will use, a directory should be created at `src/main/resources/private/clouds`. For each supported cloud there is a template under `src/main/resources/templates/clouds`.
+
+You can name the directory as you like, but remember that this name will be the identifier for the cloud.
+
+You don't need to use all the clouds, you can choose which one to use. The clouds used will depend on the ras.conf "cloud_names" field.
+
+#### private/ras.conf
+
+Check out `src/main/resources/templates/ras.conf` for a file template. Here you need to configurate some required fields. Let's take a look at each of them.
+
+- **public_key_file_path:** the path to the public key
+- **private_key_file_path:** the path to the private key
+- **authorization_plugin_class:** ?
+- **cloud_names:** the name of the clouds under private/clouds, separate by comma (,)
+- **provider_id:** the XMPP provider id configurated at prosody.lua (Still need to confirmate this info)
+- **as_port:** the port that the Authentication Service is running
+- **as_url:** the url that the Authentication Service is running
+
+speech_balloon Insert here a guide to public/private key creation.
 
 ### Starting the service
 
