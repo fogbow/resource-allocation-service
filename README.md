@@ -36,7 +36,7 @@ First of all, you need to create a directory named *private* at `src/main/resour
 
 #### prosody.lua file
 
-Insert here information about XMPP configuration.
+:pushpin:  Insert here information about XMPP configuration.
 
 #### private/clouds/
 
@@ -52,13 +52,13 @@ Check out `src/main/resources/templates/ras.conf` for a file template. Here you 
 
 - **public_key_file_path:** the path to the public key
 - **private_key_file_path:** the path to the private key
-- **authorization_plugin_class:** ?
+- **authorization_plugin_class:** :pushpin:
 - **cloud_names:** the name of the clouds under private/clouds, separate by comma (,)
 - **provider_id:** the XMPP provider id configurated at prosody.lua (Still need to confirmate this info)
 - **as_port:** the port that the Authentication Service is running
 - **as_url:** the url that the Authentication Service is running
 
-speech_balloon Insert here a guide to public/private key creation.
+:pushpin: Insert here a guide to public/private key creation.
 
 ### Starting the service
 
@@ -77,4 +77,4 @@ For instructions about how to contribute, check out our [contributor's guide](ht
 
 ## Help (work in progress)
 
-Insert here information about how to get help when needed. Email, discord or any communication channel.
+:pushpin: Insert here information about how to get help when needed. Email, discord or any communication channel.
