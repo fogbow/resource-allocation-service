@@ -10,7 +10,7 @@ In this section the installation explanation will be facing a possible contribut
 
 - Java 8
 - Maven
-- [Common module](https://github.com/fogbow/common/), which is a dependency for every fogbow service.
+- [Common module](https://github.com/fogbow/common/), which is a dependency for most fogbow service.
 
 ### Installing
 
@@ -20,17 +20,19 @@ First of all, create a directory to organize all fogbow modules/services then cl
 mkdir fogbow && cd fogbow
 
 git clone https://github.com/fogbow/common.git
-cd common && mvn install -DskipTests
+cd common  
+git checkout develop && mvn install -DskipTests
 
 git clone https://github.com/fogbow/resource-allocation-service.git
-cd resource-allocaton-service && mvn install -DskipTests
+cd resource-allocaton-service
+git checkout develop && mvn install -DskipTests
 ```
 
 ### Configuration
 
 Insert here a guide about how to configurate the required files (resources/private directory and ras.conf)
 
-### Starting the services
+### Starting the service
 
 1. Start your IDE (IntelliJ, Eclipse, etc);
 2. Open the Resource Allocation Service (RAS) project;
