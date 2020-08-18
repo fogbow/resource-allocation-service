@@ -11,6 +11,7 @@ In this section the installation explanation will be facing a possible contribut
 - Java 8
 - Maven
 - [Common module](https://github.com/fogbow/common/), which is a dependency for most fogbow service.
+- [Authentication Service](https://github.com/fogbow/authentication-service/), a fogbow service for authentication.
 
 ### Installing
 
@@ -21,6 +22,10 @@ mkdir fogbow && cd fogbow
 
 git clone https://github.com/fogbow/common.git
 cd common  
+git checkout develop && mvn install -DskipTests
+
+git clone https://github.com/fogbow/authentication-service.git
+cd authentication-service
 git checkout develop && mvn install -DskipTests
 
 git clone https://github.com/fogbow/resource-allocation-service.git
@@ -52,11 +57,11 @@ Check out `src/main/resources/templates/ras.conf` for a file template. Here you 
 
 - **public_key_file_path:** the path to the public key
 - **private_key_file_path:** the path to the private key
-- **authorization_plugin_class:** :pushpin:
+- **authorization_plugin_class:** :pushpin: Insert here information about this field
 - **cloud_names:** the name of the clouds under private/clouds, separate by comma (,)
 - **provider_id:** the XMPP provider id configurated at prosody.lua (Still need to confirmate this info)
-- **as_port:** the port that the Authentication Service is running
-- **as_url:** the url that the Authentication Service is running
+- **as_port:** authentication service port
+- **as_url:** authentication service url
 
 :pushpin: Insert here a guide to public/private key creation.
 
@@ -64,8 +69,8 @@ Check out `src/main/resources/templates/ras.conf` for a file template. Here you 
 
 1. Start your IDE (IntelliJ, Eclipse, etc);
 2. Open the Resource Allocation Service (RAS) project;
-3. Add common as a module in the RAS project;
-4. Run the RAS application.
+3. Add/import common and authentication service as module in the RAS project;
+4. Run the AS and RAS application.
 
 ### Optional tools
 
