@@ -8,4 +8,5 @@ Please note we have a [code of conduct](https://github.com/fogbow/resource-alloc
 
 1. Ensure your code compiles and passes all tests. Run `mvn install` to compile and test;
 2. If you're adding a new endpoint, it must be properly documented with Swagger API;
-3. You may merge the pull request in once you have it approved by the reviewers, or if you do not have permission to do that, you may request the reviewer to merge it for you.
+3. If your pull request is related to an issue, please link the issue in the description;
+4. You may merge the pull request in once you have it approved by the reviewers, or if you do not have permission to do that, you may request the reviewer to merge it for you.
