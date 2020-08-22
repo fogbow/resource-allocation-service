@@ -51,19 +51,51 @@ You can name the directory as you like, but remember that this name will be the 
 
 You don't need to use all the clouds, you can choose which one to use. The clouds used will depend on the ras.conf "cloud_names" field.
 
+#### private/private.key, private/public.key
+
+If you don't know how to create a public/private key, take a look at [this guide](https://docs.oracle.com/cd/E19683-01/806-4078/6jd6cjru7/index.html).
+
+After the keys are created, you must put them in `src/main/resources/private/` folder.
+
 #### private/ras.conf
 
-Check out `src/main/resources/templates/ras.conf` for a file template. Here you need to configurate some required fields. Let's take a look at each of them.
+Check out `src/main/resources/templates/ras.conf` for a file template.
 
-- **public_key_file_path:** the path to the public key
-- **private_key_file_path:** the path to the private key
-- **authorization_plugin_class:** :pushpin: Insert here information about this field
-- **cloud_names:** the name of the clouds under private/clouds, separate by comma (,)
-- **provider_id:** the XMPP provider id configurated at prosody.lua (Still need to confirmate this info)
-- **as_port:** authentication service port
-- **as_url:** authentication service url
+**Example:**
 
-:pushpin: Insert here a guide to public/private key creation.
+```conf
+# Required
+public_key_file_path=src/main/resources/private/public.key
+# Required
+private_key_file_path=src/main/resources/private/private.key
+
+# Required
+authorization_plugin_class=cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin
+
+# Required
+cloud_names=azure,aws
+
+open_orders_sleep_time=
+spawning_orders_sleep_time=
+fulfilled_orders_sleep_time=
+closed_orders_sleep_period=
+http_request_timeout=
+
+ssh_common_user=
+
+# Required
+provider_id=my-provider-id
+# Required
+xmpp_password=pass
+# Required
+xmpp_server_ip=localhost
+xmpp_c2c_port=
+xmpp_timeout=
+
+# Required
+as_port=8081
+as_url=http://localhost
+```
 
 ### Starting the service
 
