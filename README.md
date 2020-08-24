@@ -39,9 +39,9 @@ This service requires some initial configuration. Most of them will have a templ
 
 First of all, you need to create a directory named *private* at `src/main/resources`, it will be holding your private settings (managed clouds, username and password for the clouds, etc.).
 
-#### prosody.lua file
+#### XMPP Configuration
 
-:pushpin:  Insert here information about XMPP configuration.
+:pushpin: Working in pogress :pushpin:
 
 #### private/clouds/
 
@@ -111,7 +111,3 @@ as_url=http://localhost
 ## Contributing
 
 For instructions about how to contribute, check out our [contributor's guide](https://github.com/fogbow/resource-allocation-service/blob/master/CONTRIBUTING.md).
-
-## Help (work in progress)
-
-:pushpin: Insert here information about how to get help when needed. Email, discord or any communication channel.
