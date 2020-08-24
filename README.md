@@ -21,7 +21,7 @@ First of all, create a directory to organize all fogbow modules/services then cl
 mkdir fogbow && cd fogbow
 
 git clone https://github.com/fogbow/common.git
-cd common  
+cd common
 git checkout develop && mvn install -DskipTests
 
 git clone https://github.com/fogbow/authentication-service.git
@@ -37,11 +37,11 @@ git checkout develop && mvn install -DskipTests
 
 This service requires some initial configuration. Most of them will have a template for help you to get started.
 
-First of all, you need to create a directory named *private* at `src/main/resources`, it will be holding your private settings (managed clouds, username and password for the clouds, etc.).
+First of all, you need to create a directory named _private_ at `src/main/resources`, it will be holding your private settings (managed clouds, username and password for the clouds, etc.).
 
 #### XMPP Configuration
 
-:pushpin: Working in pogress :pushpin:
+:pushpin: Working in progress
 
 #### private/clouds/
 
