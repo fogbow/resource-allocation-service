@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.aws.sdk.compute.model;
+package cloud.fogbow.ras.core.plugins.interoperability.aws.sdk.v2.compute.model;
 
 import java.util.Arrays;
 import java.util.List;
