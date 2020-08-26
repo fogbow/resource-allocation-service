@@ -21,7 +21,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloud
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListPublicIpAddressRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.publicip.model.*;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.quota.model.ListPublicIpAddressRequest;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Level;

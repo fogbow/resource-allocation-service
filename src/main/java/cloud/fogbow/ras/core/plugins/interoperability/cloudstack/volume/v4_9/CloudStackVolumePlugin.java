@@ -18,13 +18,11 @@ import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.volume.model.*;
 import com.google.common.annotations.VisibleForTesting;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
-
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 
 import java.util.List;
 import java.util.Map;

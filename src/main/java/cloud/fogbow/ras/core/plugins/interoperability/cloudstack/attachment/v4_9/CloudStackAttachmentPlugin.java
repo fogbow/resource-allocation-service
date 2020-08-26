@@ -16,8 +16,9 @@ import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackErrorResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.attachment.model.*;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.volume.model.GetVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.volume.model.GetVolumeResponse;
 
 import com.google.common.annotations.VisibleForTesting;
 

@@ -22,10 +22,11 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudstackTestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.RequestMatcher;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.compute.model.*;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.volume.model.GetAllDiskOfferingsRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.volume.model.GetAllDiskOfferingsResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.volume.model.GetVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.volume.model.GetVolumeResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 

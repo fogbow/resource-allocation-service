@@ -16,12 +16,12 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.network.model.*;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Properties;
 
