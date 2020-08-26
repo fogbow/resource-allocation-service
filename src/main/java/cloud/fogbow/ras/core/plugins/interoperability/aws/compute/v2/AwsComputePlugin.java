@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.util.BinaryUnit;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.sdk.compute.model.AwsHardwareRequirements;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
