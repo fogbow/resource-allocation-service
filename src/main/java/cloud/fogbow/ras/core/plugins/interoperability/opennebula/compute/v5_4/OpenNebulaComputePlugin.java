@@ -18,6 +18,8 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.*;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.compute.model.CreateComputeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.compute.model.VirtualMachineTemplate;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;

@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
+package cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.network.model;
 
 import static cloud.fogbow.common.constants.OpenNebulaConstants.NAME;
 import static cloud.fogbow.common.constants.OpenNebulaConstants.SIZE;

@@ -1,6 +1,7 @@
-package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
+package cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule;
 
 import cloud.fogbow.common.util.CidrUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.Rule;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.ras.api.parameters.SecurityRule;

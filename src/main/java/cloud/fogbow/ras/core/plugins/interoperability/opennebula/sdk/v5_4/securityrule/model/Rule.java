@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
+package cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model;
 
 import static cloud.fogbow.common.constants.OpenNebulaConstants.IP;
 import static cloud.fogbow.common.constants.OpenNebulaConstants.NETWORK_ID;

@@ -8,6 +8,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.network.model.CreateNetworkReserveRequest;
 import org.apache.commons.net.util.SubnetUtils;
 import org.junit.Assert;
 import org.junit.Before;

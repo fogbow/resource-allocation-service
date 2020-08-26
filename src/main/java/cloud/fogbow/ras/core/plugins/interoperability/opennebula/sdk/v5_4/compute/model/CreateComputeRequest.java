@@ -1,9 +1,9 @@
-package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
+package cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.compute.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4.VirtualMachineTemplate.Disk;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.compute.model.VirtualMachineTemplate.Disk;
 
 /**
  * http://docs.opennebula.org/5.4/operation/references/template.html#template

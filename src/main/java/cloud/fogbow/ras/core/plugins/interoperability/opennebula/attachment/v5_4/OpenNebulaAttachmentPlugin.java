@@ -2,10 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_
 
 import java.util.Properties;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.attachment.model.CreateAttachmentRequest;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;

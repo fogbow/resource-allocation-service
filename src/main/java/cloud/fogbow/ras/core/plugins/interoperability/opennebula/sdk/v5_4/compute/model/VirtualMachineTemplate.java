@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
+package cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.compute.model;
 
 
 import cloud.fogbow.common.util.connectivity.cloud.opennebula.OpenNebulaMarshallerTemplate;

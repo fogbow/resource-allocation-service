@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
+package cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.publicip.model;
 
 public class CreateNicRequest {
 

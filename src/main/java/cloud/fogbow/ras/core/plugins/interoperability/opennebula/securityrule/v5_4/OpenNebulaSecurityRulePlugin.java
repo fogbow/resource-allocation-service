@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Properties;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.SecurityRuleUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.GetSecurityGroupResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.Rule;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;

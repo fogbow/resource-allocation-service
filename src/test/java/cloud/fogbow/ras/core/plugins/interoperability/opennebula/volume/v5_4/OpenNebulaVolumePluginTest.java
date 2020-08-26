@@ -9,6 +9,7 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.volume.model.CreateVolumeRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

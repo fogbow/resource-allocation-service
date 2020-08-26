@@ -6,6 +6,8 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.volume.model.CreateVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.volume.model.VolumeImage;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
@@ -27,8 +29,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-
-import javax.annotation.Nullable;
 
 public class OpenNebulaVolumePlugin implements VolumePlugin<CloudUser> {
 

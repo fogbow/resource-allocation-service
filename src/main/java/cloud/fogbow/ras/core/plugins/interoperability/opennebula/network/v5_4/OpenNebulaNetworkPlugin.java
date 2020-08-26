@@ -8,6 +8,8 @@ import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.network.model.CreateNetworkReserveRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.network.model.CreateNetworkUpdateRequest;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.net.util.SubnetUtils;
@@ -27,8 +29,8 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.Rule;
 
 public class OpenNebulaNetworkPlugin implements NetworkPlugin<CloudUser> {
 

@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4;
+package cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.network.model;
 
 public class CreateNetworkUpdateRequest {
 

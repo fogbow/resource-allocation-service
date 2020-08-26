@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
+package cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
@@ -6,13 +6,14 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.Rule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityRuleUtil.*;
+import static cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.SecurityRuleUtil.*;
 
 @PrepareForTest({OpenNebulaClientUtil.class, DatabaseManager.class})
 public class SecurityRuleUtilTest extends OpenNebulaBaseTests {
