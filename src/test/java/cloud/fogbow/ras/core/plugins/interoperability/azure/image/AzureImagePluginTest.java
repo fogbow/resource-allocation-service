@@ -15,6 +15,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureTestUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.image.AzureImageOperation;
 import com.microsoft.azure.management.Azure;
 import org.junit.Assert;
 import org.junit.Before;

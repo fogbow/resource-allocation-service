@@ -11,19 +11,17 @@ import cloud.fogbow.ras.api.http.response.quotas.ResourceQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.quota.sdk.AzureQuotaSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.quota.AzureQuotaSDK;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralPolicy;
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.ComputeUsage;
 import com.microsoft.azure.management.compute.Disk;
-import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.network.NetworkUsage;
 import org.apache.log4j.Logger;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
