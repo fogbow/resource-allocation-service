@@ -11,8 +11,8 @@ import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetAllImagesResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetImageResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.image.models.GetAllImagesResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.image.models.GetImageResponse;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 

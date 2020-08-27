@@ -6,8 +6,10 @@ import java.util.Properties;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.*;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.*;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.network.models.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.network.models.CreateSecurityGroupResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.network.models.CreateSecurityGroupRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.publicip.models.*;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
@@ -27,9 +29,9 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetFloatingIpResponse.FloatingIp;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetNetworkPortsResponse.Port;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetSecurityGroupsResponse.SecurityGroup;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.publicip.models.GetFloatingIpResponse.FloatingIp;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.publicip.models.GetNetworkPortsResponse.Port;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.publicip.models.GetSecurityGroupsResponse.SecurityGroup;
 
 public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3User> {
 

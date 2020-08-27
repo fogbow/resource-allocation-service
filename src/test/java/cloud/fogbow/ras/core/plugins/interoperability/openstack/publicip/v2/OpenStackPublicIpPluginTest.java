@@ -5,8 +5,10 @@ import java.io.File;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.util.connectivity.HttpErrorConditionToFogbowExceptionMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.requests.*;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.*;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.network.models.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.network.models.CreateSecurityGroupResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.network.models.CreateSecurityGroupRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.publicip.models.*;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,10 +35,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPl
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
 
 @PrepareForTest({ 
-    CreateFloatingIpResponse.class, 
-    CreateSecurityGroupResponse.class, 
+    CreateFloatingIpResponse.class,
+    CreateSecurityGroupResponse.class,
     DatabaseManager.class, 
-    GetFloatingIpResponse.class, 
+    GetFloatingIpResponse.class,
     GetNetworkPortsResponse.class, 
     GetSecurityGroupsResponse.class, 
     OpenStackPluginUtils.class,
