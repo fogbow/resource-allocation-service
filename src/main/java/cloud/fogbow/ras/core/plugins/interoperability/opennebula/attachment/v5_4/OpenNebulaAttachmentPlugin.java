@@ -2,10 +2,8 @@ package cloud.fogbow.ras.core.plugins.interoperability.opennebula.attachment.v5_
 
 import java.util.Properties;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.attachment.model.CreateAttachmentRequest;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -83,12 +81,13 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
 
     @Override
     public void deleteInstance(AttachmentOrder order, CloudUser cloudUser) throws FogbowException {
-        String instanceId = order.getInstanceId();
-        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
-
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
+
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
+
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         String computeId = order.getComputeId();
         doDeleteInstance(client, computeId, instanceId);
@@ -97,11 +96,13 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<CloudUser> {
     @Override
     public AttachmentInstance getInstance(AttachmentOrder order, CloudUser cloudUser)
             throws FogbowException {
-        String instanceId = order.getInstanceId();
-        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         if (order == null) {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
+
+        String instanceId = order.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
+
         Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
         String computeId = order.getComputeId();
         String volumeId = order.getVolumeId();

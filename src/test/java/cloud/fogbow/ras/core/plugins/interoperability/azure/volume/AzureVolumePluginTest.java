@@ -17,8 +17,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCr
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeOperationSDK;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.volume.sdk.AzureVolumeSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.volume.AzureVolumeOperationSDK;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.volume.AzureVolumeSDK;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.Disk;
 import com.microsoft.azure.management.compute.Disks;

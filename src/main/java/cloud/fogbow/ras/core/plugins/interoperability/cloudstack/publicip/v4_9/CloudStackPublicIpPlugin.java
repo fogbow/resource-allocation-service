@@ -14,15 +14,14 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListPublicIpAddressRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.quota.v4_9.ListPublicIpAddressResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.publicip.model.*;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.quota.model.ListPublicIpAddressRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.quota.model.ListPublicIpAddressResponse;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
-
-import javax.validation.constraints.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -6,6 +6,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.publicip.model.CreateNicRequest;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
@@ -27,10 +28,10 @@ import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4.CreateNetworkReserveRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.network.v5_4.CreateNetworkUpdateRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.network.model.CreateNetworkReserveRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.network.model.CreateNetworkUpdateRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.Rule;
 
 import javax.annotation.Nullable;
 

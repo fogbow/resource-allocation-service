@@ -2,13 +2,10 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.quota.v2;
 
 import java.util.Properties;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
 import cloud.fogbow.common.constants.OpenStackConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetComputeQuotasResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetNetworkQuotasResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.v2.serializables.responses.GetVolumeQuotasResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.quota.models.GetComputeQuotasResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.quota.models.GetNetworkQuotasResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.quota.models.GetVolumeQuotasResponse;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;

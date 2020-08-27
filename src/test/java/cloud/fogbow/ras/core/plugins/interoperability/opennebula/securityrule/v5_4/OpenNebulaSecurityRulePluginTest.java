@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.SecurityRuleUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.CreateSecurityGroupRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.GetSecurityGroupResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.GetSecurityRulesTemplate;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.securityrule.model.Rule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

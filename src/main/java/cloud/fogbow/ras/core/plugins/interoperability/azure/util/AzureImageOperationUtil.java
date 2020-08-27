@@ -2,7 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.util;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
-import cloud.fogbow.ras.core.plugins.interoperability.azure.compute.sdk.model.AzureGetImageRef;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.compute.model.AzureGetImageRef;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.UnsupportedEncodingException;

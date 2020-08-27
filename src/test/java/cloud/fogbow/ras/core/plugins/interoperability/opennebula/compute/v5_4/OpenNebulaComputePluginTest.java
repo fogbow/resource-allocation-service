@@ -14,6 +14,8 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaBaseTests;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.OpenNebulaClientUtil;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.compute.model.CreateComputeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.compute.model.VirtualMachineTemplate;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.junit.Assert;
 import org.junit.Before;

@@ -1,23 +1,23 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack;
 
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachVolumeRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachmentJobStatusRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.DetachVolumeRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DeployVirtualMachineRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.DestroyVirtualMachineRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.image.v4_9.GetAllImagesRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.CreateNetworkRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.DeleteNetworkRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.network.v4_9.GetNetworkRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.AssociateIpAddressRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.DisassociateIpAddressRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.EnableStaticNatRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.DeleteFirewallRuleRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.DeleteVolumeRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.attachment.model.AttachVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.attachment.model.AttachmentJobStatusRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.attachment.model.DetachVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.compute.model.DeployVirtualMachineRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.compute.model.DestroyVirtualMachineRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.compute.model.GetVirtualMachineRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.image.model.GetAllImagesRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.network.model.CreateNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.network.model.DeleteNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.network.model.GetNetworkRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.publicip.model.AssociateIpAddressRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.publicip.model.CreateFirewallRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.publicip.model.DisassociateIpAddressRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.publicip.model.EnableStaticNatRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.securityrule.model.DeleteFirewallRuleRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.volume.model.DeleteVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.volume.model.GetVolumeRequest;
 import org.mockito.ArgumentMatcher;
 
 public class RequestMatcher<T extends CloudStackRequest> extends ArgumentMatcher<T> {

@@ -12,6 +12,7 @@ import java.util.TreeSet;
 
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.util.BinaryUnit;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.sdk.v2.compute.model.AwsHardwareRequirements;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

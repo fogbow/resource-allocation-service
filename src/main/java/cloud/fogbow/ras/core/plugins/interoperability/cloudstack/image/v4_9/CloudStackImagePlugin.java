@@ -11,11 +11,12 @@ import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.image.model.GetAllImagesRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.sdk.v4_9.image.model.GetAllImagesResponse;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
