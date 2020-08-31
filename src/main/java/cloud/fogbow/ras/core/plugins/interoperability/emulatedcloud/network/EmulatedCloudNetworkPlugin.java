@@ -10,6 +10,8 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedCompute;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedNetwork;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -23,32 +25,19 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
     private Properties properties;
 
-    private static final String NETWORK_ALLOCATION_MODE = "allocationMode";
-    private static final String NETWORK_CIDR = "cidr";
-    private static final String NETWORK_CLOUD_NAME = "cloudName";
-    private static final String NETWORK_CLOUD_STATE = "cloudState";
-    private static final String NETWORK_GATEWAY = "gateway";
-    private static final String NETWORK_ID = "id";
-    private static final String NETWORK_INTERFACE = "networkInterface";
-    private static final String NETWORK_INTERFACE_STATE = "interfaceState";
-    private static final String NETWORK_MAC_INTERFACE = "macinterface";
-    private static final String NETWORK_NAME = "name";
-    private static final String NETWORK_PROVIDER = "provider";
-    private static final String NETWORK_VLAN = "vLAN";
-
     public EmulatedCloudNetworkPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
     }
 
     @Override
     public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
-        HashMap<String, String> network = createNetwork(networkOrder);
+        EmulatedNetwork network = createNetwork(networkOrder);
 
-        String networkId = network.get(NETWORK_ID);
+        String networkId = network.getInstanceId();
         String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
 
         try {
-            EmulatedCloudUtils.saveHashMapAsJson(networkPath, network);
+            EmulatedCloudUtils.saveFileContent(networkPath, network.toJson());
         } catch (IOException e) {
             throw new FogbowException((e.getMessage()));
         }
@@ -58,35 +47,36 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
     @Override
     public NetworkInstance getInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
-
         String networkId = networkOrder.getInstanceId();
-        HashMap<String, String> network;
+        EmulatedNetwork network;
 
         try {
-            String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
-            network = EmulatedCloudUtils.readJsonAsHashMap(networkPath);
+            String computePath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
+            String jsonContent = EmulatedCloudUtils.getFileContent(computePath);
+            network = EmulatedNetwork.fromJson(jsonContent);
         } catch (IOException e) {
-
             LOGGER.error(Messages.Exception.INSTANCE_NOT_FOUND);
             throw new InstanceNotFoundException(e.getMessage());
         }
 
-        String cloudState = network.get(NETWORK_CLOUD_STATE);
-        String name = network.get(NETWORK_NAME);
-        String cidr = network.get(NETWORK_CIDR);
-        String gateway = network.get(NETWORK_GATEWAY);
-        String vLAN = network.get(NETWORK_VLAN);
-        String networkAllocationModeStr = network.get(NETWORK_ALLOCATION_MODE);
-        String networkInterface = network.get(NETWORK_INTERFACE);
-        String MACInterface = network.get(NETWORK_MAC_INTERFACE);
-        String interfaceState = network.get(NETWORK_INTERFACE_STATE);
+        return buildNetworkInstance(network);
+    }
 
+    private NetworkInstance buildNetworkInstance(EmulatedNetwork network) {
+        String instanceId = network.getInstanceId();
+        String cidr = network.getCidr();
+        String cloudState = network.getCloudState();
+        String gateway = network.getGateway();
+        String interfaceState = network.getInterfaceState();
+        String macInterface = network.getMacInterface();
+        String name = network.getName();
+        String networkInterface = network.getNetworkInterface();
+        String vLAN = network.getvLAN();
 
-        NetworkAllocationMode networkAllocationMode = getAllocationMode(networkAllocationModeStr);
+        NetworkAllocationMode allocationMode = getAllocationMode(network.getAllocationMode());
 
-        return new NetworkInstance(networkId, cloudState, name, cidr, gateway,
-                vLAN, networkAllocationMode, networkInterface,
-                MACInterface, interfaceState);
+        return new NetworkInstance(instanceId, cloudState, name, cidr, gateway, vLAN, allocationMode,
+                networkInterface, macInterface, interfaceState);
     }
 
     private NetworkAllocationMode getAllocationMode(String networkAllocationModeStr) {
@@ -116,7 +106,7 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
         EmulatedCloudUtils.deleteFile(networkPath);
     }
 
-    private HashMap<String, String> createNetwork(NetworkOrder networkOrder) {
+    private EmulatedNetwork createNetwork(NetworkOrder networkOrder) {
 
         // Derived from order
         String networkName = EmulatedCloudUtils.getName(networkOrder.getName());
@@ -131,18 +121,20 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
         String macInterface = generateMac();
         String cloudState = "READY";
 
-        HashMap<String, String> network = new HashMap<String, String>();
-
-        network.put(NETWORK_ALLOCATION_MODE, allocationMode);
-        network.put(NETWORK_NAME, networkName);
-        network.put(NETWORK_CIDR, cidr);
-        network.put(NETWORK_CLOUD_NAME, cloudName);
-        network.put(NETWORK_GATEWAY, gateway);
-        network.put(NETWORK_PROVIDER, provider);
-
-        network.put(NETWORK_ID, networkId);
-        network.put(NETWORK_MAC_INTERFACE, macInterface);
-        network.put(NETWORK_CLOUD_STATE, cloudState);
+        EmulatedNetwork network = new EmulatedNetwork.Builder()
+                .instanceId(networkId)
+                .cloudName(cloudName)
+                .provider(provider)
+                .name(networkName)
+                .cidr(cidr)
+                .gateway(gateway)
+                .macInterface(macInterface)
+                .allocationMode(allocationMode)
+                .cloudState(cloudState)
+                .vLAN("")
+                .networkInterface("")
+                .interfaceState("")
+                .build();
 
         return network;
     }
