@@ -7,6 +7,7 @@ import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -40,11 +41,23 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
         try {
             EmulatedCloudUtils.saveFileContent(computePath, compute.toJson());
+            updateInstanceAllocation(computeOrder);
         } catch (IOException e) {
             throw new InvalidParameterException(e.getMessage());
         }
 
         return computeId;
+    }
+
+    private void updateInstanceAllocation(ComputeOrder computeOrder) {
+        synchronized (computeOrder) {
+            int instances = 1;
+            int vCPU = computeOrder.getvCPU();
+            int ram = computeOrder.getRam();
+            int disk = computeOrder.getDisk();
+            ComputeAllocation allocation = new ComputeAllocation(instances, vCPU, ram, disk);
+            computeOrder.setActualAllocation(allocation);
+        }
     }
 
     @Override
@@ -78,7 +91,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
         ComputeInstance computeInstance = new ComputeInstance(id, EmulatedCloudConstants.Plugins.STATE_RUNNING, name,
                 vcpu, memory, disk, new ArrayList<>(), imageId, publicKey, new ArrayList());
-        
+
         computeInstance.setNetworks(networks);
         computeInstance.setProvider(provider);
         computeInstance.setCloudName(cloudName);
