@@ -6,6 +6,7 @@ import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
@@ -46,15 +47,22 @@ public class EmulatedCloudVolumePlugin implements VolumePlugin<CloudUser> {
         String newVolumePath = EmulatedCloudUtils.getResourcePath(this.properties, volume.getId());
 
         try {
-
             EmulatedCloudUtils.saveFileContent(newVolumePath, jsonVolume);
-
+            updateInstanceAllocation(volumeOrder);
         } catch (IOException e) {
 
             throw new FogbowException(e.getMessage());
         }
 
         return volume.getId();
+    }
+
+    private void updateInstanceAllocation(VolumeOrder volumeOrder) {
+        synchronized (volumeOrder) {
+            int size = volumeOrder.getVolumeSize();
+            VolumeAllocation allocation = new VolumeAllocation(size);
+            volumeOrder.setActualAllocation(allocation);
+        }
     }
 
     @Override
