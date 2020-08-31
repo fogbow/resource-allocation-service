@@ -45,7 +45,7 @@ public class EmulatedCloudAttachmentPlugin implements AttachmentPlugin<CloudUser
 
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, CloudUser cloudUser) throws FogbowException {
-        String attachmentId = attachmentOrder.getId();
+        String attachmentId = attachmentOrder.getInstanceId();
         String attachmentPath = EmulatedCloudUtils.getResourcePath(this.properties, attachmentId);
 
         EmulatedCloudUtils.deleteFile(attachmentPath);
