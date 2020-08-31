@@ -92,7 +92,7 @@ public class EmulatedCloudVolumePlugin implements VolumePlugin<CloudUser> {
 
     @Override
     public void deleteInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
-        String volumeId = volumeOrder.getId();
+        String volumeId = volumeOrder.getInstanceId();
         String volumePath = EmulatedCloudUtils.getResourcePath(this.properties, volumeId);
 
         EmulatedCloudUtils.deleteFile(volumePath);
