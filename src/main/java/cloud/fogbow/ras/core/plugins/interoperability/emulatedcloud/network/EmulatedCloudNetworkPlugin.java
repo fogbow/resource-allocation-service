@@ -110,7 +110,7 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
     @Override
     public void deleteInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
-        String networkId = networkOrder.getId();
+        String networkId = networkOrder.getInstanceId();
         String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
 
         EmulatedCloudUtils.deleteFile(networkPath);
