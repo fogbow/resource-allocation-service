@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud;
 
+import com.google.gson.annotations.SerializedName;
+
 public class EmulatedCloudConstants {
 
     public static class Conf {
@@ -63,6 +65,12 @@ public class EmulatedCloudConstants {
         public static final String VCPU_KEY_JSON = "VCPU";
         public static final String VOLUME_ATTACHMENT_KEY_JSON = "volumeAttachment";
         public static final String VOLUME_ID_KEY_JSON = "volumeId";
+        public static final String VLAN_KEY_JSON = "vLAN";
+        public static final String ALLOCATION_MODE_KEY_JSON = "allocationMode";
+        public static final String GATEWAY_KEY_JSON = "gateway";
+        public static final String NETWORK_INTERFACE_KEY_JSON = "networkInterface";
+        public static final String INTERFACE_STATE_KEY_JSON = "interfaceState";
+        public static final String MAC_INTERFACE_KEY_JSON = "macinterface";
     }
 }
 
