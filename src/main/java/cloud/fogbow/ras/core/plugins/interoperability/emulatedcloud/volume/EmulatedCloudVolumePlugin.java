@@ -77,7 +77,7 @@ public class EmulatedCloudVolumePlugin implements VolumePlugin<CloudUser> {
         String size = volume.getSize();
         String status = volume.getStatus();
 
-        return new VolumeInstance(volumeId, name, status, Integer.parseInt(size));
+        return new VolumeInstance(volumeId, status, name, Integer.parseInt(size));
     }
 
     @Override
