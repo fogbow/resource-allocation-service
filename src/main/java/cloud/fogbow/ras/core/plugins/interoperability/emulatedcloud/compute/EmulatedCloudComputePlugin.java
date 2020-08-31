@@ -111,7 +111,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-        String computeId = computeOrder.getId();
+        String computeId = computeOrder.getInstanceId();
         String computePath = EmulatedCloudUtils.getResourcePath(this.properties, computeId);
 
         EmulatedCloudUtils.deleteFile(computePath);
