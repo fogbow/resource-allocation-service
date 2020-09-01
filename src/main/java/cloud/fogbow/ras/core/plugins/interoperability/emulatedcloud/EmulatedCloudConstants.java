@@ -50,6 +50,7 @@ public class EmulatedCloudConstants {
         public static final String IP_ADDRESSES_KEY_JSON = "ipAddresses";
         public static final String MAJOR_ORDER_KEY_JSON = "majorOrderId";
         public static final String MEMORY_KEY_JSON = "memory";
+        public static final String ID_KEY_JSON = "id";
         public static final String NAME_KEY_JSON = "name";
         public static final String NETWORK_KEY_JSON = "network";
         public static final String PORT_FROM_KEY_JSON = "portFrom";
