@@ -26,7 +26,7 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
     public String requestInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
         EmulatedPublicIp publicIp = generateJsonEntityToCreateInstance(publicIpOrder);
 
-        String publicIpInstanceId = publicIp.getId();
+        String publicIpInstanceId = publicIp.getInstanceId();
 
         String publicIpJson = publicIp.toJson();
 
@@ -91,7 +91,7 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
             .cloudState(EmulatedCloudConstants.Plugins.STATE_ACTIVE)
             .computeId(computeId)
             .cloudName(cloudName)
-            .id(instanceId)
+            .instanceId(instanceId)
             .ip(ip)
             .provider(provider)
             .state(EmulatedCloudConstants.Plugins.STATE_READY)

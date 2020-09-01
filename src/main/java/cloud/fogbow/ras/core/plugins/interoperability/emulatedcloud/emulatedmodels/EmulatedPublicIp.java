@@ -16,7 +16,7 @@ public class EmulatedPublicIp extends EmulatedOrderWithSecurityRule {
     private String cloudName;
 
     @SerializedName(INSTANCE_ID_KEY_JSON)
-    private String id;
+    private String instanceId;
 
     @SerializedName(FLOATING_IP_KEY_JSON)
     private String ip;
@@ -28,11 +28,11 @@ public class EmulatedPublicIp extends EmulatedOrderWithSecurityRule {
     private String state;
 
     private EmulatedPublicIp(String cloudState, String computeId, String cloudName,
-                            String id, String ip, String provider, String state) {
+                             String instanceId, String ip, String provider, String state) {
         this.cloudState = cloudState;
         this.computeId = computeId;
         this.cloudName = cloudName;
-        this.id = id;
+        this.instanceId = instanceId;
         this.ip = ip;
         this.provider = provider;
         this.state = state;
@@ -51,7 +51,7 @@ public class EmulatedPublicIp extends EmulatedOrderWithSecurityRule {
         private String cloudState;
         private String computeId;
         private String cloudName;
-        private String id;
+        private String instanceId;
         private String ip;
         private String provider;
         private String state;
@@ -72,8 +72,8 @@ public class EmulatedPublicIp extends EmulatedOrderWithSecurityRule {
             return this;
         }
 
-        public Builder id(String id) {
-            this.id = id;
+        public Builder instanceId(String instanceId) {
+            this.instanceId = instanceId;
             return this;
         }
 
@@ -93,7 +93,7 @@ public class EmulatedPublicIp extends EmulatedOrderWithSecurityRule {
         }
 
         public EmulatedPublicIp build() {
-            return new EmulatedPublicIp(cloudState, computeId, cloudName, id, ip, provider, state);
+            return new EmulatedPublicIp(cloudState, computeId, cloudName, instanceId, ip, provider, state);
         }
     }
 
@@ -109,8 +109,8 @@ public class EmulatedPublicIp extends EmulatedOrderWithSecurityRule {
         return cloudName;
     }
 
-    public String getId() {
-        return id;
+    public String getInstanceId() {
+        return instanceId;
     }
 
     public String getIp() {

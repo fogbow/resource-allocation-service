@@ -128,7 +128,7 @@ public class EmulatedCloudSecurityRulePlugin implements SecurityRulePlugin<Cloud
             EmulatedPublicIp publicIp = this.getPublicIpById(instanceId);
             publicIp.addSecurityRule(securityRule);
 
-            updateResourceOnDisk(publicIp.getId(), publicIp);
+            updateResourceOnDisk(publicIp.getInstanceId(), publicIp);
         } catch (IOException e) {
             throw new FogbowException(e.getMessage());
         }
