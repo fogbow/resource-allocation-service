@@ -57,11 +57,11 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
     }
 
     private EmulatedSecurityGroup buildSecurityGroup(String securityGroupId) {
-        List<EmulatedSecurityRule> defaultSecurityRules = new ArrayList<>();
+        List<String> securityRuleIdList = new ArrayList<>();
 
         return new EmulatedSecurityGroup.Builder()
                 .id(securityGroupId)
-                .securityRules(defaultSecurityRules)
+                .securityRules(securityRuleIdList)
                 .build();
     }
 
