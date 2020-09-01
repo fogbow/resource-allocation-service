@@ -60,11 +60,11 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
     }
 
     private EmulatedSecurityGroup buildEmulatedSecurityGroup(String id) {
-        List<EmulatedSecurityRule> defaultSecurityRules = new ArrayList<>();
+        List<String> securityRuleIdList = new ArrayList<>();
 
         return new EmulatedSecurityGroup.Builder()
                 .id(id)
-                .securityRules(defaultSecurityRules)
+                .securityRules(securityRuleIdList)
                 .build();
     }
 
