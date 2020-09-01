@@ -32,6 +32,11 @@ public class EmulatedCloudConstants {
             public static final int DEFAULT_MEMORY = 96;
             public static final int DEFAULT_VCPU = 28;
         }
+
+        public static class SecurityRule {
+            public static final String INGRESS_DIRECTION = "ingress";
+            public static final String IPV4_ETHER_TYPE = "IPv4";
+        }
     }
     public static class Json {
         public static final String AVAILABLE_QUOTA_KEY_JSON = "AVAILABLEQuota";
