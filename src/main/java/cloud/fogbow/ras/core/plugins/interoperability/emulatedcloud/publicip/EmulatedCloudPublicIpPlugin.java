@@ -72,8 +72,11 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
     public void deleteInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
         String publicIpId = publicIpOrder.getInstanceId();
         String publicIpPath = EmulatedCloudUtils.getResourcePath(this.properties, publicIpId);
-
         EmulatedCloudUtils.deleteFile(publicIpPath);
+
+        String securityGroupId = EmulatedCloudUtils.getPublicIpSecurityGroupId(publicIpId);
+        deleteSecurityRules(securityGroupId);
+        deleteSecurityGroup(securityGroupId);
     }
 
     @Override
@@ -126,6 +129,29 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
             .build();
 
         return emulatedPublicIp;
+    }
+
+    private void deleteSecurityGroup(String securityGroupId) {
+        String securityGroupPath = EmulatedCloudUtils.getResourcePath(this.properties, securityGroupId);
+        EmulatedCloudUtils.deleteFile(securityGroupPath);
+    }
+
+    private void deleteSecurityRules(String securityGroupId) throws FogbowException {
+        EmulatedSecurityGroup securityGroup = this.getSecurityGroup(securityGroupId);
+
+        for (String securityRuleId : securityGroup.getSecurityRules()) {
+            String path = EmulatedCloudUtils.getResourcePath(properties, securityRuleId);
+            EmulatedCloudUtils.deleteFile(path);
+        }
+    }
+
+    private EmulatedSecurityGroup getSecurityGroup(String securityGroupId) throws FogbowException {
+        try {
+            String content = EmulatedCloudUtils.getFileContentById(properties, securityGroupId);
+            return EmulatedSecurityGroup.fromJson(content);
+        } catch (IOException e) {
+            throw new FogbowException(e.getMessage());
+        }
     }
 
     private String generaterandomIp() {

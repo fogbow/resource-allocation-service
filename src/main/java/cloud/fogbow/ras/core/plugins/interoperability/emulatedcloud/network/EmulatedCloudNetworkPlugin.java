@@ -122,8 +122,34 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
     public void deleteInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
         String networkId = networkOrder.getInstanceId();
         String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
-
         EmulatedCloudUtils.deleteFile(networkPath);
+
+        String securityGroupId = EmulatedCloudUtils.getNetworkSecurityGroupId(networkId);
+        deleteSecurityRules(securityGroupId);
+        deleteSecurityGroup(securityGroupId);
+    }
+
+    private void deleteSecurityRules(String securityGroupId) throws FogbowException {
+        EmulatedSecurityGroup securityGroup = this.getSecurityGroup(securityGroupId);
+
+        for (String securityRuleId : securityGroup.getSecurityRules()) {
+            String path = EmulatedCloudUtils.getResourcePath(properties, securityRuleId);
+            EmulatedCloudUtils.deleteFile(path);
+        }
+    }
+
+    private void deleteSecurityGroup(String securityGroupId) {
+        String securityGroupPath = EmulatedCloudUtils.getResourcePath(this.properties, securityGroupId);
+        EmulatedCloudUtils.deleteFile(securityGroupPath);
+    }
+
+    private EmulatedSecurityGroup getSecurityGroup(String securityGroupId) throws FogbowException {
+        try {
+            String content = EmulatedCloudUtils.getFileContentById(properties, securityGroupId);
+            return EmulatedSecurityGroup.fromJson(content);
+        } catch (IOException e) {
+            throw new FogbowException(e.getMessage());
+        }
     }
 
     private EmulatedNetwork createNetwork(NetworkOrder networkOrder) {
