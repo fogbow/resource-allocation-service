@@ -6,13 +6,11 @@ import cloud.fogbow.common.util.JsonSerializable;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedOrderWithSecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedPublicIp;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityRuleBinding;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,17 +25,45 @@ public class EmulatedCloudSecurityRulePlugin implements SecurityRulePlugin<Cloud
     }
 
     @Override
-    public String requestSecurityRule(SecurityRule String, Order majorOrder, CloudUser cloudUser) throws FogbowException {
+    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudUser cloudUser) throws FogbowException {
+        EmulatedSecurityRule emulatedSecurityRule = buildEmulatedSecurityRule(securityRule);
 
-        EmulatedSecurityRule emulatedSecurityRule = generateJsonEntityToCreateInstance(String);
+        String instanceId = emulatedSecurityRule.getId();
+        String securityGroupId = this.getSecurityGroupId(majorOrder);
+        EmulatedSecurityGroup securityGroup = this.getSecurityGroup(securityGroupId);
+        this.doRequestSecurityRule(emulatedSecurityRule, securityGroup);
+        return instanceId;
+    }
 
-        String majorOrderInstanceId = majorOrder.getInstanceId();
-        this.addSecurityRuleToOrder(majorOrderInstanceId, emulatedSecurityRule);
+    private void doRequestSecurityRule(EmulatedSecurityRule securityRule, EmulatedSecurityGroup securityGroup) throws FogbowException {
+        securityGroup.addSecurityRule(securityRule);
 
-        String securityRuleInstanceId = emulatedSecurityRule.getId();
-        this.bindSecurityRuleToOrder(securityRuleInstanceId, majorOrderInstanceId);
+        String securityGroupId = securityGroup.getId();
+        String path = EmulatedCloudUtils.getResourcePath(properties, securityGroupId);
 
-        return securityRuleInstanceId;
+        try {
+            EmulatedCloudUtils.saveFileContent(path, securityGroup.toJson());
+        } catch (IOException e) {
+            throw new FogbowException(e.getMessage());
+        }
+    }
+
+    private EmulatedSecurityGroup getSecurityGroup(String id) throws FogbowException {
+        try {
+            String json = EmulatedCloudUtils.getFileContentById(properties, id);
+            return EmulatedSecurityGroup.fromJson(json);
+        } catch (IOException e) {
+            throw new FogbowException(e.getMessage());
+        }
+    }
+
+    private String getSecurityGroupId(Order majorOrder) throws FogbowException {
+        String instanceId = majorOrder.getInstanceId();
+        switch (majorOrder.getType()) {
+            case PUBLIC_IP: return EmulatedCloudUtils.getPublicIpSecurityGroupId(instanceId);
+            case NETWORK: return EmulatedCloudUtils.getNetworkSecurityGroupId(instanceId);
+            default: throw new FogbowException(Messages.Exception.INVALID_RESOURCE);
+        }
     }
 
     @Override
@@ -72,14 +98,14 @@ public class EmulatedCloudSecurityRulePlugin implements SecurityRulePlugin<Cloud
         }
     }
 
-    private EmulatedSecurityRule generateJsonEntityToCreateInstance(SecurityRule String) {
+    private EmulatedSecurityRule buildEmulatedSecurityRule(SecurityRule securityRule) {
         String instanceId = EmulatedCloudUtils.getRandomUUID();
-        String cidr = String.getCidr();
-        int portFrom = String.getPortFrom();
-        int portTo = String.getPortTo();
-        String direction = String.getDirection().toString();
-        String etherType = String.getEtherType().toString();
-        String protocol = String.getProtocol().toString();
+        String cidr = securityRule.getCidr();
+        int portFrom = securityRule.getPortFrom();
+        int portTo = securityRule.getPortTo();
+        String direction = securityRule.getDirection().toString();
+        String etherType = securityRule.getEtherType().toString();
+        String protocol = securityRule.getProtocol().toString();
 
         return new EmulatedSecurityRule.Builder()
                 .id(instanceId)
