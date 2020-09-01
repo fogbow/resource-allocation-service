@@ -4,6 +4,7 @@ import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Json.SECURITY_RULES_KEY_JSON;
@@ -37,6 +38,18 @@ public class EmulatedSecurityGroup implements JsonSerializable {
 
     public List<EmulatedSecurityRule> getSecurityRules() {
         return securityRules;
+    }
+
+    public void addSecurityRule(EmulatedSecurityRule securityRule) {
+        if (securityRules == null) {
+            securityRules = new ArrayList<>();
+        }
+
+        securityRules.add(securityRule);
+    }
+
+    public void removeSecurityRule(String securityRuleId) {
+        this.securityRules.remove(securityRuleId);
     }
 
     public static class Builder {
