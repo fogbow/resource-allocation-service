@@ -6,14 +6,19 @@ import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedPublicIp;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityGroup;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityRule;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
@@ -38,12 +43,29 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
         String publicIpPath = EmulatedCloudUtils.getResourcePath(this.properties, publicIpInstanceId);
 
         try {
+            this.createSecurityGroup(publicIpInstanceId);
             EmulatedCloudUtils.saveFileContent(publicIpPath, publicIpJson);
         } catch (IOException e) {
             throw new FogbowException(e.getMessage());
         }
 
         return publicIpInstanceId;
+    }
+
+    private void createSecurityGroup(String publicIpInstanceId) throws IOException {
+        String id = SystemConstants.PIP_SECURITY_GROUP_PREFIX + publicIpInstanceId;
+        EmulatedSecurityGroup securityGroup = this.buildEmulatedSecurityGroup(id);
+        String path = EmulatedCloudUtils.getResourcePath(this.properties, id);
+        EmulatedCloudUtils.saveFileContent(path, securityGroup.toJson());
+    }
+
+    private EmulatedSecurityGroup buildEmulatedSecurityGroup(String id) {
+        List<EmulatedSecurityRule> defaultSecurityRules = new ArrayList<>();
+
+        return new EmulatedSecurityGroup.Builder()
+                .id(id)
+                .securityRules(defaultSecurityRules)
+                .build();
     }
 
     @Override

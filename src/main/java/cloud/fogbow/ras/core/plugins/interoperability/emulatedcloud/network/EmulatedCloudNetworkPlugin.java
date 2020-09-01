@@ -6,16 +6,19 @@ import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedCompute;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedNetwork;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityGroup;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityRule;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
@@ -37,12 +40,29 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
         String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
 
         try {
+            this.createSecurityGroup(networkId);
             EmulatedCloudUtils.saveFileContent(networkPath, network.toJson());
         } catch (IOException e) {
             throw new FogbowException((e.getMessage()));
         }
 
         return networkId;
+    }
+
+    private void createSecurityGroup(String instanceId) throws IOException {
+        String securityGroupId = SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
+        EmulatedSecurityGroup securityGroup = this.buildSecurityGroup(securityGroupId);
+        String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, securityGroupId);
+        EmulatedCloudUtils.saveFileContent(networkPath, securityGroup.toJson());
+    }
+
+    private EmulatedSecurityGroup buildSecurityGroup(String securityGroupId) {
+        List<EmulatedSecurityRule> defaultSecurityRules = new ArrayList<>();
+
+        return new EmulatedSecurityGroup.Builder()
+                .id(securityGroupId)
+                .securityRules(defaultSecurityRules)
+                .build();
     }
 
     @Override
