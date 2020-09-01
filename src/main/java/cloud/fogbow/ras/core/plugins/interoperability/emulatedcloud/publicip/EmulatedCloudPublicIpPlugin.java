@@ -53,7 +53,7 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
     }
 
     private void createSecurityGroup(String publicIpInstanceId) throws IOException {
-        String id = SystemConstants.PIP_SECURITY_GROUP_PREFIX + publicIpInstanceId;
+        String id = EmulatedCloudUtils.getPublicIpSecurityGroupId(publicIpInstanceId);
         EmulatedSecurityGroup securityGroup = this.buildEmulatedSecurityGroup(id);
         String path = EmulatedCloudUtils.getResourcePath(this.properties, id);
         EmulatedCloudUtils.saveFileContent(path, securityGroup.toJson());

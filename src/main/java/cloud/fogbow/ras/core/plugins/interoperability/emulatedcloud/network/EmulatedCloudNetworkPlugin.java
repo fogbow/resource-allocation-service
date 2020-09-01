@@ -50,7 +50,7 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
     }
 
     private void createSecurityGroup(String instanceId) throws IOException {
-        String securityGroupId = SystemConstants.PN_SECURITY_GROUP_PREFIX + instanceId;
+        String securityGroupId = EmulatedCloudUtils.getNetworkSecurityGroupId(instanceId);
         EmulatedSecurityGroup securityGroup = this.buildSecurityGroup(securityGroupId);
         String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, securityGroupId);
         EmulatedCloudUtils.saveFileContent(networkPath, securityGroup.toJson());
