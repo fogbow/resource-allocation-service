@@ -1,20 +1,25 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.publicip;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedPublicIp;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Random;
 
 public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
+
+    private static final Logger LOGGER = Logger.getLogger(EmulatedCloudPublicIpPlugin.class);
 
     private Properties properties;
 
@@ -59,7 +64,8 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
         try {
             publicIpJson = EmulatedCloudUtils.getFileContent(publicIpPath);
         } catch (IOException e) {
-            throw new FogbowException(e.getMessage());
+            LOGGER.error(Messages.Exception.INSTANCE_NOT_FOUND);
+            throw new InstanceNotFoundException(e.getMessage());
         }
 
         EmulatedPublicIp publicIp = EmulatedPublicIp.fromJson(publicIpJson);
