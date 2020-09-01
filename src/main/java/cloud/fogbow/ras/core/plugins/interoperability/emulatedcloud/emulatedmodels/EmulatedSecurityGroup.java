@@ -16,9 +16,9 @@ public class EmulatedSecurityGroup implements JsonSerializable {
     private String id;
 
     @SerializedName(SECURITY_RULES_KEY_JSON)
-    private List<EmulatedSecurityRule> securityRules;
+    private List<String> securityRules;
 
-    private EmulatedSecurityGroup(String id, List<EmulatedSecurityRule> securityRules) {
+    private EmulatedSecurityGroup(String id, List<String> securityRules) {
         this.id = id;
         this.securityRules = securityRules;
     }
@@ -36,16 +36,16 @@ public class EmulatedSecurityGroup implements JsonSerializable {
         return id;
     }
 
-    public List<EmulatedSecurityRule> getSecurityRules() {
+    public List<String> getSecurityRules() {
         return securityRules;
     }
 
-    public void addSecurityRule(EmulatedSecurityRule securityRule) {
+    public void addSecurityRule(String securityRuleId) {
         if (securityRules == null) {
             securityRules = new ArrayList<>();
         }
 
-        securityRules.add(securityRule);
+        securityRules.add(securityRuleId);
     }
 
     public void removeSecurityRule(String securityRuleId) {
@@ -54,14 +54,14 @@ public class EmulatedSecurityGroup implements JsonSerializable {
 
     public static class Builder {
         private String id;
-        private List<EmulatedSecurityRule> securityRules;
+        private List<String> securityRules;
 
         public Builder id(String id) {
             this.id = id;
             return this;
         }
 
-        public Builder securityRules(List<EmulatedSecurityRule> securityRules) {
+        public Builder securityRules(List<String> securityRules) {
             this.securityRules = securityRules;
             return this;
         }
