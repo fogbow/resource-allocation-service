@@ -9,7 +9,7 @@ import java.util.List;
 import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Json.SECURITY_RULES_KEY_JSON;
 import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Json.ID_KEY_JSON;
 
-public class EmulatedSecurityRuleGroup implements JsonSerializable {
+public class EmulatedSecurityGroup implements JsonSerializable {
 
     @SerializedName(ID_KEY_JSON)
     private String id;
@@ -17,7 +17,7 @@ public class EmulatedSecurityRuleGroup implements JsonSerializable {
     @SerializedName(SECURITY_RULES_KEY_JSON)
     private List<EmulatedSecurityRule> securityRules;
 
-    private EmulatedSecurityRuleGroup(String id, List<EmulatedSecurityRule> securityRules) {
+    private EmulatedSecurityGroup(String id, List<EmulatedSecurityRule> securityRules) {
         this.id = id;
         this.securityRules = securityRules;
     }
@@ -27,8 +27,8 @@ public class EmulatedSecurityRuleGroup implements JsonSerializable {
         return GsonHolder.getInstance().toJson(this);
     }
 
-    public static EmulatedSecurityRuleGroup fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, EmulatedSecurityRuleGroup.class);
+    public static EmulatedSecurityGroup fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, EmulatedSecurityGroup.class);
     }
 
     public String getId() {
@@ -53,8 +53,8 @@ public class EmulatedSecurityRuleGroup implements JsonSerializable {
             return this;
         }
 
-        public EmulatedSecurityRuleGroup build() {
-            return new EmulatedSecurityRuleGroup(id, securityRules);
+        public EmulatedSecurityGroup build() {
+            return new EmulatedSecurityGroup(id, securityRules);
         }
     }
 }
