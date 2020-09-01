@@ -77,6 +77,7 @@ public class EmulatedCloudConstants {
         public static final String NETWORK_INTERFACE_KEY_JSON = "networkInterface";
         public static final String INTERFACE_STATE_KEY_JSON = "interfaceState";
         public static final String MAC_INTERFACE_KEY_JSON = "macinterface";
+        public static final String SECURITY_GROUP_ID_KEY_JSON = "securityGroupId";
     }
 }
 
