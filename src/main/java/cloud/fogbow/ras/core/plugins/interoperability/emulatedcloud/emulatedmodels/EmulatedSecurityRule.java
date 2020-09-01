@@ -12,6 +12,9 @@ public class EmulatedSecurityRule implements JsonSerializable {
     @SerializedName(INSTANCE_ID_KEY_JSON)
     private String id;
 
+    @SerializedName(SECURITY_GROUP_ID_KEY_JSON)
+    private String securityGroupId;
+
     @SerializedName(DIRECTION_KEY_JSON)
     private String direction;
 
@@ -30,9 +33,10 @@ public class EmulatedSecurityRule implements JsonSerializable {
     @SerializedName(PROTOCOL_KEY_JSON)
     private String protocol;
 
-    private EmulatedSecurityRule (String id, String direction, int portFrom, int portTo,
+    private EmulatedSecurityRule (String id, String securityGroupId, String direction, int portFrom, int portTo,
                                  String cidr, String etherType, String protocol) {
         this.id = id;
+        this.securityGroupId = securityGroupId;
         this.cidr = cidr;
         this.portFrom = portFrom;
         this.portTo = portTo;
@@ -52,6 +56,7 @@ public class EmulatedSecurityRule implements JsonSerializable {
 
     public static class Builder {
         private String id;
+        private String securityGroupId;
         private String direction;
         private int portFrom;
         private int portTo;
@@ -61,6 +66,11 @@ public class EmulatedSecurityRule implements JsonSerializable {
 
         public Builder id(String id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder securityGroupId(String securityGroupId) {
+            this.securityGroupId = securityGroupId;
             return this;
         }
 
@@ -95,13 +105,15 @@ public class EmulatedSecurityRule implements JsonSerializable {
         }
 
         public EmulatedSecurityRule build(){
-            return new EmulatedSecurityRule(id, direction, portFrom, portTo, cidr, etherType, protocol);
+            return new EmulatedSecurityRule(id, securityGroupId, direction, portFrom, portTo, cidr, etherType, protocol);
         }
     }
 
     public String getId() {
         return id;
     }
+
+    public String getSecurityGroupId() { return securityGroupId; }
 
     public String getDirection() {
         return direction;
