@@ -1,11 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.publicip.models;
 
-import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedOrderWithSecurityRule;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.EmulatedResource;
-import com.google.gson.annotations.SerializedName;
-
-import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Json.*;
 
 public class EmulatedPublicIp extends EmulatedResource {
     private String cloudState;

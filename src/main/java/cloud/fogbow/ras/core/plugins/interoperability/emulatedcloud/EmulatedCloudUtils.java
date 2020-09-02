@@ -1,18 +1,9 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud;
 
-import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.EmulatedResource;
-import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.InvalidParameterException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 
 public class EmulatedCloudUtils {

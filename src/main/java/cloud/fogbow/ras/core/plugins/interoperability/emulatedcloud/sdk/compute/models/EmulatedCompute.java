@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.compute.models;
 
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ResourceAllocation;
 import cloud.fogbow.ras.core.models.UserData;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.EmulatedResource;
 
