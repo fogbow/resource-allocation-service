@@ -10,9 +10,17 @@ import java.util.*;
 
 public class EmulatedCloudVolumeManager implements ResourceManager<EmulatedVolume> {
     private Map<String, EmulatedVolume> volumes;
+    private static EmulatedCloudVolumeManager instance;
 
-    public EmulatedCloudVolumeManager() {
+    private EmulatedCloudVolumeManager() {
         this.volumes = new HashMap<>();
+    }
+
+    public static EmulatedCloudVolumeManager getInstance() {
+        if (instance == null) {
+            instance = new EmulatedCloudVolumeManager();
+        }
+        return instance;
     }
 
     @Override

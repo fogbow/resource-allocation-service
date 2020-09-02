@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.volume;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -14,8 +13,8 @@ import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.volume.EmulatedCloudVolumeManager;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.volume.models.EmulatedVolume;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.EmulatedCloud;
 import org.apache.log4j.Logger;
 
 import java.util.Optional;
@@ -34,9 +33,9 @@ public class EmulatedCloudVolumePlugin implements VolumePlugin<CloudUser> {
     @Override
     public String requestInstance(VolumeOrder volumeOrder, CloudUser cloudUser) throws FogbowException {
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
-        EmulatedCloud client = EmulatedCloud.getInstance();
+        EmulatedCloudVolumeManager volumeManager = EmulatedCloudVolumeManager.getInstance();
         EmulatedVolume volume = createEmulatedVolume(volumeOrder);
-        String instanceId = client.volumes().create(volume);
+        String instanceId = volumeManager.create(volume);
         updateInstanceAllocation(volumeOrder);
         return instanceId;
     }
@@ -69,8 +68,8 @@ public class EmulatedCloudVolumePlugin implements VolumePlugin<CloudUser> {
         String instanceId = volumeOrder.getInstanceId();
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
-        EmulatedCloud client = EmulatedCloud.getInstance();
-        Optional<EmulatedVolume> volumeOptional = client.volumes().find(instanceId);
+        EmulatedCloudVolumeManager volumeManager = EmulatedCloudVolumeManager.getInstance();
+        Optional<EmulatedVolume> volumeOptional = volumeManager.find(instanceId);
 
         if (volumeOptional.isPresent()) {
             return buildVolumeInstance(volumeOptional.get());
@@ -103,7 +102,7 @@ public class EmulatedCloudVolumePlugin implements VolumePlugin<CloudUser> {
         String instanceId = volumeOrder.getInstanceId();
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
 
-        EmulatedCloud client = EmulatedCloud.getInstance();
-        client.volumes().delete(instanceId);
+        EmulatedCloudVolumeManager volumeManager = EmulatedCloudVolumeManager.getInstance();
+        volumeManager.delete(instanceId);
     }
 }
