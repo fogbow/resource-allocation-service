@@ -77,4 +77,8 @@ public class EmulatedCloudUtils {
     public static String getRandomUUID() {
         return UUID.randomUUID().toString();
     }
+
+    public static boolean validateInstanceId(String instanceId) {
+        return instanceId != null && !instanceId.trim().isEmpty();
+    }
 }
