@@ -4,6 +4,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedClou
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.ResourceManager;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.publicip.models.EmulatedPublicIp;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.securityrule.EmulatedCloudSecurityRuleManager;
 
 import java.security.InvalidParameterException;
 import java.util.*;
@@ -44,6 +45,8 @@ public class EmulatedCloudPublicIpManager implements ResourceManager<EmulatedPub
     public void delete(String instanceId) {
         if (this.publicIps.containsKey(instanceId)) {
             this.publicIps.remove(instanceId);
+            String securityGroupId = EmulatedCloudUtils.getPublicIpSecurityGroupId(instanceId);
+            EmulatedCloudSecurityRuleManager.getInstance().deleteBySecurityGroup(securityGroupId);
         } else {
             throw new InvalidParameterException(EmulatedCloudConstants.Exception.RESOURCE_NOT_FOUND);
         }

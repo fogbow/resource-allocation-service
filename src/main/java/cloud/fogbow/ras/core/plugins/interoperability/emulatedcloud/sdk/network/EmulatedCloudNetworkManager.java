@@ -4,6 +4,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedClou
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.ResourceManager;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.network.models.EmulatedNetwork;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.securityrule.EmulatedCloudSecurityRuleManager;
 
 import java.security.InvalidParameterException;
 import java.util.*;
@@ -44,6 +45,8 @@ public class EmulatedCloudNetworkManager implements ResourceManager<EmulatedNetw
     public void delete(String instanceId) {
         if (this.networks.containsKey(instanceId)) {
             this.networks.remove(instanceId);
+            String securityGroupId = EmulatedCloudUtils.getNetworkSecurityGroupId(instanceId);
+            EmulatedCloudSecurityRuleManager.getInstance().deleteBySecurityGroup(securityGroupId);
         } else {
             throw new InvalidParameterException(EmulatedCloudConstants.Exception.RESOURCE_NOT_FOUND);
         }
