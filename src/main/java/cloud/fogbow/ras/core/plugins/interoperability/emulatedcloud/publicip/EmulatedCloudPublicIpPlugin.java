@@ -82,7 +82,7 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
         String provider = publicIpOrder.getProvider();
         String cloudName = publicIpOrder.getCloudName();
         String instanceId = EmulatedCloudUtils.getRandomUUID();
-        String ip = this.generateRandomIP();
+        String ip = EmulatedCloudUtils.generateRandomIP();
         String cloudState = EmulatedCloudStateMapper.ACTIVE_STATUS;
 
         EmulatedPublicIp emulatedPublicIp = new EmulatedPublicIp.Builder()
@@ -95,17 +95,5 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
             .build();
 
         return emulatedPublicIp;
-    }
-
-    private String generateRandomIP() {
-        Random rand = new Random();
-        String[] octets = new String[4];
-
-        for (int i = 0; i < 4; ++i) {
-            int newOctet = rand.nextInt(250) + 3;
-            octets[i] = String.valueOf(newOctet);
-        }
-
-        return String.join(".", octets);
     }
 }

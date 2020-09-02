@@ -109,7 +109,7 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
         // Created by the cloud
         String networkId = EmulatedCloudUtils.getRandomUUID();
-        String macInterface = generateMac();
+        String macInterface = EmulatedCloudUtils.generateMac();
         String cloudState = EmulatedCloudStateMapper.ACTIVE_STATUS;
 
         EmulatedNetwork network = new EmulatedNetwork.Builder()
@@ -128,23 +128,6 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
                 .build();
 
         return network;
-    }
-
-    private static String generateMac() {
-        char[] hexas = "0123456789abcdef".toCharArray();
-        String newMac = "";
-        Random random = new Random();
-        for (int i = 0; i < 12; i++) {
-            if (i > 0 && (i & 1) == 0) {
-                newMac += ':';
-            }
-
-            int index = random.nextInt(16);
-
-            newMac += hexas[index];
-
-        }
-        return newMac;
     }
 }
 
