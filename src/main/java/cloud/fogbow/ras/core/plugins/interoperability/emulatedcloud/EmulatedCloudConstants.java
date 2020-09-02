@@ -2,6 +2,9 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud;
 
 public class EmulatedCloudConstants {
 
+    public static final String NETWORK_ALLOCATION_MODE_DYNAMIC = "dynamic";
+    public static final String NO_VALUE_STRING = "";
+
     public static class Plugins {
         public static class PublicIp {
             public static final String ID_KEY_JSON = "id";

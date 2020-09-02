@@ -11,6 +11,7 @@ import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.network.models.EmulatedNetwork;
@@ -72,7 +73,7 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
     private NetworkAllocationMode getAllocationMode(String networkAllocationModeStr) {
         switch (networkAllocationModeStr) {
-            case "dynamic":
+            case EmulatedCloudConstants.NETWORK_ALLOCATION_MODE_DYNAMIC:
                 return NetworkAllocationMode.DYNAMIC;
             default:
                 return NetworkAllocationMode.STATIC;
@@ -122,9 +123,9 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
                 .macInterface(macInterface)
                 .allocationMode(allocationMode)
                 .cloudState(cloudState)
-                .vLAN("")
-                .networkInterface("")
-                .interfaceState("")
+                .vLAN(EmulatedCloudConstants.NO_VALUE_STRING)
+                .networkInterface(EmulatedCloudConstants.NO_VALUE_STRING)
+                .interfaceState(EmulatedCloudConstants.NO_VALUE_STRING)
                 .build();
 
         return network;
