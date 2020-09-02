@@ -7,23 +7,16 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedPublicIp;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityGroup;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityRule;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.publicip.models.EmulatedPublicIp;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.publicip.EmulatedCloudPublicIpManager;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 
@@ -37,70 +30,40 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
 
     @Override
     public String requestInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
-        EmulatedPublicIp publicIp = generateJsonEntityToCreateInstance(publicIpOrder);
-
-        String publicIpInstanceId = publicIp.getInstanceId();
-
-        String publicIpJson = publicIp.toJson();
-
-        String publicIpPath = EmulatedCloudUtils.getResourcePath(this.properties, publicIpInstanceId);
-
-        try {
-            this.createSecurityGroup(publicIpInstanceId);
-            EmulatedCloudUtils.saveFileContent(publicIpPath, publicIpJson);
-        } catch (IOException e) {
-            throw new FogbowException(e.getMessage());
-        }
-
-        return publicIpInstanceId;
-    }
-
-    private void createSecurityGroup(String publicIpInstanceId) throws IOException {
-        String id = EmulatedCloudUtils.getPublicIpSecurityGroupId(publicIpInstanceId);
-        EmulatedSecurityGroup securityGroup = this.buildEmulatedSecurityGroup(id);
-        String path = EmulatedCloudUtils.getResourcePath(this.properties, id);
-        EmulatedCloudUtils.saveFileContent(path, securityGroup.toJson());
-    }
-
-    private EmulatedSecurityGroup buildEmulatedSecurityGroup(String id) {
-        List<String> securityRuleIdList = new ArrayList<>();
-
-        return new EmulatedSecurityGroup.Builder()
-                .id(id)
-                .securityRules(securityRuleIdList)
-                .build();
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
+        EmulatedPublicIp publicIp = createEmulatedPublicIp(publicIpOrder);
+        EmulatedCloudPublicIpManager publicIpManager = EmulatedCloudPublicIpManager.getInstance();
+        String instanceId = publicIpManager.create(publicIp);
+        return instanceId;
     }
 
     @Override
     public void deleteInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
-        String publicIpId = publicIpOrder.getInstanceId();
-        String publicIpPath = EmulatedCloudUtils.getResourcePath(this.properties, publicIpId);
-        EmulatedCloudUtils.deleteFile(publicIpPath);
-
-        String securityGroupId = EmulatedCloudUtils.getPublicIpSecurityGroupId(publicIpId);
-        deleteSecurityRules(securityGroupId);
-        deleteSecurityGroup(securityGroupId);
+        String instanceId = publicIpOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
+        EmulatedCloudPublicIpManager publicIpManager = EmulatedCloudPublicIpManager.getInstance();
+        publicIpManager.delete(instanceId);
     }
 
     @Override
     public PublicIpInstance getInstance(PublicIpOrder publicIpOrder, CloudUser cloudUser) throws FogbowException {
         String instanceId = publicIpOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
+        EmulatedCloudPublicIpManager publicIpManager = EmulatedCloudPublicIpManager.getInstance();
 
-        String publicIpPath = EmulatedCloudUtils.getResourcePath(this.properties, instanceId);
-        String publicIpJson = null;
+        Optional<EmulatedPublicIp> emulatedPublicIp = publicIpManager.find(instanceId);
 
-        try {
-            publicIpJson = EmulatedCloudUtils.getFileContent(publicIpPath);
-        } catch (IOException e) {
-            LOGGER.error(Messages.Exception.INSTANCE_NOT_FOUND);
-            throw new InstanceNotFoundException(e.getMessage());
+        if (emulatedPublicIp.isPresent()) {
+            return buildPublicIpInstance(emulatedPublicIp.get());
+        } else {
+            throw new InstanceNotFoundException();
         }
+    }
 
-        EmulatedPublicIp publicIp = EmulatedPublicIp.fromJson(publicIpJson);
-
+    private PublicIpInstance buildPublicIpInstance(EmulatedPublicIp publicIp) {
+        String instanceId = publicIp.getInstanceId();
         String cloudState = publicIp.getCloudState();
         String ip = publicIp.getIp();
-
         return new PublicIpInstance(instanceId, cloudState, ip);
     }
 
@@ -114,50 +77,27 @@ public class EmulatedCloudPublicIpPlugin implements PublicIpPlugin<CloudUser> {
         return EmulatedCloudStateMapper.map(ResourceType.PUBLIC_IP, instanceState).equals(InstanceState.FAILED);
     }
 
-    private EmulatedPublicIp generateJsonEntityToCreateInstance(PublicIpOrder publicIpOrder) {
+    private EmulatedPublicIp createEmulatedPublicIp(PublicIpOrder publicIpOrder) {
         String computeId = publicIpOrder.getComputeId();
         String provider = publicIpOrder.getProvider();
         String cloudName = publicIpOrder.getCloudName();
         String instanceId = EmulatedCloudUtils.getRandomUUID();
-        String ip = this.generaterandomIp();
+        String ip = this.generateRandomIP();
+        String cloudState = EmulatedCloudStateMapper.ACTIVE_STATUS;
 
         EmulatedPublicIp emulatedPublicIp = new EmulatedPublicIp.Builder()
-            .cloudState(EmulatedCloudConstants.Plugins.STATE_ACTIVE)
+            .cloudState(cloudState)
             .computeId(computeId)
             .cloudName(cloudName)
             .instanceId(instanceId)
             .ip(ip)
             .provider(provider)
-            .state(EmulatedCloudConstants.Plugins.STATE_READY)
             .build();
 
         return emulatedPublicIp;
     }
 
-    private void deleteSecurityGroup(String securityGroupId) {
-        String securityGroupPath = EmulatedCloudUtils.getResourcePath(this.properties, securityGroupId);
-        EmulatedCloudUtils.deleteFile(securityGroupPath);
-    }
-
-    private void deleteSecurityRules(String securityGroupId) throws FogbowException {
-        EmulatedSecurityGroup securityGroup = this.getSecurityGroup(securityGroupId);
-
-        for (String securityRuleId : securityGroup.getSecurityRules()) {
-            String path = EmulatedCloudUtils.getResourcePath(properties, securityRuleId);
-            EmulatedCloudUtils.deleteFile(path);
-        }
-    }
-
-    private EmulatedSecurityGroup getSecurityGroup(String securityGroupId) throws FogbowException {
-        try {
-            String content = EmulatedCloudUtils.getFileContentById(properties, securityGroupId);
-            return EmulatedSecurityGroup.fromJson(content);
-        } catch (IOException e) {
-            throw new FogbowException(e.getMessage());
-        }
-    }
-
-    private String generaterandomIp() {
+    private String generateRandomIP() {
         Random rand = new Random();
         String[] octets = new String[4];
 
