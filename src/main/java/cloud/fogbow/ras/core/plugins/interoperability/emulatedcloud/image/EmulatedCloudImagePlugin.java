@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.image;
 
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
@@ -9,6 +10,8 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.image.EmulatedCloudImageManager;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.image.models.EmulatedImage;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,41 +29,16 @@ public class EmulatedCloudImagePlugin implements ImagePlugin<CloudUser> {
         this.properties = PropertiesUtil.readProperties(confFilePath);
     }
 
-    public Map<String, String> getAllImagesHashMap(CloudUser cloudUser) throws FogbowException {
-        String imagesPath = EmulatedCloudUtils.getStaticResourcesPath(
-                this.properties, EmulatedCloudConstants.File.ALL_IMAGES);
-
-        HashMap allImages;
-
-        try {
-
-            allImages = EmulatedCloudUtils.readJsonAsHashMap(imagesPath);
-        } catch (IOException e) {
-            throw new FogbowException(e.getMessage());
-        }
-
-        return allImages;
-    }
-
-
     @Override
     public List<ImageSummary> getAllImages(CloudUser cloudUser) throws FogbowException {
-        String imagesPath = EmulatedCloudUtils.getStaticResourcesPath(
-                this.properties, EmulatedCloudConstants.File.ALL_IMAGES);
-
         List<ImageSummary> imageSummaries = new ArrayList<>();
+        List<EmulatedImage> allImages = EmulatedCloudImageManager.getInstance().list();
 
-        try {
-            HashMap<String, String> allImages = EmulatedCloudUtils.readJsonAsHashMap(imagesPath);
-
-            for (Map.Entry<String, String> entry : allImages.entrySet()) {
-                String imageId = entry.getKey();
-                String imageName = entry.getValue();
-                ImageSummary imageSummary = new ImageSummary(imageId, imageName);
-                imageSummaries.add(imageSummary);
-            }
-        } catch (IOException e) {
-            throw new FogbowException(e.getMessage());
+        for (EmulatedImage emulatedImage : allImages) {
+            String imageId = emulatedImage.getInstanceId();
+            String imageName = emulatedImage.getName();
+            ImageSummary imageSummary = new ImageSummary(imageId, imageName);
+            imageSummaries.add(imageSummary);
         }
 
         return imageSummaries;
@@ -68,18 +46,19 @@ public class EmulatedCloudImagePlugin implements ImagePlugin<CloudUser> {
 
     @Override
     public ImageInstance getImage(String imageId, CloudUser cloudUser) throws FogbowException {
+        Optional<EmulatedImage> emulatedImage = EmulatedCloudImageManager.getInstance().find(imageId);
 
-        Map<String, String> allImages = this.getAllImagesHashMap(cloudUser);
-
-        if (!allImages.containsKey(imageId)){
-            throw new FogbowException(Messages.Exception.IMAGE_NOT_FOUND);
+        if (emulatedImage.isPresent()) {
+            return buildImageInstance(emulatedImage.get());
+        } else {
+            throw new InstanceNotFoundException(Messages.Exception.IMAGE_NOT_FOUND);
         }
+    }
 
-        String imageName = allImages.get(imageId);
-
+    private ImageInstance buildImageInstance(EmulatedImage emulatedImage) {
         return new ImageInstance(
-                imageId,
-                imageName,
+                emulatedImage.getInstanceId(),
+                emulatedImage.getName(),
                 DEFAULT_IMAGE_SIZE,
                 DEFAULT_IMAGE_MIN_DISK,
                 DEFAULT_IMAGE_MIN_RAM,
