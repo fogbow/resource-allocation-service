@@ -9,10 +9,18 @@ import java.security.InvalidParameterException;
 import java.util.*;
 
 public class EmulatedCloudComputeManager implements ResourceManager<EmulatedCompute> {
+    private static EmulatedCloudComputeManager instance;
     private Map<String, EmulatedCompute> computes;
 
-    public EmulatedCloudComputeManager() {
+    private EmulatedCloudComputeManager() {
         this.computes = new HashMap<>();
+    }
+
+    public static EmulatedCloudComputeManager getInstance() {
+        if (instance == null) {
+            instance = new EmulatedCloudComputeManager();
+        }
+        return instance;
     }
 
     @Override

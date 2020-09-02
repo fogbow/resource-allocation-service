@@ -15,8 +15,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.compute.EmulatedCloudComputeManager;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.compute.models.EmulatedCompute;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.EmulatedCloud;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -37,9 +37,9 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
     @Override
     public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
-        EmulatedCloud client = EmulatedCloud.getInstance();
+        EmulatedCloudComputeManager computeManager = EmulatedCloudComputeManager.getInstance();
         EmulatedCompute compute = createCompute(computeOrder);
-        String computeId = client.computes().create(compute);
+        String computeId = computeManager.create(compute);
         updateInstanceAllocation(computeOrder);
         return computeId;
     }
@@ -60,8 +60,8 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         String instanceId = computeOrder.getInstanceId();
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
-        EmulatedCloud client = EmulatedCloud.getInstance();
-        Optional<EmulatedCompute> optionalEmulatedCompute = client.computes().find(instanceId);
+        EmulatedCloudComputeManager computeManager = EmulatedCloudComputeManager.getInstance();
+        Optional<EmulatedCompute> optionalEmulatedCompute = computeManager.find(instanceId);
 
         if (optionalEmulatedCompute.isPresent()) {
             return this.buildComputeInstance(optionalEmulatedCompute.get());
@@ -106,8 +106,8 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
     public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
         String instanceId = computeOrder.getInstanceId();
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
-        EmulatedCloud client = EmulatedCloud.getInstance();
-        client.computes().delete(instanceId);
+        EmulatedCloudComputeManager computeManager = EmulatedCloudComputeManager.getInstance();
+        computeManager.delete(instanceId);
     }
 
     private EmulatedCompute createCompute(ComputeOrder computeOrder) {
