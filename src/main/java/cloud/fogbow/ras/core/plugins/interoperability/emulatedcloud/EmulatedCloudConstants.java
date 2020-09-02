@@ -79,5 +79,10 @@ public class EmulatedCloudConstants {
         public static final String MAC_INTERFACE_KEY_JSON = "macinterface";
         public static final String SECURITY_GROUP_ID_KEY_JSON = "securityGroupId";
     }
+
+    public class Exception {
+        public static final String UNABLE_TO_CREATE_RESOURCE_INVALID_INSTANCE_ID_S = "Unable to create resource. Invalid instance id %s";
+        public static final String RESOURCE_NOT_FOUND = "Resource not found.";
+    }
 }
 
