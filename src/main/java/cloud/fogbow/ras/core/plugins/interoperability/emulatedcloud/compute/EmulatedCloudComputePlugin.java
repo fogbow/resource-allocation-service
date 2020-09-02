@@ -130,7 +130,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
                 .name(name)
                 .publicKey(publicKey)
                 .instanceId(id)
-                .cloudState(EmulatedCloudConstants.Plugins.STATE_ACTIVE)
+                .cloudState(EmulatedCloudStateMapper.ACTIVE_STATUS)
                 .networks(networks)
                 .build();
 
