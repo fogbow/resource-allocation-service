@@ -4,12 +4,15 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedNetwork;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityGroup;
@@ -110,12 +113,12 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
     @Override
     public boolean isReady(String instanceState) {
-        return true;
+        return EmulatedCloudStateMapper.map(ResourceType.NETWORK, instanceState).equals(InstanceState.READY);
     }
 
     @Override
     public boolean hasFailed(String instanceState) {
-        return false;
+        return EmulatedCloudStateMapper.map(ResourceType.NETWORK, instanceState).equals(InstanceState.FAILED);
     }
 
     @Override

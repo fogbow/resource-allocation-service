@@ -5,11 +5,14 @@ import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedVolume;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.volume.models.GetVolumeResponse;
@@ -90,12 +93,12 @@ public class EmulatedCloudVolumePlugin implements VolumePlugin<CloudUser> {
 
     @Override
     public boolean isReady(String instanceState) {
-        return true;
+        return EmulatedCloudStateMapper.map(ResourceType.VOLUME, instanceState).equals(InstanceState.READY);
     }
 
     @Override
     public boolean hasFailed(String instanceState) {
-        return false;
+        return EmulatedCloudStateMapper.map(ResourceType.VOLUME, instanceState).equals(InstanceState.FAILED);
     }
 
     @Override

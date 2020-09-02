@@ -6,13 +6,16 @@ import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedCompute;
 import org.apache.log4j.Logger;
@@ -101,12 +104,12 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public boolean isReady(String instanceState) {
-        return true;
+        return EmulatedCloudStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.READY);
     }
 
     @Override
     public boolean hasFailed(String instanceState) {
-        return false;
+        return EmulatedCloudStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.FAILED);
     }
 
     @Override

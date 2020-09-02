@@ -6,9 +6,12 @@ import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedAttachment;
 
@@ -74,12 +77,12 @@ public class EmulatedCloudAttachmentPlugin implements AttachmentPlugin<CloudUser
 
     @Override
     public boolean isReady(String instanceState) {
-        return true;
+        return EmulatedCloudStateMapper.map(ResourceType.ATTACHMENT, instanceState).equals(InstanceState.READY);
     }
 
     @Override
     public boolean hasFailed(String instanceState) {
-        return false;
+        return EmulatedCloudStateMapper.map(ResourceType.ATTACHMENT, instanceState).equals(InstanceState.FAILED);
     }
 
     private EmulatedAttachment generateJsonEntityToCreateAttachment(String compute, String volume, String instanceId){
