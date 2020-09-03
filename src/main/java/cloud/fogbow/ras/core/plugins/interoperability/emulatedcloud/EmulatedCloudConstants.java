@@ -5,6 +5,10 @@ public class EmulatedCloudConstants {
     public static final String NETWORK_ALLOCATION_MODE_DYNAMIC = "dynamic";
     public static final String NO_VALUE_STRING = "";
 
+    public static class Conf {
+        public static final String IMAGE_NAMES_KEY = "image_names";
+    }
+
     public static class Plugins {
         public static class PublicIp {
             public static final String ID_KEY_JSON = "id";
@@ -23,6 +27,7 @@ public class EmulatedCloudConstants {
         public static final String RESOURCE_NOT_FOUND = "Resource not found.";
         public static final String UNABLE_TO_ATTACH_COMPUTE_NOT_FOUND = "Unable to attach. Compute not found.";
         public static final String UNABLE_TO_ATTACH_VOLUME_NOT_FOUND = "Unable to attach. Volume not found.";
+        public static final String NO_IMAGE_NAMES_SPECIFIED = "No image names specified in the cloud.conf file";
     }
 }
 

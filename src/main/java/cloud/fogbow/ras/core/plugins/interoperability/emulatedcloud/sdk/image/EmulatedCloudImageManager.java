@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.image;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.ResourceManager;
@@ -9,19 +10,17 @@ import java.security.InvalidParameterException;
 import java.util.*;
 
 public class EmulatedCloudImageManager implements ResourceManager<EmulatedImage> {
-    private final List<String> IMAGE_NAMES = Arrays.asList("Ubuntu 20.04", "Ubuntu 18.04", "Ubuntu 16.04");
-
     private static EmulatedCloudImageManager instance;
     private Map<String, EmulatedImage> images;
 
-    private EmulatedCloudImageManager() {
+    private EmulatedCloudImageManager(Properties properties) {
         this.images = new HashMap<>();
-        this.loadDefaultImages();
+        this.loadDefaultImages(properties);
     }
 
-    public static EmulatedCloudImageManager getInstance() {
+    public static EmulatedCloudImageManager getInstance(Properties properties) {
         if (instance == null) {
-            instance = new EmulatedCloudImageManager();
+            instance = new EmulatedCloudImageManager(properties);
         }
         return instance;
     }
@@ -53,8 +52,13 @@ public class EmulatedCloudImageManager implements ResourceManager<EmulatedImage>
         }
     }
 
-    private void loadDefaultImages() {
-        for (String name : IMAGE_NAMES) {
+    private void loadDefaultImages(Properties properties) {
+        String imageNamesList = properties.getProperty(EmulatedCloudConstants.Conf.IMAGE_NAMES_KEY);
+        if (imageNamesList == null || imageNamesList.isEmpty()) {
+            throw new FatalErrorException(EmulatedCloudConstants.Exception.NO_IMAGE_NAMES_SPECIFIED);
+        }
+
+        for (String name : imageNamesList.split(",")) {
             String instanceId = EmulatedCloudUtils.getRandomUUID();
             EmulatedImage image = new EmulatedImage.Builder()
                     .name(name)

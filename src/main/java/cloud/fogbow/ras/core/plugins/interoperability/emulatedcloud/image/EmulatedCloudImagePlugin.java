@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.image;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudUser;
@@ -8,10 +9,10 @@ import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.image.EmulatedCloudImageManager;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.image.models.EmulatedImage;
 
-import java.io.IOException;
 import java.util.*;
 
 public class EmulatedCloudImagePlugin implements ImagePlugin<CloudUser> {
@@ -25,12 +26,17 @@ public class EmulatedCloudImagePlugin implements ImagePlugin<CloudUser> {
 
     public EmulatedCloudImagePlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
+
+        String imageNames = properties.getProperty(EmulatedCloudConstants.Conf.IMAGE_NAMES_KEY);
+        if (imageNames == null || imageNames.isEmpty()) {
+            throw new FatalErrorException(EmulatedCloudConstants.Exception.NO_IMAGE_NAMES_SPECIFIED);
+        }
     }
 
     @Override
     public List<ImageSummary> getAllImages(CloudUser cloudUser) throws FogbowException {
         List<ImageSummary> imageSummaries = new ArrayList<>();
-        List<EmulatedImage> allImages = EmulatedCloudImageManager.getInstance().list();
+        List<EmulatedImage> allImages = EmulatedCloudImageManager.getInstance(properties).list();
 
         for (EmulatedImage emulatedImage : allImages) {
             String imageId = emulatedImage.getInstanceId();
@@ -44,7 +50,7 @@ public class EmulatedCloudImagePlugin implements ImagePlugin<CloudUser> {
 
     @Override
     public ImageInstance getImage(String imageId, CloudUser cloudUser) throws FogbowException {
-        Optional<EmulatedImage> emulatedImage = EmulatedCloudImageManager.getInstance().find(imageId);
+        Optional<EmulatedImage> emulatedImage = EmulatedCloudImageManager.getInstance(properties).find(imageId);
 
         if (emulatedImage.isPresent()) {
             return buildImageInstance(emulatedImage.get());
