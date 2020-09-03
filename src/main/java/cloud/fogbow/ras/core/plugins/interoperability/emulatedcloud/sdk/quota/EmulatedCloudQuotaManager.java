@@ -1,5 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.quota;
 
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.compute.EmulatedCloudComputeManager;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.compute.models.EmulatedCompute;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.network.EmulatedCloudNetworkManager;
@@ -11,21 +13,34 @@ import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.volume.E
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.volume.models.EmulatedVolume;
 
 import java.util.List;
+import java.util.Properties;
 
 public class EmulatedCloudQuotaManager {
     private static EmulatedCloudQuotaManager instance;
 
-    private final int TOTAL_INSTANCES = 100;
-    private final int TOTAL_VCPU= 8;
-    private final int TOTAL_RAM = 16384;
-    private final int TOTAL_VOLUMES = 200;
-    private final int TOTAL_STORAGE = 30;
-    private final int TOTAL_NETWORKS = 15;
-    private final int TOTAL_PUBLIC_IPS = 5;
+    private int TOTAL_INSTANCES;
+    private int TOTAL_VCPU;
+    private int TOTAL_RAM;
+    private int TOTAL_VOLUMES;
+    private int TOTAL_STORAGE;
+    private int TOTAL_NETWORKS;
+    private int TOTAL_PUBLIC_IPS;
 
-    public static EmulatedCloudQuotaManager getInstance() {
+    public EmulatedCloudQuotaManager(Properties properties) {
+        EmulatedCloudUtils.checkQuotaProperties(properties);
+        TOTAL_INSTANCES = Integer.parseInt(properties.getProperty(EmulatedCloudConstants.Conf.QUOTA_INSTANCES_KEY));
+        TOTAL_RAM = Integer.parseInt(properties.getProperty(EmulatedCloudConstants.Conf.QUOTA_RAM_KEY));
+        TOTAL_VCPU = Integer.parseInt(properties.getProperty(EmulatedCloudConstants.Conf.QUOTA_VCPU_KEY));
+        TOTAL_VOLUMES = Integer.parseInt(properties.getProperty(EmulatedCloudConstants.Conf.QUOTA_VOLUMES_KEY));
+        TOTAL_STORAGE = 30;
+        TOTAL_STORAGE = Integer.parseInt(properties.getProperty(EmulatedCloudConstants.Conf.QUOTA_STORAGE_KEY));
+        TOTAL_NETWORKS = Integer.parseInt(properties.getProperty(EmulatedCloudConstants.Conf.QUOTA_NETWORKS_KEY));
+        TOTAL_PUBLIC_IPS = Integer.parseInt(properties.getProperty(EmulatedCloudConstants.Conf.QUOTA_PUBLIC_IP_KEY));
+    }
+
+    public static EmulatedCloudQuotaManager getInstance(Properties properties) {
         if (instance == null) {
-            instance = new EmulatedCloudQuotaManager();
+            instance = new EmulatedCloudQuotaManager(properties);
         }
         return instance;
     }
