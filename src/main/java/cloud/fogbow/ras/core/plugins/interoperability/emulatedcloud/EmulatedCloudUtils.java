@@ -1,9 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud;
 
+import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.EmulatedResource;
+import org.apache.commons.lang.StringUtils;
 
 import java.security.InvalidParameterException;
+import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 
@@ -66,5 +69,26 @@ public class EmulatedCloudUtils {
 
         }
         return newMac;
+    }
+
+    public static void checkQuotaProperties(Properties properties) {
+        checkQuotaProperty(properties, EmulatedCloudConstants.Conf.QUOTA_INSTANCES_KEY);
+        checkQuotaProperty(properties, EmulatedCloudConstants.Conf.QUOTA_RAM_KEY);
+        checkQuotaProperty(properties, EmulatedCloudConstants.Conf.QUOTA_VCPU_KEY);
+        checkQuotaProperty(properties, EmulatedCloudConstants.Conf.QUOTA_VOLUMES_KEY);
+        checkQuotaProperty(properties, EmulatedCloudConstants.Conf.QUOTA_STORAGE_KEY);
+        checkQuotaProperty(properties, EmulatedCloudConstants.Conf.QUOTA_PUBLIC_IP_KEY);
+        checkQuotaProperty(properties, EmulatedCloudConstants.Conf.QUOTA_NETWORKS_KEY);
+    }
+
+    private static void checkQuotaProperty(Properties properties, String key) {
+        String value = properties.getProperty(key);
+        if (value == null || value.isEmpty()) {
+            String message = String.format(EmulatedCloudConstants.Exception.THE_REQUIRED_PROPERTY_S_WAS_NOT_SPECIFIED, key);
+            throw new FatalErrorException(message);
+        } else if (!StringUtils.isNumeric(value)) {
+            String message = String.format(EmulatedCloudConstants.Exception.THE_PROPERTY_S_MUST_BE_AN_INTEGER, key);
+            throw new FatalErrorException(message);
+        }
     }
 }
