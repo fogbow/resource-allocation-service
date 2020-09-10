@@ -1,38 +1,20 @@
-package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels;
+package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.securityrule.models;
 
-import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.common.util.JsonSerializable;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.EmulatedResource;
 
-import com.google.gson.annotations.SerializedName;
-
-import static cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants.Json.*;
-
-public class EmulatedSecurityRule implements JsonSerializable {
-
-    @SerializedName(INSTANCE_ID_KEY_JSON)
-    private String id;
-
-    @SerializedName(DIRECTION_KEY_JSON)
+public class EmulatedSecurityRule extends EmulatedResource {
+    private String securityGroupId;
     private String direction;
-
-    @SerializedName(PORT_FROM_KEY_JSON)
     private int portFrom;
-
-    @SerializedName(PORT_TO_KEY_JSON)
     private int portTo;
-
-    @SerializedName(CIDR_KEY_JSON)
     private String cidr;
-
-    @SerializedName(ETHER_TYPE_KEY_JSON)
     private String etherType;
-
-    @SerializedName(PROTOCOL_KEY_JSON)
     private String protocol;
 
-    private EmulatedSecurityRule (String id, String direction, int portFrom, int portTo,
+    private EmulatedSecurityRule(String instanceId, String securityGroupId, String direction, int portFrom, int portTo,
                                  String cidr, String etherType, String protocol) {
-        this.id = id;
+        super(instanceId);
+        this.securityGroupId = securityGroupId;
         this.cidr = cidr;
         this.portFrom = portFrom;
         this.portTo = portTo;
@@ -41,17 +23,9 @@ public class EmulatedSecurityRule implements JsonSerializable {
         this.protocol = protocol;
     }
 
-    @Override
-    public String toJson() {
-        return GsonHolder.getInstance().toJson(this);
-    }
-
-    public static EmulatedSecurityRule fromJson(String jsonStr) {
-        return GsonHolder.getInstance().fromJson(jsonStr, EmulatedSecurityRule.class);
-    }
-
     public static class Builder {
-        private String id;
+        private String instanceId;
+        private String securityGroupId;
         private String direction;
         private int portFrom;
         private int portTo;
@@ -59,8 +33,13 @@ public class EmulatedSecurityRule implements JsonSerializable {
         private String etherType;
         private String protocol;
 
-        public Builder id(String id) {
-            this.id = id;
+        public Builder instanceId(String instanceId) {
+            this.instanceId = instanceId;
+            return this;
+        }
+
+        public Builder securityGroupId(String securityGroupId) {
+            this.securityGroupId = securityGroupId;
             return this;
         }
 
@@ -95,13 +74,11 @@ public class EmulatedSecurityRule implements JsonSerializable {
         }
 
         public EmulatedSecurityRule build(){
-            return new EmulatedSecurityRule(id, direction, portFrom, portTo, cidr, etherType, protocol);
+            return new EmulatedSecurityRule(instanceId, securityGroupId, direction, portFrom, portTo, cidr, etherType, protocol);
         }
     }
 
-    public String getId() {
-        return id;
-    }
+    public String getSecurityGroupId() { return securityGroupId; }
 
     public String getDirection() {
         return direction;

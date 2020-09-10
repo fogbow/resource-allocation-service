@@ -4,18 +4,21 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.network.models.EmulatedNetwork;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.network.EmulatedCloudNetworkManager;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
@@ -23,75 +26,54 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
     private Properties properties;
 
-    private static final String NETWORK_ALLOCATION_MODE = "allocationMode";
-    private static final String NETWORK_CIDR = "cidr";
-    private static final String NETWORK_CLOUD_NAME = "cloudName";
-    private static final String NETWORK_CLOUD_STATE = "cloudState";
-    private static final String NETWORK_GATEWAY = "gateway";
-    private static final String NETWORK_ID = "id";
-    private static final String NETWORK_INTERFACE = "networkInterface";
-    private static final String NETWORK_INTERFACE_STATE = "interfaceState";
-    private static final String NETWORK_MAC_INTERFACE = "macinterface";
-    private static final String NETWORK_NAME = "name";
-    private static final String NETWORK_PROVIDER = "provider";
-    private static final String NETWORK_VLAN = "vLAN";
-
     public EmulatedCloudNetworkPlugin(String confFilePath) {
         this.properties = PropertiesUtil.readProperties(confFilePath);
     }
 
     @Override
     public String requestInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
-        HashMap<String, String> network = createNetwork(networkOrder);
-
-        String networkId = network.get(NETWORK_ID);
-        String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
-
-        try {
-            EmulatedCloudUtils.saveHashMapAsJson(networkPath, network);
-        } catch (IOException e) {
-            throw new FogbowException((e.getMessage()));
-        }
-
-        return networkId;
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
+        EmulatedCloudNetworkManager networkManager = EmulatedCloudNetworkManager.getInstance();
+        EmulatedNetwork network = createNetwork(networkOrder);
+        String instanceId = networkManager.create(network);
+        return instanceId;
     }
 
     @Override
     public NetworkInstance getInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
+        String instanceId = networkOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
-        String networkId = networkOrder.getInstanceId();
-        HashMap<String, String> network;
+        EmulatedCloudNetworkManager networkManager = EmulatedCloudNetworkManager.getInstance();
+        Optional<EmulatedNetwork> emulatedNetwork = networkManager.find(instanceId);
 
-        try {
-            String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
-            network = EmulatedCloudUtils.readJsonAsHashMap(networkPath);
-        } catch (IOException e) {
-
-            LOGGER.error(Messages.Exception.INSTANCE_NOT_FOUND);
-            throw new InstanceNotFoundException(e.getMessage());
+        if (emulatedNetwork.isPresent()) {
+            return buildNetworkInstance(emulatedNetwork.get());
+        } else {
+            throw new InstanceNotFoundException();
         }
+    }
 
-        String cloudState = network.get(NETWORK_CLOUD_STATE);
-        String name = network.get(NETWORK_NAME);
-        String cidr = network.get(NETWORK_CIDR);
-        String gateway = network.get(NETWORK_GATEWAY);
-        String vLAN = network.get(NETWORK_VLAN);
-        String networkAllocationModeStr = network.get(NETWORK_ALLOCATION_MODE);
-        String networkInterface = network.get(NETWORK_INTERFACE);
-        String MACInterface = network.get(NETWORK_MAC_INTERFACE);
-        String interfaceState = network.get(NETWORK_INTERFACE_STATE);
+    private NetworkInstance buildNetworkInstance(EmulatedNetwork network) {
+        String instanceId = network.getInstanceId();
+        String cidr = network.getCidr();
+        String cloudState = network.getCloudState();
+        String gateway = network.getGateway();
+        String interfaceState = network.getInterfaceState();
+        String macInterface = network.getMacInterface();
+        String name = network.getName();
+        String networkInterface = network.getNetworkInterface();
+        String vLAN = network.getvLAN();
 
+        NetworkAllocationMode allocationMode = getAllocationMode(network.getAllocationMode());
 
-        NetworkAllocationMode networkAllocationMode = getAllocationMode(networkAllocationModeStr);
-
-        return new NetworkInstance(networkId, cloudState, name, cidr, gateway,
-                vLAN, networkAllocationMode, networkInterface,
-                MACInterface, interfaceState);
+        return new NetworkInstance(instanceId, cloudState, name, cidr, gateway, vLAN, allocationMode,
+                networkInterface, macInterface, interfaceState);
     }
 
     private NetworkAllocationMode getAllocationMode(String networkAllocationModeStr) {
-        switch(networkAllocationModeStr){
-            case "dynamic":
+        switch (networkAllocationModeStr) {
+            case EmulatedCloudConstants.NETWORK_ALLOCATION_MODE_DYNAMIC:
                 return NetworkAllocationMode.DYNAMIC;
             default:
                 return NetworkAllocationMode.STATIC;
@@ -100,23 +82,23 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
     @Override
     public boolean isReady(String instanceState) {
-        return true;
+        return EmulatedCloudStateMapper.map(ResourceType.NETWORK, instanceState).equals(InstanceState.READY);
     }
 
     @Override
     public boolean hasFailed(String instanceState) {
-        return false;
+        return EmulatedCloudStateMapper.map(ResourceType.NETWORK, instanceState).equals(InstanceState.FAILED);
     }
 
     @Override
     public void deleteInstance(NetworkOrder networkOrder, CloudUser cloudUser) throws FogbowException {
-        String networkId = networkOrder.getId();
-        String networkPath = EmulatedCloudUtils.getResourcePath(this.properties, networkId);
-
-        EmulatedCloudUtils.deleteFile(networkPath);
+        String instanceId = networkOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
+        EmulatedCloudNetworkManager networkManager = EmulatedCloudNetworkManager.getInstance();
+        networkManager.delete(instanceId);
     }
 
-    private HashMap<String, String> createNetwork(NetworkOrder networkOrder) {
+    private EmulatedNetwork createNetwork(NetworkOrder networkOrder) {
 
         // Derived from order
         String networkName = EmulatedCloudUtils.getName(networkOrder.getName());
@@ -128,41 +110,25 @@ public class EmulatedCloudNetworkPlugin implements NetworkPlugin<CloudUser> {
 
         // Created by the cloud
         String networkId = EmulatedCloudUtils.getRandomUUID();
-        String macInterface = generateMac();
-        String cloudState = "READY";
+        String macInterface = EmulatedCloudUtils.generateMac();
+        String cloudState = EmulatedCloudStateMapper.ACTIVE_STATUS;
 
-        HashMap<String, String> network = new HashMap<String, String>();
-
-        network.put(NETWORK_ALLOCATION_MODE, allocationMode);
-        network.put(NETWORK_NAME, networkName);
-        network.put(NETWORK_CIDR, cidr);
-        network.put(NETWORK_CLOUD_NAME, cloudName);
-        network.put(NETWORK_GATEWAY, gateway);
-        network.put(NETWORK_PROVIDER, provider);
-
-        network.put(NETWORK_ID, networkId);
-        network.put(NETWORK_MAC_INTERFACE, macInterface);
-        network.put(NETWORK_CLOUD_STATE, cloudState);
+        EmulatedNetwork network = new EmulatedNetwork.Builder()
+                .instanceId(networkId)
+                .cloudName(cloudName)
+                .provider(provider)
+                .name(networkName)
+                .cidr(cidr)
+                .gateway(gateway)
+                .macInterface(macInterface)
+                .allocationMode(allocationMode)
+                .cloudState(cloudState)
+                .vLAN(EmulatedCloudConstants.NO_VALUE_STRING)
+                .networkInterface(EmulatedCloudConstants.NO_VALUE_STRING)
+                .interfaceState(EmulatedCloudConstants.NO_VALUE_STRING)
+                .build();
 
         return network;
-    }
-
-
-    protected static String generateMac(){
-        char[] hexas = "0123456789abcdef".toCharArray();
-        String newMac = "";
-        Random random = new Random();
-        for (int i = 0; i < 12; i++){
-            if (i > 0 && (i & 1) == 0) {
-                newMac += ':';
-            }
-
-            int index = random.nextInt(16);
-
-            newMac += hexas[index];
-
-        }
-        return newMac;
     }
 }
 

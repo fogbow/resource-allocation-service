@@ -2,24 +2,25 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.securityrul
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudUser;
-import cloud.fogbow.common.util.JsonSerializable;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedOrderWithSecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedPublicIp;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityRule;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedSecurityRuleBinding;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.securityrule.models.EmulatedSecurityRule;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.securityrule.EmulatedCloudSecurityRuleManager;
+import org.apache.log4j.Logger;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 public class EmulatedCloudSecurityRulePlugin implements SecurityRulePlugin<CloudUser> {
 
+    private static final Logger LOGGER = Logger.getLogger(EmulatedCloudSecurityRulePlugin.class);
     private Properties properties;
 
     public EmulatedCloudSecurityRulePlugin(String confFilePath) {
@@ -27,62 +28,97 @@ public class EmulatedCloudSecurityRulePlugin implements SecurityRulePlugin<Cloud
     }
 
     @Override
-    public String requestSecurityRule(SecurityRule String, Order majorOrder, CloudUser cloudUser) throws FogbowException {
+    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudUser cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
+        EmulatedCloudSecurityRuleManager securityRuleManager = EmulatedCloudSecurityRuleManager.getInstance();
 
-        EmulatedSecurityRule emulatedSecurityRule = generateJsonEntityToCreateInstance(String);
-
-        String majorOrderInstanceId = majorOrder.getInstanceId();
-        this.addSecurityRuleToOrder(majorOrderInstanceId, emulatedSecurityRule);
-
-        String securityRuleInstanceId = emulatedSecurityRule.getId();
-        this.bindSecurityRuleToOrder(securityRuleInstanceId, majorOrderInstanceId);
-
-        return securityRuleInstanceId;
+        String securityGroupId = this.getSecurityGroupId(majorOrder);
+        EmulatedSecurityRule emulatedSecurityRule = buildEmulatedSecurityRule(securityRule, securityGroupId);
+        String instanceId = securityRuleManager.create(emulatedSecurityRule);
+        return instanceId;
     }
 
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, CloudUser cloudUser) throws FogbowException {
-        String instanceId = majorOrder.getInstanceId();
-
-        List<SecurityRuleInstance> securityRuleInstances = null;
-        try {
-
-            EmulatedPublicIp publicIp = this.getPublicIpById(instanceId);
-            List<EmulatedSecurityRule> securityRules = publicIp.getSecurityRules();
-            securityRuleInstances = EmulatedOrderWithSecurityRule.getFogbowSecurityRules(securityRules);
-
-        } catch (FogbowException e) {
-
-            throw new FogbowException(e.getMessage());
-        }
-
+        EmulatedCloudSecurityRuleManager securityRuleManager = EmulatedCloudSecurityRuleManager.getInstance();
+        String securityGroupId = this.getSecurityGroupId(majorOrder);
+        List<EmulatedSecurityRule> securityRules = securityRuleManager.listBySecurityGroup(securityGroupId);
+        List<SecurityRuleInstance> securityRuleInstances = this.getSecurityRuleInstances(securityRules);
         return securityRuleInstances;
     }
 
     @Override
     public void deleteSecurityRule(String securityRuleId, CloudUser cloudUser) throws FogbowException {
-        String majorOrderId = getMajorOrderIdFromSecurityRule(securityRuleId);
-        this.removeSecurityRuleFromOrder(majorOrderId, securityRuleId);
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, securityRuleId));
+        EmulatedCloudSecurityRuleManager securityRuleManager = EmulatedCloudSecurityRuleManager.getInstance();
+        securityRuleManager.delete(securityRuleId);
+    }
 
-        String securityRulePath = EmulatedCloudUtils.getResourcePath(this.properties, securityRuleId);
-        try {
-            EmulatedCloudUtils.deleteFile(securityRulePath);
-        } catch (Exception e) {
-            throw new FogbowException(e.getMessage());
+    private String getSecurityGroupId(Order majorOrder) throws FogbowException {
+        String instanceId = majorOrder.getInstanceId();
+        switch (majorOrder.getType()) {
+            case PUBLIC_IP: return EmulatedCloudUtils.getPublicIpSecurityGroupId(instanceId);
+            case NETWORK: return EmulatedCloudUtils.getNetworkSecurityGroupId(instanceId);
+            default: throw new FogbowException(Messages.Exception.INVALID_RESOURCE);
         }
     }
 
-    private EmulatedSecurityRule generateJsonEntityToCreateInstance(SecurityRule String) {
+    private List<SecurityRuleInstance> getSecurityRuleInstances(List<EmulatedSecurityRule> securityRules) throws FogbowException {
+        List<SecurityRuleInstance> securityRuleInstances = new ArrayList<>();
+
+        for (EmulatedSecurityRule emulatedSecurityRule : securityRules) {
+            SecurityRuleInstance instance = this.buildSecurityRuleInstance(emulatedSecurityRule);
+            securityRuleInstances.add(instance);
+        }
+
+        return securityRuleInstances;
+    }
+
+    private SecurityRuleInstance buildSecurityRuleInstance(EmulatedSecurityRule emulatedSecurityRule) {
+        String id = emulatedSecurityRule.getInstanceId();
+        SecurityRule.Direction direction = defineDirection(emulatedSecurityRule.getDirection());
+        SecurityRule.EtherType etherType = defineEtherType(emulatedSecurityRule.getEtherType());
+        SecurityRule.Protocol protocol = defineProtocol(emulatedSecurityRule.getProtocol());
+        String cidr = emulatedSecurityRule.getCidr();
+        int portFrom = emulatedSecurityRule.getPortFrom();
+        int portTo = emulatedSecurityRule.getPortTo();
+
+        return new SecurityRuleInstance(id, direction, portFrom, portTo, cidr, etherType, protocol);
+    }
+
+    private SecurityRule.Protocol defineProtocol(String protocolStr) {
+        if (protocolStr != null) {
+            for (SecurityRule.Protocol protocol : SecurityRule.Protocol.values()) {
+                if (protocolStr.equals(protocol.toString())) {
+                    return protocol;
+                }
+            }
+        }
+        return SecurityRule.Protocol.ANY;
+    }
+
+    private SecurityRule.Direction defineDirection(String direction) {
+        return direction.equalsIgnoreCase(EmulatedCloudConstants.Plugins.SecurityRule.INGRESS_DIRECTION) ?
+                SecurityRule.Direction.IN : SecurityRule.Direction.OUT;
+    }
+
+    private SecurityRule.EtherType defineEtherType(String etherType) {
+        return etherType.equalsIgnoreCase(EmulatedCloudConstants.Plugins.SecurityRule.IPV4_ETHER_TYPE) ?
+                SecurityRule.EtherType.IPv4 : SecurityRule.EtherType.IPv6;
+    }
+
+    private EmulatedSecurityRule buildEmulatedSecurityRule(SecurityRule securityRule, String securityGroupId) {
         String instanceId = EmulatedCloudUtils.getRandomUUID();
-        String cidr = String.getCidr();
-        int portFrom = String.getPortFrom();
-        int portTo = String.getPortTo();
-        String direction = String.getDirection().toString();
-        String etherType = String.getEtherType().toString();
-        String protocol = String.getProtocol().toString();
+        String cidr = securityRule.getCidr();
+        int portFrom = securityRule.getPortFrom();
+        int portTo = securityRule.getPortTo();
+        String direction = securityRule.getDirection().toString();
+        String etherType = securityRule.getEtherType().toString();
+        String protocol = securityRule.getProtocol().toString();
 
         return new EmulatedSecurityRule.Builder()
-                .id(instanceId)
+                .instanceId(instanceId)
+                .securityGroupId(securityGroupId)
                 .cidr(cidr)
                 .portFrom(portFrom)
                 .portTo(portTo)
@@ -90,93 +126,5 @@ public class EmulatedCloudSecurityRulePlugin implements SecurityRulePlugin<Cloud
                 .etherType(etherType)
                 .protocol(protocol)
                 .build();
-    }
-
-    private EmulatedPublicIp getPublicIpById(String instanceId) throws FogbowException {
-        String publicIpPath = EmulatedCloudUtils.getResourcePath(this.properties, instanceId);
-        String publicIpJson = null;
-
-        try {
-            publicIpJson = EmulatedCloudUtils.getFileContent(publicIpPath);
-        } catch (IOException e) {
-            throw new FogbowException(e.getMessage());
-        }
-
-        EmulatedPublicIp publicIp = EmulatedPublicIp.fromJson(publicIpJson);
-
-        return publicIp;
-    }
-
-    private void updateResourceOnDisk(String instanceId, JsonSerializable serializableOrder) throws IOException {
-        updateResourceOnDisk(instanceId, serializableOrder, true);
-    }
-
-    private void updateResourceOnDisk(String instanceId, JsonSerializable serializableOrder, boolean deletePrevious) throws IOException {
-        String contents = serializableOrder.toJson();
-        String resourcePath = EmulatedCloudUtils.getResourcePath(this.properties, instanceId);
-
-        if (deletePrevious) {
-
-            EmulatedCloudUtils.deleteFile(resourcePath);
-        }
-
-        EmulatedCloudUtils.saveFileContent(resourcePath, contents);
-    }
-
-    private void addSecurityRuleToOrder(String instanceId, EmulatedSecurityRule securityRule) throws FogbowException {
-        try {
-            EmulatedPublicIp publicIp = this.getPublicIpById(instanceId);
-            publicIp.addSecurityRule(securityRule);
-
-            updateResourceOnDisk(publicIp.getId(), publicIp);
-        } catch (IOException e) {
-            throw new FogbowException(e.getMessage());
-        }
-    }
-
-    private void removeSecurityRuleFromOrder(String majorOrderId, String securityRuleId) throws FogbowException {
-        try {
-            EmulatedPublicIp publicIp = this.getPublicIpById(majorOrderId);
-            publicIp.removeSecurityRule(securityRuleId);
-
-        } catch (Exception e) {
-            throw new FogbowException(e.getMessage());
-        }
-    }
-
-    private void bindSecurityRuleToOrder(String securityRuleInstanceId, String majorOrderInstanceId) throws FogbowException {
-        EmulatedSecurityRuleBinding securityRuleBinding = new EmulatedSecurityRuleBinding.Builder()
-                .majorOrderId(majorOrderInstanceId)
-                .build();
-
-        try {
-            updateResourceOnDisk(securityRuleInstanceId, securityRuleBinding);
-        } catch (IOException e) {
-            throw new FogbowException(e.getMessage());
-        }
-    }
-
-    private EmulatedSecurityRuleBinding getEmulatedSecurityRuleBindingById(String securityRuleId) throws FogbowException {
-        String securityRulePath = EmulatedCloudUtils.getResourcePath(this.properties, securityRuleId);
-
-        String securityRuleJson = null;
-        EmulatedSecurityRuleBinding emulatedSecurityRuleBinding = null;
-
-        try {
-
-            securityRuleJson = EmulatedCloudUtils.getFileContent(securityRulePath);
-            emulatedSecurityRuleBinding = EmulatedSecurityRuleBinding.fromJson(securityRuleJson);
-        } catch (IOException e) {
-
-            throw new FogbowException(e.getMessage());
-        }
-
-        return emulatedSecurityRuleBinding;
-    }
-
-    private String getMajorOrderIdFromSecurityRule(String securityRuleId) throws FogbowException {
-        EmulatedSecurityRuleBinding emulatedSecurityRuleBinding = getEmulatedSecurityRuleBindingById(securityRuleId);
-
-        return emulatedSecurityRuleBinding.getMajorOrderId();
     }
 }

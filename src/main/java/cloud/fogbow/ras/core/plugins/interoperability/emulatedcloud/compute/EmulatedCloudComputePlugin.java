@@ -2,23 +2,25 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.compute;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedCompute;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.compute.EmulatedCloudComputeManager;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.compute.models.EmulatedCompute;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
@@ -33,38 +35,43 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
+        EmulatedCloudComputeManager computeManager = EmulatedCloudComputeManager.getInstance();
         EmulatedCompute compute = createCompute(computeOrder);
-
-        String computeId = compute.getInstanceId();
-        String computePath = EmulatedCloudUtils.getResourcePath(this.properties, computeId);
-
-        try {
-            EmulatedCloudUtils.saveFileContent(computePath, compute.toJson());
-        } catch (IOException e) {
-            throw new InvalidParameterException(e.getMessage());
-        }
-
+        String computeId = computeManager.create(compute);
+        updateInstanceAllocation(computeOrder);
         return computeId;
+    }
+
+    private void updateInstanceAllocation(ComputeOrder computeOrder) {
+        synchronized (computeOrder) {
+            int instances = 1;
+            int vCPU = computeOrder.getvCPU();
+            int ram = computeOrder.getRam();
+            int disk = computeOrder.getDisk();
+            ComputeAllocation allocation = new ComputeAllocation(instances, vCPU, ram, disk);
+            computeOrder.setActualAllocation(allocation);
+        }
     }
 
     @Override
     public ComputeInstance getInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-        String computeId = computeOrder.getInstanceId();
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
 
-        EmulatedCompute compute;
-        try {
-            String computePath = EmulatedCloudUtils.getResourcePath(this.properties, computeId);
-            String jsonContent = EmulatedCloudUtils.getFileContent(computePath);
-            compute = EmulatedCompute.fromJson(jsonContent);
+        EmulatedCloudComputeManager computeManager = EmulatedCloudComputeManager.getInstance();
+        Optional<EmulatedCompute> optionalEmulatedCompute = computeManager.find(instanceId);
 
-        } catch (IOException e) {
-
-            LOGGER.error(Messages.Exception.INSTANCE_NOT_FOUND);
-            throw new InstanceNotFoundException(e.getMessage());
+        if (optionalEmulatedCompute.isPresent()) {
+            return this.buildComputeInstance(optionalEmulatedCompute.get());
+        } else {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
         }
+    }
 
+    private ComputeInstance buildComputeInstance(EmulatedCompute compute) {
         int disk = compute.getDisk();
-        int vcpu = compute.getVcpu();
+        int vCPU = compute.getvCPU();
         int memory = compute.getMemory();
         String id = compute.getInstanceId();
         String imageId = compute.getImageId();
@@ -72,13 +79,11 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         String cloudName = compute.getCloudName();
         String provider = compute.getProvider();
         String publicKey = compute.getPublicKey();
-
-
         List<NetworkSummary> networks = compute.getNetworks();
 
-        ComputeInstance computeInstance = new ComputeInstance(id, EmulatedCloudConstants.Plugins.STATE_RUNNING, name,
-                vcpu, memory, disk, new ArrayList<>(), imageId, publicKey, new ArrayList());
-        
+        ComputeInstance computeInstance = new ComputeInstance(id, EmulatedCloudStateMapper.ACTIVE_STATUS, name,
+                vCPU, memory, disk, new ArrayList<>(), imageId, publicKey, new ArrayList());
+
         computeInstance.setNetworks(networks);
         computeInstance.setProvider(provider);
         computeInstance.setCloudName(cloudName);
@@ -88,26 +93,25 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public boolean isReady(String instanceState) {
-        return true;
+        return EmulatedCloudStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.READY);
     }
 
     @Override
     public boolean hasFailed(String instanceState) {
-        return false;
+        return EmulatedCloudStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.FAILED);
     }
 
     @Override
     public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) throws FogbowException {
-        String computeId = computeOrder.getId();
-        String computePath = EmulatedCloudUtils.getResourcePath(this.properties, computeId);
-
-        EmulatedCloudUtils.deleteFile(computePath);
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
+        EmulatedCloudComputeManager computeManager = EmulatedCloudComputeManager.getInstance();
+        computeManager.delete(instanceId);
     }
 
-
-    protected EmulatedCompute createCompute(ComputeOrder computeOrder) {
+    private EmulatedCompute createCompute(ComputeOrder computeOrder) {
         int disk = computeOrder.getDisk();
-        int vcpu = computeOrder.getvCPU();
+        int vCPU = computeOrder.getvCPU();
         int memory = computeOrder.getRam();
         String imageId = computeOrder.getImageId();
 
@@ -119,16 +123,15 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
         EmulatedCompute emulatedCompute = new EmulatedCompute.Builder()
                 .disk(disk)
-                .vcpu(vcpu)
+                .vCPU(vCPU)
                 .memory(memory)
                 .imageId(imageId)
                 .name(name)
                 .publicKey(publicKey)
                 .instanceId(id)
-                .cloudState(EmulatedCloudConstants.Plugins.STATE_ACTIVE)
+                .cloudState(EmulatedCloudStateMapper.ACTIVE_STATUS)
+                .networks(networks)
                 .build();
-
-        emulatedCompute.setNetworks(networks);
 
         return emulatedCompute;
     }
@@ -141,10 +144,5 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         }
 
         return networks;
-    }
-
-    private String getName(ComputeOrder computeOrder){
-        String name = computeOrder.getName();
-        return (name == null ? SystemConstants.FOGBOW_INSTANCE_NAME_PREFIX + EmulatedCloudUtils.getRandomUUID() : name);
     }
 }

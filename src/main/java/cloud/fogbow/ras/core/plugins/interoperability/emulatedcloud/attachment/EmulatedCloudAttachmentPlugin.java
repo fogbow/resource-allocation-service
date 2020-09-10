@@ -2,17 +2,19 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.attachment;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.EmulatedCloudUtils;
-import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.emulatedmodels.EmulatedAttachment;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.attachment.models.EmulatedAttachment;
+import cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.sdk.attachment.EmulatedCloudAttachmentManager;
 
-import java.io.IOException;
+import java.util.Optional;
 import java.util.Properties;
 
 public class EmulatedCloudAttachmentPlugin implements AttachmentPlugin<CloudUser> {
@@ -25,45 +27,44 @@ public class EmulatedCloudAttachmentPlugin implements AttachmentPlugin<CloudUser
 
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, CloudUser cloudUser) throws FogbowException {
-        String compute = attachmentOrder.getComputeId();
-        String volume = attachmentOrder.getVolumeId();
-        String instanceId = EmulatedCloudUtils.getRandomUUID();
-
-        EmulatedAttachment attachment = generateJsonEntityToCreateAttachment(compute, volume, instanceId);
-
-
-        String newAttachmentPath = EmulatedCloudUtils.getResourcePath(this.properties, instanceId);
-
-        try {
-            EmulatedCloudUtils.saveFileContent(newAttachmentPath, attachment.toJson());
-        } catch (IOException e) {
-            throw new UnacceptableOperationException(e.getMessage());
-        }
-
+        EmulatedCloudAttachmentManager attachmentManager = EmulatedCloudAttachmentManager.getInstance();
+        EmulatedAttachment attachment = createEmulatedAttachment(attachmentOrder);
+        String instanceId = attachmentManager.create(attachment);
         return instanceId;
     }
 
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, CloudUser cloudUser) throws FogbowException {
-        String attachmentId = attachmentOrder.getId();
-        String attachmentPath = EmulatedCloudUtils.getResourcePath(this.properties, attachmentId);
-
-        EmulatedCloudUtils.deleteFile(attachmentPath);
+        String attachmentId = attachmentOrder.getInstanceId();
+        EmulatedCloudAttachmentManager attachmentManager = EmulatedCloudAttachmentManager.getInstance();
+        attachmentManager.delete(attachmentId);
     }
 
     @Override
     public AttachmentInstance getInstance(AttachmentOrder attachmentOrder, CloudUser cloudUser) throws FogbowException {
         String instanceId = attachmentOrder.getInstanceId();
+        EmulatedCloudAttachmentManager attachmentManager = EmulatedCloudAttachmentManager.getInstance();
+        Optional<EmulatedAttachment> emulatedAttachment = attachmentManager.find(instanceId);
 
-        String attachmentJson = null;
-        try {
-            attachmentJson = EmulatedCloudUtils.getFileContentById(this.properties, instanceId);
-        } catch (IOException e) {
-            throw new InstanceNotFoundException(e.getMessage());
+        if (emulatedAttachment.isPresent()) {
+            return buildAttachmentInstance(emulatedAttachment.get());
+        } else {
+            throw new InstanceNotFoundException();
         }
+    }
 
-        EmulatedAttachment attachment = EmulatedAttachment.fromJson(attachmentJson);
+    @Override
+    public boolean isReady(String instanceState) {
+        return EmulatedCloudStateMapper.map(ResourceType.ATTACHMENT, instanceState).equals(InstanceState.READY);
+    }
 
+    @Override
+    public boolean hasFailed(String instanceState) {
+        return EmulatedCloudStateMapper.map(ResourceType.ATTACHMENT, instanceState).equals(InstanceState.FAILED);
+    }
+
+    private AttachmentInstance buildAttachmentInstance(EmulatedAttachment attachment) {
+        String instanceId = attachment.getInstanceId();
         String cloudState = attachment.getCloudState();
         String computeId = attachment.getComputeId();
         String volumeId = attachment.getVolumeId();
@@ -72,24 +73,17 @@ public class EmulatedCloudAttachmentPlugin implements AttachmentPlugin<CloudUser
         return new AttachmentInstance(instanceId, cloudState, computeId, volumeId, device);
     }
 
-    @Override
-    public boolean isReady(String instanceState) {
-        return true;
-    }
+    private EmulatedAttachment createEmulatedAttachment(AttachmentOrder attachmentOrder){
+        String instanceId = EmulatedCloudUtils.getRandomUUID();
+        String computeId = attachmentOrder.getComputeId();
+        String volumeId = attachmentOrder.getVolumeId();
+        String cloudState = EmulatedCloudStateMapper.ACTIVE_STATUS;
 
-    @Override
-    public boolean hasFailed(String instanceState) {
-        return false;
-    }
-
-    private EmulatedAttachment generateJsonEntityToCreateAttachment(String compute, String volume, String instanceId){
-        EmulatedAttachment emulatedAttachment = new EmulatedAttachment.Builder()
-                .computeId(compute)
-                .volumeId(volume)
+        return new EmulatedAttachment.Builder()
                 .instanceId(instanceId)
-                .cloudState(EmulatedCloudConstants.Plugins.STATE_ACTIVE)
+                .computeId(computeId)
+                .volumeId(volumeId)
+                .cloudState(cloudState)
                 .build();
-
-        return  emulatedAttachment;
     }
 }
