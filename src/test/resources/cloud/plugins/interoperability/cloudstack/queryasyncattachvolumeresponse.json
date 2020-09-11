@@ -1,0 +1,14 @@
+{
+  "queryasyncjobresultresponse": {
+    "jobstatus": %s,
+    "jobresult": {
+      "volume": {
+        "id": "%s",
+        "deviceid": %s,
+        "virtualmachineid": "%s",
+        "state": "%s",
+        "jobid": "%s"
+      }
+    }
+  }
+}

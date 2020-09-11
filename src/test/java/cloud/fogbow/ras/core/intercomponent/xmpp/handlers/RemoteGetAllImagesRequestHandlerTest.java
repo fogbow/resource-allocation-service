@@ -1,9 +1,10 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetAllImagesRequest;
@@ -20,9 +21,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
@@ -41,7 +40,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
             "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n" +
                     "  <error code=\"500\" type=\"wait\">\n" +
                     "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n" +
-                    "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW + "</text>\n" +
+                    "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"></text>\n" +
                     "  </error>\n" +
                     "</iq>";
 
@@ -90,7 +89,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
 
         // verify
         String iqId = iq.getID();
-        String expected = String.format(IQ_RESULT_FORMAT, iqId, this.provider, REQUESTING_MEMBER,
+        String expected = String.format(IQ_RESULT_FORMAT, iqId, SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.provider, REQUESTING_MEMBER,
                 IMAGE_NAME.concat("1"), IMAGE_NAME.concat("2"));
         Assert.assertEquals(expected, result.toString());
     }
@@ -100,7 +99,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws Exception {
         // set up
-        Mockito.doThrow(new FogbowException()).when(this.remoteFacade).getAllImages(Mockito.anyString(),
+        Mockito.doThrow(new FogbowException("")).when(this.remoteFacade).getAllImages(Mockito.anyString(),
                 Mockito.anyString(), Mockito.any(SystemUser.class));
 
         IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, "default", this.systemUser);
@@ -114,7 +113,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
                 getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.any(SystemUser.class));
 
         String iqId = iq.getID();
-        String expected = String.format(IQ_ERROR_RESULT_FORMAT, iqId, this.provider, REQUESTING_MEMBER);
+        String expected = String.format(IQ_ERROR_RESULT_FORMAT, iqId, SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + this.provider, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
 }

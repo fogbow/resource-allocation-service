@@ -1,29 +1,15 @@
 package cloud.fogbow.ras.requests.api.local.http;
 
-import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.ras.api.http.request.Attachment;
-import cloud.fogbow.ras.api.http.CommonKeys;
-import cloud.fogbow.ras.core.ApplicationFacade;
-import cloud.fogbow.ras.api.http.response.InstanceStatus;
-import cloud.fogbow.ras.core.BaseUnitTests;
-import cloud.fogbow.ras.core.SharedOrderHolders;
-import cloud.fogbow.ras.core.datastore.DatabaseManager;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.api.http.response.AttachmentInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -37,10 +23,23 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Arrays;
-import java.util.List;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-@RunWith(PowerMockRunner.class)
+import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.ras.api.http.request.Attachment;
+import cloud.fogbow.ras.api.http.response.AttachmentInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
+import cloud.fogbow.ras.core.ApplicationFacade;
+import cloud.fogbow.ras.core.BaseUnitTests;
+import cloud.fogbow.ras.core.SharedOrderHolders;
+import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
+
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(value = Attachment.class, secure = false)
 @PrepareForTest({SharedOrderHolders.class, DatabaseManager.class, ApplicationFacade.class})
@@ -69,7 +68,7 @@ public class AttachmentTest extends BaseUnitTests {
 
     @Before
     public void setUp() throws FogbowException {
-        mockReadOrdersFromDataBase();
+        this.testUtils.mockReadOrdersFromDataBase();
         this.facade = Mockito.spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
         BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
@@ -157,7 +156,7 @@ public class AttachmentTest extends BaseUnitTests {
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
         // verify
-        int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
+        int expectedStatus = HttpStatus.BAD_REQUEST.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Mockito.verify(this.facade, Mockito.times(1))
                 .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());

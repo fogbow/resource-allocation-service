@@ -1,0 +1,6 @@
+{
+  "createnetworkresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

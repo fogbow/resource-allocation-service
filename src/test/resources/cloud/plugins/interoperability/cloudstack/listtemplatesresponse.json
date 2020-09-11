@@ -1,0 +1,11 @@
+{
+  "listtemplatesresponse": {
+    "template": [
+      {
+        "id": "%s",
+        "name": "%s",
+        "size": %s
+      }
+    ]
+  }
+}

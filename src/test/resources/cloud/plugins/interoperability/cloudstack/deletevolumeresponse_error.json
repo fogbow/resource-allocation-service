@@ -1,0 +1,6 @@
+{
+  "deletevolumeresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

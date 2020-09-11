@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -9,7 +10,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
 
@@ -25,7 +25,7 @@ public class AwsV2ClientUtilTest {
 	// test case: Verifies that the invocation of the build method to create a
 	// client was called correctly.
 	@Test
-	public void testcreateEc2ClientSuccessful() throws InvalidParameterException, UnexpectedException {
+	public void testcreateEc2ClientSuccessful() throws InvalidParameterException, InternalServerErrorException {
 		// set up
 		Ec2Client client = Mockito.mock(Ec2Client.class);
 		Ec2ClientBuilder clientBuilder = Mockito.mock(Ec2ClientBuilder.class);
@@ -53,9 +53,9 @@ public class AwsV2ClientUtilTest {
 	}
 	
 	// test case: When calling the deleteInstance method, with an invalid token, an
-	// UnexpectedException will be thrown.
-	@Test(expected = UnexpectedException.class) // verify
-	public void testcreateEc2ClientUnsuccessful() throws InvalidParameterException, UnexpectedException {
+	// InternalServerErrorException will be thrown.
+	@Test(expected = InternalServerErrorException.class) // verify
+	public void testcreateEc2ClientUnsuccessful() throws InvalidParameterException, InternalServerErrorException {
 		// set up
 		String tokenValue = FAKE_TOKEN_VALUE;
 		String regionName = EAST_SOUTH_AMERICA_REGION;
@@ -67,7 +67,7 @@ public class AwsV2ClientUtilTest {
 	// test case: When calling the validateRegion method with a null region name, an
 	// InvalidParameterException will be thrown.
 	@Test(expected = InvalidParameterException.class) // verify
-	public void testValidateRegionWithANullRegionName() throws InvalidParameterException, UnexpectedException {
+	public void testValidateRegionWithANullRegionName() throws InvalidParameterException {
 		// set up
 		String regionName = null;
 
@@ -78,7 +78,7 @@ public class AwsV2ClientUtilTest {
 	// test case: When calling the validateRegion method with any value in region
 	// name, an InvalidParameterException will be thrown.
 	@Test(expected = InvalidParameterException.class) // verify
-	public void testValidateRegionWithAInconsistentRegionName() throws InvalidParameterException, UnexpectedException {
+	public void testValidateRegionWithAInconsistentRegionName() throws InvalidParameterException {
 		// set up
 		String regionName = ANY_VALUE;
 
@@ -89,7 +89,7 @@ public class AwsV2ClientUtilTest {
 	// test case: When calling the validateRegion method with an empty string in
 	// region name, an InvalidParameterException will be thrown.
 	@Test(expected = InvalidParameterException.class) // verify
-	public void testValidateRegionWithAEmptyRegionName() throws InvalidParameterException, UnexpectedException {
+	public void testValidateRegionWithAEmptyRegionName() throws InvalidParameterException {
 		// set up
 		String regionName = EMPTY_STRING;
 

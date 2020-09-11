@@ -445,7 +445,7 @@ public class ComputeTest {
         final int RAM_TOTAL = 1;
         final int INSTANCES_TOTAL = 1;
 
-        ComputeAllocation fakeComputeAllocation = new ComputeAllocation(VCPU_TOTAL, RAM_TOTAL, INSTANCES_TOTAL);
+        ComputeAllocation fakeComputeAllocation = new ComputeAllocation(INSTANCES_TOTAL, VCPU_TOTAL, RAM_TOTAL);
 
         Mockito.doReturn(fakeComputeAllocation).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
@@ -466,91 +466,6 @@ public class ComputeTest {
         Assert.assertEquals(fakeComputeAllocation.getvCPU(), resultComputeAllocation.getvCPU());
 
         Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-    }
-
-    // test case: Request the user quota and test successfully return. Check the response of request
-    // and the call of facade for get the user quota.
-    @Test
-    public void testGetUserQuota() throws Exception {
-
-        // set up
-        final String FAKE_PROVIDER_ID = "fake-provider-id";
-        final int VCPU_TOTAL = 1;
-        final int RAM_TOTAL = 1;
-        final int INSTANCES_TOTAL = 1;
-
-        ComputeAllocation fakeTotalComputeAllocation = new ComputeAllocation(VCPU_TOTAL * 2, RAM_TOTAL * 2, INSTANCES_TOTAL * 2);
-        ComputeAllocation fakeUsedComputeAllocation = new ComputeAllocation(VCPU_TOTAL, RAM_TOTAL, INSTANCES_TOTAL);
-        ComputeQuota fakeUserQuota = new ComputeQuota(fakeTotalComputeAllocation, fakeUsedComputeAllocation);
-
-        Mockito.doReturn(fakeUserQuota).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-
-        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_SUFFIX_ENDPOINT;
-        final String providerIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
-
-        // exercise
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        // verify
-        int expectedStatus = HttpStatus.OK.value();
-        ComputeQuota resultComputeQuota = new Gson().fromJson(result.getResponse().getContentAsString(), ComputeQuota.class);
-
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-
-        Assert.assertEquals(fakeUsedComputeAllocation.getInstances(), resultComputeQuota.getUsedQuota().getInstances());
-        Assert.assertEquals(fakeUsedComputeAllocation.getvCPU(), resultComputeQuota.getUsedQuota().getvCPU());
-        Assert.assertEquals(fakeUsedComputeAllocation.getRam(), resultComputeQuota.getUsedQuota().getRam());
-
-        Assert.assertEquals(fakeTotalComputeAllocation.getInstances(), resultComputeQuota.getTotalQuota().getInstances());
-        Assert.assertEquals(fakeTotalComputeAllocation.getvCPU(), resultComputeQuota.getTotalQuota().getvCPU());
-        Assert.assertEquals(fakeTotalComputeAllocation.getRam(), resultComputeQuota.getTotalQuota().getRam());
-
-        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-    }
-
-    // test case: Request the user quota with unauthenticated user. Check the response of request
-    // and the call of facade for get the user quota.
-    @Test
-    public void testGetUserQuotaUnauthenticatedException() throws Exception {
-
-        // set up
-        final String FAKE_PROVIDER_ID = "fake-provider-id";
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_SUFFIX_ENDPOINT;
-        final String providerIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
-
-        // exercise
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        // verify
-        int expectedStatus = HttpStatus.UNAUTHORIZED.value();
-
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-    }
-
-    // test case: Request the user quota with unauthorized user. Check the response of request
-    // and the call of facade for get the user quota.
-    @Test
-    public void testGetUserQuotaUnauthorizedException() throws Exception {
-
-        // set up
-        final String FAKE_PROVIDER_ID = "fake-provider-id";
-        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
-        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_SUFFIX_ENDPOINT;
-        final String providerIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_PROVIDER_ID + ENDPOINT_SUFFIX;
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, providerIdEndpoint, getHttpHeaders(), "");
-
-        // exercise
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        // verify
-        int expectedStatus = HttpStatus.FORBIDDEN.value();
-
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
 
     private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {

@@ -1,0 +1,6 @@
+{
+  "listvirtualmachinesresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "listvolumesresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

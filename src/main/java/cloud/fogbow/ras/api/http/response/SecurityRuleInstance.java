@@ -86,7 +86,7 @@ public class SecurityRuleInstance extends Instance {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SecurityRule that = (SecurityRule) o;
+        SecurityRuleInstance that = (SecurityRuleInstance) o;
         return getPortFrom() == that.getPortFrom() &&
                 getPortTo() == that.getPortTo() &&
                 getDirection() == that.getDirection() &&

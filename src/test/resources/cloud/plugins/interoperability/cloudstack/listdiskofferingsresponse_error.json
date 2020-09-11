@@ -1,0 +1,6 @@
+{
+  "listdiskofferingsresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

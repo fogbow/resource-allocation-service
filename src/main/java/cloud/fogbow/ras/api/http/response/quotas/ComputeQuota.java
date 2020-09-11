@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.api.http.response.quotas;
 
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.constants.ApiDocumentation;
 import io.swagger.annotations.ApiModelProperty;
 
 public class ComputeQuota extends Quota {
@@ -50,7 +49,7 @@ public class ComputeQuota extends Quota {
         int availableRam = totalQuota.getRam() - usedQuota.getRam();
         int availableInstance = totalQuota.getInstances() - usedQuota.getInstances();
         int availableDisk = totalQuota.getDisk() - usedQuota.getDisk();
-        return new ComputeAllocation(availableVCpu, availableRam, availableInstance, availableDisk);
+        return new ComputeAllocation(availableInstance, availableVCpu, availableRam, availableDisk);
     }
 
     @Override

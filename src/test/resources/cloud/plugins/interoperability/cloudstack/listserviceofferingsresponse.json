@@ -1,0 +1,13 @@
+{
+  "listserviceofferingsresponse":{
+    "serviceoffering":[
+      {
+        "id":"%s",
+        "name":"%s",
+        "cpunumber":%s,
+        "memory":%s,
+        "tags":"%s"
+      }
+    ]
+  }
+}

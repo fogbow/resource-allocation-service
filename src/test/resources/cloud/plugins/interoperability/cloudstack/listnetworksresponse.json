@@ -1,0 +1,13 @@
+{
+  "listnetworksresponse": {
+     "network": [
+       {
+         "id": "%s",
+         "name": "%s",
+         "gateway": "%s",
+         "cidr": "%s",
+         "state": "%s"
+       }
+     ]
+  }
+}

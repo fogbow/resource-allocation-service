@@ -1,0 +1,14 @@
+{
+  "listfirewallrulesresponse": {
+    "firewallrule": [
+      {
+        "id": "%s",
+        "protocol": "%s",
+        "startport": %s,
+        "endport": %s,
+        "ipaddress": "%s",
+        "cidrlist": "%s"
+      }
+    ]
+  }
+}

@@ -1,7 +1,5 @@
 package cloud.fogbow.ras.constants;
 
-import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-
 public class ApiDocumentation {
     public static class ApiInfo {
         public static final String API_TITLE = "Fogbow Resource Allocation Service API";
@@ -13,7 +11,7 @@ public class ApiDocumentation {
     public static class Attachment {
         public static final String API = "Manages attachments.";
         public static final String CREATE_OPERATION = "Creates an attachment.";
-        public static final String GET_OPERATION = "Lists all attachments created by the user.";
+        public static final String GET_OPERATION = "Lists all attachments created by the user (their state may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific attachment.";
         public static final String DELETE_OPERATION = "Deletes a specific attachment.";
         public static final String ID = "The ID of the specific attachment.";
@@ -34,25 +32,12 @@ public class ApiDocumentation {
     public static class Compute {
         public static final String API = "Manages compute instances.";
         public static final String CREATE_OPERATION = "Creates a compute instance.";
-        public static final String GET_OPERATION = "Lists all compute instances created by the user.";
+        public static final String GET_OPERATION = "Lists all compute instances created by the user (their state may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific compute instance.";
         public static final String DELETE_OPERATION = "Deletes a specific compute instance.";
-        public static final String GET_QUOTA = "Gets the compute quota for the user on a particular provider.";
         public static final String GET_ALLOCATION = "Gets the current compute allocation for the user on a particular provider.";
         public static final String ID = "The ID of the specific compute instance.";
         public static final String CREATE_REQUEST_BODY = "The body of the request is quite complex; please, have a look at the model description.";
-    }
-
-    public static class GenericRequest {
-        public static final String API = "Allows generic requests to be sent to a target cloud.";
-        public static final String POST_OPERATION = "This operation sends a request to a target cloud at the specified provider.";
-        public static final String REQUEST_BODY = "This parameter is a string in the JSON format, whose content " +
-                "depends on the API of the target cloud. For instance, if the cloud provides a RESTful API, then " +
-                "the JSON will have the fields of a REST request, namely: method, URL, headers, and body. For example: " +
-                "\"{\n" +
-                "    \"method\" : \"GET\",\n" +
-                "    \"url\" : \"https://myOpenStackCloud.mydomain:9292/v2/images?status=active\"\n" +
-                "}\".";
     }
 
     public static class Image {
@@ -65,7 +50,7 @@ public class ApiDocumentation {
     public static class Network {
         public static final String API = "Manages private networks.";
         public static final String CREATE_OPERATION = "Creates a private network.";
-        public static final String GET_OPERATION = "Lists all private networks created by the user.";
+        public static final String GET_OPERATION = "Lists all private networks created by the user (their state may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific private network.";
         public static final String DELETE_OPERATION = "Deletes a specific private network.";
         public static final String ID = "The ID of the specific private network.";
@@ -80,12 +65,13 @@ public class ApiDocumentation {
         public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules associated to the network.";
         public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
         public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
+        public static final String GET_ALLOCATION = "Gets the current network allocation for the user on a particular provider.";
     }
 
     public static class PublicIp {
         public static final String API = "Manages public IPs.";
         public static final String CREATE_OPERATION = "Creates a public IP and attaches it to a compute instance.";
-        public static final String GET_OPERATION = "Lists all public IPs created by the user.";
+        public static final String GET_OPERATION = "Lists all public IPs created by the user (their state may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific public IP.";
         public static final String DELETE_OPERATION = "Deletes a specific public IP.";
         public static final String ID = "The ID of the specific public IP.";
@@ -97,12 +83,18 @@ public class ApiDocumentation {
         public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules associated to the public IP.";
         public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
         public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
+        public static final String GET_ALLOCATION = "Gets the current public ip allocation for the user on a particular provider.";
+    }
+    
+    public static class Quota {
+        public static final String API = "Manages resource quota.";
+        public static final String GET_QUOTA = "Gets the resources quotas for the user on a particular provider.";
     }
 
     public static class Volume {
         public static final String API = "Manages volumes.";
         public static final String CREATE_OPERATION = "Creates a volume.";
-        public static final String GET_OPERATION = "Lists all volumes created by the user.";
+        public static final String GET_OPERATION = "Lists all volumes created by the user (their state may be stale).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific volume.";
         public static final String DELETE_OPERATION = "Deletes a specific volume.";
         public static final String ID = "The ID of the specific volume.";
@@ -110,6 +102,7 @@ public class ApiDocumentation {
                 "The body of the request must specify the size of the volume to be " +
                 "created; optionally, it may specify the provider and the cloud where the " +
                 "volume should be created, and a name to be assigned to the volume.";
+        public static final String GET_ALLOCATION = "Gets the current volume allocation for the user on a particular provider.";
     }
 
     public static class CommonParameters {
@@ -123,13 +116,13 @@ public class ApiDocumentation {
         public static final String DEVICE = "/dev/b";
         public static final String DEVICE_NOTE = "(in some cloud orchestrators this parameter is ignored)";
         public static final String PROVIDER = "provider-name.domain";
-        public static final String PROVIDER_NOTE = "(the provider to which the request will be sent)";
+        public static final String PROVIDER_NOTE = "(the provider that will allocate the resource)";
         public static final String CLOUD_NAME = "cloud-name";
         public static final String CLOUD_NAME_NOTE = "(the cloud where the compute is to be created)";
         public static final String COMPUTE_NAME = "my compute";
         public static final String COMPUTE_NAME_NOTE = "(a friendly name to identify the compute)";
         public static final String VCPU_NOTE = "(the minimum number of vCPUs in the compute)";
-        public static final String MEMORY_NOTE = "(the minimum memory size of the compute in Mega bytes)";
+        public static final String RAM_NOTE = "(the minimum RAM size of the compute in Mega bytes)";
         public static final String DISK_NOTE = "(the minimum disk size of the compute in Giga bytes)";
         public static final String IMAGE_ID = "4489-82a0-622ee-461a-99a9-1e5d59076a98";
         public static final String IMAGE_ID_NOTE = "(the ID of the image to be used to create the compute)";
@@ -144,6 +137,8 @@ public class ApiDocumentation {
                 "\"extraUserDataFileType\":\"SHELL_SCRIPT\", " +
                 "\"tag\": \"my-user-data-tag\" }]";
         public static final String USER_DATA_NOTE = "(a script that is executed by cloudinit when the compute is booted up";
+        public static final String FAULT_MSG = "Image not found.";
+        public static final String FAULT_MSG_NOTE = "(a message describing the fault, if the instance is faulty)";
         public static final String NETWORK_IDS = "[\"13310a2c-5df3-4a0e-a1ee-202125583ffa\", \"3c6931f1-71be-4cea-af8b-0566605cc869\"]";
         public static final String NETWORK_IDS_NOTE = "(the list of network IDs to which the compute will be attached)";
         public static final String COMPUTE_REQUIREMENTS = "{\"sgx\": \"true\", \"gpgpu\": \"true\"}";
@@ -159,15 +154,6 @@ public class ApiDocumentation {
         public static final String IMAGE_NAME = "ubuntu-16.04";
         public static final String INSTANCE_ID = "9632af26-72ee-461a-99a9-1e5d59076a98";
         public static final String INSTANCE_NAME = "instance name";
-        public static final String INSTANCE_ID2 = "13310a2c-5df3-4a0e-a1ee-202125583ffa";
-        public static final String IMAGE_LIST = "\"images\": [\n" +
-                "    { \"id\": \"f1d97fdd-19af-45d1-bb91-f6a92183875f\", \"name\": \"fedora-27\"},\n" +
-                "    { \"id\": \"670f78c3-5d50-4600-90bb-d01820fddb8d\", \"name\": \"ubuntu-16.04\"},\n" +
-                "    { \"id\": \"2ee823a2-6a36-4aeb-9a74-715960b2fcea\", \"name\": \"centos6\"},\n" +
-                "    { \"id\": \"b6de0caa-680b-4f5b-851b-11e53eed1733\", \"name\": \"opensuse-42.3\"},\n" +
-                "    { \"id\": \"54b4f5dd-7a11-46bd-8d6f-1d702051c900\", \"name\": \"debian\"}\n" +
-                "]";
-        public static final String IMAGE_LIST_NOTE = "(the list of IDs and names of the images that are available to the user.)";
         public static final String NETWORKS = "";
         public static final String IP_ADDRESSES = "[\n" +
                 "    \"10.11.4.94\",\n" +

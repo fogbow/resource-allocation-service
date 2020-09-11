@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.image.v2;
 
+import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.OpenStackV3User;
@@ -7,9 +8,12 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
-import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpToFogbowExceptionMapper;
-import org.apache.http.client.HttpResponseException;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.image.models.GetAllImagesResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.image.models.GetImageResponse;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -18,68 +22,63 @@ import java.util.*;
 public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackImagePlugin.class);
 
-    public static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
-    public static final String ACTIVE_STATE = "active";
-    public static final String PUBLIC_VISIBILITY = "public";
-    private static final String PRIVATE_VISIBILITY = "private";
-    public static final String QUERY_ACTIVE_IMAGES = "?status=" + ACTIVE_STATE;
-    public static final String IMAGE_V2_API_SUFFIX = "images";
-    public static final String IMAGE_V2_API_ENDPOINT = "/v2/";
     private Properties properties;
     private OpenStackHttpClient client;
 
     public OpenStackImagePlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
-        this.client = new OpenStackHttpClient();
+        this.initClient();
     }
 
     @Override
     public List<ImageSummary> getAllImages(OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(Messages.Log.REQUESTING_GET_ALL_FROM_PROVIDER);
         List<ImageSummary> availableImages = getAvailableImages(cloudUser);
         return availableImages;
     }
 
     @Override
     public ImageInstance getImage(String imageId, OpenStackV3User cloudUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Log.RECEIVING_GET_IMAGE_REQUEST_S, imageId));
         GetImageResponse getImageResponse = getImageResponse(imageId, cloudUser);
-        String id = getImageResponse.getId();
         String status = getImageResponse.getStatus();
-        if (status.equals(ACTIVE_STATE)) {
-            ImageInstance imageInstance = new ImageInstance(id,
-                    getImageResponse.getName(),
-                    getImageResponse.getSize(),
-                    getImageResponse.getMinDisk(),
-                    getImageResponse.getMinRam(),
-                    status
-            );
-            return imageInstance;
+
+        ImageInstance imageInstance = null;
+
+        if (status.equals(OpenStackConstants.ACTIVE_STATE)) {
+            imageInstance = buildImageInstance(getImageResponse);
         }
 
-        return null;
+        return imageInstance;
     }
 
-    private GetImageResponse getImageResponse(String imageId, OpenStackV3User cloudUser) throws FogbowException {
-        String jsonResponse = null;
-        try {
-            String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
-                    + IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + File.separator + imageId;
-            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+    @VisibleForTesting
+    ImageInstance buildImageInstance(GetImageResponse getImageResponse) {
+        String id = getImageResponse.getId();
+        String status = getImageResponse.getStatus();
+        String name = getImageResponse.getName();
+        Long size = getImageResponse.getSize();
+        Long minDisk = getImageResponse.getMinDisk();
+        Long minRam = getImageResponse.getMinRam();
+        return new ImageInstance(id, name, size, minDisk, minRam, status);
+    }
+
+    @VisibleForTesting
+    GetImageResponse getImageResponse(String imageId, OpenStackV3User cloudUser) throws FogbowException {
+        String endpoint = this.properties.getProperty(OpenStackPluginUtils.IMAGE_GLANCE_URL_KEY)
+                    + OpenStackConstants.GLANCE_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR +
+                    OpenStackConstants.IMAGE_ENDPOINT + File.separator + imageId;
+        String jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
 
         return GetImageResponse.fromJson(jsonResponse);
     }
 
-    private List<GetImageResponse> getImagesResponse(OpenStackV3User cloudUser) throws FogbowException {
-        String jsonResponse = null;
-        try {
-            String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
-                    + IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + QUERY_ACTIVE_IMAGES;
-            jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowExceptionMapper.map(e);
-        }
+    @VisibleForTesting
+    List<GetImageResponse> getImagesResponse(OpenStackV3User cloudUser) throws FogbowException {
+        String endpoint = this.properties.getProperty(OpenStackPluginUtils.IMAGE_GLANCE_URL_KEY)
+                    + OpenStackConstants.GLANCE_V2_API_ENDPOINT + OpenStackConstants.ENDPOINT_SEPARATOR +
+                    OpenStackConstants.IMAGE_ENDPOINT + OpenStackConstants.QUERY_ACTIVE_IMAGES;
+        String jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
         GetAllImagesResponse getAllImagesResponse = getAllImagesResponse(jsonResponse);
 
         List<GetImageResponse> getImageResponses = new ArrayList<GetImageResponse>();
@@ -88,51 +87,48 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         return getImageResponses;
     }
 
-    private void getNextImageListResponseByPagination(OpenStackV3User cloudUser, GetAllImagesResponse getAllImagesResponse,
-                                                      List<GetImageResponse> imagesJson) throws FogbowException {
-
+    @VisibleForTesting
+    void getNextImageListResponseByPagination(OpenStackV3User cloudUser, GetAllImagesResponse getAllImagesResponse,
+        List<GetImageResponse> imagesJson) throws FogbowException {
         String next = getAllImagesResponse.getNext();
         if (next != null && !next.isEmpty()) {
-            String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) + next;
-            String jsonResponse = null;
-            try {
-                jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
-            } catch (HttpResponseException e) {
-                OpenStackHttpToFogbowExceptionMapper.map(e);
-            }
-            getAllImagesResponse = getAllImagesResponse(jsonResponse);
-
+            String endpoint = this.properties.getProperty(OpenStackPluginUtils.IMAGE_GLANCE_URL_KEY) + next;
+            String jsonResponse = this.client.doGetRequest(endpoint, cloudUser);
+           getAllImagesResponse = getAllImagesResponse(jsonResponse);
             imagesJson.addAll(getAllImagesResponse.getImages());
             getNextImageListResponseByPagination(cloudUser, getAllImagesResponse, imagesJson);
         }
     }
 
-    private List<GetImageResponse> getPublicImagesResponse(List<GetImageResponse> imagesResponse) {
+    @VisibleForTesting
+    List<GetImageResponse> getPublicImagesResponse(List<GetImageResponse> imagesResponse) {
         List<GetImageResponse> publicImagesResponse = new ArrayList<GetImageResponse>();
         for (GetImageResponse getImageResponse : imagesResponse) {
-            if (getImageResponse.getVisibility().equals(PUBLIC_VISIBILITY)) {
+            if (getImageResponse.getVisibility().equals(OpenStackConstants.PUBLIC_VISIBILITY)) {
                 publicImagesResponse.add(getImageResponse);
             }
         }
         return publicImagesResponse;
     }
 
-    private List<GetImageResponse> getPrivateImagesResponse(List<GetImageResponse> imagesResponse, String tenantId) {
+    @VisibleForTesting
+    List<GetImageResponse> getPrivateImagesResponse(List<GetImageResponse> imagesResponse, String tenantId) {
         List<GetImageResponse> privateImagesResponse = new ArrayList<GetImageResponse>();
         for (GetImageResponse getImageResponse : imagesResponse) {
             if (getImageResponse.getOwner().equals(tenantId)
-                    && getImageResponse.getVisibility().equals(PRIVATE_VISIBILITY)) {
+                    && getImageResponse.getVisibility().equals(OpenStackConstants.PRIVATE_VISIBILITY)) {
                 privateImagesResponse.add(getImageResponse);
             }
         }
         return privateImagesResponse;
     }
 
-    private List<ImageSummary> getAvailableImages(OpenStackV3User cloudUser) throws FogbowException {
+    @VisibleForTesting
+    List<ImageSummary> getAvailableImages(OpenStackV3User cloudUser) throws FogbowException {
         List<ImageSummary> availableImages = new ArrayList<>();
 
         List<GetImageResponse> allImagesResponse = getImagesResponse(cloudUser);
-        List<GetImageResponse> filteredImagesResponse = filterImagesResponse(cloudUser.getProjectId(), allImagesResponse);
+        List<GetImageResponse> filteredImagesResponse = filterImagesResponse(OpenStackPluginUtils.getProjectIdFrom(cloudUser), allImagesResponse);
 
         for (GetImageResponse getImageResponse : filteredImagesResponse) {
             ImageSummary imageSummary = new ImageSummary(getImageResponse.getId(), getImageResponse.getName());
@@ -148,15 +144,22 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3User> {
         return filteredImages;
     }
 
-    protected void setClient(OpenStackHttpClient client) {
+    @VisibleForTesting
+    void setClient(OpenStackHttpClient client) {
         this.client = client;
     }
 
-    private GetAllImagesResponse getAllImagesResponse(String json) {
+    @VisibleForTesting
+    GetAllImagesResponse getAllImagesResponse(String json) {
         return GetAllImagesResponse.fromJson(json);
     }
 
-    protected void setProperties(Properties properties) {
+    @VisibleForTesting
+    void setProperties(Properties properties) {
         this.properties = properties;
+    }
+
+    private void initClient() {
+        this.client = new OpenStackHttpClient();
     }
 }

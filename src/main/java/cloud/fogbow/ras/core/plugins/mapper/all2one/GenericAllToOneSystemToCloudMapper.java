@@ -48,7 +48,7 @@ public abstract class GenericAllToOneSystemToCloudMapper<T extends CloudUser, S 
     private Map<String, String> getCloudUserCredentials(Properties properties) throws FatalErrorException {
         Map<String, String> localTokenCredentials = new HashMap<String, String>();
         if (properties == null) {
-            throw new FatalErrorException(Messages.Fatal.EMPTY_PROPERTY_MAP);
+            throw new FatalErrorException(Messages.Exception.EMPTY_PROPERTY_MAP);
         }
 
         for (Object keyProperties : properties.keySet()) {
@@ -62,7 +62,7 @@ public abstract class GenericAllToOneSystemToCloudMapper<T extends CloudUser, S 
         }
 
         if (localTokenCredentials.isEmpty()) {
-            throw new FatalErrorException(Messages.Fatal.DEFAULT_CREDENTIALS_NOT_FOUND);
+            throw new FatalErrorException(Messages.Exception.DEFAULT_CREDENTIALS_NOT_FOUND);
         } else {
             return localTokenCredentials;
         }

@@ -19,13 +19,6 @@ public class RasOperation extends FogbowOperation {
         this.cloudName = cloudName;
     }
 
-    public RasOperation(Operation operationType, ResourceType resourceType, String cloudName, String genericRequest) {
-        this.operationType = operationType;
-        this.resourceType = resourceType;
-        this.cloudName = cloudName;
-        this.genericRequest = genericRequest;
-    }
-
     public RasOperation(Operation operationType, ResourceType resourceType, String cloudName, Order order) {
         this.operationType = operationType;
         this.resourceType = resourceType;

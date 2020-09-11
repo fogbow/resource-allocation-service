@@ -29,8 +29,6 @@ public class Cloud {
 
     private final Logger LOGGER = Logger.getLogger(Cloud.class);
 
-    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
-
     @ApiOperation(value = ApiDocumentation.Cloud.GET_OPERATION)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CloudList> getCloudNames(
@@ -38,12 +36,12 @@ public class Cloud {
         @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
         throws FogbowException {
         try {
-            LOGGER.debug(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
-            String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+            LOGGER.debug(Messages.Log.RECEIVING_GET_CLOUDS_REQUEST);
+            String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
             List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(providerId, systemUserToken);
             return new ResponseEntity<>(new CloudList(cloudNames), HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -57,11 +55,11 @@ public class Cloud {
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
         try {
-            LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
+            LOGGER.info(Messages.Log.RECEIVING_GET_CLOUDS_REQUEST);
             List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(providerId, systemUserToken);
             return new ResponseEntity<>(new CloudList(cloudNames), HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }

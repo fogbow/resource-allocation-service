@@ -1,0 +1,8 @@
+{
+  "queryasyncjobresultresponse": {
+    "jobresult":{
+      "errorcode": %s,
+      "errortext": "%s"
+    }
+  }
+}

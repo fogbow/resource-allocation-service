@@ -5,7 +5,10 @@ import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.models.ResourceType;
 import org.apache.log4j.Logger;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import java.util.UUID;
 
@@ -93,5 +96,7 @@ public class AttachmentOrder extends Order<AttachmentOrder> {
 
     @Override
     public void updateFromRemote(AttachmentOrder remoteOrder) {
+        this.setOnceFaultMessage(remoteOrder.getFaultMessage());
     }
+
 }

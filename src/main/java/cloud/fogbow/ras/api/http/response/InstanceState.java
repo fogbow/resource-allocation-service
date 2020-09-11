@@ -7,6 +7,8 @@ public enum InstanceState {
     BUSY("busy"),
     FAILED("failed"),
     ERROR("error"),
+    DELETING("deleting"),
+    DELETED("deleted"),
     UNKNOWN("unknown"),
     INCONSISTENT("inconsistent");
 

@@ -1,8 +1,8 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.requesters;
 
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IQMatcher;
@@ -21,9 +21,7 @@ import org.xmpp.packet.PacketError;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class RemoteGetAllImagesRequestTest {
 
@@ -95,9 +93,9 @@ public class RemoteGetAllImagesRequestTest {
         this.remoteGetAllImagesRequest.send();
     }
 
-    // test case: checks if "send" is properly forwading UnexpectedException thrown by
+    // test case: checks if "send" is properly forwading InternalServerErrorException thrown by
     // "getImageFromResponse" when the images getCloudUser class name from the IQ response is undefined (wrong or not found)
-    @Test(expected = UnexpectedException.class)
+    @Test(expected = InternalServerErrorException.class)
     public void testSendWhenImageClassIsUndefined() throws Exception {
         // set up
         IQ iqResponse = getImagesMapIQResponseWithWrongClass(this.imageSummaryList);

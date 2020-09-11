@@ -14,7 +14,8 @@ import java.util.UUID;
 public class NetworkOrder extends Order<NetworkOrder> {
     private static final long serialVersionUID = 1L;
 
-    private transient static final Logger LOGGER = Logger.getLogger(NetworkOrder.class);
+    @Transient
+    private transient final Logger LOGGER = Logger.getLogger(NetworkOrder.class);
 
     private static final String NAME_COLUMN_NAME = "name";
     private static final String GATEWAY_COLUMN_NAME = "gateway";
@@ -66,6 +67,10 @@ public class NetworkOrder extends Order<NetworkOrder> {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getGateway() {
         return gateway;
     }
@@ -80,5 +85,7 @@ public class NetworkOrder extends Order<NetworkOrder> {
 
     @Override
     public void updateFromRemote(NetworkOrder remoteOrder) {
+        this.setOnceFaultMessage(remoteOrder.getFaultMessage());
     }
+
 }

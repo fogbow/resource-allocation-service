@@ -5,7 +5,6 @@ import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
@@ -29,14 +28,11 @@ import java.util.List;
 public class Compute {
     public static final String COMPUTE_SUFFIX_ENDPOINT = "computes";
     public static final String STATUS_SUFFIX_ENDPOINT = "status";
-    public static final String QUOTA_SUFFIX_ENDPOINT = "quota";
     public static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
     public static final String COMPUTE_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + COMPUTE_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "compute";
 
     private final Logger LOGGER = Logger.getLogger(Compute.class);
-
-    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
 
     @ApiOperation(value = ApiDocumentation.Compute.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
@@ -48,11 +44,11 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_CREATE_REQUEST_S, ORDER_CONTROLLER_TYPE));
             String computeId = ApplicationFacade.getInstance().createCompute(compute.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(computeId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Log.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -64,12 +60,11 @@ public class Compute {
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
         try {
-            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> computeInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.COMPUTE);
             return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -84,11 +79,11 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, computeId));
             ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, systemUserToken);
             return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -103,32 +98,11 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_DELETE_REQUEST_S_S, ORDER_CONTROLLER_TYPE, computeId));
             ApplicationFacade.getInstance().deleteCompute(computeId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
-            throw e;
-        }
-    }
-
-    @ApiOperation(value = ApiDocumentation.Compute.GET_QUOTA)
-    @RequestMapping(value = "/" + QUOTA_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
-    public ResponseEntity<ComputeQuota> getUserQuota(
-            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
-            @PathVariable String providerId,
-            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
-            @PathVariable String cloudName,
-            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
-            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
-            throws FogbowException {
-
-        try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_SUFFIX_ENDPOINT, providerId));
-            ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(providerId, cloudName, systemUserToken);
-            return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
-        } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -145,12 +119,12 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, ALLOCATION_SUFFIX_ENDPOINT, providerId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_COMPUTE_QUOTA_REQUEST_S_S, ALLOCATION_SUFFIX_ENDPOINT, providerId));
             ComputeAllocation computeAllocation =
                 ApplicationFacade.getInstance().getComputeAllocation(providerId, cloudName, systemUserToken);
             return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }

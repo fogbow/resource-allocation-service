@@ -1,11 +1,9 @@
 package cloud.fogbow.ras.core.models.orders;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.SerializedEntityHolder;
-import cloud.fogbow.common.util.SystemUserUtil;
-import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.ResourceType;
@@ -73,12 +71,16 @@ public abstract class Order<T extends Order> implements Serializable {
     private String identityProviderId;
 
     @Column
-    @Size(max = SystemUserUtil.SERIALIZED_SYSTEM_USER_MAX_SIZE)
+    @Size(max = SystemUser.SERIALIZED_SYSTEM_USER_MAX_SIZE)
     private String serializedSystemUser;
 
     @Column
     @Enumerated(EnumType.STRING)
     protected ResourceType type;
+
+    @Column
+    @Size(max = FIELDS_MAX_SIZE)
+    private String faultMessage;
 
     public Order() {
     }
@@ -115,7 +117,8 @@ public abstract class Order<T extends Order> implements Serializable {
         this.orderState = state;
     }
 
-    public void setOrderState(OrderState state) throws UnexpectedException {
+    public void setOrderState(OrderState state) throws InternalServerErrorException {
+        LOGGER.debug(String.format(Messages.Log.ORDER_S_CHANGED_STATE_TO_S, this.getId(), state));
         this.orderState = state;
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         if (state.equals(OrderState.OPEN)) {
@@ -183,6 +186,14 @@ public abstract class Order<T extends Order> implements Serializable {
         this.identityProviderId = identityProviderId;
     }
 
+    public String getFaultMessage() {
+        return this.faultMessage;
+    }
+
+    public void setOnceFaultMessage(String faultMessage) {
+        if (this.faultMessage == null) this.faultMessage = faultMessage;
+    }
+
     private void setSerializedSystemUser(String serializedSystemUser) {
         this.serializedSystemUser = serializedSystemUser;
     }
@@ -201,12 +212,12 @@ public abstract class Order<T extends Order> implements Serializable {
     }
 
     @PostLoad
-    private void deserializeSystemUser() throws UnexpectedException {
+    private void deserializeSystemUser() throws InternalServerErrorException {
         try {
             SerializedEntityHolder serializedSystemUserHolder = GsonHolder.getInstance().fromJson(this.getSerializedSystemUser(), SerializedEntityHolder.class);
             this.setSystemUser((SystemUser) serializedSystemUserHolder.getSerializedEntity());
         } catch(ClassNotFoundException exception) {
-            throw new UnexpectedException(Messages.Exception.UNABLE_TO_DESERIALIZE_SYSTEM_USER);
+            throw new InternalServerErrorException(Messages.Exception.UNABLE_TO_DESERIALIZE_SYSTEM_USER);
         }
     }
 
@@ -261,5 +272,5 @@ public abstract class Order<T extends Order> implements Serializable {
         this.type = type;
     }
 
-    public abstract void updateFromRemote(T remoteOrder);
+    public abstract void updateFromRemote(T remoteOrder) throws InternalServerErrorException;
 }

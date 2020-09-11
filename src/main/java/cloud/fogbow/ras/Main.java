@@ -2,6 +2,7 @@ package cloud.fogbow.ras;
 
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
@@ -40,7 +41,7 @@ public class Main implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         try {
             // Getting the name of the local provider
-            String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+            String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 
             // Setting up stable storage
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
@@ -85,9 +86,10 @@ public class Main implements ApplicationRunner {
                 while (true) {
                     try {
                         PacketSenderHolder.init();
+                        LOGGER.info(Messages.Log.PACKET_SENDER_INITIALIZED);
                         break;
                     } catch (IllegalStateException e1) {
-                        LOGGER.error(Messages.Error.NO_PACKET_SENDER, e1);
+                        LOGGER.error(Messages.Log.NO_PACKET_SENDER, e1);
                         try {
                             TimeUnit.SECONDS.sleep(10);
                         } catch (InterruptedException e2) {
@@ -96,7 +98,7 @@ public class Main implements ApplicationRunner {
                     }
                 }
             }
-        } catch (FatalErrorException errorException) {
+        } catch (FatalErrorException | InternalServerErrorException errorException) {
             LOGGER.fatal(errorException.getMessage(), errorException);
             tryExit();
         }

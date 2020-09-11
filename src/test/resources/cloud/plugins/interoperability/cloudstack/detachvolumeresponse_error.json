@@ -1,0 +1,6 @@
+{
+  "detachvolumeresponse": {
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

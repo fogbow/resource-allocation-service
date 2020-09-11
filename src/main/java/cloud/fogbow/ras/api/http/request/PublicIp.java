@@ -6,6 +6,7 @@ import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
+import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
@@ -33,10 +34,10 @@ public class PublicIp {
 
     public static final String SECURITY_RULES_SUFFIX_ENDPOINT = "securityRules";
     public static final String SECURITY_RULE_NAME = "security rule";
+    public static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
+    public static final String PUBLIC_IP_RESOURCE_ALLOCATION = "public ips allocation";
 
     private final Logger LOGGER = Logger.getLogger(PublicIp.class);
-
-    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
 
     @ApiOperation(value = ApiDocumentation.PublicIp.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
@@ -48,11 +49,11 @@ public class PublicIp {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_CREATE_REQUEST_S, ORDER_CONTROLLER_TYPE));
             String publicIpId = ApplicationFacade.getInstance().createPublicIp(publicIp.getOrder(), systemUserToken);
             return new ResponseEntity<>(new ResourceId(publicIpId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -67,12 +68,12 @@ public class PublicIp {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, publicIpId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, publicIpId));
             PublicIpInstance publicIpInstance =
                 ApplicationFacade.getInstance().getPublicIp(publicIpId, systemUserToken);
             return new ResponseEntity<>(publicIpInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -87,11 +88,11 @@ public class PublicIp {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, publicIpId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_DELETE_REQUEST_S_S, ORDER_CONTROLLER_TYPE, publicIpId));
             ApplicationFacade.getInstance().deletePublicIp(publicIpId, systemUserToken);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -104,12 +105,12 @@ public class PublicIp {
             throws FogbowException {
 
         try {
-            LOGGER.debug(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
+            LOGGER.debug(String.format(Messages.Log.RECEIVING_GET_ALL_REQUEST_S, ORDER_CONTROLLER_TYPE));
             List<InstanceStatus> publicIpStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(systemUserToken, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(publicIpStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -126,12 +127,12 @@ public class PublicIp {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, SECURITY_RULE_NAME));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_CREATE_REQUEST_S, SECURITY_RULE_NAME));
             String ruleId = ApplicationFacade.getInstance().createSecurityRule(publicIpId, securityRule,
                     systemUserToken, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(new ResourceId(ruleId), HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -146,12 +147,12 @@ public class PublicIp {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, SECURITY_RULE_NAME));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_ALL_REQUEST_S, SECURITY_RULE_NAME));
             List<SecurityRuleInstance> securityRuleInstances = ApplicationFacade.getInstance().
                     getAllSecurityRules(publicIpId, systemUserToken, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(securityRuleInstances, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
@@ -168,12 +169,34 @@ public class PublicIp {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, SECURITY_RULE_NAME, ruleId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_DELETE_REQUEST_S_S, SECURITY_RULE_NAME, ruleId));
             ApplicationFacade.getInstance().deleteSecurityRule(publicIpId, ruleId, systemUserToken,
                     ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
+
+    @ApiOperation(value = ApiDocumentation.PublicIp.GET_ALLOCATION)
+    @RequestMapping(value = "/" + ALLOCATION_SUFFIX_ENDPOINT + "/{providerId:.+}" + "/{cloudName}", method = RequestMethod.GET)
+    public ResponseEntity<PublicIpAllocation> getUserAllocation(
+            @ApiParam(value = ApiDocumentation.CommonParameters.PROVIDER_ID)
+            @PathVariable String providerId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @PathVariable String cloudName,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_RESOURCE_S_REQUEST_S, PUBLIC_IP_RESOURCE_ALLOCATION, providerId));
+            PublicIpAllocation publicIpAllocation =
+                    ApplicationFacade.getInstance().getPublicIpAllocation(providerId, cloudName, systemUserToken);
+            return new ResponseEntity<>(publicIpAllocation, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }

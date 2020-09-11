@@ -1,17 +1,23 @@
 package cloud.fogbow.ras.core;
 
-import cloud.fogbow.common.util.HomeDir;
-import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.plugins.interoperability.*;
-import cloud.fogbow.ras.core.plugins.interoperability.GenericRequestPlugin;
-import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import cloud.fogbow.common.util.HomeDir;
+import cloud.fogbow.common.util.PropertiesUtil;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.ImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.NetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.QuotaPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
+import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 
 public class InteroperabilityPluginInstantiator {
     private ClassFactory classFactory;
@@ -52,10 +58,10 @@ public class InteroperabilityPluginInstantiator {
         String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.COMPUTE_PLUGIN_CLASS_KEY);
         return (ComputePlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
     }
-
-    public ComputeQuotaPlugin getComputeQuotaPlugin(String cloudName) {
-        String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
-        return (ComputeQuotaPlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
+    
+    public QuotaPlugin getQuotaPlugin(String cloudName) {
+        String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.QUOTA_PLUGIN_CLASS_KEY);
+        return (QuotaPlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
     }
 
     public NetworkPlugin getNetworkPlugin(String cloudName) {
@@ -76,13 +82,6 @@ public class InteroperabilityPluginInstantiator {
     public PublicIpPlugin getPublicIpPlugin(String cloudName) {
         String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.PUBLIC_IP_PLUGIN_CLASS_KEY);
         return (PublicIpPlugin) this.classFactory.createPluginInstance(className, getCloudConfPath(cloudName));
-    }
-
-    public GenericRequestPlugin getGenericRequestPlugin(String cloudName) {
-        String className = getCloudProperty(cloudName, ConfigurationPropertyKeys.GENERIC_PLUGIN_CLASS_KEY);
-        // This plugin does not require a configuration file, since all required information to interact with the
-        // cloud will come in the request itself.
-        return (GenericRequestPlugin) this.classFactory.createPluginInstance(className);
     }
 
     public SecurityRulePlugin getSecurityRulePlugin(String cloudName) {

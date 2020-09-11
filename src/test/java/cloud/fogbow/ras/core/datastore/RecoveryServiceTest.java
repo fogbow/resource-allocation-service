@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.datastore;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.BaseUnitTests;
@@ -22,10 +22,10 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 @PowerMockIgnore({"javax.management.*"})
@@ -57,6 +57,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     private static final String ID_KEY = "id";
     private static final String NAME_KEY = "name";
     private static final String TOKEN_KEY = "token";
+    private static final Integer ORDERS_AMOUNT = 3;
 
     public static final ArrayList<UserData> FAKE_USER_DATA = new ArrayList<UserData>(Arrays.asList(
             new UserData[] { new UserData(FAKE_USER_DATA_FILE, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag")}));
@@ -64,26 +65,29 @@ public class RecoveryServiceTest extends BaseUnitTests {
     public static final List<String> FAKE_NETWORK_IDS = new ArrayList<>(Arrays.asList(
             new String[] { (FAKE_NETWORK_ID) }));
 
-    @Autowired
+    @Resource
     private RecoveryService recoveryService;
 
-    @Autowired
+    @Resource
     private OrderRepository orderRepository;
 
     private Order computeOrder;
 
     @Before
-    public void setUp() throws UnexpectedException {
+    public void setUp() throws InternalServerErrorException {
 
         // mocking databaseManager
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
         Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SELECTED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS)).thenReturn(new SynchronizedDoublyLinkedList<>());
         Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList<>());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION)).thenReturn(new SynchronizedDoublyLinkedList<>());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.CHECKING_DELETION)).thenReturn(new SynchronizedDoublyLinkedList<>());
         PowerMockito.mockStatic(DatabaseManager.class);
         BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
 
@@ -108,31 +112,33 @@ public class RecoveryServiceTest extends BaseUnitTests {
     public void testReadActiveOrdersWhenIsEmpty() {
 
         // exercise
-        List<Order> openorders = recoveryService.readActiveOrders(OrderState.OPEN);
-        List<Order> closedOrders = recoveryService.readActiveOrders(OrderState.CLOSED);
+        List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
+        List<Order> selectedOrders = recoveryService.readActiveOrders(OrderState.SELECTED);
+        List<Order> failedOnRequestOrders = recoveryService.readActiveOrders(OrderState.FAILED_ON_REQUEST);
         List<Order> pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
         List<Order> spawningOrders = recoveryService.readActiveOrders(OrderState.SPAWNING);
         List<Order> fulfilledOrders = recoveryService.readActiveOrders(OrderState.FULFILLED);
         List<Order> unableToCheckStatus = recoveryService.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS);
         List<Order> failedOrders = recoveryService.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
-        List<Order> closedorders = recoveryService.readActiveOrders(OrderState.CLOSED);
-        List<Order> deactivatedOrders = recoveryService.readActiveOrders(OrderState.DEACTIVATED);
+        List<Order> assignedForDeletionOrders = recoveryService.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION);
+        List<Order> checkingForDeletionOrders = recoveryService.readActiveOrders(OrderState.CHECKING_DELETION);
 
         // verify
-        Assert.assertTrue(openorders.isEmpty());
-        Assert.assertTrue(closedOrders.isEmpty());
+        Assert.assertTrue(openOrders.isEmpty());
+        Assert.assertTrue(selectedOrders.isEmpty());
+        Assert.assertTrue(failedOnRequestOrders.isEmpty());
         Assert.assertTrue(pendingOrders.isEmpty());
         Assert.assertTrue(spawningOrders.isEmpty());
         Assert.assertTrue(fulfilledOrders.isEmpty());
         Assert.assertTrue(unableToCheckStatus.isEmpty());
         Assert.assertTrue(failedOrders.isEmpty());
-        Assert.assertTrue(closedorders.isEmpty());
-        Assert.assertTrue(deactivatedOrders.isEmpty());
+        Assert.assertTrue(assignedForDeletionOrders.isEmpty());
+        Assert.assertTrue(checkingForDeletionOrders.isEmpty());
     }
 
     // test case: Adding a new compute order to database and checking with a query.
     @Test
-    public void testAddComputeOrder() throws UnexpectedException {
+    public void testAddComputeOrder() throws InternalServerErrorException {
         // set up
         Map<String, String> attributes = new HashMap<>();
         attributes.put(PROVIDER_KEY, FAKE_TOKEN_PROVIDER);
@@ -159,7 +165,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     // test case: Adding a new open compute order to database and checking that there is one element in open state
     // and there is no elements in pending state. After set the order state to pending, check reverse situation.
     @Test
-    public void testAddComputeOrderSettingState() throws UnexpectedException {
+    public void testAddComputeOrderSettingState() throws InternalServerErrorException {
         // set up
         SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
@@ -172,11 +178,11 @@ public class RecoveryServiceTest extends BaseUnitTests {
         // exercise
         recoveryService.save(computeOrder);
         List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-        List<Order> closedOrders = recoveryService.readActiveOrders(OrderState.PENDING);
+        List<Order> pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
 
         // verify
         Assert.assertEquals(1, openOrders.size());
-        Assert.assertTrue(closedOrders.isEmpty());
+        Assert.assertTrue(pendingOrders.isEmpty());
         Assert.assertEquals(computeOrder, openOrders.get(0));
 
         // set up
@@ -185,17 +191,17 @@ public class RecoveryServiceTest extends BaseUnitTests {
         // exercise
         recoveryService.update(computeOrder);
         openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-        closedOrders = recoveryService.readActiveOrders(OrderState.PENDING);
+        pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
 
         // verify
         Assert.assertTrue(openOrders.isEmpty());
-        Assert.assertEquals(1, closedOrders.size());
-        Assert.assertEquals(computeOrder, closedOrders.get(0));
+        Assert.assertEquals(1, pendingOrders.size());
+        Assert.assertEquals(computeOrder, pendingOrders.get(0));
     }
 
     //// test case: Adding orders of all types and checking the method readOrders
     @Test
-    public void testAddOrdersOfAllTypes() throws UnexpectedException {
+    public void testAddOrdersOfAllTypes() throws InternalServerErrorException {
         // set up
         SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
@@ -234,8 +240,8 @@ public class RecoveryServiceTest extends BaseUnitTests {
     }
 
     // test case: Adding the same order twice and checking the exception
-    @Test(expected = UnexpectedException.class)
-    public void testSaveExistentOrder() throws UnexpectedException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testSaveExistentOrder() throws InternalServerErrorException {
         // set up
         SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
@@ -251,8 +257,8 @@ public class RecoveryServiceTest extends BaseUnitTests {
     }
 
     // test case: Call the update method of a non-existent order and checking the exception
-    @Test(expected = UnexpectedException.class)
-    public void testUpdateNonExistentOrder() throws UnexpectedException {
+    @Test(expected = InternalServerErrorException.class)
+    public void testUpdateNonExistentOrder() throws InternalServerErrorException {
         // set up
         SystemUser systemUser = new SystemUser(FAKE_ID_1, FAKE_INSTANCE_NAME, FAKE_TOKEN_PROVIDER);
 
@@ -264,5 +270,27 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
         // exercise
         recoveryService.update(computeOrder);
+    }
+
+    //test case: test if the save operation works as expected by saving some objects and comparing the list returned by db.
+    @Test
+    public void testSaveOperation() throws InternalServerErrorException {
+        // setup //exercise
+        List<Order> expectedFulfilledOrders = testUtils.populateFedNetDbWithState(OrderState.FULFILLED, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedOpenedOrders = testUtils.populateFedNetDbWithState(OrderState.OPEN, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedCheckingDeletionOrders = testUtils.populateFedNetDbWithState(OrderState.CHECKING_DELETION, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedAssignedForDeletionOrders = testUtils.populateFedNetDbWithState(OrderState.ASSIGNED_FOR_DELETION, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedFailedAfterSuccessfulRequestOrders = testUtils.populateFedNetDbWithState(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedFailedOrders = testUtils.populateFedNetDbWithState(OrderState.FAILED_ON_REQUEST, ORDERS_AMOUNT, recoveryService);
+        List<Order> expectedSpawningOrders = testUtils.populateFedNetDbWithState(OrderState.SPAWNING, ORDERS_AMOUNT, recoveryService);
+
+        //verify
+        Assert.assertEquals(expectedFulfilledOrders, recoveryService.readActiveOrders(OrderState.FULFILLED));
+        Assert.assertEquals(expectedOpenedOrders, recoveryService.readActiveOrders(OrderState.OPEN));
+        Assert.assertEquals(expectedCheckingDeletionOrders, recoveryService.readActiveOrders(OrderState.CHECKING_DELETION));
+        Assert.assertEquals(expectedAssignedForDeletionOrders, recoveryService.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION));
+        Assert.assertEquals(expectedFailedAfterSuccessfulRequestOrders, recoveryService.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST));
+        Assert.assertEquals(expectedFailedOrders, recoveryService.readActiveOrders(OrderState.FAILED_ON_REQUEST));
+        Assert.assertEquals(expectedSpawningOrders, recoveryService.readActiveOrders(OrderState.SPAWNING));
     }
 }

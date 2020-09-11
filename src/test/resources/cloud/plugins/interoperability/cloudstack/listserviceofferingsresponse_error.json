@@ -1,0 +1,6 @@
+{
+  "listserviceofferingsresponse":{
+    "errorcode":%s,
+    "errortext":"%s"
+  }
+}

@@ -15,12 +15,12 @@ public class CloudListController {
     private List<String> cloudNames;
 
     public CloudListController() {
-        String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.LOCAL_PROVIDER_ID_KEY);
+        String providerId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
 
         this.cloudNames = new ArrayList<>();
         String cloudNamesList = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.CLOUD_NAMES_KEY);
         if (cloudNamesList == null || cloudNamesList.isEmpty()) {
-            throw new FatalErrorException(Messages.Fatal.NO_CLOUD_SPECIFIED);
+            throw new FatalErrorException(Messages.Exception.NO_CLOUD_SPECIFIED);
         }
 
         for (String cloud : cloudNamesList.split(",")) {

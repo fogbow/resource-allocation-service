@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.datastore;
 
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.SynchronizedDoublyLinkedList;
 import cloud.fogbow.ras.core.datastore.services.AuditableOrderStateChangeService;
 import cloud.fogbow.ras.core.datastore.services.AuditableRequestService;
@@ -30,13 +30,13 @@ public class DatabaseManager implements StableStorage {
     }
 
     @Override
-    public void add(Order order) throws UnexpectedException {
+    public void add(Order order) throws InternalServerErrorException {
         this.recoveryService.save(order);
         this.auditableOrderStateChangeService.registerStateChange(order);
     }
 
     @Override
-    public void update(Order order, boolean orderStateChanged) throws UnexpectedException {
+    public void update(Order order, boolean orderStateChanged) throws InternalServerErrorException {
         this.recoveryService.update(order);
         if (orderStateChanged) {
             this.auditableOrderStateChangeService.registerStateChange(order);
@@ -44,7 +44,7 @@ public class DatabaseManager implements StableStorage {
     }
 
     @Override
-    public SynchronizedDoublyLinkedList<Order> readActiveOrders(OrderState orderState) {
+    public SynchronizedDoublyLinkedList<Order> readActiveOrders(OrderState orderState) throws InternalServerErrorException {
 
         SynchronizedDoublyLinkedList<Order> synchronizedDoublyLinkedList = new SynchronizedDoublyLinkedList<>();
 
@@ -54,11 +54,11 @@ public class DatabaseManager implements StableStorage {
         return synchronizedDoublyLinkedList;
     }
 
-    public void update(Order order) throws UnexpectedException {
+    public void update(Order order) throws InternalServerErrorException {
         update(order, true);
     }
 
-    public void auditRequest(AuditableRequest request) throws UnexpectedException {
+    public void auditRequest(AuditableRequest request) throws InternalServerErrorException {
         this.auditableRequestService.registerSyncRequest(request);
     }
 

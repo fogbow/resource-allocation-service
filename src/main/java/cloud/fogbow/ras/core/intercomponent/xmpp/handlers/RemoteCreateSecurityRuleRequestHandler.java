@@ -2,8 +2,10 @@ package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.common.util.IntercomponentUtil;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -23,15 +25,15 @@ public class RemoteCreateSecurityRuleRequestHandler extends AbstractQueryHandler
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.RECEIVING_REMOTE_REQUEST_S, iq.getID()));
         String orderId = unmarshalOrderId(iq);
         SystemUser systemUser = unmarshalFederationUserToken(iq);
         SecurityRule securityRule = unmarshalSecurityRule(iq);
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            RemoteFacade.getInstance().createSecurityRule(iq.getFrom().toBareJID(), orderId, securityRule,
-                    systemUser);
+            String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
+            RemoteFacade.getInstance().createSecurityRule(senderId, orderId, securityRule, systemUser);
         } catch (Throwable e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }

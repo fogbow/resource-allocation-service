@@ -7,12 +7,12 @@ public enum RemoteMethod {
     REMOTE_GET_CLOUD_NAMES("remoteGetCloudNames"),
     REMOTE_GET_IMAGE("remoteGetImage"),
     REMOTE_GET_ORDER("remoteGetOrder"),
+    REMOTE_GET_INSTANCE("remoteGetInstance"),
     REMOTE_GET_USER_QUOTA("remoteGetUserQuota"),
     REMOTE_NOTIFY_EVENT("remoteNotifyEvent"),
     REMOTE_CREATE_SECURITY_RULE("remoteCreateSecurityRule"),
     REMOTE_GET_ALL_SECURITY_RULES("remoteGetAllSecurityRules"),
-    REMOTE_DELETE_SECURITY_RULE("remoteDeleteSecurityRule"),
-    REMOTE_GENERIC_REQUEST("remoteGenericRequest");
+    REMOTE_DELETE_SECURITY_RULE("remoteDeleteSecurityRule");
 
     private final String method;
 

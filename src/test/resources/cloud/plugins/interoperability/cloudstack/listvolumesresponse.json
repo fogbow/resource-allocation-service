@@ -1,0 +1,10 @@
+{
+  "listvolumesresponse": {
+    "volume": [{
+      "id": "%s",
+      "name": "%s",
+      "size": %s,
+      "state": "%s"
+    }]
+  }
+}

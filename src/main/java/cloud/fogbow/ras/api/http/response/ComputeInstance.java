@@ -7,56 +7,67 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.List;
 
 public class ComputeInstance extends OrderInstance {
-    @ApiModelProperty(position = 7, example = ApiDocumentation.Model.COMPUTE_NAME)
+    @ApiModelProperty(position = 8, example = ApiDocumentation.Model.COMPUTE_NAME)
     private String name;
-    @ApiModelProperty(position = 8, example = "1")
+    @ApiModelProperty(position = 9, example = "1")
     private int vCPU;
     /**
      * Memory attribute, must be set in MB.
      */
-    @ApiModelProperty(position = 9, example = "1024", notes = ApiDocumentation.Model.VOLUME_SIZE_NOTE)
-    private int memory;
+    @ApiModelProperty(position = 10, example = "1024", notes = ApiDocumentation.Model.VOLUME_SIZE_NOTE)
+    private int ram;
     /**
      * Disk attribute, must be set in GB.
      */
-    @ApiModelProperty(position = 10, example = "30", notes = ApiDocumentation.Model.DISK_NOTE)
+    @ApiModelProperty(position = 11, example = "30", notes = ApiDocumentation.Model.DISK_NOTE)
     private int disk;
-    @ApiModelProperty(position = 11, example = ApiDocumentation.Model.IP_ADDRESSES)
+    @ApiModelProperty(position = 12, example = ApiDocumentation.Model.IP_ADDRESSES)
     private List<String> ipAddresses;
     /**
      * Order-related properties
      */
-    @ApiModelProperty(position = 12, example = ApiDocumentation.Model.NETWORKS)
+    @ApiModelProperty(position = 13, example = ApiDocumentation.Model.NETWORKS)
     private List<NetworkSummary> networks;
-    @ApiModelProperty(position = 13, example = ApiDocumentation.Model.IMAGE_ID)
+    @ApiModelProperty(position = 14, example = ApiDocumentation.Model.IMAGE_ID)
     private String imageId;
-    @ApiModelProperty(position = 14, example = ApiDocumentation.Model.SSH_PUBLIC_KEY, notes = ApiDocumentation.Model.SSH_PUBLIC_KEY_NOTE)
+    @ApiModelProperty(position = 15, example = ApiDocumentation.Model.SSH_PUBLIC_KEY, notes = ApiDocumentation.Model.SSH_PUBLIC_KEY_NOTE)
     private String publicKey;
-    @ApiModelProperty(position = 15, example = ApiDocumentation.Model.USER_DATA, notes = ApiDocumentation.Model.USER_DATA_NOTE)
+    @ApiModelProperty(position = 16, example = ApiDocumentation.Model.USER_DATA, notes = ApiDocumentation.Model.USER_DATA_NOTE)
     private List<UserData> userData;
 
-    public ComputeInstance(String id, String cloudState, String name, List<String> ipAddresses) {
-        super(id, cloudState);
+    public ComputeInstance(String id, String cloudState, String name, List<String> ipAddresses, String faultMessage) {
+        super(id, cloudState, faultMessage);
         this.name = name;
         this.ipAddresses = ipAddresses;
     }
 
-    public ComputeInstance(String id, String cloudState, String name, int vCPU, int memory, int disk,
+    @Deprecated
+    public ComputeInstance(String id, String cloudState, String name, int vCPU, int ram, int disk,
                            List<String> ipAddresses) {
         super(id, cloudState);
         this.name = name;
         this.vCPU = vCPU;
-        this.memory = memory;
+        this.ram = ram;
         this.disk = disk;
         this.ipAddresses = ipAddresses;
     }
 
-    public ComputeInstance(String id, String cloudState, String name, int vCPU, int memory, int disk,
+    public ComputeInstance(String id, String cloudState, String name, int vCPU, int ram, int disk,
+                           List<String> ipAddresses, String faultMessage) {
+        super(id, cloudState, faultMessage);
+        this.name = name;
+        this.vCPU = vCPU;
+        this.ram = ram;
+        this.disk = disk;
+        this.ipAddresses = ipAddresses;
+    }
+
+    public ComputeInstance(String id, String cloudState, String name, int vCPU, int ram, int disk,
                            List<String> ipAddresses, String imageId, String publicKey, List<UserData> userData) {
         super(id, cloudState);
         this.name = name;
         this.vCPU = vCPU;
-        this.memory = memory;
+        this.ram = ram;
         this.disk = disk;
         this.ipAddresses = ipAddresses;
         this.imageId = imageId;
@@ -84,12 +95,12 @@ public class ComputeInstance extends OrderInstance {
         return this.ipAddresses;
     }
 
-    public int getMemory() {
-        return this.memory;
+    public int getRam() {
+        return this.ram;
     }
 
-    public void setMemory(int memory) {
-        this.memory = memory;
+    public void setRam(int ram) {
+        this.ram = ram;
     }
 
     public int getvCPU() {
@@ -141,7 +152,7 @@ public class ComputeInstance extends OrderInstance {
         ComputeInstance that = (ComputeInstance) o;
 
         if (vCPU != that.vCPU) return false;
-        if (memory != that.memory) return false;
+        if (ram != that.ram) return false;
         if (disk != that.disk) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         return ipAddresses != null ? ipAddresses.equals(that.ipAddresses) : that.ipAddresses == null;

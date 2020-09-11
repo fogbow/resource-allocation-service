@@ -1,8 +1,10 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.IntercomponentUtil;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.IqElement;
 import cloud.fogbow.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -26,14 +28,15 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.debug(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
+        LOGGER.debug(String.format(Messages.Log.RECEIVING_REMOTE_REQUEST_S, iq.getID()));
         String cloudName = unmarshalCloudName(iq);
         SystemUser systemUser = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            List<ImageSummary> imageSummaryList = RemoteFacade.getInstance().getAllImages(iq.getFrom().toBareJID(),
+            String senderId = IntercomponentUtil.getSender(iq.getFrom().toBareJID(), SystemConstants.XMPP_SERVER_NAME_PREFIX);
+            List<ImageSummary> imageSummaryList = RemoteFacade.getInstance().getAllImages(senderId,
                     cloudName, systemUser);
             updateResponse(response, imageSummaryList);
         } catch (Exception e) {

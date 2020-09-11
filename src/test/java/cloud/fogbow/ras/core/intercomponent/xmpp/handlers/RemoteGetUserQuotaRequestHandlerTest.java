@@ -1,11 +1,12 @@
 package cloud.fogbow.ras.core.intercomponent.xmpp.handlers;
 
-import cloud.fogbow.common.exceptions.RemoteCommunicationException;
+import cloud.fogbow.common.constants.Messages;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetUserQuotaRequest;
-import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.api.http.response.quotas.ComputeQuota;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
@@ -70,19 +71,19 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 
         Mockito.doReturn(expectedQuota)
                 .when(this.remoteFacade)
-                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any());
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
-        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUser(), ResourceType.COMPUTE);
+        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUser());
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
         IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
 
         // verify
-        String expected = String.format(EXPECTED_QUOTA, iq.getID(), PROVIDING_MEMBER, REQUESTING_MEMBER);
+        String expected = String.format(EXPECTED_QUOTA, iq.getID(), SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + PROVIDING_MEMBER, REQUESTING_MEMBER);
 
         Mockito.verify(this.remoteFacade, Mockito.times(1))
-                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
         Assert.assertEquals(expected, result.toString());
     }
@@ -91,10 +92,10 @@ public class RemoteGetUserQuotaRequestHandlerTest {
     @Test
     public void testUpdateResponseWhenExceptionIsThrown() throws Exception {
         Mockito.when(this.remoteFacade
-                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
-                .thenThrow(new RemoteCommunicationException());
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any()))
+                .thenThrow(new FogbowException(Messages.Exception.REMOTE_COMMUNICATION));
 
-        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUser(), ResourceType.COMPUTE);
+        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUser());
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -102,9 +103,9 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1))
-                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any());
 
-        String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), PROVIDING_MEMBER, REQUESTING_MEMBER);
+        String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), SystemConstants.JID_SERVICE_NAME + SystemConstants.JID_CONNECTOR + SystemConstants.XMPP_SERVER_NAME_PREFIX + PROVIDING_MEMBER, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
 
@@ -115,8 +116,8 @@ public class RemoteGetUserQuotaRequestHandlerTest {
         int instances = 1;
         int disk = 1;
 
-        ComputeAllocation totalQuota = new ComputeAllocation(vCPU, ram, instances, disk);
-        ComputeAllocation usedQuota = new ComputeAllocation(vCPU, ram, instances, disk);
+        ComputeAllocation totalQuota = new ComputeAllocation(instances, vCPU, ram, disk);
+        ComputeAllocation usedQuota = new ComputeAllocation(instances, vCPU, ram, disk);
         return new ComputeQuota(totalQuota, usedQuota);
     }
 

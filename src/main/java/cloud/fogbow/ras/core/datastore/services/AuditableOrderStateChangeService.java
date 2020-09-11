@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.datastore.services;
 
 import cloud.fogbow.common.datastore.FogbowDatabaseService;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.core.datastore.orderstorage.AuditableOrderStateChange;
 import cloud.fogbow.ras.core.datastore.orderstorage.OrderStateChangeRepository;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -15,7 +15,7 @@ public class AuditableOrderStateChangeService extends FogbowDatabaseService<Audi
     @Autowired
     private OrderStateChangeRepository orderTimestampRepository;
 
-    public void registerStateChange(Order order) throws UnexpectedException {
+    public void registerStateChange(Order order) throws InternalServerErrorException {
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
         AuditableOrderStateChange auditableOrderStateChange = new AuditableOrderStateChange(currentTimestamp, order, order.getOrderState());
         this.orderTimestampRepository.save(auditableOrderStateChange);

@@ -1,11 +1,13 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula;
 
+import cloud.fogbow.common.exceptions.*;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
 import org.opennebula.client.ClientConfigurationException;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.Pool;
 import org.opennebula.client.PoolElement;
+import org.opennebula.client.datastore.DatastorePool;
 import org.opennebula.client.group.Group;
 import org.opennebula.client.group.GroupPool;
 import org.opennebula.client.image.Image;
@@ -16,13 +18,9 @@ import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vnet.VirtualNetwork;
+import org.opennebula.client.vnet.VirtualNetworkPool;
 
-import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
-import cloud.fogbow.common.exceptions.NoAvailableResourcesException;
-import cloud.fogbow.common.exceptions.QuotaExceededException;
-import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.constants.Messages;
 
 public class OpenNebulaClientUtil {
@@ -35,24 +33,32 @@ public class OpenNebulaClientUtil {
 	protected static final String RESPONSE_DONE = "DONE";
 	protected static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
 	protected static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
+	private static final int RESOURCE_BELONGS_TO_USER_FILTER = -3;
+
+	public static Client instance;
 	
 	private static final int CHMOD_PERMISSION_744 = 744;
 	
-	public static Client createClient(String endpoint, String tokenValue) throws UnexpectedException {
+	public static Client createClient(String endpoint, String tokenValue) throws InternalServerErrorException {
 		try {
-			return new Client(tokenValue, endpoint);
+			synchronized (Client.class) {
+				if (instance == null) {
+					instance = new Client(tokenValue, endpoint);
+				}
+				return instance;
+			}
 		} catch (ClientConfigurationException e) {
-			LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_CLIENT, e);
-			throw new UnexpectedException();
+			LOGGER.error(Messages.Log.ERROR_WHILE_CREATING_CLIENT, e);
+			throw new InternalServerErrorException();
 		}
 	}
 	
-	public static Group getGroup(Client client, int groupId) throws UnauthorizedRequestException, UnexpectedException {
+	public static Group getGroup(Client client, int groupId) throws UnauthorizedRequestException, InternalServerErrorException {
 		GroupPool groupPool = (GroupPool) generateOnePool(client, GroupPool.class);
     	OneResponse response = groupPool.info();
         if (response.isError()) {
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_GROUP, response.getErrorMessage()));
-            throw new UnexpectedException(response.getErrorMessage());
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_GETTING_GROUP_S_S, response.getErrorMessage()));
+            throw new InternalServerErrorException(response.getErrorMessage());
         }
     	Group group = groupPool.getById(groupId);
     	if (group == null){
@@ -61,8 +67,18 @@ public class OpenNebulaClientUtil {
     	group.info();		
 		return group;
     }
+
+	public static VirtualNetworkPool getNetworkPoolByUser(Client client) throws InternalServerErrorException {
+		VirtualNetworkPool networkPool = new VirtualNetworkPool(client, RESOURCE_BELONGS_TO_USER_FILTER);
+		OneResponse response = networkPool.info();
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_GETTING_USERS_S, response.getErrorMessage()));
+			throw new InternalServerErrorException(response.getErrorMessage());
+		}
+		return networkPool;
+	}
 	
-	public static Image getImage(Client client, String imageId) throws UnexpectedException, InvalidParameterException,
+	public static Image getImage(Client client, String imageId) throws InvalidParameterException,
 			UnauthorizedRequestException, InstanceNotFoundException {
 		
 		Image image = (Image) generateOnePoolElement(client, imageId, Image.class);
@@ -80,17 +96,28 @@ public class OpenNebulaClientUtil {
 		return image;
 	}
 	
-	public static ImagePool getImagePool(Client client) throws UnexpectedException {
+	public static ImagePool getImagePool(Client client) throws InternalServerErrorException {
         ImagePool imagePool = (ImagePool) generateOnePool(client, ImagePool.class);
 		OneResponse response = imagePool.infoAll();
 		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
-			throw new UnexpectedException(response.getErrorMessage());
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_GETTING_TEMPLATES_S, response.getErrorMessage()));
+			throw new InternalServerErrorException(response.getErrorMessage());
 		}
-		LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, imagePool.getLength()));
 		return imagePool;
 	}
-	
+
+	public static DatastorePool getDatastorePool(Client client) throws InternalServerErrorException {
+		DatastorePool datastorePool = (DatastorePool) generateOnePool(client, DatastorePool.class);
+		OneResponse response = datastorePool.info();
+
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_GETTING_TEMPLATES_S, response.getErrorMessage()));
+			throw new InternalServerErrorException(response.getErrorMessage());
+		}
+
+		return datastorePool;
+	}
+
 	public static VirtualMachine getVirtualMachine(Client client, String virtualMachineId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -130,37 +157,35 @@ public class OpenNebulaClientUtil {
 		return virtualNetwork;
 	}
 
-	public static TemplatePool getTemplatePool(Client client) throws UnexpectedException {
+	public static TemplatePool getTemplatePool(Client client) throws InternalServerErrorException {
 		TemplatePool templatePool = (TemplatePool) generateOnePool(client, TemplatePool.class);
 		OneResponse response = templatePool.infoAll();
 		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
-			throw new UnexpectedException(response.getErrorMessage());
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_GETTING_TEMPLATES_S, response.getErrorMessage()));
+			throw new InternalServerErrorException(response.getErrorMessage());
 		}
-		LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, templatePool.getLength()));
 		return templatePool;
 	}
 
-	public static UserPool getUserPool(Client client) throws UnexpectedException {
+	public static UserPool getUserPool(Client client) throws InternalServerErrorException {
 		UserPool userpool = (UserPool) generateOnePool(client, UserPool.class);
  		OneResponse response = userpool.info();
  		if (response.isError()) {
- 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_USERS, response.getErrorMessage()));
-			throw new UnexpectedException(response.getErrorMessage());
+ 			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_GETTING_USERS_S, response.getErrorMessage()));
+			throw new InternalServerErrorException(response.getErrorMessage());
  		}
- 		LOGGER.info(String.format(Messages.Info.USER_POOL_LENGTH, userpool.getLength()));
 		return userpool;
 	}
 
 	public static User getUser(UserPool userPool, String userName)
-			throws UnauthorizedRequestException, UnexpectedException {
+			throws UnauthorizedRequestException, InternalServerErrorException {
 
 		User user = findUserByName(userPool, userName);
 		OneResponse response = user.info();
 		if (response.isError()) {
 			LOGGER.error(
-					String.format(Messages.Error.ERROR_WHILE_GETTING_USER, user.getId(), response.getErrorMessage()));
-			throw new UnexpectedException(response.getErrorMessage());
+					String.format(Messages.Log.ERROR_WHILE_GETTING_USER_S_S, user.getId(), response.getErrorMessage()));
+			throw new InternalServerErrorException(response.getErrorMessage());
 		}
 		return user;
 	}
@@ -188,10 +213,9 @@ public class OpenNebulaClientUtil {
 		
 		OneResponse response = Image.allocate(client, template, datastoreId);
 		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_IMAGE, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException(message);
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CREATING_IMAGE_S, template));
+			LOGGER.error(response.getErrorMessage());
+			throw new InvalidParameterException(response.getErrorMessage());
 		}
 		Image.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
@@ -200,29 +224,28 @@ public class OpenNebulaClientUtil {
 	public static String allocateSecurityGroup(Client client, String template) throws InvalidParameterException {
 		OneResponse response = SecurityGroup.allocate(client, template);
 		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_SECURITY_GROUPS, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CREATING_SECURITY_GROUPS_S, template));
+			LOGGER.error(response.getErrorMessage());
+			throw new InvalidParameterException(response.getErrorMessage());
 		}
 		SecurityGroup.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
 	}
 
 	public static String allocateVirtualMachine(Client client, String template)
-			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
+			throws UnacceptableOperationException, InvalidParameterException {
 		
 		OneResponse response = VirtualMachine.allocate(client, template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE_S, template));
+			LOGGER.error(message);
 			if (message.contains(FIELD_RESPONSE_LIMIT) && message.contains(FIELD_RESPONSE_QUOTA)) {
-				throw new QuotaExceededException();
+				throw new UnacceptableOperationException(message);
 			}
 			if ((message.contains(RESPONSE_NOT_ENOUGH_FREE_MEMORY))
 					|| (message.contains(RESPONSE_NO_SPACE_LEFT_ON_DEVICE))) {
-				throw new NoAvailableResourcesException();
+				throw new UnacceptableOperationException(message);
 			}
 			throw new InvalidParameterException(message);
 		}
@@ -233,10 +256,9 @@ public class OpenNebulaClientUtil {
 	public static String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
 		OneResponse response = VirtualNetwork.allocate(client, template);
 		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CREATING_NETWORK_S, template));
+			LOGGER.error(response.getErrorMessage());
+			throw new InvalidParameterException(response.getErrorMessage());
 		}
 		VirtualNetwork.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
@@ -245,10 +267,9 @@ public class OpenNebulaClientUtil {
 	public static String reserveVirtualNetwork(Client client, int id, String template) throws InvalidParameterException {
 		OneResponse response = VirtualNetwork.reserve(client, id, template);
 		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CREATING_NETWORK_S, template));
+			LOGGER.error(response.getErrorMessage());
+			throw new InvalidParameterException(response.getErrorMessage());
 		}
 		VirtualNetwork.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
@@ -258,10 +279,9 @@ public class OpenNebulaClientUtil {
 		boolean append = true;
 		OneResponse response = VirtualNetwork.update(client, id, template, append);
 		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_UPDATING_NETWORK, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_UPDATING_NETWORK_S, template));
+			LOGGER.error(response.getErrorMessage());
+			throw new InvalidParameterException(response.getErrorMessage());
 		}
 		VirtualNetwork.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
@@ -283,7 +303,7 @@ public class OpenNebulaClientUtil {
 		try {
 			id = Integer.parseInt(poolElementId);
 		} catch (Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, poolElementId), e);
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CONVERTING_INSTANCE_ID_S, poolElementId), e);
 			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
 		if (classType.isAssignableFrom(Image.class)) {
@@ -307,8 +327,9 @@ public class OpenNebulaClientUtil {
             return new ImagePool(client);
         } else if (classType.isAssignableFrom(UserPool.class)) {
 		    return new UserPool(client);
-        }
+        } else if (classType.isAssignableFrom(DatastorePool.class)) {
+			return new DatastorePool(client);
+		}
 		return null;
 	}
-	
 }

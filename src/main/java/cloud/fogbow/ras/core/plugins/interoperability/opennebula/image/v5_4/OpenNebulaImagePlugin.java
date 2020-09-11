@@ -4,13 +4,14 @@ import java.util.*;
 
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 import org.opennebula.client.Client;
+import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -25,11 +26,14 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaImagePlugin.class);
 
-	private static final String RESOURCE_NAME = "images";
-
-	protected static final String FORMAT_IMAGE_TYPE_PATH = "//IMAGE[%s]/TYPE";
-	protected static final String IMAGE_SIZE_PATH = "/IMAGE/SIZE";
-	protected static final String OPERATIONAL_SYSTEM_IMAGE_TYPE = "0";
+	@VisibleForTesting
+    static final String FORMAT_IMAGE_TYPE_PATH = "//IMAGE[%s]/TYPE";
+	@VisibleForTesting
+    static final String IMAGE_SIZE_PATH = "/IMAGE/SIZE";
+	@VisibleForTesting
+    static final String OPERATIONAL_SYSTEM_IMAGE_TYPE = "0";
+	@VisibleForTesting
+	static final int NO_VALUE_FLAG = -1;
 
 	private String endpoint;
 	
@@ -40,7 +44,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 	
 	@Override
 	public List<ImageSummary> getAllImages(CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, RESOURCE_NAME));
+		LOGGER.info(Messages.Log.RECEIVING_GET_ALL_IMAGES_REQUEST);
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
 		ImagePool imagePool = OpenNebulaClientUtil.getImagePool(client);
 		return getImageSummaryList(imagePool);
@@ -48,17 +52,18 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 
 	@Override
 	public ImageInstance getImage(String imageId, CloudUser cloudUser) throws FogbowException {
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, imageId, cloudUser.getToken()));
+		LOGGER.info(String.format(Messages.Log.RECEIVING_GET_IMAGE_REQUEST_S, imageId));
 		Client client = OpenNebulaClientUtil.createClient(this.endpoint, cloudUser.getToken());
-		org.opennebula.client.image.Image image = OpenNebulaClientUtil.getImage(client, imageId);
-		return mount(image);
+		Image image = OpenNebulaClientUtil.getImage(client, imageId);
+		return buildImageInstance(image);
 	}
 
-	protected List<ImageSummary> getImageSummaryList(ImagePool imagePool) {
+	@VisibleForTesting
+    List<ImageSummary> getImageSummaryList(ImagePool imagePool) {
 		String type;
 		int index = 1;
 		List<ImageSummary> images = new ArrayList<>();
-		for (org.opennebula.client.image.Image image : imagePool) {
+		for (Image image : imagePool) {
 			type = image.xpath(String.format(FORMAT_IMAGE_TYPE_PATH, index));
 			if (type != null && type.equals(OPERATIONAL_SYSTEM_IMAGE_TYPE)) {
 				ImageSummary imageSummary = new ImageSummary(image.getId(), image.getName());
@@ -69,26 +74,29 @@ public class OpenNebulaImagePlugin implements ImagePlugin<CloudUser> {
 		return images;
 	}
 	
-	protected ImageInstance mount(org.opennebula.client.image.Image image) throws InvalidParameterException {
+	@VisibleForTesting
+    ImageInstance buildImageInstance(Image image) {
 		String id = image.getId();
 		String name = image.getName();
 		String imageSize = image.xpath(IMAGE_SIZE_PATH);
 		int size = convertToInteger(imageSize);
-		int minDisk = -1;
-		int minRam = -1;
+		int minDisk = NO_VALUE_FLAG;
+		int minRam = NO_VALUE_FLAG;
 		int state = image.state();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.IMAGE, state);
 		String status = instanceState.getValue();
 		return new ImageInstance(id, name, size, minDisk, minRam, status);
 	}
 	
-	protected int convertToInteger(String number) throws InvalidParameterException {
+	@VisibleForTesting
+    int convertToInteger(String number) {
+	    int size = 0;
 		try {
-			return Integer.parseInt(number);
+			size =  Integer.parseInt(number);
 		} catch (NumberFormatException e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
-			throw new InvalidParameterException();
+			LOGGER.error(String.format(Messages.Log.ERROR_WHILE_CONVERTING_TO_INTEGER), e);
 		}
+		return size;
 	}
 
 }

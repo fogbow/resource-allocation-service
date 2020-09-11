@@ -1,6 +1,8 @@
 package cloud.fogbow.ras.api.parameters;
 
 import cloud.fogbow.ras.constants.ApiDocumentation;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -28,7 +30,9 @@ public class Attachment implements OrderApiParameter {
 
     @Override
     public AttachmentOrder getOrder() {
+        String localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         AttachmentOrder order = new AttachmentOrder(computeId, volumeId, device);
+        order.setRequester(localProviderId);
         return order;
     }
 }

@@ -1,5 +1,11 @@
 package cloud.fogbow.ras.core.plugins.interoperability.aws;
 
+import cloud.fogbow.ras.core.plugins.interoperability.aws.attachment.v2.AwsAttachmentPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.compute.v2.AwsComputePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.image.v2.AwsImagePlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.network.v2.AwsNetworkPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.publicip.v2.AwsPublicIpPlugin;
+import cloud.fogbow.ras.core.plugins.interoperability.aws.volume.v2.AwsVolumePlugin;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -9,12 +15,12 @@ import cloud.fogbow.ras.core.models.ResourceType;
 public class AwsV2StateMapper {
 
 	private static final Logger LOGGER = Logger.getLogger(AwsV2StateMapper.class);
-	private static final String ATTACHMENT_PLUGIN = "AwsV2AttachmentPlugin";
-	private static final String COMPUTE_PLUGIN = "AwsV2ComputePlugin";
-	private static final String IMAGE_PLUGIN = "AwsV2ImagePlugin";
-	private static final String NETWORK_PLUGIN = "AwsV2NetworkPlugin";
-	private static final String PUBLIC_IP_PLUGIN = "AwsV2PublicIpPlugin";
-	private static final String VOLUME_PLUGIN = "AwsV2VolumePlugin";
+	private static final String ATTACHMENT_PLUGIN = AwsAttachmentPlugin.class.getSimpleName();
+	private static final String COMPUTE_PLUGIN = AwsComputePlugin.class.getSimpleName();
+	private static final String IMAGE_PLUGIN = AwsImagePlugin.class.getSimpleName();
+	private static final String NETWORK_PLUGIN = AwsNetworkPlugin.class.getSimpleName();
+	private static final String PUBLIC_IP_PLUGIN = AwsPublicIpPlugin.class.getSimpleName();
+	private static final String VOLUME_PLUGIN = AwsVolumePlugin.class.getSimpleName();
 
 	public static final String ATTACHED_STATE = "attached";
 	public static final String ATTACHING_STATE = "attaching";
@@ -32,6 +38,7 @@ public class AwsV2StateMapper {
 	public static final String RUNNING_STATE = "running";
 	public static final String SHUTTING_DOWN_STATE = "deleting";
 	public static final String STOPPING_STATE = "stopping";
+	public static final String TERMINATED_STATE = "terminated";
 	public static final String TRANSIENT_STATE = "transient";
 	public static final String UNKNOWN_TO_SDK_VERSION_STATE = "unknown_to_sdk_version";
 
@@ -49,7 +56,7 @@ public class AwsV2StateMapper {
 			case BUSY_STATE:
 				return InstanceState.BUSY;
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, ATTACHMENT_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, ATTACHMENT_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case COMPUTE:
@@ -63,7 +70,7 @@ public class AwsV2StateMapper {
 			case STOPPING_STATE:
 				return InstanceState.BUSY;
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, COMPUTE_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, COMPUTE_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case NETWORK:
@@ -75,7 +82,7 @@ public class AwsV2StateMapper {
 				return InstanceState.BUSY;
 			case UNKNOWN_TO_SDK_VERSION_STATE:
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, NETWORK_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, NETWORK_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case PUBLIC_IP:
@@ -87,7 +94,7 @@ public class AwsV2StateMapper {
 			case ERROR_STATE:
 				return InstanceState.FAILED;
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, PUBLIC_IP_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, PUBLIC_IP_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case VOLUME:
@@ -103,7 +110,7 @@ public class AwsV2StateMapper {
 			case ERROR_STATE:
 				return InstanceState.FAILED;
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, VOLUME_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, VOLUME_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		case IMAGE:
@@ -121,11 +128,11 @@ public class AwsV2StateMapper {
 			case INVALID_STATE:
 			case UNKNOWN_TO_SDK_VERSION_STATE:
 			default:
-				LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, state, IMAGE_PLUGIN));
+				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, IMAGE_PLUGIN));
 				return InstanceState.INCONSISTENT;
 			}
 		default:
-			LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
+			LOGGER.error(Messages.Log.INSTANCE_TYPE_NOT_DEFINED);
 			return InstanceState.INCONSISTENT;
 		}
 	}

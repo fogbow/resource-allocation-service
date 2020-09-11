@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.api.http.request;
 
 import cloud.fogbow.common.constants.ApiDocumentation;
-import cloud.fogbow.common.exceptions.UnexpectedException;
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
@@ -25,18 +25,16 @@ public class PublicKey {
 
     private final Logger LOGGER = Logger.getLogger(PublicKey.class);
 
-    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
-
     @ApiOperation(value = ApiDocumentation.PublicKey.GET_OPERATION)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<cloud.fogbow.ras.api.http.response.PublicKey> getPublicKey() throws UnexpectedException {
+    public ResponseEntity<cloud.fogbow.ras.api.http.response.PublicKey> getPublicKey() throws FogbowException {
         try {
-            LOGGER.info(Messages.Info.GET_PUBLIC_KEY);
+            LOGGER.info(Messages.Log.GET_PUBLIC_KEY);
             String publicKeyValue = ApplicationFacade.getInstance().getPublicKey();
             cloud.fogbow.ras.api.http.response.PublicKey publicKey = new cloud.fogbow.ras.api.http.response.PublicKey(publicKeyValue);
             return new ResponseEntity<>(publicKey, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
         }
     }
