@@ -19,17 +19,17 @@ First of all, create a directory to organize all fogbow modules/services then cl
 
 ```bash
 mkdir fogbow && cd fogbow
-
 git clone https://github.com/fogbow/common.git
+git clone https://github.com/fogbow/authentication-service.git
+git clone https://github.com/fogbow/resource-allocation-service.git
+
 cd common
 git checkout develop && mvn install -DskipTests
 
-git clone https://github.com/fogbow/authentication-service.git
-cd authentication-service
+cd ../authentication-service
 git checkout develop && mvn install -DskipTests
 
-git clone https://github.com/fogbow/resource-allocation-service.git
-cd resource-allocaton-service
+cd ../resource-allocation-service
 git checkout develop && mvn install -DskipTests
 ```
 
