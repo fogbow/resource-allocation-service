@@ -15,7 +15,6 @@ public class ApiDocumentation {
         public static final String GET_BY_ID_OPERATION = "Lists a specific attachment.";
         public static final String DELETE_OPERATION = "Deletes a specific attachment.";
         public static final String ID = "The ID of the specific attachment.";
-
         public static final String CREATE_REQUEST_BODY =
                 "The body of the request must specify the ID of the volume and the ID of the " +
                 "compute instance where the volume will be attached; optionally, it may specify " +
@@ -36,6 +35,8 @@ public class ApiDocumentation {
         public static final String GET_BY_ID_OPERATION = "Lists a specific compute instance.";
         public static final String DELETE_OPERATION = "Deletes a specific compute instance.";
         public static final String GET_ALLOCATION = "Gets the current compute allocation for the user on a particular provider.";
+        public static final String PAUSE_OPERATION = "Pause a specific compute instance.";
+        public static final String RESUME_OPERATION = "Resume a specific paused compute instance.";
         public static final String ID = "The ID of the specific compute instance.";
         public static final String CREATE_REQUEST_BODY = "The body of the request is quite complex; please, have a look at the model description.";
     }
