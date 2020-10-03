@@ -128,4 +128,26 @@ public class Compute {
             throw e;
         }
     }
+    
+    @ApiOperation(value = ApiDocumentation.Compute.PAUSE_OPERATION)
+    @RequestMapping(value = "/pause/{computeId}", method = RequestMethod.PUT)
+    public ResponseEntity<ComputeAllocation> pauseCompute(
+            @ApiParam(value = ApiDocumentation.Compute.ID)
+            @PathVariable String computeId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+        return null;
+    }
+
+    @ApiOperation(value = ApiDocumentation.Compute.RESUME_OPERATION)
+    @RequestMapping(value = "/resume/{computeId}", method = RequestMethod.PUT)
+    public ResponseEntity<ComputeAllocation> resumeCompute(
+            @ApiParam(value = ApiDocumentation.Compute.ID)
+            @PathVariable String computeId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+        return null;
+    }
 }
