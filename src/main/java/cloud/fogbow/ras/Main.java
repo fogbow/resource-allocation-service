@@ -79,6 +79,9 @@ public class Main implements ApplicationRunner {
             // Starting threads
             processorsThreadController.startRasThreads();
 
+            // Creating synchronization manager
+            SynchronizationManager.getInstance().setProcessorsThreadController(processorsThreadController);
+
             String xmpp_enabled = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_ENABLED_KEY,
                     ConfigurationPropertyDefaults.XMPP_ENABLED);
             if (xmpp_enabled.equals(ConfigurationPropertyDefaults.XMPP_ENABLED)) {

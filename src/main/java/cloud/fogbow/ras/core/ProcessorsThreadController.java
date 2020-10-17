@@ -91,4 +91,23 @@ public class ProcessorsThreadController {
         this.assignedForDeletionProcessorThread.start();
         this.remoteOrdersStateSynchronizationProcessorThread.start();
     }
+
+    public void stopRasThreads() {
+        // ToDo: Add this implementation; I believe the best is to add a
+        //  stop() method in each RAS processorThread. These methods must
+        //  guarantee that the thread is no longer executing the run()
+        //  method when the stop() call returns. I think the best way is
+        // to create a boolean variable called mustStop as part of the
+        // state of the thread object; this is set to false in the beginning
+        // of the start method, and checked in the end of the while(isActive)
+        // loop. If it is set to true, then isActive should be set to false.
+        // isActive should also be part of the thread's state (rather than a
+        // local variable, as it is now). Then, the stop method would be
+        // something like this:
+        // void stop() {
+        //      this.mustStop = true;
+        //      while (this.isActive)
+        //          ;
+        // }
+    }
 }

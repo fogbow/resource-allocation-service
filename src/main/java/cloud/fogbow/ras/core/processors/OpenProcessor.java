@@ -33,6 +33,10 @@ public class OpenProcessor implements Runnable {
      * Iterates over the open orders list and tries to process one order at a time. When the order
      * is null, it indicates that the iteration ended. A new iteration is started after some time.
      */
+
+    // ToDo: These processors (open, fulfilled, spawning, etc.) may need some refactoring
+    //  to remove replicated code.
+
     @Override
     public void run() {
         boolean isActive = true;
