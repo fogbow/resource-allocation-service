@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.GoogleCloudUser;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
+import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
@@ -24,8 +25,11 @@ public class GoogleCloudPublicIpPlugin implements PublicIpPlugin<GoogleCloudUser
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
 
+        EtherType etherType = GoogleCloudConstants.SecurityRule.ETHER_TYPE;
+
         CreatePublicIpRequest request = new CreatePublicIpRequest.Builder()
                 .projectId(projectId)
+                .etherType(etherType)
                 .build();
 
         String instanceId = doRequestInstance(request, cloudUser);
