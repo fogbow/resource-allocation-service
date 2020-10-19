@@ -520,6 +520,17 @@ public class ApplicationFacade {
         return networkOrders;
     }
 
+    public void reload(String systemUserToken) {
+        // TODO authentication , authorization
+        
+        SynchronizationManager.getInstance().setAsReloading();
+        
+        while (this.onGoingRequests != 0)
+            ;
+        
+        SynchronizationManager.getInstance().reload();
+    }
+    
     private void startOperation() {
         while (SynchronizationManager.getInstance().isReloading())
             ;

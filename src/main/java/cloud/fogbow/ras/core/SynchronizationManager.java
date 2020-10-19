@@ -20,14 +20,15 @@ public class SynchronizationManager {
         this.processorsThreadController = processorsThreadController;
     }
 
+    public void setAsReloading() {
+        this.reloading = true;
+    }
+
     public boolean isReloading() {
         return this.reloading;
     }
 
     public void reload() {
-        this.reloading = true;
-        while (ApplicationFacade.getInstance().getOnGoingRequests() != 0)
-            ;
         this.processorsThreadController.stopRasThreads();
         this.doReload();
         this.processorsThreadController.startRasThreads();

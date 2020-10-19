@@ -8,6 +8,11 @@ public class ApiDocumentation {
                         "how to use it, and describes the available features accessible from it.";
     }
 
+    public static class Admin {
+        public static final String RELOAD_OPERATION = "Reloads configuration parameters.";
+        
+    }
+    
     public static class Attachment {
         public static final String API = "Manages attachments.";
         public static final String CREATE_OPERATION = "Creates an attachment.";
