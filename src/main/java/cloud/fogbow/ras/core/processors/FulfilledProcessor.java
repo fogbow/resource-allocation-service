@@ -32,6 +32,10 @@ public class FulfilledProcessor extends StoppableProcessor implements Runnable {
         this.isActive = false;
         this.mustStop = false;
     }
+    
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
+    }
 
     /**
      * Iterates over the fulfilled orders list and tries to process one order at a time. When the order

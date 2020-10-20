@@ -33,6 +33,10 @@ public class SpawningProcessor extends StoppableProcessor implements Runnable {
         this.mustStop = false;
     }
 
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
+    }
+    
     /**
      * Iterates over the spawning orders list and tries to process one order at a time. When the order
      * is null, it indicates that the iteration ended. A new iteration is started after some time.

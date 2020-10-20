@@ -1,6 +1,12 @@
 package cloud.fogbow.ras.core;
 
+import org.apache.log4j.Logger;
+
+import cloud.fogbow.ras.constants.Messages;
+
 public class SynchronizationManager {
+    private static final Logger LOGGER = Logger.getLogger(SynchronizationManager.class);
+    
     private static SynchronizationManager instance;
     private boolean reloading;
     private ProcessorsThreadController processorsThreadController;
@@ -36,6 +42,9 @@ public class SynchronizationManager {
     }
 
     private void doReload() {
-        // ToDo: Add reload functionality
+        LOGGER.info(Messages.Log.RESETING_PROPERTIES_HOLDER);
+        PropertiesHolder.reset();
+        LOGGER.info(Messages.Log.RESETING_PROCESSORS_CONFIGURATION);
+        this.processorsThreadController.reset();
     }
 }

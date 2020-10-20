@@ -32,6 +32,10 @@ public class AssignedForDeletionProcessor extends StoppableProcessor implements 
         this.mustStop = false;
     }
 
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
+    }
+    
     /**
      * Iterates over the assignedForDeletion orders list and tries to process one order at a time. When the order
      * is null, it indicates that the iteration ended. A new iteration is started after some time.

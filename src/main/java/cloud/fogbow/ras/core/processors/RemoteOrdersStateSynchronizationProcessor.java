@@ -31,6 +31,10 @@ public class RemoteOrdersStateSynchronizationProcessor extends StoppableProcesso
         this.mustStop = false;
     }
 
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
+    }
+    
     /**
      * Iterates over the remoteProviderOrders list and tries to process one order at a time. When the order
      * is null, it indicates that the iteration ended. A new iteration is started after some time.

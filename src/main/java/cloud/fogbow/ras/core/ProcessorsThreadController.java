@@ -50,6 +50,7 @@ public class ProcessorsThreadController {
                 getProperty(ConfigurationPropertyKeys.CHECKING_DELETION_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.CHECKING_DELETION_ORDERS_SLEEP_TIME);
 
+        // TODO reset this order controller
         this.checkingDeletionProcessor = new CheckingDeletionProcessor(orderController, localProviderId, checkingDeletionOrdersProcSleepTimeStr);
         
         String unableToCheckProcSleepTimeStr = PropertiesHolder.getInstance().
@@ -119,5 +120,40 @@ public class ProcessorsThreadController {
         } else {
             LOGGER.info(Messages.Log.THREADS_ARE_NOT_RUNNING);
         }
+    }
+    
+    private Long getSleepTimeFromProperties(String key, String defaultValue) {
+        String timeStr = PropertiesHolder.getInstance().getProperty(key, defaultValue);
+        return Long.valueOf(timeStr);
+    }
+    
+    public void reset() {
+        Long openOrdersProcSleepTime = getSleepTimeFromProperties(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY, 
+                                                    ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
+        this.openProcessor.setSleepTime(openOrdersProcSleepTime);
+
+        Long spawningOrdersProcSleepTime = getSleepTimeFromProperties(ConfigurationPropertyKeys.SPAWNING_ORDERS_SLEEP_TIME_KEY,
+                                                        ConfigurationPropertyDefaults.SPAWNING_ORDERS_SLEEP_TIME);
+        this.spawningProcessor.setSleepTime(spawningOrdersProcSleepTime);
+
+        Long fulfilledOrdersProcSleepTime = getSleepTimeFromProperties(ConfigurationPropertyKeys.FULFILLED_ORDERS_SLEEP_TIME_KEY,
+                                                         ConfigurationPropertyDefaults.FULFILLED_ORDERS_SLEEP_TIME);
+        this.fulfilledProcessor.setSleepTime(fulfilledOrdersProcSleepTime);
+
+        Long checkingDeletionOrdersProcSleepTime = getSleepTimeFromProperties(ConfigurationPropertyKeys.CHECKING_DELETION_ORDERS_SLEEP_TIME_KEY,
+                                                                ConfigurationPropertyDefaults.CHECKING_DELETION_ORDERS_SLEEP_TIME);
+        this.checkingDeletionProcessor.setSleepTime(checkingDeletionOrdersProcSleepTime);
+        
+        Long unableToCheckProcSleepTime = getSleepTimeFromProperties(ConfigurationPropertyKeys.UNABLE_TO_CHECK_ORDERS_SLEEP_TIME_KEY,
+                                                       ConfigurationPropertyDefaults.UNABLE_TO_CHECK_ORDERS_SLEEP_TIME);
+        this.unableToCheckStatusProcessor.setSleepTime(unableToCheckProcSleepTime);
+
+        Long assignedForDeletionOrdersProcSleepTime = getSleepTimeFromProperties(ConfigurationPropertyKeys.ASSIGNED_FOR_DELETION_ORDERS_SLEEP_TIME_KEY,
+                                                                   ConfigurationPropertyDefaults.ASSIGNED_FOR_DELETION_ORDERS_SLEEP_TIME);
+        this.assignedForDeletionProcessor.setSleepTime(assignedForDeletionOrdersProcSleepTime);
+
+        Long remoteOrdersStateSynchronizationProcSleepTimeStr = getSleepTimeFromProperties(ConfigurationPropertyKeys.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME_KEY,
+                                                                             ConfigurationPropertyDefaults.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME);
+        this.remoteOrdersStateSynchronizationProcessor.setSleepTime(remoteOrdersStateSynchronizationProcSleepTimeStr);
     }
 }

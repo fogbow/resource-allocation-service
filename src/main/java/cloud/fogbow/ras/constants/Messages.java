@@ -195,6 +195,8 @@ public class Messages {
         public static final String REQUESTING_GET_ALL_FROM_PROVIDER = "Requesting all images from provider.";
         public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
         public static final String REQUESTING_TO_CLOUD_S_S = "Requesting to the cloud by the user %s. URL: %s";
+        public static final String RESETING_PROPERTIES_HOLDER = "Reseting properties holder";
+        public static final String RESETING_PROCESSORS_CONFIGURATION = "Reseting processors configuration";
         public static final String RESOURCE_CREATION_FAILED_S = "Resource creation failed: %s";
         public static final String RESPONSE_RECEIVED_S = "Received response: %s.";
         public static final String SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR = "Second step: Create network security group and associated with the network interface.";
