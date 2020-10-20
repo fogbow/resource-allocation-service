@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ApiDocumentation;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ApplicationFacade;
 import io.swagger.annotations.ApiOperation;
@@ -26,10 +27,11 @@ public class Admin {
     private final Logger LOGGER = Logger.getLogger(Admin.class);
     
     @ApiOperation(value = ApiDocumentation.Admin.RELOAD_OPERATION)
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(value = "/reload", method = RequestMethod.POST)
     public ResponseEntity<Boolean> reload(
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) throws FogbowException {
         // TODO complete API documentation
+        LOGGER.info(Messages.Log.RECEIVING_RELOAD_CONFIGURATION_REQUEST);
         ApplicationFacade.getInstance().reload(systemUserToken);
         return new ResponseEntity<>(HttpStatus.OK);
     }

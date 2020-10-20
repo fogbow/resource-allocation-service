@@ -187,6 +187,7 @@ public class Messages {
         public static final String RECEIVING_GET_CLOUDS_REQUEST = "Get request for cloud names received.";
         public static final String RECEIVING_GET_IMAGE_REQUEST_S = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST_S = "Get request for %s %s received.";
+        public static final String RECEIVING_RELOAD_CONFIGURATION_REQUEST = "Received reload configuration request.";
         public static final String RECEIVING_REMOTE_REQUEST_S = "Received remote request for request: %s.";
         public static final String RECEIVING_RESOURCE_S_REQUEST_S = "Get %s request for provider %s received.";
         public static final String RECOVERING_LIST_OF_ORDERS_S_D = "Recovering requests in %s list: %d requests recovered so far.";
@@ -205,10 +206,10 @@ public class Messages {
         public static final String SLEEP_THREAD_INTERRUPTED = "Thread is not able to sleep.";
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String STOPPING_THREADS = "Stopping processor threads.";
-        public static final String THREADS_ARE_ALREADY_RUNNING = "Processor threads are already running!";
-        public static final String THREADS_ARE_NOT_RUNNING = "Processor threads are not running!";
         public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
         public static final String SUCCESS = "Successfully executed operation.";
+        public static final String THREADS_ARE_ALREADY_RUNNING = "Processor threads are already running!";
+        public static final String THREADS_ARE_NOT_RUNNING = "Processor threads are not running!";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";
