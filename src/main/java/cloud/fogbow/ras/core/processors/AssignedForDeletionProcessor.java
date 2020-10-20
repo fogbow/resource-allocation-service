@@ -13,7 +13,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class AssignedForDeletionProcessor implements Runnable {
+public class AssignedForDeletionProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(AssignedForDeletionProcessor.class);
 
     private String localProviderId;
@@ -28,6 +28,8 @@ public class AssignedForDeletionProcessor implements Runnable {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.assignedForDeletionOrdersList = sharedOrderHolders.getAssignedForDeletionOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
+        this.isActive = false;
+        this.mustStop = false;
     }
 
     /**
@@ -36,10 +38,11 @@ public class AssignedForDeletionProcessor implements Runnable {
      */
     @Override
     public void run() {
-        boolean isActive = true;
+        this.isActive = true;
         while (isActive) {
             try {
                 assignForDeletion();
+                checkIfMustStop();
             } catch (InterruptedException e) {
                 isActive = false;
             }

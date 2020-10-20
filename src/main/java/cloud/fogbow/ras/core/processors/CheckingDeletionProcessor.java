@@ -16,7 +16,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class CheckingDeletionProcessor implements Runnable {
+public class CheckingDeletionProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(CheckingDeletionProcessor.class);
 
     private ChainedList<Order> checkingDeletionOrders;
@@ -33,6 +33,8 @@ public class CheckingDeletionProcessor implements Runnable {
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.orderController = orderController;
         this.localProviderId = localProviderId;
+        this.isActive = false;
+        this.mustStop = false;
     }
 
     /**
@@ -41,10 +43,11 @@ public class CheckingDeletionProcessor implements Runnable {
      */
     @Override
     public void run() {
-        boolean isActive = true;
+        this.isActive = true;
         while (isActive) {
             try {
                 checkDeletion();
+                checkIfMustStop();
             } catch (InterruptedException e) {
                 isActive = false;
             }

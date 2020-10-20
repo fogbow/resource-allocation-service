@@ -14,7 +14,7 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-public class SpawningProcessor implements Runnable {
+public class SpawningProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 
     private ChainedList<Order> spawningOrderList;
@@ -29,6 +29,8 @@ public class SpawningProcessor implements Runnable {
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.localProviderId = providerId;
+        this.isActive = false;
+        this.mustStop = false;
     }
 
     /**
@@ -37,7 +39,7 @@ public class SpawningProcessor implements Runnable {
      */
     @Override
     public void run() {
-        boolean isActive = true;
+        this.isActive = true;
         Order order = null;
         while (isActive) {
             try {
@@ -48,6 +50,8 @@ public class SpawningProcessor implements Runnable {
                     this.spawningOrderList.resetPointer();
                     Thread.sleep(this.sleepTime);
                 }
+
+                checkIfMustStop();
             } catch (InterruptedException e) {
                 isActive = false;
                 LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
@@ -58,7 +62,7 @@ public class SpawningProcessor implements Runnable {
             }
         }
     }
-
+    
     protected void processSpawningOrder(Order order) throws FogbowException {
         // The order object synchronization is needed to prevent a race
         // condition on order access. For example: a user can delete an spawning

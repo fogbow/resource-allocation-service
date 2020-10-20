@@ -12,7 +12,7 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-public class UnableToCheckStatusProcessor implements Runnable {
+public class UnableToCheckStatusProcessor extends StoppableProcessor implements Runnable {
 
 	private static final Logger LOGGER = Logger.getLogger(UnableToCheckStatusProcessor.class);
 
@@ -22,12 +22,14 @@ public class UnableToCheckStatusProcessor implements Runnable {
      */
 	private Long sleepTime;
 	private String localProviderId;
-
+	
 	public UnableToCheckStatusProcessor(String localProviderId, String sleepTimeStr) {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.unableToCheckStatusOrdersList = sharedOrderHolders.getUnableToCheckStatusOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.localProviderId = localProviderId;
+        this.isActive = false;
+        this.mustStop = false;
     }
 
     /**
@@ -36,7 +38,7 @@ public class UnableToCheckStatusProcessor implements Runnable {
      */
 	@Override
 	public void run() {
-		boolean isActive = true;
+		this.isActive = true;
 
         while (isActive) {
             try {
@@ -48,6 +50,8 @@ public class UnableToCheckStatusProcessor implements Runnable {
                     this.unableToCheckStatusOrdersList.resetPointer();
                     Thread.sleep(this.sleepTime);
                 }
+                
+                checkIfMustStop();
             } catch (InterruptedException e) {
                 isActive = false;
                 LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);

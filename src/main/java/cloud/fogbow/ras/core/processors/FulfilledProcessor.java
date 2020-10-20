@@ -14,7 +14,7 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-public class FulfilledProcessor implements Runnable {
+public class FulfilledProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
 
     private String localProviderId;
@@ -29,6 +29,8 @@ public class FulfilledProcessor implements Runnable {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
+        this.isActive = false;
+        this.mustStop = false;
     }
 
     /**
@@ -37,7 +39,7 @@ public class FulfilledProcessor implements Runnable {
      */
     @Override
     public void run() {
-        boolean isActive = true;
+        this.isActive = true;
 
         while (isActive) {
             try {
@@ -49,6 +51,8 @@ public class FulfilledProcessor implements Runnable {
                     this.fulfilledOrdersList.resetPointer();
                     Thread.sleep(this.sleepTime);
                 }
+                
+                checkIfMustStop();
             } catch (InterruptedException e) {
                 isActive = false;
                 LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);

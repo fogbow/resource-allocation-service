@@ -12,7 +12,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
+public class RemoteOrdersStateSynchronizationProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(RemoteOrdersStateSynchronizationProcessor.class);
 
     private ChainedList<Order> remoteProviderOrders;
@@ -27,6 +27,8 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
         this.remoteProviderOrders = sharedOrdersHolder.getRemoteProviderOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.localProviderId = localProviderId;
+        this.isActive = false;
+        this.mustStop = false;
     }
 
     /**
@@ -35,10 +37,11 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
      */
     @Override
     public void run() {
-        boolean isActive = true;
+        this.isActive = true;
         while (isActive) {
             try {
                 synchronizeWithRemote();
+                checkIfMustStop();
             } catch (InterruptedException e) {
                 isActive = false;
             }
