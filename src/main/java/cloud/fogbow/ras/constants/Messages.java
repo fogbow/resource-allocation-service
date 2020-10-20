@@ -78,6 +78,7 @@ public class Messages {
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE_S = "Request type %s not supported.";
+        public static final String USER_DOES_NOT_HAVE_REQUIRED_ROLE = "User does not have a role required by operation.";
         public static final String WRONG_URI_SYNTAX_S = "Wrong syntax for endpoint %s.";
     }
 

@@ -50,6 +50,7 @@ import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
+import cloud.fogbow.ras.core.plugins.authorization.RoleAwareAuthorizationPlugin;
 
 public class ApplicationFacade {
     
@@ -65,6 +66,7 @@ public class ApplicationFacade {
     private String providerId;
     private RSAPublicKey asPublicKey;
     private String buildNumber;
+    private RoleAwareAuthorizationPlugin roleAwareAuthorizationPlugin;
 
     private ApplicationFacade() {
         this.onGoingRequests = 0;
@@ -90,6 +92,10 @@ public class ApplicationFacade {
         this.authorizationPlugin = authorizationPlugin;
     }
 
+    public void setRoleAwareAuthorizationPlugin(RoleAwareAuthorizationPlugin authorizationPlugin) {
+        this.roleAwareAuthorizationPlugin = authorizationPlugin;
+    }
+    
     public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
@@ -520,8 +526,10 @@ public class ApplicationFacade {
         return networkOrders;
     }
 
-    public void reload(String systemUserToken) {
-        // TODO authentication , authorization
+    public void reload(String userToken) throws FogbowException {
+        SystemUser requester = authenticate(userToken);
+        RasOperation rasOperation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
+        roleAwareAuthorizationPlugin.isAuthorized(requester, rasOperation);
         
         SynchronizationManager.getInstance().setAsReloading();
         

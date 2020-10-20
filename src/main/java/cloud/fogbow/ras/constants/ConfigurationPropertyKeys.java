@@ -39,4 +39,7 @@ public class ConfigurationPropertyKeys {
 
     // SSH configuration
     public static final String SSH_COMMON_USER_KEY = "ssh_common_user";
+    
+    // Authorization
+    public static final String AUTHORIZATION_ROLES_KEY = "roles";
 }
