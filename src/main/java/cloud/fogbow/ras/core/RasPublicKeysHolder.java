@@ -21,6 +21,10 @@ public class RasPublicKeysHolder {
         return instance;
     }
 
+    public static void reset() {
+        instance = null;
+    }
+    
     public RSAPublicKey getAsPublicKey() throws FogbowException {
         if (this.asPublicKey == null) {
             String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_URL_KEY);

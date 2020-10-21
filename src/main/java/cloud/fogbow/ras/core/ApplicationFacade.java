@@ -536,9 +536,10 @@ public class ApplicationFacade {
         while (this.onGoingRequests != 0)
             ;
         
+        reloadASPublicKeys();
         SynchronizationManager.getInstance().reload();
     }
-    
+
     private void startOperation() {
         while (SynchronizationManager.getInstance().isReloading())
             ;
@@ -550,7 +551,13 @@ public class ApplicationFacade {
     private synchronized void finishOperation() {
         this.onGoingRequests--;
     }
-
+    
+    private void reloadASPublicKeys() throws FogbowException {
+        this.asPublicKey = null;
+        RasPublicKeysHolder.reset();
+        getAsPublicKey();
+    }
+    
     // used for testing only
     protected void setBuildNumber(String fileName) {
         Properties properties = PropertiesUtil.readProperties(fileName);
