@@ -118,7 +118,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     private ComputeInstance doGetInstance(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
         String responseJson = this.client.doGetRequest(endpoint, cloudUser);
         ComputeInstance computeInstance = getInstanceFromJson(responseJson);
-        return null;
+
+        return computeInstance;
     }
 
     private void doDeleteRequest(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
@@ -145,7 +146,6 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
 
         String instanceId = getComputeResponse.getId();
         String name = getComputeResponse.getName();
-        String flavorId = getComputeResponse.getFlavorId();
         String status = getComputeResponse.getStatus();
         String faultMessage = getComputeResponse.getFaultMessage();
 
