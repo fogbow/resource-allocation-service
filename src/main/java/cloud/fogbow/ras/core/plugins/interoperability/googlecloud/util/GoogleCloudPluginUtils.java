@@ -9,7 +9,7 @@ public class GoogleCloudPluginUtils {
     private static Logger LOGGER = Logger.getLogger(GoogleCloudPluginUtils.class);
 
     public static String getProjectIdFrom(GoogleCloudUser cloudUser) throws InvalidParameterException {
-        String projectId = cloudUser.getProjectId();
+        String projectId = null;//cloudUser.getProjectId();
         if(projectId == null) {
             LOGGER.error(Messages.Log.UNSPECIFIED_PROJECT_ID);
             throw new InvalidParameterException(Messages.Exception.NO_PROJECT_ID);
@@ -20,5 +20,4 @@ public class GoogleCloudPluginUtils {
     public static String getProjectEndpoint(String projectId) {
         return GoogleCloudConstants.PATH_PROJECT + GoogleCloudConstants.LINE_SEPARATOR + projectId;
     }
-
 }
