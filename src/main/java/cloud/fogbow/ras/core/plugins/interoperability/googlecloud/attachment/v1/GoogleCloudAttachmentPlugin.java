@@ -195,7 +195,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
 
     @VisibleForTesting
     String createSourcePath(String resource, String projectId){
-        return GoogleCloudConstants.COMPUTE_ENDPOINT
+        return GoogleCloudConstants.COMPUTE_ATT_ENDPOINT
                 + GoogleCloudConstants.COMPUTE_V1_API_ENDPOINT
                 + GoogleCloudConstants.PROJECTS_KEY_ENDPOINT
                 + projectId

@@ -29,7 +29,7 @@ public class GoogleCloudConstants {
     public static final String COMPUTE_ENGINE_ENDPOINT = "/compute";
     public static final String COMPUTE_ENGINE_V1_ENDPOINT = "/v1";
     public static final String FLAVOR_ENDPOINT = "/machineTypes";
-    public static final String COMPUTE_ENDPOINT = "/instances";
+    public static final String COMPUTE_ATT_ENDPOINT = "/instances";
     public static final String ZONE_KEY_CONFIG = "zone";
     public static final String STATUS_KEY_JSON = "status";
     public static final String GLOBAL_IP_NETWORK = "/global/networks";
