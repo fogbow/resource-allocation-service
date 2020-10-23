@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.network.models;
 
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
 import com.google.gson.annotations.SerializedName;
 
 

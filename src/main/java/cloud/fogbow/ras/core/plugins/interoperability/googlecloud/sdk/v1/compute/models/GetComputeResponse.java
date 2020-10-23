@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models;
 
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -34,17 +34,17 @@ public class GetComputeResponse {
     private Instance instance;
 
     public static class Instance {
-        @SerializedName(GoogleCloudConstants.Compute.ID_KEY_JSON)
+        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.ID_KEY_JSON)
         private String id;
-        @SerializedName(GoogleCloudConstants.Compute.NAME_KEY_JSON)
+        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.NAME_KEY_JSON)
         private String name;
-        @SerializedName(GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
+        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
         private String flavorId;
-        @SerializedName(GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
+        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
         private List<Network> addresses;
         @SerializedName(GoogleCloudConstants.STATUS_KEY_JSON)
         private String status;
-        @SerializedName(GoogleCloudConstants.Compute.FAULT_MSG_KEY_JSON)
+        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.FAULT_MSG_KEY_JSON)
         private String faultMessage;
     }
 
@@ -77,7 +77,7 @@ public class GetComputeResponse {
     }
 
     public static class Network {
-        @SerializedName(GoogleCloudConstants.Compute.ADDRESS_KEY_JSON)
+        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.ADDRESS_KEY_JSON)
         private String address;
 
         public String getAddress() {

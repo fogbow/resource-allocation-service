@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.attachment.v1;
 
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
@@ -51,13 +51,13 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String endpoint = getPrefixEndpoint(projectId)
-                + GoogleCloudConstants.ZONES_KEY_ENDPOINT
-                + GoogleCloudConstants.ENDPOINT_SEPARATOR
-                + GoogleCloudConstants.DEFAULT_ZONE
-                + GoogleCloudConstants.INSTANCES_KEY_ENDPOINT
-                + GoogleCloudConstants.ENDPOINT_SEPARATOR
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ZONES_KEY_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
+                + cloud.fogbow.common.constants.GoogleCloudConstants.DEFAULT_ZONE
+                + cloud.fogbow.common.constants.GoogleCloudConstants.INSTANCES_KEY_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + serverId
-                + GoogleCloudConstants.ATTACH_DISK_KEY_ENDPOINT;
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ATTACH_DISK_KEY_ENDPOINT;
 
         String volumeId = attachmentOrder.getVolumeId();
         String volumeSource = createSourcePath(volumeId, projectId);
@@ -79,10 +79,10 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String serverId = attachmentOrder.getComputeId();
         String volumeId = attachmentOrder.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + getZoneEndpoint(cloud.fogbow.common.constants.GoogleCloudConstants.DEFAULT_ZONE)
                 + getInstanceEndpoint(serverId)
-                + GoogleCloudConstants.DETACH_DISK_KEY_ENDPOINT
-                + GoogleCloudConstants.DEVICE_NAME_QUERY_PARAM
+                + cloud.fogbow.common.constants.GoogleCloudConstants.DETACH_DISK_KEY_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.DEVICE_NAME_QUERY_PARAM
                 + volumeId;
 
         doDeleteInstance(endpoint, cloudUser);
@@ -97,10 +97,10 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + getZoneEndpoint(cloud.fogbow.common.constants.GoogleCloudConstants.DEFAULT_ZONE)
                 + getInstanceEndpoint(serverId)
-                + GoogleCloudConstants.DETACH_DISK_KEY_ENDPOINT
-                + GoogleCloudConstants.DEVICE_NAME_QUERY_PARAM
+                + cloud.fogbow.common.constants.GoogleCloudConstants.DETACH_DISK_KEY_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.DEVICE_NAME_QUERY_PARAM
                 + volumeId;
 
 //        TODO - Google Cloud compatible response
@@ -173,35 +173,35 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
     @VisibleForTesting
     String getPrefixEndpoint(String projectId) {
         return this.properties.getProperty(GoogleCloudPluginUtils.VOLUME_COMPUTE_URL_KEY)
-                + GoogleCloudConstants.COMPUTE_V1_API_ENDPOINT
-                + GoogleCloudConstants.PROJECTS_KEY_ENDPOINT
-                + GoogleCloudConstants.ENDPOINT_SEPARATOR
+                + cloud.fogbow.common.constants.GoogleCloudConstants.COMPUTE_V1_API_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.PROJECTS_KEY_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + projectId;
     }
 
     @VisibleForTesting
     String getZoneEndpoint(String zone){
-        return GoogleCloudConstants.ZONES_KEY_ENDPOINT
-                + GoogleCloudConstants.ENDPOINT_SEPARATOR
+        return cloud.fogbow.common.constants.GoogleCloudConstants.ZONES_KEY_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + zone;
     }
 
     @VisibleForTesting
     String getInstanceEndpoint(String instance){
-        return GoogleCloudConstants.INSTANCES_KEY_ENDPOINT
-                + GoogleCloudConstants.ENDPOINT_SEPARATOR
+        return cloud.fogbow.common.constants.GoogleCloudConstants.INSTANCES_KEY_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + instance;
     }
 
     @VisibleForTesting
     String createSourcePath(String resource, String projectId){
         return GoogleCloudConstants.COMPUTE_ATT_ENDPOINT
-                + GoogleCloudConstants.COMPUTE_V1_API_ENDPOINT
-                + GoogleCloudConstants.PROJECTS_KEY_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.COMPUTE_V1_API_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.PROJECTS_KEY_ENDPOINT
                 + projectId
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
-                + GoogleCloudConstants.DISKS_KEY_ENDPOINT
-                + GoogleCloudConstants.ENDPOINT_SEPARATOR
+                + getZoneEndpoint(cloud.fogbow.common.constants.GoogleCloudConstants.DEFAULT_ZONE)
+                + cloud.fogbow.common.constants.GoogleCloudConstants.DISKS_KEY_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + resource;
     }
 

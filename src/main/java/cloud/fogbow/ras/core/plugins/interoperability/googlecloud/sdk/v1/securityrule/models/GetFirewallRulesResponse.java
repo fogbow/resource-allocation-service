@@ -5,7 +5,6 @@ import cloud.fogbow.common.util.GsonHolder;
 
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
-import cloud.fogbow.ras.constants.SystemConstants;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;

@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.volume.v1;
 
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
@@ -14,7 +15,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume.CreateVolumeRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume.GetAllTypesResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume.GetVolumeResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudPluginUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonSyntaxException;
@@ -62,7 +62,7 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
     @VisibleForTesting
     String getPrefixEndpoint(String projectId) {
         return this.properties.getProperty(GoogleCloudPluginUtils.VOLUME_COMPUTE_URL_KEY) +
-                GoogleCloudConstants.COMPUTE_V1_API_ENDPOINT + GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId;
+                cloud.fogbow.common.constants.GoogleCloudConstants.COMPUTE_V1_API_ENDPOINT + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
         String name = volumeOrder.getName();
         String volumeTypeId = findVolumeTypeId(volumeOrder.getRequirements(), projectId, cloudUser);
         String jsonRequest = generateJsonRequest(size, name, volumeTypeId);
-        String endpoint = getPrefixEndpoint(projectId) + GoogleCloudConstants.VOLUME_ENDPOINT;
+        String endpoint = getPrefixEndpoint(projectId) + cloud.fogbow.common.constants.GoogleCloudConstants.VOLUME_ENDPOINT;
 
         GetVolumeResponse volumeResponse = doRequestInstance(endpoint, jsonRequest, cloudUser);
         setAllocationToOrder(volumeOrder);
@@ -114,8 +114,8 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId)
-                + GoogleCloudConstants.VOLUME_ENDPOINT
-                + GoogleCloudConstants.ENDPOINT_SEPARATOR
+                + cloud.fogbow.common.constants.GoogleCloudConstants.VOLUME_ENDPOINT
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + volumeOrder.getInstanceId();
 
         return doGetInstance(endpoint, cloudUser);
@@ -151,7 +151,7 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId)
                 + GoogleCloudConstants.VOLUME_ENDPOINT
-                + GoogleCloudConstants.ENDPOINT_SEPARATOR
+                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + volumeOrder.getInstanceId();
 
         doDeleteInstance(endpoint, cloudUser);

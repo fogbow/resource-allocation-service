@@ -4,7 +4,7 @@ import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants.Volume.*;
+import static cloud.fogbow.common.constants.GoogleCloudConstants.Volume.*;
 /**
  * Documentation: https://cloud.google.com/compute/docs/reference/rest/v1/disks/
  * <p>
