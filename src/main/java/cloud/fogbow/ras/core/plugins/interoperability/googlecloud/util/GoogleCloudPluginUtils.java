@@ -22,5 +22,4 @@ public class GoogleCloudPluginUtils {
     public static String getProjectEndpoint(String projectId) {
         return GoogleCloudConstants.PATH_PROJECT + GoogleCloudConstants.LINE_SEPARATOR + projectId;
     }
-
 }
