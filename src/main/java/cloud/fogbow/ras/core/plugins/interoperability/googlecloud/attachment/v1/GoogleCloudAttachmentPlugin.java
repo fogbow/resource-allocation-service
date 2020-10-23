@@ -1,6 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.attachment.v1;
 
-import cloud.fogbow.common.constants.GoogleCloudConstants;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
