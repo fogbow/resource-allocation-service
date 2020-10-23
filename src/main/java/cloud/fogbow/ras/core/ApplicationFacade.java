@@ -314,6 +314,16 @@ public class ApplicationFacade {
         this.securityRuleController.deleteSecurityRule(order.getProvider(), cloudName, securityRuleId, requester);
     }
 
+    public void takeSnapshot(String orderId, String userToken, ResourceType resourceType, String name) throws FogbowException{
+        SystemUser requester = authenticate(userToken);
+        Order order = this.orderController.getOrder(orderId);
+        RasOperation rasOperation = new RasOperation(Operation.TAKE_SNAPSHOT, resourceType, order.getCloudName(), order);
+
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
+        this.orderController.takeSnapshot(order, name, requester);
+
+    }
+
     // These methods are protected to be used in testing
     
     protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String providerId, SystemUser requester) {

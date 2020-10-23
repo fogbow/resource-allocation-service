@@ -68,6 +68,7 @@ public interface CloudConnector {
 
     ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException;
 
+    void takeSnapshot(Order order, String name, SystemUser systemUser) throws FogbowException;
     /**
      * Gets all security rules associated to an Order (must be either a publicIp or a network order)
      *

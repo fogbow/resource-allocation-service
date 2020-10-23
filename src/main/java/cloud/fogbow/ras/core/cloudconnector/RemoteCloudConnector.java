@@ -122,6 +122,11 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
+    public void takeSnapshot(Order order, String name, SystemUser systemUser) throws FogbowException {
+
+    }
+
+    @Override
     public List<SecurityRuleInstance> getAllSecurityRules(Order order, SystemUser systemUser)
             throws FogbowException {
         try {

@@ -181,6 +181,11 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
+    public void takeSnapshot(Order order, String name, SystemUser systemUser) throws FogbowException{
+
+    }
+
+    @Override
     public ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException {
         LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, GET_IMAGE_OPERATION, systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);

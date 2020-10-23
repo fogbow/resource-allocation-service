@@ -157,6 +157,37 @@ public class OrderController {
         }
     }
 
+    public void takeSnapshot(Order order, String name, SystemUser systemUser) throws FogbowException {
+        synchronized (order){
+            OrderState orderState = order.getOrderState();
+
+            if (orderState.equals(OrderState.CHECKING_DELETION) ||
+                    order.getOrderState().equals(OrderState.ASSIGNED_FOR_DELETION)) {
+                throw new UnacceptableOperationException(Messages.Exception.DELETE_OPERATION_ALREADY_ONGOING);
+            }
+            if (orderState.equals(OrderState.SELECTED)) {
+                LOGGER.warn(String.format(Messages.Log.REMOVING_ORDER_IN_SELECT_STATE_S, order.toString()));
+            }
+            if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
+                throw new UnacceptableOperationException(String.format(Messages.Exception.DEPENDENCY_DETECTED_S_S,
+                        order.getId(), this.orderDependencies.get(order.getId())));
+            }
+            if (order.isProviderRemote(this.localProviderId)) {
+                try {
+                    RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
+                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
+                    remoteCloudConnector.takeSnapshot(order, name, systemUser);
+                    OrderStateTransitioner.transitionToRemoteList(order, OrderState.OPEN);
+                } catch (Exception e) {
+                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
+                    throw e;
+                }
+            } else {
+                OrderStateTransitioner.transition(order, OrderState.OPEN);
+            }
+        }
+    }
+
     public Instance getResourceInstance(Order order) throws FogbowException {
         synchronized (order) {
             CloudConnector cloudConnector = getCloudConnector(order);

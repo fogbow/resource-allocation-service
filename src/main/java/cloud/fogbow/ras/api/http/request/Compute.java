@@ -34,6 +34,21 @@ public class Compute {
 
     private final Logger LOGGER = Logger.getLogger(Compute.class);
 
+    @RequestMapping(value = "/{computeId}/snapshot", method = RequestMethod.POST)
+    public ResponseEntity<Boolean> takeSnapshot(
+            @PathVariable String computeId,
+            @RequestBody String name,
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) throws FogbowException{
+        try {
+            ApplicationFacade.getInstance().takeSnapshot(computeId, systemUserToken, ResourceType.COMPUTE, name);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
     @ApiOperation(value = ApiDocumentation.Compute.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ResourceId> createCompute(
