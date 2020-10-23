@@ -16,12 +16,15 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @PrepareForTest({DatabaseManager.class,
         CloudConnectorFactory.class,
@@ -34,10 +37,14 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     private ChainedList<Order> remoteOrderList;
     private CheckingDeletionProcessor processor;
     private OrderController orderController;
-
+    private Thread thread;
+    
     private LoggerAssert loggerTestChecking = new LoggerAssert(CheckingDeletionProcessor.class);
     private LoggerAssert loggerTestCheckingStoppableProcessor = new LoggerAssert(StoppableProcessor.class);
 
+    @Rule
+    public Timeout globalTimeout = new Timeout(100, TimeUnit.SECONDS);
+    
     @Before
     public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
@@ -50,6 +57,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         this.checkingDeletionOrderList = sharedOrderHolders.getCheckingDeletionOrdersList();
         this.remoteOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
+        this.thread = null;
     }
 
     // test case: When calling the run method and throws an InterruptedException,
@@ -232,6 +240,23 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
 
         // exercise
         this.processor.doRun();
+    }
+    
+    // test case: this method tests if, after starting a thread using a
+    // CheckingDeletionProcessor instance, the method 'stop' stops correctly the thread
+    @Test
+    public void testStop() throws InterruptedException, FogbowException {
+        this.thread = new Thread(this.processor);
+        this.thread.start();
+        
+        // This sleep treats a racing condition where the stop is performed before
+        // the processor starts up
+        Thread.sleep(500);
+        
+        this.processor.stop();
+        this.thread.join();
+        
+        Assert.assertFalse(this.thread.isAlive());
     }
 
 }

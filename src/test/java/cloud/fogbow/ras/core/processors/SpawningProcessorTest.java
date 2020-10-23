@@ -1,10 +1,15 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
+
+import java.util.concurrent.TimeUnit;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
@@ -39,6 +44,9 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private CloudConnector cloudConnector;
     private SpawningProcessor processor;
     private Thread thread;
+    
+    @Rule
+    public Timeout globalTimeout = new Timeout(100, TimeUnit.SECONDS);
 
     @Before
     public void setUp() throws InternalServerErrorException {
@@ -371,6 +379,23 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertEquals(order, this.remoteOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
+    }
+    
+    // test case: this method tests if, after starting a thread using a
+    // SpawningProcessor instance, the method 'stop' stops correctly the thread
+    @Test
+    public void testStop() throws InterruptedException, FogbowException {
+        this.thread = new Thread(this.processor);
+        this.thread.start();
+        
+        // This sleep treats a racing condition where the stop is performed before
+        // the processor starts up
+        Thread.sleep(500);
+        
+        this.processor.stop();
+        this.thread.join();
+        
+        Assert.assertFalse(this.thread.isAlive());
     }
 
 }

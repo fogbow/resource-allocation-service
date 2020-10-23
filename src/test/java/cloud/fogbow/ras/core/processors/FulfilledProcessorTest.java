@@ -1,11 +1,14 @@
 package cloud.fogbow.ras.core.processors;
 
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
@@ -29,7 +32,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 
 @PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class })
 public class FulfilledProcessorTest extends BaseUnitTests {
-
+    
     /*
      * Maximum value that the thread should wait in sleep time
      */
@@ -43,6 +46,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private Properties properties;
     private Thread thread;
 
+    @Rule
+    public Timeout globalTimeout = new Timeout(100, TimeUnit.SECONDS);
+    
     @Before
     public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
@@ -349,6 +355,23 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, order.getOrderState());
+    }
+    
+    // test case: this method tests if, after starting a thread using a
+    // FulfilledProcessor instance, the method 'stop' stops correctly the thread
+    @Test
+    public void testStop() throws InterruptedException, FogbowException {
+        this.thread = new Thread(this.processor);
+        this.thread.start();
+        
+        // This sleep treats a racing condition where the stop is performed before
+        // the processor starts up
+        Thread.sleep(500);
+        
+        this.processor.stop();
+        this.thread.join();
+        
+        Assert.assertFalse(this.thread.isAlive());
     }
 
 }
