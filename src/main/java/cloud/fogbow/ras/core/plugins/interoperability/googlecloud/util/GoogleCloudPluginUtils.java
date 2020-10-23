@@ -8,6 +8,8 @@ import org.apache.log4j.Logger;
 public class GoogleCloudPluginUtils {
     private static Logger LOGGER = Logger.getLogger(GoogleCloudPluginUtils.class);
 
+    public static final String NETWORK_URL_KEY = "google_cloud_net_url";
+
     public static String getProjectIdFrom(GoogleCloudUser cloudUser) throws InvalidParameterException {
         String projectId = cloudUser.getProjectId();
         if(projectId == null) {

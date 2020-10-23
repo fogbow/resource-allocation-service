@@ -6,6 +6,7 @@ public class GoogleCloudConstants {
     public static final String PATH_PROJECT = "/projects";
     public static final String PATH_ZONE = "/zones";
     public static final String LINE_SEPARATOR = "/";
+    public static final String V1_API_ENDPOINT = "/v1";
     public static final String GLOBAL_IP_ENDPOINT = "/global/addresses";
     public static final String GLOBAL_IMAGES_ENDPOINT = "/global/images";
     public static final String GLOBAL_NETWORKS_ENDPOINT = "/global/networks";
@@ -15,16 +16,20 @@ public class GoogleCloudConstants {
     public static final String COMPUTE_ENDPOINT = "/instances";
     public static final String ZONE_KEY_CONFIG = "zone";
     public static final String STATUS_KEY_JSON = "status";
+    public static final String GLOBAL_IP_NETWORK = "/global/networks";
+    public static final String REGION_ENDPOINT = "/regions";
+    public static final String SUBNET_ENDPOINT = "/subnetworks";
 
     public static class Network{
         public static final String NETWORK_KEY_JSON = "network";
         public static final String NAME_KEY_JSON = "name";
         public static final String ID_KEY_JSON = "id";
         public static final String AUTO_CREATE_SUBNETS_KEY_JSON = "autoCreateSubnetworks";
-        public static final String CIDR_KEY_JSON = "cidr";
+        public static final String CIDR_KEY_JSON = "ipCidrRange";
         public static final String ROUTING_MODE_KEY_JSON = "routingMode";
         public static final String ROUTING_CONFIG_KEY_JSON = "routingConfig";
         public static final String DEFAULT_NETWORK_KEY = "default";
+        public static final String TARGET_LINK_KEY_JSON = "targetLink";
     }
 
     public static final class SecurityRule {
