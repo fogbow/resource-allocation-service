@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.volume.v1;
 
-import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
@@ -15,6 +14,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume.CreateVolumeRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume.GetAllTypesResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume.GetVolumeResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudPluginUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonSyntaxException;

@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.common.constants.GoogleCloudConstants.Volume.*;
+import static cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants.Volume.*;
 
 import java.util.List;
 
