@@ -54,7 +54,6 @@ public class GoogleCloudConstants {
         public static final String VOLUME_SOURCE_KEY_JSON = "source";
         public static final String ATTACH_NAME_KEY_JSON = "name";
         public static final String ATTACH_ID_KEY_JSON = "id";
-
     }
 
     public static class Network{
