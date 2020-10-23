@@ -56,25 +56,6 @@ public class GoogleCloudConstants {
         public static final String ATTACH_ID_KEY_JSON = "id";
 
     }
-}
-
-public class GoogleCloudConstants {
-    public static final String PATH_PROJECT = "/projects";
-    public static final String PATH_ZONE = "/zones";
-    public static final String LINE_SEPARATOR = "/";
-    public static final String V1_API_ENDPOINT = "/v1";
-    public static final String GLOBAL_IP_ENDPOINT = "/global/addresses";
-    public static final String GLOBAL_IMAGES_ENDPOINT = "/global/images";
-    public static final String GLOBAL_NETWORKS_ENDPOINT = "/global/networks";
-    public static final String COMPUTE_ENGINE_ENDPOINT = "/compute";
-    public static final String COMPUTE_ENGINE_V1_ENDPOINT = "/v1";
-    public static final String FLAVOR_ENDPOINT = "/machineTypes";
-    public static final String COMPUTE_ENDPOINT = "/instances";
-    public static final String ZONE_KEY_CONFIG = "zone";
-    public static final String STATUS_KEY_JSON = "status";
-    public static final String GLOBAL_IP_NETWORK = "/global/networks";
-    public static final String REGION_ENDPOINT = "/regions";
-    public static final String SUBNET_ENDPOINT = "/subnetworks";
 
     public static class Network{
         public static final String NETWORK_KEY_JSON = "network";
