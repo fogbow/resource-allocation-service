@@ -1,0 +1,87 @@
+package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models;
+
+import cloud.fogbow.common.util.GsonHolder;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
+import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
+
+/*
+ * Documentation reference: https://cloud.google.com/compute/docs/reference/rest/v1/instances/get
+ * Successful get example:
+ *
+ * {
+ *   "name":"machine-test-2",
+ *   "machineType":"https://www.googleapis.com/compute/v1/projects/ninth-cubist-291121/zones/us-central1-f/machineTypes/custom-2-2048",
+ *   "networkInterfaces":[
+ *       {
+ *           "networkIP":"10.128.0.15"
+ *        }
+ *   ],
+ *   "status": "STAGING"
+ * }
+ *
+ * Failed get exemple:
+ * {
+ *   "error":{
+ *      "message": "The resource 'projects/ninth-cubist-291121/zones/us-central1-f/instances/8480966875822193550' was not found"
+ *   }
+ * }
+ */
+
+public class GetComputeResponse {
+
+    private Instance instance;
+
+    public static class Instance {
+        @SerializedName(GoogleCloudConstants.Compute.ID_KEY_JSON)
+        private String id;
+        @SerializedName(GoogleCloudConstants.Compute.NAME_KEY_JSON)
+        private String name;
+        @SerializedName(GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
+        private String flavorId;
+        @SerializedName(GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
+        private List<Network> addresses;
+        @SerializedName(GoogleCloudConstants.STATUS_KEY_JSON)
+        private String status;
+        @SerializedName(GoogleCloudConstants.Compute.FAULT_MSG_KEY_JSON)
+        private String faultMessage;
+    }
+
+    public String getId() {
+        return instance.id;
+    }
+
+    public String getName() {
+        return instance.name;
+    }
+
+    public List<Network> getAddresses() {
+        return instance.addresses;
+    }
+
+    public String getFlavorId() {
+        return instance.flavorId;
+    }
+
+    public String getStatus() {
+        return instance.status;
+    }
+
+    public String getFaultMessage() {
+        return instance.faultMessage;
+    }
+
+    public static GetComputeResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetComputeResponse.class);
+    }
+
+    public static class Network {
+        @SerializedName(GoogleCloudConstants.Compute.ADDRESS_KEY_JSON)
+        private String address;
+
+        public String getAddress() {
+            return address;
+        }
+    }
+}
