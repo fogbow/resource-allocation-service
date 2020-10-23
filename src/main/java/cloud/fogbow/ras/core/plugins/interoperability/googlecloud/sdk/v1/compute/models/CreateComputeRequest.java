@@ -4,7 +4,6 @@ import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
 import com.google.gson.annotations.SerializedName;
-import static cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants.*;
 
 import java.util.List;
 
@@ -58,15 +57,15 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class Instance {
-        @SerializedName(Compute.NAME_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.NAME_KEY_JSON)
         private final String name;
-        @SerializedName(Compute.FLAVOR_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
         private final String flavorId;
-        @SerializedName(Compute.DISKS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.DISKS_KEY_JSON)
         private final List<Disk> disks;
-        @SerializedName(Compute.NETWORKS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
         private final List<Network> networks;
-        @SerializedName(Compute.METADATA_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.METADATA_KEY_JSON)
         private final MetaData metaData;
 
         public Instance(Builder builder) {
@@ -79,9 +78,9 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class Disk {
-        @SerializedName(Compute.Disk.INITIAL_PARAMS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Disk.INITIAL_PARAMS_KEY_JSON)
         private InicialeParams inicialeParams;
-        @SerializedName(Compute.Disk.INITIAL_PARAMS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Disk.INITIAL_PARAMS_KEY_JSON)
         private boolean boot;
 
         public Disk(boolean boot, InicialeParams inicialeParams) {
@@ -91,9 +90,9 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class InicialeParams {
-        @SerializedName(Compute.Disk.InitializeParams.IMAGE_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Disk.InitializeParams.IMAGE_KEY_JSON)
         private String sourceImageId;
-        @SerializedName(Compute.Disk.InitializeParams.DISK_SIZE_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Disk.InitializeParams.DISK_SIZE_KEY_JSON)
         private int diskSizeGb;
 
         public InicialeParams(String sourceImageId, int diskSizeGb) {
@@ -103,7 +102,7 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class MetaData {
-        @SerializedName(Compute.Metadata.ITEMS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Metadata.ITEMS_KEY_JSON)
         private List<Item> items;
 
         public MetaData(List<Item> items) {
@@ -112,9 +111,9 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class Item {
-        @SerializedName(Compute.Metadata.KEY_ITEM_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Metadata.KEY_ITEM_KEY_JSON)
         private String key;
-        @SerializedName(Compute.Metadata.VALUE_ITEM_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Metadata.VALUE_ITEM_KEY_JSON)
         private String value;
 
         public Item(String key, String value) {
