@@ -7,8 +7,8 @@ import cloud.fogbow.common.models.GoogleCloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.CreateComputeRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.CreateComputeResponse;
-import static cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.CreateComputeRequest.*;
-import static cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants.*;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.CreateComputeRequest.*;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants.*;
 import cloud.fogbow.common.util.connectivity.cloud.googlecloud.GoogleCloudHttpClient;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -39,7 +39,7 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         this.properties = PropertiesUtil.readProperties(confFilePath);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
         this.client = new GoogleCloudHttpClient();
-        this.zone = this.properties.getProperty(ZONE_KEY_CONFIG);
+        this.zone = this.properties.getProperty(GoogleCloudConstants.ZONE_KEY_CONFIG);
     }
 
     @Override
@@ -161,11 +161,9 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
 
     private List<CreateComputeRequest.Network> getNetworkIds(String projectId, ComputeOrder computeOrder) {
         List<CreateComputeRequest.Network> networks = new ArrayList<CreateComputeRequest.Network>();
+        addToNetworks(projectId, networks, GoogleCloudConstants.Network.DEFAULT_NETWORK_KEY);
         for (String networkId : computeOrder.getNetworkIds()) {
             addToNetworks(projectId, networks, networkId);
-        }
-        if (networks.isEmpty()) {
-            addToNetworks(projectId, networks, GoogleCloudConstants.Network.DEFAULT_NETWORK_KEY);
         }
         return networks;
     }
@@ -212,30 +210,35 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     }
 
     private String getImageId(String imageId, String projectId) {
-        return GoogleCloudPluginUtils.getProjectEndpoint(projectId) + GLOBAL_IMAGES_ENDPOINT + LINE_SEPARATOR
-                + imageId;
+        return GoogleCloudPluginUtils.getProjectEndpoint(projectId)
+                + getPathWithId(GoogleCloudConstants.GLOBAL_IMAGES_ENDPOINT, imageId);
     }
 
     private String getFlavorId(String flavorId) {
-        return getZoneEndpoint() + LINE_SEPARATOR +  flavorId;
+        return getZoneEndpoint() + getPathWithId(GoogleCloudConstants.FLAVOR_ENDPOINT, flavorId);
     }
 
     private String getNetworkId(String projectId, String networkId) {
-        return GoogleCloudPluginUtils.getProjectEndpoint(projectId) + GLOBAL_NETWORKS_ENDPOINT + LINE_SEPARATOR
-                + networkId;
+        return GoogleCloudPluginUtils.getProjectEndpoint(projectId)
+                + getPathWithId(GoogleCloudConstants.GLOBAL_NETWORKS_ENDPOINT, networkId);
+    }
+
+    private String getPathWithId(String path, String id) {
+        return path + GoogleCloudConstants.LINE_SEPARATOR + id;
     }
 
     private String getInstanceEndpoint(String projectId, String instanceId) {
-        return getComputeEndpoint(projectId) + LINE_SEPARATOR + instanceId;
+        String computePath = getComputeEndpoint(projectId);
+        return getPathWithId(computePath, instanceId);
     }
 
     private String getZoneEndpoint() {
-        return PATH_ZONE + LINE_SEPARATOR + this.zone;
+        return getPathWithId(GoogleCloudConstants.PATH_ZONE, this.zone);
     }
 
     private String getComputeEndpoint(String projectId) {
         return GoogleCloudPluginUtils.getProjectEndpoint(projectId) + getZoneEndpoint() +
-                COMPUTE_ENDPOINT;
+                GoogleCloudConstants.COMPUTE_ENDPOINT;
     }
 
     private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder) {
