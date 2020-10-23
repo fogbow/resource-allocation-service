@@ -112,7 +112,8 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
         try {
             String jsonRequest = generateJsonEntityToCreateSubnetwork(insertedNetworkUrl, projectId, networkOrder);
             String endPoint = this.networkV1ApiEndpoint + GoogleCloudConstants.LINE_SEPARATOR
-                    + projectId + GoogleCloudConstants.REGION_ENDPOINT + GoogleCloudConstants.SUBNET_ENDPOINT;
+                    + projectId + GoogleCloudConstants.REGION_ENDPOINT
+                    + GoogleCloudConstants.LINE_SEPARATOR + DEFAULT_SUBNETWORK_REGION + GoogleCloudConstants.SUBNET_ENDPOINT;
             this.client.doPostRequest(endPoint, jsonRequest, cloudUser);
         }catch (FogbowException fe){
             removeNetwork(insertedNetworkUrl, cloudUser);
