@@ -16,6 +16,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
@@ -77,7 +78,8 @@ public class RoleAwareAuthorizationPluginTest {
 
         BDDMockito.given(PropertiesHolder.getInstance()).willReturn(properties);
 
-        Mockito.when(properties.getProperty(ConfigurationPropertyKeys.AUTHORIZATION_ROLES_KEY)).thenReturn(authorizationRolesString);
+        Mockito.when(properties.getProperty(ConfigurationPropertyKeys.AUTHORIZATION_ROLES_KEY, 
+                                            ConfigurationPropertyDefaults.AUTHORIZATION_ROLES)).thenReturn(authorizationRolesString);
         Mockito.when(properties.getProperty(adminString)).thenReturn(adminOperations);
         Mockito.when(properties.getProperty(userString)).thenReturn(userOperations);
         Mockito.when(properties.getProperty(unassignedString)).thenReturn(unassignedOperations);

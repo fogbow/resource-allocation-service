@@ -17,10 +17,6 @@ public class OpenProcessor extends StoppableProcessor implements Runnable {
 
     private String localProviderId;
     private ChainedList<Order> openOrdersList;
-    /**
-     * Attribute that represents the thread sleep time when there are no orders to be processed.
-     */
-    private Long sleepTime;
 
     public OpenProcessor(String localProviderId, String sleepTimeStr) {
         this.localProviderId = localProviderId;
@@ -34,39 +30,10 @@ public class OpenProcessor extends StoppableProcessor implements Runnable {
     public void setSleepTime(Long sleepTime) {
         this.sleepTime = sleepTime;
     }
-    
-    /**
-     * Iterates over the open orders list and tries to process one order at a time. When the order
-     * is null, it indicates that the iteration ended. A new iteration is started after some time.
-     */
 
     // ToDo: These processors (open, fulfilled, spawning, etc.) may need some refactoring
     //  to remove replicated code.
 
-    @Override
-    public void run() {
-        this.isActive = true;
-        while (isActive) {
-            try {
-                Order order = this.openOrdersList.getNext();
-                if (order != null) {
-                    processOpenOrder(order);
-                } else {
-                    this.openOrdersList.resetPointer();
-                    Thread.sleep(this.sleepTime);
-                }
-                
-                checkIfMustStop();
-            } catch (InterruptedException e) {
-                isActive = false;
-                LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (InternalServerErrorException e) {
-                LOGGER.error(e.getMessage(), e);
-            } catch (Throwable e) {
-                LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
-            }
-        }
-    }
 
     /**
      * Get an instance for an order in the OPEN state. If the method fails to get the instance, then the order is
@@ -116,5 +83,20 @@ public class OpenProcessor extends StoppableProcessor implements Runnable {
                 throw e;
             }
         }
+    }
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processOpenOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.openOrdersList.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.openOrdersList.resetPointer();
     }
 }

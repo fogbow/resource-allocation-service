@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -18,10 +17,6 @@ public class SpawningProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 
     private ChainedList<Order> spawningOrderList;
-    /**
-     * Attribute that represents the thread sleep time when there are no orders to be processed.
-     */
-    private Long sleepTime;
     private String localProviderId;
 
     public SpawningProcessor(String providerId, String sleepTimeStr) {
@@ -35,36 +30,6 @@ public class SpawningProcessor extends StoppableProcessor implements Runnable {
 
     public void setSleepTime(Long sleepTime) {
         this.sleepTime = sleepTime;
-    }
-    
-    /**
-     * Iterates over the spawning orders list and tries to process one order at a time. When the order
-     * is null, it indicates that the iteration ended. A new iteration is started after some time.
-     */
-    @Override
-    public void run() {
-        this.isActive = true;
-        Order order = null;
-        while (isActive) {
-            try {
-                order = this.spawningOrderList.getNext();
-                if (order != null) {
-                    processSpawningOrder(order);
-                } else {
-                    this.spawningOrderList.resetPointer();
-                    Thread.sleep(this.sleepTime);
-                }
-
-                checkIfMustStop();
-            } catch (InterruptedException e) {
-                isActive = false;
-                LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (InternalServerErrorException e) {
-                LOGGER.error(e.getMessage(), e);
-            } catch (Throwable e) {
-                LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
-            }
-        }
     }
     
     protected void processSpawningOrder(Order order) throws FogbowException {
@@ -109,5 +74,20 @@ public class SpawningProcessor extends StoppableProcessor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }
         }
+    }
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processSpawningOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.spawningOrderList.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.spawningOrderList.resetPointer();
     }
 }

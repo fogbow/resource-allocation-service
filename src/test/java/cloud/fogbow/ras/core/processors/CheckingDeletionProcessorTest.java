@@ -36,6 +36,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     private OrderController orderController;
 
     private LoggerAssert loggerTestChecking = new LoggerAssert(CheckingDeletionProcessor.class);
+    private LoggerAssert loggerTestCheckingStoppableProcessor = new LoggerAssert(StoppableProcessor.class);
 
     @Before
     public void setUp() throws InternalServerErrorException {
@@ -56,7 +57,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     @Test
     public void testRunFailWhenStopThread() throws InterruptedException {
         // set up
-        Mockito.doThrow(new InterruptedException()).when(this.processor).checkDeletion();
+        Mockito.doThrow(new InterruptedException()).when(this.processor).doRun();
 
         // exercise
         this.processor.run();
@@ -181,7 +182,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Assert.assertEquals(orderRemote, this.remoteOrderList.getNext());
     }
 
-    // test case: When calling the checkDeletion method and throws an InternalServerErrorException
+    // test case: When calling the doRun method and throws an InternalServerErrorException
     // it must verify if it logs an error message.
     @Test
     public void testCheckDeletionFailWhenThrowsUnexpectedException() throws InterruptedException, InternalServerErrorException {
@@ -194,10 +195,10 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Mockito.doThrow(internalServerErrorException).when(this.processor).processCheckingDeletionOrder(Mockito.eq(order));
 
         // exercise
-        this.processor.checkDeletion();
+        this.processor.doRun();
 
         // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, errorMessage);
+        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
     }
 
     // test case: When calling the checkDeletion method and there is no order in the checkingDeletionList,
@@ -212,12 +213,12 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Thread.sleep(Mockito.anyLong());
 
         // exercise
-        this.processor.checkDeletion();
-
+        this.processor.doRun();
+        
         // verify
         Mockito.verify(this.processor, Mockito.times(TestUtils.NEVER_RUN))
                 .processCheckingDeletionOrder(Mockito.any(Order.class));
-        this.loggerTestChecking.verifyIfEmpty();
+        this.loggerTestCheckingStoppableProcessor.verifyIfEmpty();
     }
 
     // test case: When calling the checkDeletion method and throws an InterruptedException
@@ -230,7 +231,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Thread.sleep(Mockito.anyLong());
 
         // exercise
-        this.processor.checkDeletion();
+        this.processor.doRun();
     }
 
 }

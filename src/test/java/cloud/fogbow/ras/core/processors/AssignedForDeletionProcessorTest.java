@@ -35,6 +35,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
     private OrderController orderController;
 
     private LoggerAssert loggerTestChecking = new LoggerAssert(AssignedForDeletionProcessor.class);
+    private LoggerAssert loggerTestCheckingStoppableProcessor = new LoggerAssert(StoppableProcessor.class);
 
     @Before
     public void setUp() throws InternalServerErrorException {
@@ -50,12 +51,12 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.remoteOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
     }
 
-    // test case: When calling the run method and throws an InterruptedException,
+    // test case: When calling the doRun method and throws an InterruptedException,
     // it must verify if It stop the loop.
     @Test
     public void testRunFailWhenStopThread() throws InterruptedException {
         // set up
-        Mockito.doThrow(new InterruptedException()).when(this.processor).assignForDeletion();
+        Mockito.doThrow(new InterruptedException()).when(this.processor).doRun();
 
         // exercise
         this.processor.run();
@@ -184,7 +185,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.processor.processAssignedForDeletionOrder(order);
     }
 
-    // test case: When calling the assignForDeletion method and throws a Throwable
+    // test case: When calling the doRun method and throws a Throwable
     // it must verify if It logs an error message.
     @Test
     public void testAssignForDeletionFailWhenThrowsThrowable() throws InterruptedException, FogbowException {
@@ -195,13 +196,13 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         Mockito.doThrow(new RuntimeException()).when(this.processor).processAssignedForDeletionOrder(Mockito.eq(order));
 
         // exercise
-        this.processor.assignForDeletion();
+        this.processor.doRun();
 
         // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
+        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
     }
 
-    // test case: When calling the assignForDeletion method and throws an InternalServerErrorException
+    // test case: When calling the doRun method and throws an InternalServerErrorException
     // it must verify if It logs an error message.
     @Test
     public void testAssignForDeletionFailWhenThrowsUnexpectedException() throws FogbowException, InterruptedException {
@@ -214,13 +215,13 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         Mockito.doThrow(internalServerErrorException).when(this.processor).processAssignedForDeletionOrder(Mockito.eq(order));
 
         // exercise
-        this.processor.assignForDeletion();
+        this.processor.doRun();
 
         // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, errorMessage);
+        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
     }
 
-    // test case: When calling the assignForDeletion method and there is no order in the processAssignedForDeletionOrder,
+    // test case: When calling the doRun method and there is no order in the processAssignedForDeletionOrder,
     // it must verify if It does not call processAssignedForDeletionOrder.
     @Test
     public void testAssignForDeletionSuccessfullyWhenThereIsNoOrder()
@@ -232,12 +233,13 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         Thread.sleep(Mockito.anyLong());
 
         // exercise
-        this.processor.assignForDeletion();
+        this.processor.doRun();
 
         // verify
         Mockito.verify(this.processor, Mockito.times(TestUtils.NEVER_RUN))
                 .processAssignedForDeletionOrder(Mockito.any(Order.class));
         this.loggerTestChecking.verifyIfEmpty();
+        this.loggerTestCheckingStoppableProcessor.verifyIfEmpty();
     }
 
 }

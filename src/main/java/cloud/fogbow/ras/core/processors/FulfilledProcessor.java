@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
@@ -19,10 +18,6 @@ public class FulfilledProcessor extends StoppableProcessor implements Runnable {
 
     private String localProviderId;
     private ChainedList<Order> fulfilledOrdersList;
-    /**
-     * Attribute that represents the thread sleep time when there are no orders to be processed.
-     */
-    private Long sleepTime;
 
     public FulfilledProcessor(String localProviderId, String sleepTimeStr) {
         this.localProviderId = localProviderId;
@@ -38,37 +33,6 @@ public class FulfilledProcessor extends StoppableProcessor implements Runnable {
     }
 
     /**
-     * Iterates over the fulfilled orders list and tries to process one order at a time. When the order
-     * is null, it indicates that the iteration ended. A new iteration is started after some time.
-     */
-    @Override
-    public void run() {
-        this.isActive = true;
-
-        while (isActive) {
-            try {
-                Order order = this.fulfilledOrdersList.getNext();
-
-                if (order != null) {
-                    processFulfilledOrder(order);
-                } else {
-                    this.fulfilledOrdersList.resetPointer();
-                    Thread.sleep(this.sleepTime);
-                }
-                
-                checkIfMustStop();
-            } catch (InterruptedException e) {
-                isActive = false;
-                LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (InternalServerErrorException e) {
-                LOGGER.error(e.getMessage(), e);
-            } catch (Throwable e) {
-                LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
-            }
-        }
-    }
-
-    /**
      * Gets an instance for a fulfilled order. If that instance is not reachable the order state is
      * set to UNABLE_TO_CHECK_STATUS. Otherwise, if the instance has failed, then the order state is
      * set to FAILED_AFTER_SUCCESSFUL_REQUEST.
@@ -77,7 +41,7 @@ public class FulfilledProcessor extends StoppableProcessor implements Runnable {
      */
     protected void processFulfilledOrder(Order order) throws FogbowException {
         OrderInstance instance = null;
-
+        
         // The order object synchronization is needed to prevent a race
         // condition on order access. For example: a user can delete a fulfilled
         // order while this method is trying to check the status of an instance
@@ -118,5 +82,20 @@ public class FulfilledProcessor extends StoppableProcessor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             }
         }
+    }
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processFulfilledOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.fulfilledOrdersList.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.fulfilledOrdersList.resetPointer();
     }
 }

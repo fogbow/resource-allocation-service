@@ -9,6 +9,7 @@ import cloud.fogbow.as.constants.SystemConstants;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -28,10 +29,13 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
     public RoleAwareAuthorizationPlugin() {
         authorizedRolesForOperation = new HashMap<String, Set<String>>();
         
-        String rolesListString = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AUTHORIZATION_ROLES_KEY);
+        String rolesListString = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AUTHORIZATION_ROLES_KEY, 
+                                                                            ConfigurationPropertyDefaults.AUTHORIZATION_ROLES);
         
         for (String role : rolesListString.trim().split(SystemConstants.ROLE_NAMES_SEPARATOR)) {
-            getOperationsThatRequireRole(role);
+            if (!role.isEmpty()) {
+                getOperationsThatRequireRole(role);
+            }
         }
     }
 

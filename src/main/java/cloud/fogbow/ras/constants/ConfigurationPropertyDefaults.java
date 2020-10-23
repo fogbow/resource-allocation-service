@@ -28,4 +28,7 @@ public class ConfigurationPropertyDefaults {
 
     // SSH CONF DEFAULTS
     public static final String SSH_COMMON_USER = "fogbow";
+    
+    // AUTHORIZATION
+    public static final String AUTHORIZATION_ROLES = "";
 }
