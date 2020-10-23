@@ -117,6 +117,18 @@ public class OrderController {
         }
     }
 
+    public void pauseCompute(Order order) throws FogbowException {
+        synchronized (order) {
+
+        }
+    }
+
+    public void resumeCompute(Order order) throws FogbowException {
+        synchronized (order) {
+
+        }
+    }
+
     public void deleteOrder(Order order) throws FogbowException {
         synchronized (order) {
             OrderState orderState = order.getOrderState();

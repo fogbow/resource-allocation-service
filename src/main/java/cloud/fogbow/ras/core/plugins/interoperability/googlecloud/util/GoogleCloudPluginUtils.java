@@ -9,14 +9,18 @@ public class GoogleCloudPluginUtils {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudPluginUtils.class);
     public static final String VOLUME_COMPUTE_URL_KEY = "googlecloud_compute_url";
     public static final String PROJECT_NAME_EXAMPLE = "diesel_talon";
+    public static final String NETWORK_URL_KEY = "google_cloud_net_url";
 
     public static String getProjectIdFrom(GoogleCloudUser cloudUser) throws InvalidParameterException {
-        //TODO - cloudUser needs to return projectId
-        String projectId = PROJECT_NAME_EXAMPLE; //cloudUser.getProjectId();
-        if (projectId == null) {
+        String projectId = cloudUser.getProjectId();
+        if(projectId == null) {
             LOGGER.error(Messages.Log.UNSPECIFIED_PROJECT_ID);
             throw new InvalidParameterException(Messages.Exception.NO_PROJECT_ID);
         }
         return projectId;
+    }
+
+    public static String getProjectEndpoint(String projectId) {
+        return GoogleCloudConstants.PATH_PROJECT + GoogleCloudConstants.LINE_SEPARATOR + projectId;
     }
 }

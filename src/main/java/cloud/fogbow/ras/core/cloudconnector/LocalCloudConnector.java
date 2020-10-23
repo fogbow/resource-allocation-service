@@ -385,6 +385,9 @@ public class LocalCloudConnector implements CloudConnector {
         this.auditRequestsOn = false;
     }
 
+    public void pauseInstanse() {}
+    public void resumeInstanse() {}
+
     protected void auditRequest(Operation operation, ResourceType resourceType, SystemUser systemUser,
                               String response) throws InternalServerErrorException {
         if (this.auditRequestsOn) {

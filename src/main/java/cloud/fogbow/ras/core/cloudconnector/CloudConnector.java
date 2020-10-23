@@ -99,4 +99,7 @@ public interface CloudConnector {
      * @throws FogbowException
      */
     void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException;
+
+    //void pauselInstance();
+    //void resumeInstance();
 }
