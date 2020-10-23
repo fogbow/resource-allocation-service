@@ -1,9 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models;
 
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
 import com.google.gson.annotations.SerializedName;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants.*;
 
 /* Documentation reference: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
  * Response example:
@@ -26,7 +24,7 @@ public class CreateComputeResponse {
     }
 
     public class Instance {
-        @SerializedName(GoogleCloudConstants.Compute.TARGET_ID_KEY_JSON)
+        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.TARGET_ID_KEY_JSON)
         private String id;
     }
 }

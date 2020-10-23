@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util;
 
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.GoogleCloudUser;
 import cloud.fogbow.ras.constants.Messages;
@@ -21,6 +22,6 @@ public class GoogleCloudPluginUtils {
     }
 
     public static String getProjectEndpoint(String projectId) {
-        return GoogleCloudConstants.PATH_PROJECT + GoogleCloudConstants.LINE_SEPARATOR + projectId;
+        return cloud.fogbow.common.constants.GoogleCloudConstants.PATH_PROJECT + GoogleCloudConstants.LINE_SEPARATOR + projectId;
     }
 }

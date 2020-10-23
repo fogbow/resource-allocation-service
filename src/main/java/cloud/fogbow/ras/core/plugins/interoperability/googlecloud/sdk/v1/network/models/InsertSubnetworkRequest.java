@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.network.models;
 
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -19,9 +19,9 @@ import com.google.gson.annotations.SerializedName;
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class InsertSubnetworkRequest {
-    @SerializedName(GoogleCloudConstants.Network.NAME_KEY_JSON)
+    @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Network.NAME_KEY_JSON)
     private String name;
-    @SerializedName(GoogleCloudConstants.Network.NETWORK_KEY_JSON)
+    @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Network.NETWORK_KEY_JSON)
     private String network;
     @SerializedName(GoogleCloudConstants.Network.CIDR_KEY_JSON)
     private String ipCidrRange;
