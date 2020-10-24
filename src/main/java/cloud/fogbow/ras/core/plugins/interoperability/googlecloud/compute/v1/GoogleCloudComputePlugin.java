@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.compute.v1;
 
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
@@ -159,7 +160,7 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
 
     private List<CreateComputeRequest.Network> getNetworkIds(String projectId, ComputeOrder computeOrder) {
         List<CreateComputeRequest.Network> networks = new ArrayList<CreateComputeRequest.Network>();
-        addToNetworks(projectId, networks, cloud.fogbow.common.constants.GoogleCloudConstants.Network.DEFAULT_NETWORK_KEY);
+        addToNetworks(projectId, networks, cloud.fogbow.common.constants.GoogleCloudConstants.Network.DEFAULT_NETWORK_NAME);
         for (String networkId : computeOrder.getNetworkIds()) {
             addToNetworks(projectId, networks, networkId);
         }
@@ -222,7 +223,7 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     }
 
     private String getPathWithId(String path, String id) {
-        return path + cloud.fogbow.common.constants.GoogleCloudConstants.LINE_SEPARATOR + id;
+        return path + GoogleCloudConstants.ENDPOINT_SEPARATOR + id;
     }
 
     private String getInstanceEndpoint(String projectId, String instanceId) {
@@ -231,12 +232,12 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     }
 
     private String getZoneEndpoint() {
-        return getPathWithId(cloud.fogbow.common.constants.GoogleCloudConstants.PATH_ZONE, this.zone);
+        return getPathWithId(GoogleCloudConstants.ZONES_ENDPOINT, this.zone);
     }
 
     private String getComputeEndpoint(String projectId) {
         return GoogleCloudPluginUtils.getProjectEndpoint(projectId) + getZoneEndpoint() +
-                cloud.fogbow.common.constants.GoogleCloudConstants.COMPUTE_ENDPOINT;
+                GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT;
     }
 
     private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder) {
@@ -248,7 +249,7 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     }
 
     private String getFlavorId(int vCPU, int ramSize) {
-        return cloud.fogbow.common.constants.GoogleCloudConstants.Compute.CUSTOM_FLAVOR_KEY + "-" + vCPU + "-" + ramSize;
+        return cloud.fogbow.common.constants.GoogleCloudConstants.Compute.CUSTOM_FLAVOR + "-" + vCPU + "-" + ramSize;
     }
 
     private int getSmallestvCPU(int vCPU) {

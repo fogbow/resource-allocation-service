@@ -45,7 +45,7 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
     public GoogleCloudNetworkPlugin(String confFilePath) throws FatalErrorException{
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.networkV1ApiEndpoint = properties.getProperty(GoogleCloudPluginUtils.NETWORK_URL_KEY) +
-                cloud.fogbow.common.constants.GoogleCloudConstants.V1_API_ENDPOINT + cloud.fogbow.common.constants.GoogleCloudConstants.PATH_PROJECT;
+                GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT + GoogleCloudConstants.PROJECT_ENDPOINT;
         setDNSList(properties);
         initClient();
     }
@@ -93,8 +93,8 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
                 .routingMode(DEFAULT_ROUTING_MODE)
                 .build();
 
-        String endPoint = this.networkV1ApiEndpoint + cloud.fogbow.common.constants.GoogleCloudConstants.LINE_SEPARATOR +
-                projectId + cloud.fogbow.common.constants.GoogleCloudConstants.GLOBAL_IP_NETWORK;
+        String endPoint = this.networkV1ApiEndpoint + GoogleCloudConstants.ENDPOINT_SEPARATOR +
+                projectId + GoogleCloudConstants.GLOBAL_NETWORKS_ENDPOINT;
 
         try {
             String response = this.client.doPostRequest(endPoint, insertNetworkRequest.toJson(), cloudUser);
@@ -111,9 +111,9 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
 
         try {
             String jsonRequest = generateJsonEntityToCreateSubnetwork(insertedNetworkUrl, projectId, networkOrder);
-            String endPoint = this.networkV1ApiEndpoint + cloud.fogbow.common.constants.GoogleCloudConstants.LINE_SEPARATOR
-                    + projectId + cloud.fogbow.common.constants.GoogleCloudConstants.REGION_ENDPOINT
-                    + cloud.fogbow.common.constants.GoogleCloudConstants.LINE_SEPARATOR + DEFAULT_SUBNETWORK_REGION + GoogleCloudConstants.SUBNET_ENDPOINT;
+            String endPoint = this.networkV1ApiEndpoint + GoogleCloudConstants.ENDPOINT_SEPARATOR
+                    + projectId + cloud.fogbow.common.constants.GoogleCloudConstants.REGIONS_ENDPOINT
+                    + GoogleCloudConstants.ENDPOINT_SEPARATOR + DEFAULT_SUBNETWORK_REGION + GoogleCloudConstants.SUBNETS_ENDPOINT;
             this.client.doPostRequest(endPoint, jsonRequest, cloudUser);
         }catch (FogbowException fe){
             removeNetwork(insertedNetworkUrl, cloudUser);

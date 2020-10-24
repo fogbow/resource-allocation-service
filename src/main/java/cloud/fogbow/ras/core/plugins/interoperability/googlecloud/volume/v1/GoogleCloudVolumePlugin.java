@@ -62,7 +62,7 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
     @VisibleForTesting
     String getPrefixEndpoint(String projectId) {
         return this.properties.getProperty(GoogleCloudPluginUtils.VOLUME_COMPUTE_URL_KEY) +
-                cloud.fogbow.common.constants.GoogleCloudConstants.COMPUTE_V1_API_ENDPOINT + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId;
+                GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId;
     }
 
     @Override

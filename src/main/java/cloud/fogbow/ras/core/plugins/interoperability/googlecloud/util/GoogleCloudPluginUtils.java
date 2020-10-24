@@ -22,6 +22,6 @@ public class GoogleCloudPluginUtils {
     }
 
     public static String getProjectEndpoint(String projectId) {
-        return cloud.fogbow.common.constants.GoogleCloudConstants.PATH_PROJECT + GoogleCloudConstants.LINE_SEPARATOR + projectId;
+        return GoogleCloudConstants.PROJECT_ENDPOINT + GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId;
     }
 }
