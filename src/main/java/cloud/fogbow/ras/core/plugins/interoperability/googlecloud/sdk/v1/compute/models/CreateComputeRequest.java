@@ -57,15 +57,15 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class Instance {
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.NAME_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.NAME_KEY_JSON)
         private final String name;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
         private final String flavorId;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.DISKS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.DISKS_KEY_JSON)
         private final List<Disk> disks;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
         private final List<Network> networks;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.METADATA_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.METADATA_KEY_JSON)
         private final MetaData metaData;
 
         public Instance(Builder builder) {
@@ -78,9 +78,9 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class Disk {
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.Disk.INITIAL_PARAMS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Disk.INITIAL_PARAMS_KEY_JSON)
         private InicialeParams inicialeParams;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.Disk.INITIAL_PARAMS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Disk.BOOT_KEY_JSON)
         private boolean boot;
 
         public Disk(boolean boot, InicialeParams inicialeParams) {
@@ -90,9 +90,9 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class InicialeParams {
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.Disk.InitializeParams.IMAGE_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Disk.InitializeParams.IMAGE_KEY_JSON)
         private String sourceImageId;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.Disk.InitializeParams.DISK_SIZE_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Disk.InitializeParams.DISK_SIZE_KEY_JSON)
         private int diskSizeGb;
 
         public InicialeParams(String sourceImageId, int diskSizeGb) {
@@ -102,7 +102,7 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class MetaData {
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.Metadata.ITEMS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Metadata.ITEMS_KEY_JSON)
         private List<Item> items;
 
         public MetaData(List<Item> items) {
@@ -111,7 +111,7 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class Item {
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.Metadata.KEY_ITEM_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.Metadata.KEY_ITEM_KEY_JSON)
         private String key;
         @SerializedName(GoogleCloudConstants.Compute.Metadata.VALUE_ITEM_KEY_JSON)
         private String value;
@@ -123,7 +123,7 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class Network {
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Network.NETWORK_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Network.NETWORK_KEY_JSON)
         private String network;
 
         public Network(String network) {
