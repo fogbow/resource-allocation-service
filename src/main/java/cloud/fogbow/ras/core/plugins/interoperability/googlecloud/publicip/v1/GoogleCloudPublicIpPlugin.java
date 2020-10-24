@@ -48,7 +48,7 @@ public class GoogleCloudPublicIpPlugin implements PublicIpPlugin<GoogleCloudUser
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPublicIpEndpoint(projectId) +
-                            cloud.fogbow.common.constants.GoogleCloudConstants.LINE_SEPARATOR +
+                            GoogleCloudConstants.ENDPOINT_SEPARATOR +
                             instanceId;
 
         doDeleteInstance(endpoint, cloudUser);
@@ -65,7 +65,7 @@ public class GoogleCloudPublicIpPlugin implements PublicIpPlugin<GoogleCloudUser
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
 
         String endpoint = getPublicIpEndpoint(projectId) +
-                            cloud.fogbow.common.constants.GoogleCloudConstants.LINE_SEPARATOR +
+                            GoogleCloudConstants.ENDPOINT_SEPARATOR +
                             instanceId;
 
         return doGetInstance(endpoint, cloudUser);

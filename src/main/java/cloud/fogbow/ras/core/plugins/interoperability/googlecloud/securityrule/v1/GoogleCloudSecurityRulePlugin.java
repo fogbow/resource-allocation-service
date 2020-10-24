@@ -83,7 +83,7 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, GoogleCloudUser cloudUser) throws FogbowException {
         String endpoint = this.prefixEndpoint
-                + GoogleCloudConstants.Network.FIREWALL_ENDPOINT;
+                + GoogleCloudConstants.GLOBAL_FIREWALL_ENDPOINT;
         String responseJson = this.client.doGetRequest(endpoint, cloudUser);
         GetFirewallRulesResponse firewallRuleResponse = GetFirewallRulesResponse.fromJson(responseJson);
 
@@ -154,7 +154,7 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
 
     public SecurityRuleInstance getSecurityRule(String securityRuleId, GoogleCloudUser cloudUser) throws FogbowException {
         String endpoint = this.prefixEndpoint
-                + GoogleCloudConstants.Network.FIREWALL_ENDPOINT
+                + GoogleCloudConstants.GLOBAL_FIREWALL_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + securityRuleId;
 
@@ -177,7 +177,7 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
     @Override
     public void deleteSecurityRule(String securityRuleId, GoogleCloudUser cloudUser) throws FogbowException {
         String endpoint = this.prefixEndpoint
-                + GoogleCloudConstants.Network.FIREWALL_ENDPOINT
+                + GoogleCloudConstants.GLOBAL_FIREWALL_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + securityRuleId;
         this.client.doDeleteRequest(endpoint, cloudUser);
