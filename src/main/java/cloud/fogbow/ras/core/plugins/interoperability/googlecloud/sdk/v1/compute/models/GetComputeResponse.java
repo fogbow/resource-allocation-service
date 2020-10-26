@@ -34,17 +34,17 @@ public class GetComputeResponse {
     private Instance instance;
 
     public static class Instance {
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.ID_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.ID_KEY_JSON)
         private String id;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.NAME_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.NAME_KEY_JSON)
         private String name;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
         private String flavorId;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
         private List<Network> addresses;
         @SerializedName(GoogleCloudConstants.Compute.STATUS_KEY_JSON)
         private String status;
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.FAULT_MSG_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.FAULT_MSG_KEY_JSON)
         private String faultMessage;
     }
 
@@ -77,7 +77,7 @@ public class GetComputeResponse {
     }
 
     public static class Network {
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.ADDRESS_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Compute.ADDRESS_KEY_JSON)
         private String address;
 
         public String getAddress() {
