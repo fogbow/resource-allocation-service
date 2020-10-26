@@ -31,4 +31,5 @@ public class ConfigurationPropertyDefaults {
     
     // AUTHORIZATION
     public static final String AUTHORIZATION_ROLES = "";
+    public static final String SUPERUSER_ROLE = "admin";
 }
