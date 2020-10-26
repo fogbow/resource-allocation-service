@@ -1,9 +1,10 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.network.models;
 
+
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants.Network.*;
 
 /**
  * Documentation: https://cloud.google.com/compute/docs/reference/rest/v1/subnetworks/insert
@@ -20,11 +21,12 @@ import static cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.Go
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class InsertSubnetworkRequest {
-    @SerializedName(NAME_KEY_JSON)
+
+    @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Network.NAME_KEY_JSON)
     private String name;
-    @SerializedName(NETWORK_KEY_JSON)
+    @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Network.NETWORK_KEY_JSON)
     private String network;
-    @SerializedName(CIDR_KEY_JSON)
+    @SerializedName(GoogleCloudConstants.Network.CIDR_KEY_JSON)
     private String ipCidrRange;
 
     public InsertSubnetworkRequest(Builder builder){

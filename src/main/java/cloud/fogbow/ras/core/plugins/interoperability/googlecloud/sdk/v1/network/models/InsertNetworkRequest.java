@@ -1,11 +1,12 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.network.models;
 
 
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.network.models.enums.RoutingMode;
 import com.google.gson.annotations.SerializedName;
 
-import static cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants.Network.*;
+
 
 /**
  * Documentation: https://cloud.google.com/compute/docs/reference/rest/v1/networks
@@ -22,11 +23,11 @@ import static cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.Go
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class InsertNetworkRequest {
-    @SerializedName(NAME_KEY_JSON)
+    @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Network.NAME_KEY_JSON)
     private final String name;
-    @SerializedName(AUTO_CREATE_SUBNETS_KEY_JSON)
+    @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Network.AUTO_CREATE_SUBNETS_KEY_JSON)
     private final boolean autoCreateSubnetworks;
-    @SerializedName(ROUTING_CONFIG_KEY_JSON)
+    @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Network.ROUTING_CONFIG_KEY_JSON)
     private final RoutingConfig routingConfig;
 
     public InsertNetworkRequest(RoutingConfig routingConfig, Builder builder){
@@ -41,7 +42,7 @@ public class InsertNetworkRequest {
 
     public static class RoutingConfig {
 
-        @SerializedName(ROUTING_MODE_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Network.ROUTING_MODE_KEY_JSON)
         private final String routingMode;
         private RoutingConfig(Builder builder) {
             this.routingMode = builder.routingMode.getDescription();
