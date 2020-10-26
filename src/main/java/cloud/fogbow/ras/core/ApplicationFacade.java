@@ -120,25 +120,25 @@ public class ApplicationFacade {
 
     public List<String> getCloudNames(String providerId, String userToken) throws FogbowException {
         startOperation();
-        SystemUser requester = authenticate(userToken);
-        RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
-        this.authorizationPlugin.isAuthorized(requester, rasOperation);
-        if (providerId.equals(this.providerId)) {
-            return this.cloudListController.getCloudNames();
-        } else {
-            try {
+        try {
+            SystemUser requester = authenticate(userToken);
+            RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
+            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            if (providerId.equals(this.providerId)) {
+                return this.cloudListController.getCloudNames();
+            } else {
                 RemoteGetCloudNamesRequest remoteGetCloudNames = getCloudNamesFromRemoteRequest(providerId, requester);
                 List<String> cloudNames = remoteGetCloudNames.send();
                 return cloudNames;
-            } catch (FogbowException e) {
-                LOGGER.error(e.toString(), e);
-                throw e;
-            } catch (Exception e) {
-                LOGGER.error(e.toString(), e);
-                throw new InternalServerErrorException(e.getMessage());
-            } finally {
-                finishOperation();
             }
+        } catch (FogbowException e) {
+            LOGGER.error(e.toString(), e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error(e.toString(), e);
+            throw new InternalServerErrorException(e.getMessage());
+        } finally {
+            finishOperation();
         }
     }
 
@@ -530,10 +530,10 @@ public class ApplicationFacade {
         while (this.onGoingRequests != 0)
             ;
         
-        LOGGER.info(Messages.Log.RESETTING_AS_PUBLIC_KEYS);
+        reloadPropertiesHolder();
         reloadASPublicKeys();
-        LOGGER.info(Messages.Log.RESETTING_AUTHORIZATION_PLUGIN);
-        reloadAuthorizationPlugin(); 
+        reloadAuthorizationPlugin();
+        reloadCloudListController();
         SynchronizationManager.getInstance().reload();
     }
 
@@ -549,17 +549,29 @@ public class ApplicationFacade {
         this.onGoingRequests--;
     }
     
+    private void reloadPropertiesHolder() {
+        LOGGER.info(Messages.Log.RESETTING_PROPERTIES_HOLDER);
+        PropertiesHolder.reset();
+    }
+
     private void reloadASPublicKeys() throws FogbowException {
+        LOGGER.info(Messages.Log.RESETTING_AS_PUBLIC_KEYS);
         this.asPublicKey = null;
         RasPublicKeysHolder.reset();
         getAsPublicKey();
     }
-    
+
     private void reloadAuthorizationPlugin() {
+        LOGGER.info(Messages.Log.RESETTING_AUTHORIZATION_PLUGIN);
         String className = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AUTHORIZATION_PLUGIN_CLASS_KEY);
         this.authorizationPlugin = AuthorizationPluginInstantiator.getAuthorizationPlugin(className);
     }
-    
+
+    private void reloadCloudListController() {
+        LOGGER.info(Messages.Log.RESETTING_CLOUD_LIST_CONTROLLER);
+        this.cloudListController = new CloudListController();
+    }
+
     // used for testing only
     protected void setBuildNumber(String fileName) {
         Properties properties = PropertiesUtil.readProperties(fileName);
