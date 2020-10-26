@@ -530,7 +530,10 @@ public class ApplicationFacade {
         while (this.onGoingRequests != 0)
             ;
         
+        LOGGER.info(Messages.Log.RESETTING_AS_PUBLIC_KEYS);
         reloadASPublicKeys();
+        LOGGER.info(Messages.Log.RESETTING_AUTHORIZATION_PLUGIN);
+        reloadAuthorizationPlugin(); 
         SynchronizationManager.getInstance().reload();
     }
 
@@ -550,6 +553,11 @@ public class ApplicationFacade {
         this.asPublicKey = null;
         RasPublicKeysHolder.reset();
         getAsPublicKey();
+    }
+    
+    private void reloadAuthorizationPlugin() {
+        String className = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AUTHORIZATION_PLUGIN_CLASS_KEY);
+        this.authorizationPlugin = AuthorizationPluginInstantiator.getAuthorizationPlugin(className);
     }
     
     // used for testing only

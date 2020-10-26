@@ -42,9 +42,9 @@ public class SynchronizationManager {
     }
 
     private void doReload() {
-        LOGGER.info(Messages.Log.RESETING_PROPERTIES_HOLDER);
+        LOGGER.info(Messages.Log.RESETTING_PROPERTIES_HOLDER);
         PropertiesHolder.reset();
-        LOGGER.info(Messages.Log.RESETING_PROCESSORS_CONFIGURATION);
+        LOGGER.info(Messages.Log.RESETTING_PROCESSORS_CONFIGURATION);
         this.processorsThreadController.reset();
     }
 }
