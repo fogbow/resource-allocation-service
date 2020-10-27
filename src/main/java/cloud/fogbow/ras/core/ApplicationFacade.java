@@ -12,6 +12,7 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.as.core.util.AuthenticationUtil;
+import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -534,6 +535,7 @@ public class ApplicationFacade {
         reloadASPublicKeys();
         reloadAuthorizationPlugin();
         reloadCloudListController();
+        reloadKeys();
         SynchronizationManager.getInstance().reload();
     }
 
@@ -570,6 +572,12 @@ public class ApplicationFacade {
     private void reloadCloudListController() {
         LOGGER.info(Messages.Log.RESETTING_CLOUD_LIST_CONTROLLER);
         this.cloudListController = new CloudListController();
+    }
+    
+    private void reloadKeys() {
+        String publicKeyFilePath = PropertiesHolder.getInstance().getProperty(FogbowConstants.PUBLIC_KEY_FILE_PATH);
+        String privateKeyFilePath = PropertiesHolder.getInstance().getProperty(FogbowConstants.PRIVATE_KEY_FILE_PATH);
+        ServiceAsymmetricKeysHolder.reset(publicKeyFilePath, privateKeyFilePath);
     }
 
     // used for testing only
