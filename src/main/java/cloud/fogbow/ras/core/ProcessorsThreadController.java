@@ -50,7 +50,6 @@ public class ProcessorsThreadController {
                 getProperty(ConfigurationPropertyKeys.CHECKING_DELETION_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.CHECKING_DELETION_ORDERS_SLEEP_TIME);
 
-        // TODO reset this order controller
         this.checkingDeletionProcessor = new CheckingDeletionProcessor(orderController, localProviderId, checkingDeletionOrdersProcSleepTimeStr);
         
         String unableToCheckProcSleepTimeStr = PropertiesHolder.getInstance().
@@ -98,10 +97,29 @@ public class ProcessorsThreadController {
             assignedForDeletionProcessorThread.start();
             remoteOrdersStateSynchronizationProcessorThread.start();
             
+            /*
+             * This line of code treats the unlikely situation where 
+             * a stopRasThreads call is performed right after a startRasThreads call, 
+             * before the processors could change isActive attribute to true.
+             * In this situation, the stop operation would do nothing and the 
+             * processors would continue running.
+             */
+            assureAllProcessorsAreActive();
+            
             this.threadsAreRunning = true;
         } else {
             LOGGER.info(Messages.Log.THREADS_ARE_ALREADY_RUNNING);
         }
+    }
+
+    private void assureAllProcessorsAreActive() {
+        while (!this.openProcessor.isActive());
+        while (!this.spawningProcessor.isActive());
+        while (!this.fulfilledProcessor.isActive());
+        while (!this.checkingDeletionProcessor.isActive());
+        while (!this.unableToCheckStatusProcessor.isActive());
+        while (!this.assignedForDeletionProcessor.isActive());
+        while (!this.remoteOrdersStateSynchronizationProcessor.isActive());
     }
 
     public void stopRasThreads() {

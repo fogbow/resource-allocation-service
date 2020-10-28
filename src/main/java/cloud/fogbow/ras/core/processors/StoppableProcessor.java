@@ -24,9 +24,13 @@ public abstract class StoppableProcessor implements Runnable {
         }
     }
     
+    public boolean isActive() {
+        return isActive;
+    }
+    
     public void stop() {
         this.mustStop = true;
-        while (this.isActive) {
+        while (isActive()) {
             try {
                 // TODO Currently this stop method only works with this sleep
                 // Needs further investigation
@@ -34,8 +38,7 @@ public abstract class StoppableProcessor implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
-
+        }            
         this.mustStop = false;
     }
     

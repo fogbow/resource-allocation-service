@@ -308,10 +308,8 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.processor);
         this.thread.start();
         
-        // This sleep treats a racing condition where the stop is performed before
-        // the processor starts up
-        Thread.sleep(500);
-        
+        while (!this.processor.isActive()) ;
+
         this.processor.stop();
         this.thread.join();
         
