@@ -27,4 +27,5 @@ public class SystemConstants {
     // AUTHORIZATION
     public static final String ROLE_NAMES_SEPARATOR = ",";
     public static final String OPERATION_NAMES_SEPARATOR = ",";
+    public static final String SUPERUSER_ONLY_OPERATIONS = "reload"; 
 }

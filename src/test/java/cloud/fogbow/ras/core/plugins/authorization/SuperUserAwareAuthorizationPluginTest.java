@@ -21,6 +21,7 @@ import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
@@ -42,8 +43,7 @@ public class SuperUserAwareAuthorizationPluginTest {
     private static final String superUserRole = "system_admin";
     private static final String defaultAuthPlugin = "plugin";
     
-    private static ArrayList<Operation> adminOnly;
-    private static String adminOnlyOperationsString;
+    private static ArrayList<String> adminOnly;
     
     private SystemUser user;
     private SystemUser superUser;
@@ -64,14 +64,10 @@ public class SuperUserAwareAuthorizationPluginTest {
         
         Mockito.when(properties.getProperty(ConfigurationPropertyKeys.DEFAULT_AUTH_PLUGIN_KEY)).thenReturn(defaultAuthPlugin);
         
-        adminOnly = new ArrayList<Operation>();
-        adminOnly.add(Operation.RELOAD);
-        adminOnly.add(Operation.DELETE);
-        
-        adminOnlyOperationsString = String.format("%s,%s", adminOnly.get(0).getValue(), 
-                adminOnly.get(1).getValue());
-        
-        Mockito.when(properties.getProperty(ConfigurationPropertyKeys.SUPERUSER_OPERATIONS_KEY)).thenReturn(adminOnlyOperationsString);
+        adminOnly = new ArrayList<String>();
+        for (String operation : SystemConstants.SUPERUSER_ONLY_OPERATIONS.split(SystemConstants.OPERATION_NAMES_SEPARATOR)) {
+            adminOnly.add(operation);
+        }
         
         user = new SystemUser(userId1, userName1, identityProviderId1);
         HashSet<String> userRoles = new HashSet<String>();
@@ -114,7 +110,7 @@ public class SuperUserAwareAuthorizationPluginTest {
         
         for (Operation o : Operation.values()) {
             for (ResourceType r : ResourceType.values()) {
-                if (!adminOnly.contains(o)) {
+                if (!adminOnly.contains(o.getValue())) {
                     RasOperation operation = new RasOperation(o, r);
                     assertTrue(authPlugin.isAuthorized(user, operation));
                     Mockito.verify(defaultPlugin).isAuthorized(user, operation);
@@ -131,14 +127,16 @@ public class SuperUserAwareAuthorizationPluginTest {
         Mockito.when(defaultPlugin.isAuthorized(Mockito.any(), Mockito.any())).thenReturn(true);
         authPlugin.setDefaultPlugin(defaultPlugin);
         
-        for (Operation o : adminOnly) {
+        for (Operation o : Operation.values()) {
             for (ResourceType r : ResourceType.values()) {
-                try {
-                    RasOperation operation = new RasOperation(o, r);
-                    authPlugin.isAuthorized(user, operation);
-                    fail("Expected UnauthorizedRequestException");
-                } catch (UnauthorizedRequestException e) {
-                    
+                if (adminOnly.contains(o.getValue())) {
+                    try {
+                        RasOperation operation = new RasOperation(o, r);
+                        authPlugin.isAuthorized(user, operation);
+                        fail("Expected UnauthorizedRequestException");
+                    } catch (UnauthorizedRequestException e) {
+                        
+                    }
                 }
             }
         }

@@ -26,8 +26,7 @@ public class SuperUserAwareAuthorizationPlugin  implements AuthorizationPlugin<R
     public SuperUserAwareAuthorizationPlugin() {
         classFactory = new ClassFactory();
         superUserOnlyOperations = new ArrayList<String>();
-        String superUserOperationsListString = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SUPERUSER_OPERATIONS_KEY);
-        for (String superUserOperationString : superUserOperationsListString.split(SystemConstants.OPERATION_NAMES_SEPARATOR)) {
+        for (String superUserOperationString : SystemConstants.SUPERUSER_ONLY_OPERATIONS.split(SystemConstants.OPERATION_NAMES_SEPARATOR)) {
             superUserOnlyOperations.add(superUserOperationString.trim());
         }
     }

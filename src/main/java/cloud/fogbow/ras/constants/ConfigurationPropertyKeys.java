@@ -44,5 +44,4 @@ public class ConfigurationPropertyKeys {
     public static final String AUTHORIZATION_ROLES_KEY = "roles";
     public static final String SUPERUSER_ROLE_KEY = "superuser_role";
     public static final String DEFAULT_AUTH_PLUGIN_KEY = "default_auth_plugin_class";
-    public static final String SUPERUSER_OPERATIONS_KEY = "superuser_operations";
 }
