@@ -1,7 +1,9 @@
 package cloud.fogbow.ras.core.plugins.authorization;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.junit.Before;
@@ -40,6 +42,9 @@ public class SuperUserAwareAuthorizationPluginTest {
     private static final String superUserRole = "system_admin";
     private static final String defaultAuthPlugin = "plugin";
     
+    private static ArrayList<Operation> adminOnly;
+    private static String adminOnlyOperationsString;
+    
     private SystemUser user;
     private SystemUser superUser;
     
@@ -58,6 +63,15 @@ public class SuperUserAwareAuthorizationPluginTest {
                 ConfigurationPropertyDefaults.SUPERUSER_ROLE)).thenReturn(superUserRole);
         
         Mockito.when(properties.getProperty(ConfigurationPropertyKeys.DEFAULT_AUTH_PLUGIN_KEY)).thenReturn(defaultAuthPlugin);
+        
+        adminOnly = new ArrayList<Operation>();
+        adminOnly.add(Operation.RELOAD);
+        adminOnly.add(Operation.DELETE);
+        
+        adminOnlyOperationsString = String.format("%s,%s", adminOnly.get(0).getValue(), 
+                adminOnly.get(1).getValue());
+        
+        Mockito.when(properties.getProperty(ConfigurationPropertyKeys.SUPERUSER_OPERATIONS_KEY)).thenReturn(adminOnlyOperationsString);
         
         user = new SystemUser(userId1, userName1, identityProviderId1);
         HashSet<String> userRoles = new HashSet<String>();
@@ -100,7 +114,7 @@ public class SuperUserAwareAuthorizationPluginTest {
         
         for (Operation o : Operation.values()) {
             for (ResourceType r : ResourceType.values()) {
-                if (!o.equals(Operation.RELOAD)) {
+                if (!adminOnly.contains(o)) {
                     RasOperation operation = new RasOperation(o, r);
                     assertTrue(authPlugin.isAuthorized(user, operation));
                     Mockito.verify(defaultPlugin).isAuthorized(user, operation);
@@ -110,15 +124,24 @@ public class SuperUserAwareAuthorizationPluginTest {
     }
     
     // test case: SuperUserAware plugin must throw an exception if a user
-    // without super user role attempts to perform a reload operation
-    @Test(expected = UnauthorizedRequestException.class)
+    // without super user role attempts to perform a super user only operation
+    @Test
     public void testReloadOperationIsNotAllowedForNormalUsers() throws UnauthorizedRequestException {
         defaultPlugin = Mockito.mock(AuthorizationPlugin.class);
         Mockito.when(defaultPlugin.isAuthorized(Mockito.any(), Mockito.any())).thenReturn(true);
         authPlugin.setDefaultPlugin(defaultPlugin);
         
-        RasOperation operation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
-        authPlugin.isAuthorized(user, operation);
+        for (Operation o : adminOnly) {
+            for (ResourceType r : ResourceType.values()) {
+                try {
+                    RasOperation operation = new RasOperation(o, r);
+                    authPlugin.isAuthorized(user, operation);
+                    fail("Expected UnauthorizedRequestException");
+                } catch (UnauthorizedRequestException e) {
+                    
+                }
+            }
+        }
     }
     
     // test case: SuperUserAware plugin authorization must fail by 

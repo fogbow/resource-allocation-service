@@ -1,5 +1,8 @@
 package cloud.fogbow.ras.core.plugins.authorization;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
@@ -9,18 +12,24 @@ import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.ClassFactory;
 import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 
 public class SuperUserAwareAuthorizationPlugin  implements AuthorizationPlugin<RasOperation> {
 
     private ClassFactory classFactory;
     private AuthorizationPlugin<FogbowOperation> defaultPlugin;
-
+    private List<String> superUserOnlyOperations;
+    
     public SuperUserAwareAuthorizationPlugin() {
         classFactory = new ClassFactory();
+        superUserOnlyOperations = new ArrayList<String>();
+        String superUserOperationsListString = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SUPERUSER_OPERATIONS_KEY);
+        for (String superUserOperationString : superUserOperationsListString.split(SystemConstants.OPERATION_NAMES_SEPARATOR)) {
+            superUserOnlyOperations.add(superUserOperationString.trim());
+        }
     }
         
     @Override
@@ -33,14 +42,14 @@ public class SuperUserAwareAuthorizationPlugin  implements AuthorizationPlugin<R
         if (isSuperUser(requester)) {
             return true;
         } else {
-            checkIfIsReloadOperation(operation);
+            checkIfIsSuperUserOperation(operation);
             return defaultPlugin.isAuthorized(requester, operation);            
         }
     }
 
-    private void checkIfIsReloadOperation(RasOperation operation) throws UnauthorizedRequestException {
-        if (operation.getOperationType().equals(Operation.RELOAD)) {
-            throw new UnauthorizedRequestException(Messages.Exception.USER_DOES_NOT_HAVE_REQUIRED_ROLE);
+    private void checkIfIsSuperUserOperation(RasOperation operation) throws UnauthorizedRequestException {
+        if (superUserOnlyOperations.contains(operation.getOperationType().getValue())) {
+            throw new UnauthorizedRequestException(Messages.Exception.USER_DOES_NOT_HAVE_REQUIRED_ROLE);            
         }
     }
     
