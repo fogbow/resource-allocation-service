@@ -9,6 +9,7 @@ public class ApiDocumentation {
     }
 
     public static class Admin {
+        public static final String API = "Manages admin-only operations";
         public static final String RELOAD_OPERATION = "Reloads configuration parameters.";
         
     }
