@@ -21,7 +21,8 @@ public class GoogleCloudAllToOneMapper extends GenericAllToOneSystemToCloudMappe
 	}
 
 	public GoogleCloudUser getCloudUser(Map<String, String> credentials) throws FogbowException {
-		String privateKey = this.getPrivateKey(GoogleCloudConstants.Identity.PRIVATE_KEY_PATH);
+		String privateKeyPath = credentials.get(GoogleCloudConstants.Identity.PRIVATE_KEY_PATH);
+		String privateKey = this.getPrivateKey(privateKeyPath);
 		credentials.put(GoogleCloudConstants.Identity.PRIVATE_KEY, privateKey);
 		return identityProviderPlugin.getCloudUser(credentials);
 	}
