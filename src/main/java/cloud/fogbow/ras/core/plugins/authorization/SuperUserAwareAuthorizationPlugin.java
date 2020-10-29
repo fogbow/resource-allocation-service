@@ -3,41 +3,30 @@ package cloud.fogbow.ras.core.plugins.authorization;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.models.FogbowOperation;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.ClassFactory;
+import cloud.fogbow.ras.core.AuthorizationPluginInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 
 public class SuperUserAwareAuthorizationPlugin  implements AuthorizationPlugin<RasOperation> {
 
-    private ClassFactory classFactory;
-    private AuthorizationPlugin<FogbowOperation> defaultPlugin;
-    private List<String> superUserOnlyOperations;
+    private AuthorizationPlugin<RasOperation> defaultPlugin;
+    private List<Operation> superUserOnlyOperations;
     
     public SuperUserAwareAuthorizationPlugin() {
-        classFactory = new ClassFactory();
-        superUserOnlyOperations = new ArrayList<String>();
-        for (String superUserOperationString : SystemConstants.SUPERUSER_ONLY_OPERATIONS.split(SystemConstants.OPERATION_NAMES_SEPARATOR)) {
-            superUserOnlyOperations.add(superUserOperationString.trim());
-        }
+        superUserOnlyOperations = getSuperUserOnlyOperations();
+        String defaultPluginName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.DEFAULT_AUTH_PLUGIN_KEY);
+        defaultPlugin = AuthorizationPluginInstantiator.getAuthorizationPlugin(defaultPluginName);  
     }
         
     @Override
     public boolean isAuthorized(SystemUser requester, RasOperation operation) throws UnauthorizedRequestException {
-        if (defaultPlugin == null) {
-            String defaultPluginName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.DEFAULT_AUTH_PLUGIN_KEY);
-            defaultPlugin = (AuthorizationPlugin<FogbowOperation>) classFactory.createPluginInstance(defaultPluginName);            
-        }
-        
         if (isSuperUser(requester)) {
             return true;
         } else {
@@ -46,15 +35,16 @@ public class SuperUserAwareAuthorizationPlugin  implements AuthorizationPlugin<R
         }
     }
 
-    private void checkIfIsSuperUserOperation(RasOperation operation) throws UnauthorizedRequestException {
-        if (superUserOnlyOperations.contains(operation.getOperationType().getValue())) {
-            throw new UnauthorizedRequestException(Messages.Exception.USER_DOES_NOT_HAVE_REQUIRED_ROLE);            
-        }
+    private List<Operation> getSuperUserOnlyOperations() {
+        List<Operation> superUserOnlyOperations = new ArrayList<Operation>();
+        superUserOnlyOperations.add(Operation.RELOAD);
+        return superUserOnlyOperations;
     }
     
-    @VisibleForTesting
-    void setDefaultPlugin(AuthorizationPlugin<FogbowOperation> defaultPlugin) {
-        this.defaultPlugin = defaultPlugin; 
+    private void checkIfIsSuperUserOperation(RasOperation operation) throws UnauthorizedRequestException {
+        if (superUserOnlyOperations.contains(operation.getOperationType())) {
+            throw new UnauthorizedRequestException(Messages.Exception.USER_DOES_NOT_HAVE_REQUIRED_ROLE);            
+        }
     }
     
     private boolean isSuperUser(SystemUser requester) {

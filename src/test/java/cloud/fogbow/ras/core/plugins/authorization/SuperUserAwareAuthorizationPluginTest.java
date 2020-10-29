@@ -16,19 +16,18 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.models.FogbowOperation;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.AuthorizationPluginInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(PropertiesHolder.class)
+@PrepareForTest({PropertiesHolder.class, AuthorizationPluginInstantiator.class})
 public class SuperUserAwareAuthorizationPluginTest {
 
     private static String userId1 = "userId1";
@@ -43,14 +42,14 @@ public class SuperUserAwareAuthorizationPluginTest {
     private static final String superUserRole = "system_admin";
     private static final String defaultAuthPlugin = "plugin";
     
-    private static ArrayList<String> adminOnly;
+    private static ArrayList<Operation> adminOnly;
     
     private SystemUser user;
     private SystemUser superUser;
     
     private SuperUserAwareAuthorizationPlugin authPlugin;
     
-    AuthorizationPlugin<FogbowOperation> defaultPlugin;
+    AuthorizationPlugin<RasOperation> defaultPlugin;
     
     @Before
     public void setUp() throws Exception {
@@ -64,10 +63,8 @@ public class SuperUserAwareAuthorizationPluginTest {
         
         Mockito.when(properties.getProperty(ConfigurationPropertyKeys.DEFAULT_AUTH_PLUGIN_KEY)).thenReturn(defaultAuthPlugin);
         
-        adminOnly = new ArrayList<String>();
-        for (String operation : SystemConstants.SUPERUSER_ONLY_OPERATIONS.split(SystemConstants.OPERATION_NAMES_SEPARATOR)) {
-            adminOnly.add(operation);
-        }
+        adminOnly = new ArrayList<Operation>();
+        adminOnly.add(Operation.RELOAD);
         
         user = new SystemUser(userId1, userName1, identityProviderId1);
         HashSet<String> userRoles = new HashSet<String>();
@@ -78,8 +75,6 @@ public class SuperUserAwareAuthorizationPluginTest {
         HashSet<String> superUserRoles = new HashSet<String>();
         superUserRoles.add(superUserRole);
         superUser.setUserRoles(superUserRoles);
-        
-        authPlugin = new SuperUserAwareAuthorizationPlugin();
     }
 
     // test case: the SuperUserAware authorization plugin must not call its default plugin in the
@@ -88,7 +83,11 @@ public class SuperUserAwareAuthorizationPluginTest {
     public void testSuperUserDoesNotRequireAdditionalAuthorization() throws UnauthorizedRequestException {
         defaultPlugin = Mockito.mock(AuthorizationPlugin.class);
         Mockito.when(defaultPlugin.isAuthorized(Mockito.any(), Mockito.any())).thenReturn(true);
-        authPlugin.setDefaultPlugin(defaultPlugin);
+        
+        PowerMockito.mockStatic(AuthorizationPluginInstantiator.class);
+        BDDMockito.given(AuthorizationPluginInstantiator.getAuthorizationPlugin(Mockito.any())).willReturn(defaultPlugin);
+        
+        authPlugin = new SuperUserAwareAuthorizationPlugin();
         
         for (Operation o : Operation.values()) {
             for (ResourceType r : ResourceType.values()) {
@@ -106,11 +105,15 @@ public class SuperUserAwareAuthorizationPluginTest {
     public void testNormalUserRequiresAdditionalAuthorization() throws UnauthorizedRequestException {
         defaultPlugin = Mockito.mock(AuthorizationPlugin.class);
         Mockito.when(defaultPlugin.isAuthorized(Mockito.any(), Mockito.any())).thenReturn(true);
-        authPlugin.setDefaultPlugin(defaultPlugin);
+        
+        PowerMockito.mockStatic(AuthorizationPluginInstantiator.class);
+        BDDMockito.given(AuthorizationPluginInstantiator.getAuthorizationPlugin(Mockito.any())).willReturn(defaultPlugin);
+        
+        authPlugin = new SuperUserAwareAuthorizationPlugin();
         
         for (Operation o : Operation.values()) {
             for (ResourceType r : ResourceType.values()) {
-                if (!adminOnly.contains(o.getValue())) {
+                if (!adminOnly.contains(o)) {
                     RasOperation operation = new RasOperation(o, r);
                     assertTrue(authPlugin.isAuthorized(user, operation));
                     Mockito.verify(defaultPlugin).isAuthorized(user, operation);
@@ -125,11 +128,15 @@ public class SuperUserAwareAuthorizationPluginTest {
     public void testReloadOperationIsNotAllowedForNormalUsers() throws UnauthorizedRequestException {
         defaultPlugin = Mockito.mock(AuthorizationPlugin.class);
         Mockito.when(defaultPlugin.isAuthorized(Mockito.any(), Mockito.any())).thenReturn(true);
-        authPlugin.setDefaultPlugin(defaultPlugin);
+        
+        PowerMockito.mockStatic(AuthorizationPluginInstantiator.class);
+        BDDMockito.given(AuthorizationPluginInstantiator.getAuthorizationPlugin(Mockito.any())).willReturn(defaultPlugin);
+        
+        authPlugin = new SuperUserAwareAuthorizationPlugin();
         
         for (Operation o : Operation.values()) {
             for (ResourceType r : ResourceType.values()) {
-                if (adminOnly.contains(o.getValue())) {
+                if (adminOnly.contains(o)) {
                     try {
                         RasOperation operation = new RasOperation(o, r);
                         authPlugin.isAuthorized(user, operation);
@@ -148,10 +155,14 @@ public class SuperUserAwareAuthorizationPluginTest {
     @Test(expected = UnauthorizedRequestException.class)
     public void testAuthenticationFailsIfDefaultPluginThrowsException() throws UnauthorizedRequestException {
         defaultPlugin = Mockito.mock(AuthorizationPlugin.class);
-        Mockito.when(defaultPlugin.isAuthorized(Mockito.any(), Mockito.any())).thenThrow(UnauthorizedRequestException.class);
-        authPlugin.setDefaultPlugin(defaultPlugin);
+        Mockito.when(defaultPlugin.isAuthorized(Mockito.any(), Mockito.any())).thenReturn(true);
         
-        RasOperation operation = new RasOperation(Operation.DELETE, ResourceType.COMPUTE);
+        PowerMockito.mockStatic(AuthorizationPluginInstantiator.class);
+        BDDMockito.given(AuthorizationPluginInstantiator.getAuthorizationPlugin(Mockito.any())).willReturn(defaultPlugin);
+        
+        authPlugin = new SuperUserAwareAuthorizationPlugin();
+        
+        RasOperation operation = new RasOperation(Operation.RELOAD, ResourceType.COMPUTE);
         authPlugin.isAuthorized(user, operation);
     }
 }
