@@ -11,6 +11,8 @@ import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.*;
 import org.apache.log4j.Logger;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import cloud.fogbow.as.core.util.AuthenticationUtil;
 import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -528,8 +530,13 @@ public class ApplicationFacade {
         
         SynchronizationManager.getInstance().setAsReloading();
         
-        while (this.onGoingRequests != 0)
-            ;
+        while (this.onGoingRequests != 0) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         
         reloadPropertiesHolder();
         reloadASPublicKeys();
@@ -539,7 +546,8 @@ public class ApplicationFacade {
         SynchronizationManager.getInstance().reload();
     }
 
-    private void startOperation() {
+    @VisibleForTesting
+    void startOperation() {
         while (SynchronizationManager.getInstance().isReloading())
             ;
         synchronized (this) {
@@ -547,7 +555,8 @@ public class ApplicationFacade {
         }
     }
 
-    private synchronized void finishOperation() {
+    @VisibleForTesting
+    synchronized void finishOperation() {
         this.onGoingRequests--;
     }
     
