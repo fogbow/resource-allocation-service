@@ -44,6 +44,7 @@ public class Messages {
         public static final String NO_PROJECT_ID = "No projectId in local token.";
         public static final String NO_SECURITY_GROUP_FOUND_S = "There is no security group with the id %s";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
+        public static final String PAUSE_OPERATION_ONGOING = "The virtual Machine is already being paused.";
         public static final String PORT_NOT_FOUND_S = "No port found connecting virtual machine %s to default network %s.";
         public static final String PROVIDERS_DONT_MATCH = "The attachment provider does not match with the compute and/or volume providers.";
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
@@ -52,7 +53,8 @@ public class Messages {
         public static final String REQUEST_INSTANCE_NULL_S = "Request instance id for request %s is null.";
         public static final String RESOURCE_GROUP_LIMIT_EXCEEDED = "Resource group limit exceeded.";
         public static final String RESOURCE_TYPE_NOT_COMPATIBLE_S = "Resource type not compatible with %s request.";
-        public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
+        public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resource type not yet implemented.";
+        public static final String RESUME_OPERATION_ONGOING = "The virtual Machine is already being resumed.";
         public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
         public static final String SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND_S = "There is no security group with name: %s.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER_S_S = "Signalling provider %s is not the provider %s.";
@@ -78,6 +80,8 @@ public class Messages {
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE_S = "Request type %s not supported.";
+        public static final String VIRTUAL_MACHINE_ALREADY_PAUSED = "The Virtual Machine has already been paused.";
+        public static final String VIRTUAL_MACHINE_IS_NOT_RUNNING = "The Virtual Machine is not running.";
         public static final String WRONG_URI_SYNTAX_S = "Wrong syntax for endpoint %s.";
     }
 
