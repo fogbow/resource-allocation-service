@@ -100,6 +100,19 @@ public interface CloudConnector {
      */
     void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException;
 
-    //void pauselInstance();
-    //void resumeInstance();
+    /**
+     * Pause the virtual machine instance associated to the order.
+     *
+     * @param order the order to be paused
+     * @throws FogbowException
+     */
+    void pauselInstance(Order order) throws FogbowException;
+
+    /**
+     * Resume the virtual machine instance associated to the order.
+     *
+     * @param order the order to be resumed
+     * @throws FogbowException
+     */
+    void resumeInstance(Order order) throws FogbowException;
 }
