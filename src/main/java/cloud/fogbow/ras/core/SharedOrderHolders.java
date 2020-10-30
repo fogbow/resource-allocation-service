@@ -29,6 +29,8 @@ public class SharedOrderHolders {
     private SynchronizedDoublyLinkedList<Order> remoteProviderOrders;
     private SynchronizedDoublyLinkedList<Order> assignedForDeletionOrders;
     private SynchronizedDoublyLinkedList<Order> checkingDeletionOrders;
+    private SynchronizedDoublyLinkedList<Order> pausingOrders;
+    private SynchronizedDoublyLinkedList<Order> resumingOrders;
 
     public SharedOrderHolders() {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
@@ -75,6 +77,18 @@ public class SharedOrderHolders {
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.checkingDeletionOrders);
             addOrdersToMap(this.checkingDeletionOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.CHECKING_DELETION, this.activeOrdersMap.size()));
+            addOrdersToMap(this.remoteProviderOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, "REMOTE", this.activeOrdersMap.size()));
+            this.pausingOrders = databaseManager.readActiveOrders(OrderState.PAUSING);
+            moveRemoteProviderOrdersToRemoteProviderOrdersList(this.pausingOrders);//change checkingDeletionOrders
+            addOrdersToMap(this.checkingDeletionOrders, this.activeOrdersMap);//change checkingDeletionOrders
+            LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.PAUSING, this.activeOrdersMap.size()));
+            addOrdersToMap(this.resumingOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, "REMOTE", this.activeOrdersMap.size()));
+            this.resumingOrders = databaseManager.readActiveOrders(OrderState.RESUMING);
+            moveRemoteProviderOrdersToRemoteProviderOrdersList(this.resumingOrders);//change checkingDeletionOrders
+            addOrdersToMap(this.resumingOrders, this.activeOrdersMap);//change checkingDeletionOrders
+            LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.RESUMING, this.activeOrdersMap.size()));
             addOrdersToMap(this.remoteProviderOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, "REMOTE", this.activeOrdersMap.size()));
         } catch (Exception e) {
@@ -128,6 +142,10 @@ public class SharedOrderHolders {
     public SynchronizedDoublyLinkedList<Order> getSpawningOrdersList() {
         return this.spawningOrders;
     }
+
+    public SynchronizedDoublyLinkedList<Order> getPausingOrdersList() { return this.pausingOrders; }
+
+    public SynchronizedDoublyLinkedList<Order> getResumingOrdersList() { return this.resumingOrders; }
 
     public SynchronizedDoublyLinkedList<Order> getFailedAfterSuccessfulRequestOrdersList() {
         return this.failedAfterSuccessfulRequestOrders;
@@ -190,6 +208,10 @@ public class SharedOrderHolders {
             case CHECKING_DELETION:
                 list = SharedOrderHolders.getInstance().getCheckingDeletionOrdersList();
                 break;
+            case PAUSING:
+                list = SharedOrderHolders.getInstance().getPausingOrdersList();
+            case RESUMING:
+                list = SharedOrderHolders.getInstance().getResumingOrdersList();
             default:
                 break;
         }
