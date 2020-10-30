@@ -12,8 +12,6 @@ public class GoogleCloudPluginUtils {
     public static final String PROJECT_NAME_EXAMPLE = "diesel_talon";
     public static final String NETWORK_URL_KEY = "google_cloud_net_url";
 
-    public static final String NETWORK_URL_KEY = "google_cloud_net_url";
-
     public static String getProjectIdFrom(GoogleCloudUser cloudUser) throws InvalidParameterException {
         String projectId = cloudUser.getProjectId();
         if(projectId == null) {
