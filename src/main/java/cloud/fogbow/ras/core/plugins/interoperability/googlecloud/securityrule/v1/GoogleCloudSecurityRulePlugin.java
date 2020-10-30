@@ -10,6 +10,7 @@ import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.securityrule.models.CreateFirewallRuleRequest;
@@ -57,19 +58,20 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
         return response.getId();
     }
 
-    private CreateFirewallRuleRequest buildCreateSecurityRuleRequest(SecurityRule securityRule, Order majorOrder) {
+    public CreateFirewallRuleRequest buildCreateSecurityRuleRequest(SecurityRule securityRule, Order majorOrder, Integer securityRulePriority){
         String name = SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
-        // TODO: Get the network name from the network list. i.e. "/global/network-name"
-        String network = null;
+        String network = ((NetworkOrder) majorOrder).getName();
         String cidr = securityRule.getCidr();
         String direction = securityRule.getDirection().toString();
         String portFrom = String.valueOf(securityRule.getPortFrom());
         String portTo = String.valueOf(securityRule.getPortTo());
         String protocol = securityRule.getProtocol().toString();
+        int priority = securityRulePriority;
 
         CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder()
                 .name(name)
                 .network(network)
+                .priority(priority)
                 .direction(direction)
                 .incomeCidr(cidr)
                 .outcomeCidr(cidr)
@@ -78,6 +80,10 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
                 .build();
 
         return request;
+    }
+    private CreateFirewallRuleRequest buildCreateSecurityRuleRequest(SecurityRule securityRule, Order majorOrder){
+        return buildCreateSecurityRuleRequest(securityRule, majorOrder,
+                GoogleCloudConstants.Network.Firewall.DEFAULT_PRIORITY);
     }
 
     @Override

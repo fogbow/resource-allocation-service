@@ -23,6 +23,8 @@ public class CreateFirewallRuleRequest {
         private String name;
         @SerializedName(GoogleCloudConstants.Network.Firewall.ID_KEY_JSON)
         private String network;
+        @SerializedName(GoogleCloudConstants.Network.Firewall.ID_KEY_JSON)
+        private int priority;
         @SerializedName(GoogleCloudConstants.Network.Firewall.DIRECTION_KEY_JSON)
         private String direction;
         @SerializedName(GoogleCloudConstants.Network.Firewall.CIDR_INCOME_JSON)
@@ -37,6 +39,7 @@ public class CreateFirewallRuleRequest {
         public FirewallRule(Builder builder) {
             this.name = builder.name;
             this.network = builder.network;
+            this.priority = builder.priority;
             this.ipProtocol = builder.ipProtocol;
             this.ports = builder.ports;
             this.direction = builder.direction;
@@ -81,6 +84,7 @@ public class CreateFirewallRuleRequest {
 
         public String name;
         public String network;
+        public int priority;
         private String[] incomeCidr;
         private String[] outcomeCidr;
         public String ipProtocol;
@@ -95,6 +99,10 @@ public class CreateFirewallRuleRequest {
 
         public Builder network(String networkName) {
             this.network = networkName;
+            return this;
+        }
+        public Builder priority(int priority) {
+            this.priority = priority;
             return this;
         }
 

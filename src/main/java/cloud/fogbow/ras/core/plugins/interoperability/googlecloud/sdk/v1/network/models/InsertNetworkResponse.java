@@ -10,6 +10,7 @@ import com.google.gson.annotations.SerializedName;
  * <p>
  * Response Example:
  * {
+ *  "id": 32939284274424
  *  "targetLink": https://www.googleapis.com/compute/v1/projects/chatflutter-5c6ad/global/networks/net1
  * }
  * <p>
@@ -19,14 +20,20 @@ public class InsertNetworkResponse {
 
     @SerializedName(GoogleCloudConstants.Network.TARGET_LINK_KEY_JSON)
     private String targetLink;
+    @SerializedName(GoogleCloudConstants.Network.ID_KEY_JSON)
+    private String id;
 
-    public InsertNetworkResponse(String targetLink){
+    public InsertNetworkResponse(String targetLink, String id){
+
         this.targetLink = targetLink;
+        this.id = id;
     }
 
     public String getTargetLink(){
         return this.targetLink;
     }
+
+    public String getId(){return this.id;}
 
     public String toJson() {
         return GsonHolder.getInstance().toJson(this);
