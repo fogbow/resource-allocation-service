@@ -285,6 +285,25 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
+    public void hibernateInstance(Order order) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, DELETE_INSTANCE_OPERATION, order));
+        CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
+
+        String response = null;
+        try {
+            doDeleteInstance(order, cloudUser);
+            LOGGER.debug(Messages.Log.SUCCESS);
+        } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
+            response = e.getClass().getName();
+            throw e;
+        } finally {
+            auditRequest(Operation.DELETE, order.getType(), order.getSystemUser(), response);
+        }
+    }
+
+    @Override
     public void resumeInstance(Order order) throws FogbowException {
         LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, DELETE_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());

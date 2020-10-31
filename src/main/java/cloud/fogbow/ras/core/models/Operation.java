@@ -7,6 +7,7 @@ public enum Operation {
     DELETE("delete"),
     GET_USER_ALLOCATION("getUserAllocation"),
     PAUSE("pause"),
+    HIBERNATE("hibernate"),
     RESUME("resume");
 
 

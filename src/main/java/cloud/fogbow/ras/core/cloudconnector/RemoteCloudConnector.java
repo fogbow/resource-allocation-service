@@ -176,6 +176,21 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
+    public void hibernateInstance(Order order) throws FogbowException {
+        try {
+            RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
+            remoteDeleteOrderRequest.send();
+        } catch (InstanceNotFoundException e) {
+            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
+            throw e;
+        } catch (Exception e) {
+            String exceptionMessage = e.getMessage();
+            LOGGER.error(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage);
+        }
+    }
+
+    @Override
     public void resumeInstance(Order order) throws FogbowException {
         try {
             RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);

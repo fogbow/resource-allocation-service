@@ -19,6 +19,7 @@ public class Messages {
         public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found.";
         public static final String FAILED_TO_GET_QUOTA = "Failed to get quota.";
         public static final String GENERIC_EXCEPTION_S = Log.GENERIC_EXCEPTION_S;
+        public static final String HIBERNATE_OPERATION_ONGOING = "The virtual Machine is already being hibernated.";
         public static final String IMAGE_NOT_FOUND = "Image not found.";
         public static final String INCORRECT_PROVIDER = "Incorrect provider.";
         public static final String INCORRECT_REQUESTING_PROVIDER = "Mismatch on requesting provider information.";
@@ -80,6 +81,7 @@ public class Messages {
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE_S = "Request type %s not supported.";
+        public static final String VIRTUAL_MACHINE_ALREADY_HIBERNATED = "The Virtual Machine has already been hibernated.";
         public static final String VIRTUAL_MACHINE_ALREADY_PAUSED = "The Virtual Machine has already been paused.";
         public static final String VIRTUAL_MACHINE_IS_NOT_RUNNING = "The Virtual Machine is not running.";
         public static final String WRONG_URI_SYNTAX_S = "Wrong syntax for endpoint %s.";

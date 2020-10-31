@@ -149,6 +149,38 @@ public class OrderController {
         }
     }
 
+    public void hibernateCompute(Order order) throws FogbowException {
+        synchronized (order) {
+            OrderState orderState = order.getOrderState();
+            if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
+                throw new UnacceptableOperationException(String.format(Messages.Exception.DEPENDENCY_DETECTED_S_S,
+                        order.getId(), this.orderDependencies.get(order.getId())));
+
+            } else if (orderState.equals(OrderState.HIBERNATED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_ALREADY_HIBERNATED);
+
+            } else if(orderState.equals(OrderState.HIBERNATING)) {
+                throw new UnacceptableOperationException(Messages.Exception.HIBERNATE_OPERATION_ONGOING);
+
+            } else if (!orderState.equals(OrderState.FULFILLED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
+
+            } else if (order.isProviderRemote(this.localProviderId)) {
+                try {
+                    RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
+                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
+                    remoteCloudConnector.hibernateInstance(order);
+                    OrderStateTransitioner.transitionToRemoteList(order, OrderState.HIBERNATING);
+                } catch (Exception e) {
+                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
+                    throw e;
+                }
+            } else {
+                OrderStateTransitioner.transition(order, OrderState.HIBERNATING);
+            }
+        }
+    }
+
     public void resumeCompute(Order order) throws FogbowException {
         synchronized (order) {
             OrderState orderState = order.getOrderState();

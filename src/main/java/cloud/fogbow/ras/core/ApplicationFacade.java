@@ -322,6 +322,14 @@ public class ApplicationFacade {
         this.orderController.pauseCompute(order);
     }
 
+    public void hibernateCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
+        SystemUser requester = authenticate(userToken);
+        Order order = this.orderController.getOrder(orderId);
+        RasOperation rasOperation = new RasOperation(Operation.HIBERNATE, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester,rasOperation);
+        this.orderController.hibernateCompute(order);
+    }
+
     public void resumeCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);

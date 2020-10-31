@@ -35,7 +35,8 @@ public class ApiDocumentation {
         public static final String GET_BY_ID_OPERATION = "Lists a specific compute instance.";
         public static final String DELETE_OPERATION = "Deletes a specific compute instance.";
         public static final String GET_ALLOCATION = "Gets the current compute allocation for the user on a particular provider.";
-        public static final String PAUSE_OPERATION = "Pause the execution of a specific compute instance.";
+        public static final String PAUSE_OPERATION = "Pause the execution of a specific compute instance storing the state of the VM in memory RAM.";
+        public static final String HIBERNATE_OPERATION = "Pause the execution of a specific compute instance storing the state of the VM on disk.";
         public static final String RESUME_OPERATION = "Resume the execution of a specific compute instance.";
         public static final String ID = "The ID of the specific compute instance.";
         public static final String CREATE_REQUEST_BODY = "The body of the request is quite complex; please, have a look at the model description.";
