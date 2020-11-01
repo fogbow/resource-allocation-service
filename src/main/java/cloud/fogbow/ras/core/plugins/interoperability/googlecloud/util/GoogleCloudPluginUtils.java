@@ -1,12 +1,16 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util;
 
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
 import cloud.fogbow.common.models.GoogleCloudUser;
 import cloud.fogbow.ras.constants.Messages;
 import org.apache.log4j.Logger;
 
 public class GoogleCloudPluginUtils {
-    private static Logger LOGGER = Logger.getLogger(GoogleCloudPluginUtils.class);
+    private static final Logger LOGGER = Logger.getLogger(GoogleCloudPluginUtils.class);
+    public static final String VOLUME_COMPUTE_URL_KEY = "googlecloud_compute_url";
+    public static final String PROJECT_NAME_EXAMPLE = "diesel_talon";
+    public static final String NETWORK_URL_KEY = "google_cloud_net_url";
 
     public static String getProjectIdFrom(GoogleCloudUser cloudUser) throws InvalidParameterException {
         String projectId = cloudUser.getProjectId();
@@ -18,7 +22,6 @@ public class GoogleCloudPluginUtils {
     }
 
     public static String getProjectEndpoint(String projectId) {
-        return GoogleCloudConstants.PATH_PROJECT + GoogleCloudConstants.LINE_SEPARATOR + projectId;
+        return GoogleCloudConstants.PROJECT_ENDPOINT + GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId;
     }
-
 }

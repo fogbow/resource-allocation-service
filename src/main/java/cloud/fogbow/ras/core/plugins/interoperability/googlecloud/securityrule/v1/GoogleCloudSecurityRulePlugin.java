@@ -10,6 +10,7 @@ import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.SecurityRulePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.securityrule.models.CreateFirewallRuleRequest;
@@ -57,19 +58,20 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
         return response.getId();
     }
 
-    private CreateFirewallRuleRequest buildCreateSecurityRuleRequest(SecurityRule securityRule, Order majorOrder) {
+    public CreateFirewallRuleRequest buildCreateSecurityRuleRequest(SecurityRule securityRule, Order majorOrder, Integer securityRulePriority){
         String name = SystemConstants.PN_SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
-        // TODO: Get the network name from the network list. i.e. "/global/network-name"
-        String network = null;
+        String network = ((NetworkOrder) majorOrder).getName();
         String cidr = securityRule.getCidr();
         String direction = securityRule.getDirection().toString();
         String portFrom = String.valueOf(securityRule.getPortFrom());
         String portTo = String.valueOf(securityRule.getPortTo());
         String protocol = securityRule.getProtocol().toString();
+        int priority = securityRulePriority;
 
         CreateFirewallRuleRequest request = new CreateFirewallRuleRequest.Builder()
                 .name(name)
                 .network(network)
+                .priority(priority)
                 .direction(direction)
                 .incomeCidr(cidr)
                 .outcomeCidr(cidr)
@@ -79,11 +81,15 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
 
         return request;
     }
+    private CreateFirewallRuleRequest buildCreateSecurityRuleRequest(SecurityRule securityRule, Order majorOrder){
+        return buildCreateSecurityRuleRequest(securityRule, majorOrder,
+                GoogleCloudConstants.Network.Firewall.DEFAULT_PRIORITY);
+    }
 
     @Override
     public List<SecurityRuleInstance> getSecurityRules(Order majorOrder, GoogleCloudUser cloudUser) throws FogbowException {
         String endpoint = this.prefixEndpoint
-                + GoogleCloudConstants.Network.FIREWALL_ENDPOINT;
+                + GoogleCloudConstants.GLOBAL_FIREWALL_ENDPOINT;
         String responseJson = this.client.doGetRequest(endpoint, cloudUser);
         GetFirewallRulesResponse firewallRuleResponse = GetFirewallRulesResponse.fromJson(responseJson);
 
@@ -154,7 +160,7 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
 
     public SecurityRuleInstance getSecurityRule(String securityRuleId, GoogleCloudUser cloudUser) throws FogbowException {
         String endpoint = this.prefixEndpoint
-                + GoogleCloudConstants.Network.FIREWALL_ENDPOINT
+                + GoogleCloudConstants.GLOBAL_FIREWALL_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + securityRuleId;
 
@@ -177,7 +183,7 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
     @Override
     public void deleteSecurityRule(String securityRuleId, GoogleCloudUser cloudUser) throws FogbowException {
         String endpoint = this.prefixEndpoint
-                + GoogleCloudConstants.Network.FIREWALL_ENDPOINT
+                + GoogleCloudConstants.GLOBAL_FIREWALL_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + securityRuleId;
         this.client.doDeleteRequest(endpoint, cloudUser);

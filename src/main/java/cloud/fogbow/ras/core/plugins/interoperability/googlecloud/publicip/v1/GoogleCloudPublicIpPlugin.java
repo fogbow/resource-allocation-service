@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.publicip.v1;
 
+import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.GoogleCloudUser;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -11,7 +12,6 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.PublicIpPlugin;
 
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.publicip.CreatePublicIpRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudConstants;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudStateMapper;
 import org.apache.log4j.Logger;
@@ -25,7 +25,7 @@ public class GoogleCloudPublicIpPlugin implements PublicIpPlugin<GoogleCloudUser
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
 
-        EtherType etherType = GoogleCloudConstants.SecurityRule.ETHER_TYPE;
+        EtherType etherType = EtherType.IPv4;
 
         CreatePublicIpRequest request = new CreatePublicIpRequest.Builder()
                 .projectId(projectId)
@@ -48,7 +48,7 @@ public class GoogleCloudPublicIpPlugin implements PublicIpPlugin<GoogleCloudUser
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPublicIpEndpoint(projectId) +
-                            GoogleCloudConstants.LINE_SEPARATOR +
+                            GoogleCloudConstants.ENDPOINT_SEPARATOR +
                             instanceId;
 
         doDeleteInstance(endpoint, cloudUser);
@@ -65,7 +65,7 @@ public class GoogleCloudPublicIpPlugin implements PublicIpPlugin<GoogleCloudUser
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
 
         String endpoint = getPublicIpEndpoint(projectId) +
-                            GoogleCloudConstants.LINE_SEPARATOR +
+                            GoogleCloudConstants.ENDPOINT_SEPARATOR +
                             instanceId;
 
         return doGetInstance(endpoint, cloudUser);

@@ -5,7 +5,6 @@ import cloud.fogbow.common.util.GsonHolder;
 
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
-import cloud.fogbow.ras.constants.SystemConstants;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -13,7 +12,7 @@ import java.util.List;
 
 public class GetFirewallRulesResponse {
 
-    @SerializedName(GoogleCloudConstants.Network.FIREWALL_SECURITY_RULES_JSON)
+    @SerializedName(GoogleCloudConstants.Network.Firewall.FIREWALLS_JSON)
     ArrayList<FirewallRule> firewallRules;
 
     public static GetFirewallRulesResponse fromJson(String json) {
@@ -21,23 +20,23 @@ public class GetFirewallRulesResponse {
     }
 
     public static class FirewallRule {
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_ID_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.ID_KEY_JSON)
         private String id;
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_NAME_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.NAME_KEY_JSON)
         private String name;
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_NETWORK_JSON)
+        @SerializedName(GoogleCloudConstants.Network.NETWORK_KEY_JSON)
         private String network;
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_CONNECTION_DIRECTION_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.DIRECTION_KEY_JSON)
         private String direction;
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_CIDR_INCOME_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.CIDR_INCOME_JSON)
         private String[] incomeCidr;
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_CIDR_OUTCOME_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.CIDR_OUTCOME_KEY_JSON)
         private String[] outcomeCidr;
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_ALLOWED_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.ALLOWED_KEY_JSON)
         private Connection connection;
         private String ipProtocol;
         private String[] ports;
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_ETHER_TYPE_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.ETHERTYPE_KEY_JSON)
         private final String ETHERTYPE = EtherType.IPv4.toString();
 
         public String getId() {
@@ -77,9 +76,9 @@ public class GetFirewallRulesResponse {
     }
 
     private static class Connection {
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_ALLOWED_IP_PROTOCOL_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.IP_PROTOCOL_KEY_JSON)
         private String ipProtocol;
-        @SerializedName(GoogleCloudConstants.Network.FIREWALL_ALLOWED_PORT_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.PORT_KEY_JSON)
         private String[] port;
 
         public String getIpProtocol() {
