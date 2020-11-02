@@ -42,6 +42,9 @@ public class LocalCloudConnector implements CloudConnector {
     private static final String GET_IMAGE_OPERATION = "getImage";
     private static final String GET_INSTANCE_OPERATION = "getInstance";
     private static final String GET_QUOTA_OPERATION = "getQuota";
+    private static final String HIBERNATE_INSTANCE_OPERATION = "hibernateInstance";
+    private static final String PAUSE_INSTANCE_OPERATION = "pauseInstance";
+    private static final String RESUME_INSTANCE_OPERATION = "resumeInstance";
     private static final String REQUEST_INSTANCE_OPERATION = "requestInstance";
     private static final String REQUEST_SECURITY_RULES_OPERATION = "requestSecurityRules";
 
@@ -266,59 +269,59 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void pauselInstance(Order order) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, DELETE_INSTANCE_OPERATION, order));
+    public void pauseInstance(Order order) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, PAUSE_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
         LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         String response = null;
         try {
-            doDeleteInstance(order, cloudUser);
+            doPauseInstance(order, cloudUser);
             LOGGER.debug(Messages.Log.SUCCESS);
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.DELETE, order.getType(), order.getSystemUser(), response);
+            auditRequest(Operation.PAUSE, order.getType(), order.getSystemUser(), response);
         }
     }
 
     @Override
     public void hibernateInstance(Order order) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, DELETE_INSTANCE_OPERATION, order));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, HIBERNATE_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
         LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         String response = null;
         try {
-            doDeleteInstance(order, cloudUser);
+            doHibernateInstance(order, cloudUser);
             LOGGER.debug(Messages.Log.SUCCESS);
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.DELETE, order.getType(), order.getSystemUser(), response);
+            auditRequest(Operation.HIBERNATE, order.getType(), order.getSystemUser(), response);
         }
     }
 
     @Override
     public void resumeInstance(Order order) throws FogbowException {
-        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, DELETE_INSTANCE_OPERATION, order));
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, RESUME_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
         LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
 
         String response = null;
         try {
-            doDeleteInstance(order, cloudUser);
+            doResumeInstance(order, cloudUser);
             LOGGER.debug(Messages.Log.SUCCESS);
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
             response = e.getClass().getName();
             throw e;
         } finally {
-            auditRequest(Operation.DELETE, order.getType(), order.getSystemUser(), response);
+            auditRequest(Operation.RESUME, order.getType(), order.getSystemUser(), response);
         }
     }
 
@@ -346,6 +349,48 @@ public class LocalCloudConnector implements CloudConnector {
             // is updated in stable storage, or if the instance has been deleted directly in the cloud
             // without the intervention of the RAS.
             LOGGER.warn(String.format(Messages.Log.INSTANCE_S_ALREADY_DELETED, order.getId()));
+            throw e;
+        }
+    }
+
+    protected void doPauseInstance(Order order, CloudUser cloudUser) throws FogbowException {
+        OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
+        try {
+            if (order.getInstanceId() != null) {
+                plugin.pauseInstance(order, cloudUser);
+            } else {
+                return;
+            }
+        } catch (InstanceNotFoundException e) {
+            LOGGER.warn(String.format(Messages.Log.INSTANCE_S_ALREADY_PAUSED, order.getId()));
+            throw e;
+        }
+    }
+
+    protected void doHibernateInstance(Order order, CloudUser cloudUser) throws FogbowException {
+        OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
+        try {
+            if (order.getInstanceId() != null) {
+                plugin.hibernateInstance(order, cloudUser);
+            } else {
+                return;
+            }
+        } catch (InstanceNotFoundException e) {
+            LOGGER.warn(String.format(Messages.Log.INSTANCE_S_ALREADY_HIBERNATED, order.getId()));
+            throw e;
+        }
+    }
+
+    protected void doResumeInstance(Order order, CloudUser cloudUser) throws FogbowException {
+        OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
+        try {
+            if (order.getInstanceId() != null) {
+                plugin.requestInstance(order, cloudUser);
+            } else {
+                return;
+            }
+        } catch (InstanceNotFoundException e) {
+            LOGGER.warn(String.format(Messages.Log.INSTANCE_S_ALREADY_RUNNING, order.getId()));
             throw e;
         }
     }

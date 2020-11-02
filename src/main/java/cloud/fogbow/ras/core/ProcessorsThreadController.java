@@ -16,6 +16,9 @@ public class ProcessorsThreadController {
     private final Thread failedProcessorThread;
     private final Thread assignedForDeletionProcessorThread;
     private final Thread remoteOrdersStateSynchronizationProcessorThread;
+    private final Thread pausingProcessorThread;
+    private final Thread hibernatingProcessorThread;
+    private final Thread resumingProcessorThread;
 
     private final static String OPEN_PROCESSOR_THREAD_NAME = "open-proc";
     private final static String SPAWNING_PROCESSOR_THREAD_NAME = "spawning-proc";
@@ -24,6 +27,9 @@ public class ProcessorsThreadController {
     private final static String FAILED_PROCESSOR_THREAD_NAME = "failed-proc";
     private final static String ASSIGNED_FOR_DELETION_PROCESSOR_THREAD_NAME = "assigned-for-deletion-proc";
     private final static String REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME = "remote-sync-proc";
+    private final static String PAUSING_PROCESSOR_THREAD_NAME = "remote-sync-proc";
+    private final static String HIBERNATING_PROCESSOR_THREAD_NAME = "remote-sync-proc";
+    private final static String RESUMING_PROCESSOR_THREAD_NAME = "remote-sync-proc";
 
     public ProcessorsThreadController(String localProviderId, OrderController orderController) {
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
@@ -68,6 +74,24 @@ public class ProcessorsThreadController {
 
         RemoteOrdersStateSynchronizationProcessor remoteOrdersStateSynchronizationProcessor = new RemoteOrdersStateSynchronizationProcessor(localProviderId, remoteOrdersStateSynchronizationProcSleepTimeStr);
 
+        String pausingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
+
+        PausingProcessor pausingProcessor = new PausingProcessor(localProviderId, pausingOrdersProcSleepTimeStr);
+
+        String hibernatingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
+
+        HibernatingProcessor hibernatingProcessor = new HibernatingProcessor(localProviderId, hibernatingOrdersProcSleepTimeStr);
+
+        String resumingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
+
+        ResumingProcessor resumingProcessor = new ResumingProcessor(localProviderId, resumingOrdersProcSleepTimeStr);
+
         this.openProcessorThread = new Thread(openProcessor, OPEN_PROCESSOR_THREAD_NAME);
         this.spawningProcessorThread = new Thread(spawningProcessor, SPAWNING_PROCESSOR_THREAD_NAME);
         this.fulfilledProcessorThread = new Thread(fulfilledProcessor, FULFILLED_PROCESSOR_THREAD_NAME);
@@ -75,6 +99,9 @@ public class ProcessorsThreadController {
         this.failedProcessorThread = new Thread(unableToCheckStatusProcessor, FAILED_PROCESSOR_THREAD_NAME);
         this.assignedForDeletionProcessorThread = new Thread(assignedForDeletionProcessor, ASSIGNED_FOR_DELETION_PROCESSOR_THREAD_NAME);
         this.remoteOrdersStateSynchronizationProcessorThread = new Thread(remoteOrdersStateSynchronizationProcessor, REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME);
+        this.pausingProcessorThread = new Thread(pausingProcessor, PAUSING_PROCESSOR_THREAD_NAME);
+        this.hibernatingProcessorThread = new Thread(hibernatingProcessor, HIBERNATING_PROCESSOR_THREAD_NAME);
+        this.resumingProcessorThread = new Thread(resumingProcessor, RESUMING_PROCESSOR_THREAD_NAME);
     }
 
     /**
@@ -90,5 +117,8 @@ public class ProcessorsThreadController {
         this.failedProcessorThread.start();
         this.assignedForDeletionProcessorThread.start();
         this.remoteOrdersStateSynchronizationProcessorThread.start();
+        this.pausingProcessorThread.start();
+        this.hibernatingProcessorThread.start();
+        this.resumingProcessorThread.start();
     }
 }

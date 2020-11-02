@@ -174,6 +174,9 @@ public class Messages {
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: %s.";
         public static final String INSTANCE_S_OPERATIONAL_LOST_MEMORY_FAILURE = "The instance %s had an operational failure due to the memory loss. It might have left trash in the cloud.";
         public static final String INSTANCE_S_ALREADY_DELETED = "Instance %s has already been deleted.";
+        public static final String INSTANCE_S_ALREADY_HIBERNATED = "Instance %s has already been hibernated.";
+        public static final String INSTANCE_S_ALREADY_PAUSED = "Instance %s has already been paused.";
+        public static final String INSTANCE_S_ALREADY_RUNNING = "Instance %s is already running.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE_S = "Invalid list security rule type. Order irregular: %s.";
         public static final String INVALID_NUMBER_FORMAT = "Invalid number format.";

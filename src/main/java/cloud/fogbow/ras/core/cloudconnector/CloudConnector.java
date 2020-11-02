@@ -106,7 +106,7 @@ public interface CloudConnector {
      * @param order the order to be paused
      * @throws FogbowException
      */
-    void pauselInstance(Order order) throws FogbowException;
+    void pauseInstance(Order order) throws FogbowException;
 
     /**
      * Pause the virtual machine instance associated to the order. Storing the state of the VM on disk.

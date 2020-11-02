@@ -161,10 +161,10 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void pauselInstance(Order order) throws FogbowException {
+    public void pauseInstance(Order order) throws FogbowException {
         try {
-            RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
-            remoteDeleteOrderRequest.send();
+            RemotePauseOrderRequest remotePauseOrderRequest = new RemotePauseOrderRequest(order);
+            remotePauseOrderRequest.send();
         } catch (InstanceNotFoundException e) {
             LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
             throw e;
@@ -178,8 +178,8 @@ public class RemoteCloudConnector implements CloudConnector {
     @Override
     public void hibernateInstance(Order order) throws FogbowException {
         try {
-            RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
-            remoteDeleteOrderRequest.send();
+            RemoteHibernateOrderRequest remoteHibernateOrderRequest = new RemoteHibernateOrderRequest(order);
+            remoteHibernateOrderRequest.send();
         } catch (InstanceNotFoundException e) {
             LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
             throw e;
@@ -193,8 +193,8 @@ public class RemoteCloudConnector implements CloudConnector {
     @Override
     public void resumeInstance(Order order) throws FogbowException {
         try {
-            RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
-            remoteDeleteOrderRequest.send();
+            RemoteResumeOrderRequest remoteResumeOrderRequest = new RemoteResumeOrderRequest(order);
+            remoteResumeOrderRequest.send();
         } catch (InstanceNotFoundException e) {
             LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
             throw e;

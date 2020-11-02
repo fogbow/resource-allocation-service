@@ -120,11 +120,8 @@ public class OrderController {
     public void pauseCompute(Order order) throws FogbowException {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
-            if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
-                throw new UnacceptableOperationException(String.format(Messages.Exception.DEPENDENCY_DETECTED_S_S,
-                        order.getId(), this.orderDependencies.get(order.getId())));
 
-            } else if (orderState.equals(OrderState.PAUSED)) {
+            if (orderState.equals(OrderState.PAUSED)) {
                 throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_ALREADY_PAUSED);
 
             } else if(orderState.equals(OrderState.PAUSING)) {
@@ -133,18 +130,14 @@ public class OrderController {
             } else if (!orderState.equals(OrderState.FULFILLED)) {
                 throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
 
-            } else if (order.isProviderRemote(this.localProviderId)) {
+            } else {
                 try {
-                    RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
-                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
-                    remoteCloudConnector.pauselInstance(order);
-                    OrderStateTransitioner.transitionToRemoteList(order, OrderState.PAUSING);
+                    CloudConnector cloudConnector = getCloudConnector(order);
+                    cloudConnector.pauseInstance(order);
                 } catch (Exception e) {
                     LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
                     throw e;
                 }
-            } else {
-                OrderStateTransitioner.transition(order, OrderState.PAUSING);
             }
         }
     }
@@ -152,11 +145,8 @@ public class OrderController {
     public void hibernateCompute(Order order) throws FogbowException {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
-            if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
-                throw new UnacceptableOperationException(String.format(Messages.Exception.DEPENDENCY_DETECTED_S_S,
-                        order.getId(), this.orderDependencies.get(order.getId())));
 
-            } else if (orderState.equals(OrderState.HIBERNATED)) {
+            if (orderState.equals(OrderState.HIBERNATED)) {
                 throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_ALREADY_HIBERNATED);
 
             } else if(orderState.equals(OrderState.HIBERNATING)) {
@@ -165,18 +155,14 @@ public class OrderController {
             } else if (!orderState.equals(OrderState.FULFILLED)) {
                 throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
 
-            } else if (order.isProviderRemote(this.localProviderId)) {
+            } else {
                 try {
-                    RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
-                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
-                    remoteCloudConnector.hibernateInstance(order);
-                    OrderStateTransitioner.transitionToRemoteList(order, OrderState.HIBERNATING);
+                    CloudConnector cloudConnector = getCloudConnector(order);
+                    cloudConnector.hibernateInstance(order);
                 } catch (Exception e) {
                     LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
                     throw e;
                 }
-            } else {
-                OrderStateTransitioner.transition(order, OrderState.HIBERNATING);
             }
         }
     }
@@ -184,28 +170,21 @@ public class OrderController {
     public void resumeCompute(Order order) throws FogbowException {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
-            if (order.isRequesterLocal(this.localProviderId) && hasOrderDependencies(order.getId())) {
-                throw new UnacceptableOperationException(String.format(Messages.Exception.DEPENDENCY_DETECTED_S_S,
-                        order.getId(), this.orderDependencies.get(order.getId())));
 
-            } else if (orderState.equals(OrderState.RESUMING)) {
+            if (orderState.equals(OrderState.RESUMING)) {
                 throw new UnacceptableOperationException(Messages.Exception.RESUME_OPERATION_ONGOING);
 
-            } else if (!orderState.equals(OrderState.PAUSED)) {
+            } else if (!orderState.equals(OrderState.PAUSED) || !orderState.equals(OrderState.HIBERNATED)) {
                 throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
 
-            } else if (order.isProviderRemote(this.localProviderId)) {
+            } else {
                 try {
-                    RemoteCloudConnector remoteCloudConnector = (RemoteCloudConnector)
-                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
-                    remoteCloudConnector.resumeInstance(order);
-                    OrderStateTransitioner.transitionToRemoteList(order, OrderState.RESUMING);
+                    CloudConnector cloudConnector = getCloudConnector(order);
+                    cloudConnector.pauseInstance(order);
                 } catch (Exception e) {
                     LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
                     throw e;
                 }
-            } else {
-                OrderStateTransitioner.transition(order, OrderState.RESUMING);
             }
         }
     }
