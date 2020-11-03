@@ -20,6 +20,10 @@ public class GoogleCloudPublicIpPlugin implements PublicIpPlugin<GoogleCloudUser
 
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudPublicIpPlugin.class);
 
+    public GoogleCloudPublicIpPlugin(String confPathFile) {
+
+    }
+
     @Override
     public String requestInstance(PublicIpOrder publicIpOrder, GoogleCloudUser cloudUser) throws FogbowException {
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
