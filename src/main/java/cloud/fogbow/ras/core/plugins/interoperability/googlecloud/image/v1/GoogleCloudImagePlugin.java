@@ -28,6 +28,8 @@ public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
 	private GoogleCloudHttpClient client;
 	private static final Integer NO_VALUE_FLAG = -1;
 	private static final String URL = "https://compute.googleapis.com/compute/v1";
+	private static final String MAX_RESULT_KEY = "maxResults";
+	private static final int IMAGES_BY_PAGE = 500;
 
 	public GoogleCloudImagePlugin(String confFilePath) {
 		this.properties = PropertiesUtil.readProperties(confFilePath);
@@ -36,8 +38,7 @@ public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
 
 	@Override
 	public List<ImageSummary> getAllImages(GoogleCloudUser cloudUser) throws FogbowException {
-		List<CreateImageResponse> imageList = new ArrayList<>();
-		imageList = this.getImagesResponse(cloudUser, imageList);
+		List<CreateImageResponse> imageList = this.getImagesResponse(cloudUser);
 		return buildImagesInstance(imageList);
 	}
 
@@ -52,30 +53,25 @@ public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
 	CreateImageResponse getImageResponse(String imageId, GoogleCloudUser cloudUser) throws FogbowException {
 		String endPoint = this.getPrefixEndPoint(cloudUser) + GoogleCloudConstants.ENDPOINT_SEPARATOR + imageId;
 		String response = this.client.doGetRequest(endPoint, cloudUser);
-		System.out.println(response);
 		return CreateImageResponse.fromJson(response);
     }
 	
 	@VisibleForTesting
-	List<CreateImageResponse> getImagesResponse(GoogleCloudUser cloudUser, List<CreateImageResponse> imageList) throws FogbowException {
-		String endPoint = this.getPrefixEndPoint(cloudUser);
+	List<CreateImageResponse> getImagesResponse(GoogleCloudUser cloudUser) throws FogbowException {
+		String endPoint = this.getPrefixEndPoint(cloudUser) + GoogleCloudConstants.Image.INTERROGATION_QUERY +
+				MAX_RESULT_KEY + GoogleCloudConstants.Image.EQUAL_QUERY + IMAGES_BY_PAGE;
 		String response = this.client.doGetRequest(endPoint, cloudUser);
-		System.out.println(response);
 		CreateImagesResponse imagesResponse = CreateImagesResponse.fromJson(response);
-		imageList = getNextImageListResponse(cloudUser, imagesResponse, imageList);
-		return imageList;
-    }
-	
-	@VisibleForTesting
-	List<CreateImageResponse> getNextImageListResponse(GoogleCloudUser cloudUser, CreateImagesResponse imagesResponse, 
-    		List<CreateImageResponse> imageList) throws FogbowException {
+		List<CreateImageResponse> imageList = new ArrayList<>();
 		imageList.addAll(imagesResponse.getImages());
-		if (imagesResponse.getNextToken() != null) {
-			String newEndPoint = this.getNextPageEndPoint(cloudUser, imagesResponse.getNextToken());
-			String response = this.client.doGetRequest(newEndPoint, cloudUser);
-			CreateImagesResponse nextImagesResponse = CreateImagesResponse.fromJson(response);
-			imageList = this.getNextImageListResponse(cloudUser, nextImagesResponse, imageList);
+		
+		while (imagesResponse.getNextToken() != null) {
+			endPoint = this.getNextPageEndPoint(cloudUser, imagesResponse.getNextToken());
+			response = this.client.doGetRequest(endPoint, cloudUser);
+			imagesResponse = CreateImagesResponse.fromJson(response);
+			imageList.addAll(imagesResponse.getImages());
 		}
+		
 		return imageList;
     }
 	
