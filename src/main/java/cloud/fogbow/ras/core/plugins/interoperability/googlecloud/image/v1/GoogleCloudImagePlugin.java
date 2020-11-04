@@ -36,28 +36,16 @@ public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
 
 	@Override
 	public List<ImageSummary> getAllImages(GoogleCloudUser cloudUser) throws FogbowException {
-		try {	
-			List<CreateImageResponse> imageList = new ArrayList<>();
-			this.getImagesResponse(cloudUser, imageList);
-			return buildImagesInstance(imageList);
-		} catch (Exception e) {
-			throw new FogbowException(e.getMessage());
-		}
+		List<CreateImageResponse> imageList = new ArrayList<>();
+		imageList = this.getImagesResponse(cloudUser, imageList);
+		return buildImagesInstance(imageList);
 	}
 
 	@Override
 	public ImageInstance getImage(String imageId, GoogleCloudUser cloudUser) throws FogbowException {
-		try {
-			ImageInstance image = null;
-			CreateImageResponse imageResponse = getImageResponse(imageId, cloudUser);
-			if (imageResponse != null) {
-				image = buildImageInstance(imageResponse);
-			}
-			
-			return image;
-		} catch (Exception e) {
-			throw new FogbowException(e.getMessage());
-		}
+		CreateImageResponse imageResponse = getImageResponse(imageId, cloudUser);
+		ImageInstance image = buildImageInstance(imageResponse);
+		return image;
 	}
 	
 	@VisibleForTesting
@@ -69,28 +57,30 @@ public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
     }
 	
 	@VisibleForTesting
-	void getImagesResponse(GoogleCloudUser cloudUser, List<CreateImageResponse> imageList) throws FogbowException {
+	List<CreateImageResponse> getImagesResponse(GoogleCloudUser cloudUser, List<CreateImageResponse> imageList) throws FogbowException {
 		String endPoint = this.getPrefixEndPoint(cloudUser);
 		String response = this.client.doGetRequest(endPoint, cloudUser);
 		System.out.println(response);
 		CreateImagesResponse imagesResponse = CreateImagesResponse.fromJson(response);
-		getNextImageListResponse(cloudUser, imagesResponse, imageList);
+		imageList = getNextImageListResponse(cloudUser, imagesResponse, imageList);
+		return imageList;
     }
 	
 	@VisibleForTesting
-	void getNextImageListResponse(GoogleCloudUser cloudUser, CreateImagesResponse imagesResponse, 
-    		List<CreateImageResponse> imagesList) throws FogbowException {
-		imagesList.addAll(imagesResponse.getImages());
+	List<CreateImageResponse> getNextImageListResponse(GoogleCloudUser cloudUser, CreateImagesResponse imagesResponse, 
+    		List<CreateImageResponse> imageList) throws FogbowException {
+		imageList.addAll(imagesResponse.getImages());
 		if (imagesResponse.getNextToken() != null) {
-			String newEndPoint = this.getNextPage(cloudUser, imagesResponse.getNextToken());
+			String newEndPoint = this.getNextPageEndPoint(cloudUser, imagesResponse.getNextToken());
 			String response = this.client.doGetRequest(newEndPoint, cloudUser);
 			CreateImagesResponse nextImagesResponse = CreateImagesResponse.fromJson(response);
-			this.getNextImageListResponse(cloudUser, nextImagesResponse, imagesList);
+			imageList = this.getNextImageListResponse(cloudUser, nextImagesResponse, imageList);
 		}
+		return imageList;
     }
 	
 	@VisibleForTesting
-	String getNextPage(GoogleCloudUser cloudUser, String token) throws InvalidParameterException {
+	String getNextPageEndPoint(GoogleCloudUser cloudUser, String token) throws InvalidParameterException {
 		String endPoint = this.getPrefixEndPoint(cloudUser) + 
 				GoogleCloudConstants.Image.INTERROGATION_QUERY + 
 				GoogleCloudConstants.Image.NEXT_TOKEN_KEY_QUERY + 
@@ -109,7 +99,7 @@ public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
 	ImageInstance buildImageInstance(CreateImageResponse imageResponse) {
 		ImageInstance image = null;
 		String status = imageResponse.getStatus();
-		if (status != null && status.equals(GoogleCloudConstants.Image.IMAGE_STATUS)) {
+		if (status != null && status.equals(GoogleCloudConstants.Image.IMAGE_STATUS_READY )) {
 			String id = imageResponse.getId();
 			String name = imageResponse.getName();
 			Long size = Long.parseLong(imageResponse.getDiskSize());
@@ -128,21 +118,3 @@ public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
 		return newListImages;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
