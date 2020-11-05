@@ -42,6 +42,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
@@ -538,11 +539,20 @@ public class ApplicationFacade {
             }
         }
         
+        while (!RemoteFacade.getInstance().noOnGoingRequests()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        
         reloadPropertiesHolder();
         reloadASPublicKeys();
         reloadAuthorizationPlugin();
         reloadCloudListController();
         reloadKeys();
+        RemoteFacade.getInstance().reload();
         SynchronizationManager.getInstance().reload();
     }
 

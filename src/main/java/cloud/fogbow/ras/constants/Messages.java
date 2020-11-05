@@ -197,7 +197,9 @@ public class Messages {
         public static final String REQUESTING_TO_CLOUD_S_S = "Requesting to the cloud by the user %s. URL: %s";
         public static final String RESETTING_AS_PUBLIC_KEYS = "Resetting AS public keys.";
         public static final String RESETTING_AUTHORIZATION_PLUGIN = "Resetting authorization plugin.";
+        public static final String RESETTING_AUTHORIZATION_PLUGIN_ON_REMOTE_FACADE = "Resetting authorization plugin on Remote Facade.";
         public static final String RESETTING_CLOUD_LIST_CONTROLLER = "Resetting cloud list controller.";
+        public static final String RESETTING_CLOUD_LIST_CONTROLLER_ON_REMOTE_FACADE = "Resetting cloud list controller on Remote Facade.";
         public static final String RESETTING_PROPERTIES_HOLDER = "Resetting properties holder.";
         public static final String RESETTING_PROCESSORS_CONFIGURATION = "Resetting processors configuration.";
         public static final String RESOURCE_CREATION_FAILED_S = "Resource creation failed: %s";

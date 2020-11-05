@@ -38,6 +38,7 @@ import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
@@ -53,7 +54,7 @@ import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
 
 @PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class, ServiceAsymmetricKeysHolder.class, 
                   SynchronizationManager.class, PropertiesHolder.class, RasPublicKeysHolder.class,
-                  AuthorizationPluginInstantiator.class })
+                  AuthorizationPluginInstantiator.class, RemoteFacade.class })
 public class ApplicationFacadeTest extends BaseUnitTests {
 
     private static final String AUTHORIZATION_PLUGIN = "authorization_plugin";
@@ -1752,6 +1753,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(false).when(syncManager).isReloading();
         BDDMockito.given(SynchronizationManager.getInstance()).willReturn(syncManager);
 
+        // set up RemoteFacade
+        PowerMockito.mockStatic(RemoteFacade.class);
+        RemoteFacade remoteFacade = Mockito.mock(RemoteFacade.class);
+        Mockito.doReturn(true).when(remoteFacade).noOnGoingRequests();
+        BDDMockito.given(RemoteFacade.getInstance()).willReturn(remoteFacade);
+        
         // set up PropertiesHolder 
         PowerMockito.mockStatic(PropertiesHolder.class);
         PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
@@ -1818,6 +1825,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         PowerMockito.verifyStatic(ServiceAsymmetricKeysHolder.class, Mockito.times(TestUtils.RUN_ONCE));
         ServiceAsymmetricKeysHolder.reset(publicKey, privateKey);
         
+        // reloads remote facade
+        Mockito.verify(remoteFacade, Mockito.times(TestUtils.RUN_ONCE)).reload();
+        
         // reloads synchronization manager  
         Mockito.verify(syncManager, Mockito.times(TestUtils.RUN_ONCE)).reload();
     }
@@ -1860,7 +1870,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         PowerMockito.mockStatic(SynchronizationManager.class);
         SynchronizationManager syncManager = Mockito.mock(SynchronizationManager.class);
         BDDMockito.given(SynchronizationManager.getInstance()).willReturn(syncManager);
-
+        
+        // set up RemoteFacade
+        PowerMockito.mockStatic(RemoteFacade.class);
+        RemoteFacade remoteFacade = Mockito.mock(RemoteFacade.class);
+        Mockito.doReturn(true).when(remoteFacade).noOnGoingRequests();
+        BDDMockito.given(RemoteFacade.getInstance()).willReturn(remoteFacade);
+        
         // set up PropertiesHolder 
         PowerMockito.mockStatic(PropertiesHolder.class);
         PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
@@ -1918,6 +1934,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // resets keys
         PowerMockito.verifyStatic(ServiceAsymmetricKeysHolder.class, Mockito.times(TestUtils.RUN_ONCE));
         ServiceAsymmetricKeysHolder.reset(publicKey, privateKey);
+        
+        // reloads remote facade
+        Mockito.verify(remoteFacade, Mockito.times(TestUtils.RUN_ONCE)).reload();
         
         // reloads synchronization manager  
         Mockito.verify(syncManager, Mockito.times(TestUtils.RUN_ONCE)).reload();
