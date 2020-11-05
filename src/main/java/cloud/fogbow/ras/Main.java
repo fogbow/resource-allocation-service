@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.datastore.services.AuditableOrderStateChangeService;
@@ -85,7 +86,7 @@ public class Main implements ApplicationRunner {
 
             String xmpp_enabled = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_ENABLED_KEY,
                     ConfigurationPropertyDefaults.XMPP_ENABLED);
-            if (xmpp_enabled.equals(ConfigurationPropertyDefaults.XMPP_ENABLED)) {
+            if (xmpp_enabled.equals(SystemConstants.XMPP_IS_ENABLED)) {
                 // Starting PacketSender
                 while (true) {
                     try {

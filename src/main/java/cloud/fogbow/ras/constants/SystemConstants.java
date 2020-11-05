@@ -26,4 +26,7 @@ public class SystemConstants {
     
     // AUTHORIZATION
     public static final String ROLE_NAMES_SEPARATOR = ",";
+    
+    // CONFIGURATION
+    public static final String XMPP_IS_ENABLED = "true";
 }
