@@ -19,17 +19,17 @@ First of all, create a directory to organize all fogbow modules/services then cl
 
 ```bash
 mkdir fogbow && cd fogbow
-
 git clone https://github.com/fogbow/common.git
+git clone https://github.com/fogbow/authentication-service.git
+git clone https://github.com/fogbow/resource-allocation-service.git
+
 cd common
 git checkout develop && mvn install -DskipTests
 
-git clone https://github.com/fogbow/authentication-service.git
-cd authentication-service
+cd ../authentication-service
 git checkout develop && mvn install -DskipTests
 
-git clone https://github.com/fogbow/resource-allocation-service.git
-cd resource-allocaton-service
+cd ../resource-allocation-service
 git checkout develop && mvn install -DskipTests
 ```
 
@@ -53,9 +53,14 @@ You don't need to use all the clouds, you can choose which one to use. The cloud
 
 #### private/private.key, private/public.key
 
-If you don't know how to create a public/private key, take a look at [this guide](https://docs.oracle.com/cd/E19683-01/806-4078/6jd6cjru7/index.html).
+```bash
+openssl genrsa -out keypair.pem 2048
+openssl rsa -in keypair.pem -pubout -out public.key
+openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in keypair.pem -out private.key
+rm keypair.pem
+```
 
-After the keys are created, you must put them in `src/main/resources/private/` folder.
+After the keys (private.key and public.key) are created, you must put them in `src/main/resources/private/` folder.
 
 #### private/ras.conf
 

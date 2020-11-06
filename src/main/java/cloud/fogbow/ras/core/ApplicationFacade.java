@@ -353,6 +353,22 @@ public class ApplicationFacade {
         }
     }
 
+    public void pauseCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
+        SystemUser requester = authenticate(userToken);
+        Order order = this.orderController.getOrder(orderId);
+        RasOperation rasOperation = new RasOperation(Operation.PAUSE, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester,rasOperation);
+        this.orderController.pauseCompute(order);
+    }
+
+    public void resumeCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
+        SystemUser requester = authenticate(userToken);
+        Order order = this.orderController.getOrder(orderId);
+        RasOperation rasOperation = new RasOperation(Operation.RESUME, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester,rasOperation);
+        this.orderController.resumeCompute(order);
+    }
+
     // These methods are protected to be used in testing
     
     protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String providerId, SystemUser requester) {
