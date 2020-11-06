@@ -31,45 +31,41 @@ import java.util.List;
 
 public class GetComputeResponse {
 
-    private Instance instance;
-
-    public static class Instance {
-        @SerializedName(GoogleCloudConstants.Compute.ID_KEY_JSON)
-        private String id;
-        @SerializedName(GoogleCloudConstants.Compute.NAME_KEY_JSON)
-        private String name;
-        @SerializedName(GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
-        private String flavorId;
-        @SerializedName(GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
-        private List<Network> addresses;
-        @SerializedName(GoogleCloudConstants.Compute.STATUS_KEY_JSON)
-        private String status;
-        @SerializedName(GoogleCloudConstants.Compute.FAULT_MSG_KEY_JSON)
-        private String faultMessage;
-    }
+    @SerializedName(GoogleCloudConstants.Compute.ID_KEY_JSON)
+    private String id;
+    @SerializedName(GoogleCloudConstants.Compute.NAME_KEY_JSON)
+    private String name;
+    @SerializedName(GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
+    private String flavorId;
+    @SerializedName(GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
+    private List<Network> addresses;
+    @SerializedName(GoogleCloudConstants.Compute.STATUS_KEY_JSON)
+    private String status;
+    @SerializedName(GoogleCloudConstants.Compute.FAULT_MSG_KEY_JSON)
+    private String faultMessage;
 
     public String getId() {
-        return instance.id;
+        return this.id;
     }
 
     public String getName() {
-        return instance.name;
+        return this.name;
     }
 
     public List<Network> getAddresses() {
-        return instance.addresses;
+        return this.addresses;
     }
 
     public String getFlavorId() {
-        return instance.flavorId;
+        return this.flavorId;
     }
 
     public String getStatus() {
-        return instance.status;
+        return this.status;
     }
 
     public String getFaultMessage() {
-        return instance.faultMessage;
+        return this.faultMessage;
     }
 
     public static GetComputeResponse fromJson(String json) {

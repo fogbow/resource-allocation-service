@@ -13,18 +13,15 @@ import com.google.gson.annotations.SerializedName;
 
 public class CreateComputeResponse {
 
-    private Instance instance;
+    @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.TARGET_ID_KEY_JSON)
+    private String id;
 
     public String getId () {
-        return this.instance.id;
+        return this.id;
     }
 
     public static CreateComputeResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, CreateComputeResponse.class);
     }
 
-    public class Instance {
-        @SerializedName(cloud.fogbow.common.constants.GoogleCloudConstants.Compute.TARGET_ID_KEY_JSON)
-        private String id;
-    }
 }
