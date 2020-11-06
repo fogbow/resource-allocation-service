@@ -12,51 +12,26 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-public class UnableToCheckStatusProcessor implements Runnable {
+public class UnableToCheckStatusProcessor extends StoppableProcessor implements Runnable {
 
 	private static final Logger LOGGER = Logger.getLogger(UnableToCheckStatusProcessor.class);
 
 	private ChainedList<Order> unableToCheckStatusOrdersList;
-    /**
-     * Attribute that represents the thread sleep time when there are no orders to be processed.
-     */
-	private Long sleepTime;
 	private String localProviderId;
-
+	
 	public UnableToCheckStatusProcessor(String localProviderId, String sleepTimeStr) {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.unableToCheckStatusOrdersList = sharedOrderHolders.getUnableToCheckStatusOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.localProviderId = localProviderId;
+        this.isActive = false;
+        this.mustStop = false;
     }
 
-    /**
-     * Iterates over the unableToCheckStatus orders list and tries to process one order at a time. When the order
-     * is null, it indicates that the iteration ended. A new iteration is started after some time.
-     */
-	@Override
-	public void run() {
-		boolean isActive = true;
-
-        while (isActive) {
-            try {
-                Order order = this.unableToCheckStatusOrdersList.getNext();
-
-                if (order != null) {
-                    processUnableToCheckStatusOrder(order);
-                } else {
-                    this.unableToCheckStatusOrdersList.resetPointer();
-                    Thread.sleep(this.sleepTime);
-                }
-            } catch (InterruptedException e) {
-                isActive = false;
-                LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (Throwable e) {
-                LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
-            }
-        }
-	}
-
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
+    }
+	
 	/**
 	 * Gets an instance for an order whose instance status could not be checked. If that instance is to be reachable
 	 * again the order state is set to the current status of the instance.
@@ -105,4 +80,19 @@ public class UnableToCheckStatusProcessor implements Runnable {
             }
         }
 	}
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processUnableToCheckStatusOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.unableToCheckStatusOrdersList.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.unableToCheckStatusOrdersList.resetPointer();
+    }
 }

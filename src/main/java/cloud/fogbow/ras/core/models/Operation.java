@@ -6,9 +6,9 @@ public enum Operation {
     GET("get"),
     DELETE("delete"),
     GET_USER_ALLOCATION("getUserAllocation"),
+    RELOAD("reload"),
     PAUSE("pause"),
     RESUME("resume");
-
 
     private String value;
 

@@ -78,6 +78,7 @@ public class Messages {
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE_S = "Request type %s not supported.";
+        public static final String USER_DOES_NOT_HAVE_REQUIRED_ROLE = "User does not have a role required by operation.";
         public static final String WRONG_URI_SYNTAX_S = "Wrong syntax for endpoint %s.";
     }
 
@@ -186,6 +187,7 @@ public class Messages {
         public static final String RECEIVING_GET_CLOUDS_REQUEST = "Get request for cloud names received.";
         public static final String RECEIVING_GET_IMAGE_REQUEST_S = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST_S = "Get request for %s %s received.";
+        public static final String RECEIVING_RELOAD_CONFIGURATION_REQUEST = "Received reload configuration request.";
         public static final String RECEIVING_REMOTE_REQUEST_S = "Received remote request for request: %s.";
         public static final String RECEIVING_RESOURCE_S_REQUEST_S = "Get %s request for provider %s received.";
         public static final String RECOVERING_LIST_OF_ORDERS_S_D = "Recovering requests in %s list: %d requests recovered so far.";
@@ -193,6 +195,13 @@ public class Messages {
         public static final String REQUESTING_GET_ALL_FROM_PROVIDER = "Requesting all images from provider.";
         public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
         public static final String REQUESTING_TO_CLOUD_S_S = "Requesting to the cloud by the user %s. URL: %s";
+        public static final String RESETTING_AS_PUBLIC_KEYS = "Resetting AS public keys.";
+        public static final String RESETTING_AUTHORIZATION_PLUGIN = "Resetting authorization plugin.";
+        public static final String RESETTING_AUTHORIZATION_PLUGIN_ON_REMOTE_FACADE = "Resetting authorization plugin on Remote Facade.";
+        public static final String RESETTING_CLOUD_LIST_CONTROLLER = "Resetting cloud list controller.";
+        public static final String RESETTING_CLOUD_LIST_CONTROLLER_ON_REMOTE_FACADE = "Resetting cloud list controller on Remote Facade.";
+        public static final String RESETTING_PROPERTIES_HOLDER = "Resetting properties holder.";
+        public static final String RESETTING_PROCESSORS_CONFIGURATION = "Resetting processors configuration.";
         public static final String RESOURCE_CREATION_FAILED_S = "Resource creation failed: %s";
         public static final String RESPONSE_RECEIVED_S = "Received response: %s.";
         public static final String SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR = "Second step: Create network security group and associated with the network interface.";
@@ -203,8 +212,11 @@ public class Messages {
         public static final String SETTING_UP_PACKET_SENDER = "Setting up XMPP packet sender.";
         public static final String SLEEP_THREAD_INTERRUPTED = "Thread is not able to sleep.";
         public static final String STARTING_THREADS = "Starting processor threads.";
+        public static final String STOPPING_THREADS = "Stopping processor threads.";
         public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
         public static final String SUCCESS = "Successfully executed operation.";
+        public static final String THREADS_ARE_ALREADY_RUNNING = "Processor threads are already running!";
+        public static final String THREADS_ARE_NOT_RUNNING = "Processor threads are not running!";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";
