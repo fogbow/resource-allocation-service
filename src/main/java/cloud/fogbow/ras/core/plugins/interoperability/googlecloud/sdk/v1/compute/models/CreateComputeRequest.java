@@ -45,10 +45,23 @@ import java.util.List;
 
 public class CreateComputeRequest implements JsonSerializable {
 
-    private Instance instance;
+    @SerializedName(GoogleCloudConstants.Compute.NAME_KEY_JSON)
+    private String name;
+    @SerializedName(GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
+    private String flavorId;
+    @SerializedName(GoogleCloudConstants.Compute.DISKS_KEY_JSON)
+    private List<Disk> disks;
+    @SerializedName(GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
+    private List<Network> networks;
+    @SerializedName(GoogleCloudConstants.Compute.METADATA_KEY_JSON)
+    private MetaData metaData;
 
-    public CreateComputeRequest (Instance instance) {
-        this.instance = instance;
+    public CreateComputeRequest(Builder builder) {
+        this.name = builder.name;
+        this.flavorId = builder.flavorId;
+        this.disks = builder.disks;
+        this.networks = builder.networks;
+        this.metaData = builder.metaData;
     }
 
     @Override
@@ -56,35 +69,17 @@ public class CreateComputeRequest implements JsonSerializable {
         return GsonHolder.getInstance().toJson(this);
     }
 
-    public static class Instance {
-        @SerializedName(GoogleCloudConstants.Compute.NAME_KEY_JSON)
-        private final String name;
-        @SerializedName(GoogleCloudConstants.Compute.FLAVOR_KEY_JSON)
-        private final String flavorId;
-        @SerializedName(GoogleCloudConstants.Compute.DISKS_KEY_JSON)
-        private final List<Disk> disks;
-        @SerializedName(GoogleCloudConstants.Compute.NETWORKS_KEY_JSON)
-        private final List<Network> networks;
-        @SerializedName(GoogleCloudConstants.Compute.METADATA_KEY_JSON)
-        private final MetaData metaData;
-
-        public Instance(Builder builder) {
-            this.name = builder.name;
-            this.flavorId = builder.flavorId;
-            this.disks = builder.disks;
-            this.networks = builder.networks;
-            this.metaData = builder.metaData;
-        }
-    }
-
     public static class Disk {
         @SerializedName(GoogleCloudConstants.Compute.Disk.INITIAL_PARAMS_KEY_JSON)
         private InicialeParams inicialeParams;
         @SerializedName(GoogleCloudConstants.Compute.Disk.BOOT_KEY_JSON)
         private boolean boot;
+        @SerializedName(GoogleCloudConstants.Compute.Disk.AUTO_DELETE_KEY_JSON)
+        private boolean autoDelete;
 
-        public Disk(boolean boot, InicialeParams inicialeParams) {
+        public Disk(boolean boot, boolean autoDelete, InicialeParams inicialeParams) {
             this.boot = boot;
+            this.autoDelete = autoDelete;
             this.inicialeParams = inicialeParams;
         }
     }
@@ -164,8 +159,7 @@ public class CreateComputeRequest implements JsonSerializable {
         }
 
         public CreateComputeRequest build() {
-            Instance instance = new Instance(this);
-            return new CreateComputeRequest(instance);
+            return new CreateComputeRequest(this);
         }
     }
 }
