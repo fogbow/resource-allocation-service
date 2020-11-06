@@ -27,9 +27,9 @@ public class ProcessorsThreadController {
     private final static String FAILED_PROCESSOR_THREAD_NAME = "failed-proc";
     private final static String ASSIGNED_FOR_DELETION_PROCESSOR_THREAD_NAME = "assigned-for-deletion-proc";
     private final static String REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME = "remote-sync-proc";
-    private final static String PAUSING_PROCESSOR_THREAD_NAME = "remote-sync-proc";
-    private final static String HIBERNATING_PROCESSOR_THREAD_NAME = "remote-sync-proc";
-    private final static String RESUMING_PROCESSOR_THREAD_NAME = "remote-sync-proc";
+    private final static String PAUSING_PROCESSOR_THREAD_NAME = "pausing-proc";
+    private final static String HIBERNATING_PROCESSOR_THREAD_NAME = "hibernating-proc";
+    private final static String RESUMING_PROCESSOR_THREAD_NAME = "resuming-proc";
 
     public ProcessorsThreadController(String localProviderId, OrderController orderController) {
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
@@ -75,20 +75,20 @@ public class ProcessorsThreadController {
         RemoteOrdersStateSynchronizationProcessor remoteOrdersStateSynchronizationProcessor = new RemoteOrdersStateSynchronizationProcessor(localProviderId, remoteOrdersStateSynchronizationProcSleepTimeStr);
 
         String pausingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY,
-                        ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
+                getProperty(ConfigurationPropertyKeys.PAUSING_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.PAUSING_ORDERS_SLEEP_TIME);
 
         PausingProcessor pausingProcessor = new PausingProcessor(localProviderId, pausingOrdersProcSleepTimeStr);
 
         String hibernatingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY,
-                        ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
+                getProperty(ConfigurationPropertyKeys.HIBERNATING_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.HIBERNATING_ORDERS_SLEEP_TIME);
 
         HibernatingProcessor hibernatingProcessor = new HibernatingProcessor(localProviderId, hibernatingOrdersProcSleepTimeStr);
 
         String resumingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
-                getProperty(ConfigurationPropertyKeys.OPEN_ORDERS_SLEEP_TIME_KEY,
-                        ConfigurationPropertyDefaults.OPEN_ORDERS_SLEEP_TIME);
+                getProperty(ConfigurationPropertyKeys.RESUMING_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.RESUMING_ORDERS_SLEEP_TIME);
 
         ResumingProcessor resumingProcessor = new ResumingProcessor(localProviderId, resumingOrdersProcSleepTimeStr);
 

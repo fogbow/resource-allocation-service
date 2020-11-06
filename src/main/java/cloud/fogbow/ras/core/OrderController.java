@@ -117,7 +117,7 @@ public class OrderController {
         }
     }
 
-    public void pauseCompute(Order order) throws FogbowException {
+    public void pauseOrder(Order order) throws FogbowException {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
@@ -142,7 +142,7 @@ public class OrderController {
         }
     }
 
-    public void hibernateCompute(Order order) throws FogbowException {
+    public void hibernateOrder(Order order) throws FogbowException {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
@@ -167,7 +167,7 @@ public class OrderController {
         }
     }
 
-    public void resumeCompute(Order order) throws FogbowException {
+    public void resumeOrder(Order order) throws FogbowException {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
