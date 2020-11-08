@@ -8,10 +8,32 @@ import com.google.gson.annotations.SerializedName;
 
 public class CreateFirewallRuleRequest {
 
-    private FirewallRule firewallRule;
+    @SerializedName(GoogleCloudConstants.Network.Firewall.NAME_KEY_JSON)
+    private String name;
+    @SerializedName(GoogleCloudConstants.Network.Firewall.NETWORK_KEY_JSON)
+    private String network;
+    @SerializedName(GoogleCloudConstants.Network.Firewall.DIRECTION_KEY_JSON)
+    private String direction;
+    @SerializedName(GoogleCloudConstants.Network.Firewall.CIDR_INCOME_JSON)
+    private String[] incomeCidr;
+    @SerializedName(GoogleCloudConstants.Network.Firewall.CIDR_OUTCOME_KEY_JSON)
+    private String[] outcomeCidr;
+    @SerializedName(GoogleCloudConstants.Network.Firewall.ALLOWED_KEY_JSON)
+    private CreateFirewallRuleConnection[] allowedConnection;
+    @SerializedName(GoogleCloudConstants.Network.Firewall.DENIED_KEY_JSON)
+    private CreateFirewallRuleConnection[] deniedConnection;
+    @SerializedName(GoogleCloudConstants.Network.Firewall.PRIORITY_KEY_JSON)
+    private int priority;
 
     public CreateFirewallRuleRequest(FirewallRule firewallRule) {
-        this.firewallRule = firewallRule;
+        this.name = firewallRule.name;
+        this.network = firewallRule.network;
+        this.direction = firewallRule. direction;
+        this.incomeCidr = firewallRule.incomeCidr;
+        this.outcomeCidr = firewallRule.outcomeCidr;
+        this.allowedConnection = firewallRule.allowedConnection;
+        this.deniedConnection = firewallRule.deniedConnection;
+        this.priority = firewallRule.priority;
     }
 
     public String toJson() {
@@ -19,64 +41,25 @@ public class CreateFirewallRuleRequest {
     }
 
     private static class FirewallRule {
-        @SerializedName(GoogleCloudConstants.Network.Firewall.NAME_KEY_JSON)
         private String name;
-        @SerializedName(GoogleCloudConstants.Network.Firewall.ID_KEY_JSON)
         private String network;
-        @SerializedName(GoogleCloudConstants.Network.Firewall.ID_KEY_JSON)
-        private int priority;
-        @SerializedName(GoogleCloudConstants.Network.Firewall.DIRECTION_KEY_JSON)
         private String direction;
-        @SerializedName(GoogleCloudConstants.Network.Firewall.CIDR_INCOME_JSON)
         private String[] incomeCidr;
-        @SerializedName(GoogleCloudConstants.Network.Firewall.CIDR_OUTCOME_KEY_JSON)
         private String[] outcomeCidr;
-        @SerializedName(GoogleCloudConstants.Network.Firewall.ALLOWED_KEY_JSON)
-        private Connection connection;
-        private String ipProtocol;
-        private String[] ports;
+        private CreateFirewallRuleConnection[] allowedConnection;
+        private CreateFirewallRuleConnection[] deniedConnection;
+        private int priority;
 
         public FirewallRule(Builder builder) {
             this.name = builder.name;
             this.network = builder.network;
             this.priority = builder.priority;
-            this.ipProtocol = builder.ipProtocol;
-            this.ports = builder.ports;
             this.direction = builder.direction;
-            this.connection = builder.connection;
+            this.allowedConnection = builder.allowedConnection;
+            this.deniedConnection = builder.deniedConnection;
             this.incomeCidr = builder.incomeCidr;
             this.outcomeCidr = builder.outcomeCidr;
-        }
-    }
-
-    private static class Connection {
-        @SerializedName(GoogleCloudConstants.Network.Firewall.IP_PROTOCOL_KEY_JSON)
-        private String ipProtocol;
-        @SerializedName(GoogleCloudConstants.Network.Firewall.PORT_KEY_JSON)
-        private String[] ports;
-
-        private Connection(ConnectionBuilder builder){
-            this.ipProtocol = builder.ipProtocol;
-        }
-    }
-
-    private static class ConnectionBuilder {
-
-        private String ipProtocol;
-        private String[] ports;
-
-        private ConnectionBuilder ipProtocol(String name) {
-            this.ipProtocol = name;
-            return this;
-        }
-
-        private ConnectionBuilder ports(String[] ports) {
-            this.ports = ports;
-            return this;
-        }
-
-        private Connection build() {
-            return new Connection(this);
+            this.priority = builder.priority;
         }
     }
 
@@ -87,10 +70,9 @@ public class CreateFirewallRuleRequest {
         public int priority;
         private String[] incomeCidr;
         private String[] outcomeCidr;
-        public String ipProtocol;
-        public String[] ports;
         public String direction;
-        public Connection connection;
+        private CreateFirewallRuleConnection[] allowedConnection;
+        private CreateFirewallRuleConnection[] deniedConnection;
 
         public Builder name(String name) {
             this.name = name;
@@ -111,7 +93,7 @@ public class CreateFirewallRuleRequest {
             return this;
         }
 
-        public Builder ports(String portFrom, String portTo) {
+        public Builder connection(String portFrom, String portTo, String ipProtocol) {
             String portRange = null;
 
             if(portFrom.equals(portTo)) {
@@ -120,36 +102,29 @@ public class CreateFirewallRuleRequest {
                 portRange = portFrom + "-" + portTo;
             }
 
-            this.ports = new String[]{portRange};
-            return this;
-        }
-
-        public Builder connection() {
-            Connection connection = new ConnectionBuilder()
-                    .ipProtocol(this.ipProtocol)
-                    .ports(this.ports)
+            CreateFirewallRuleConnection connection = new CreateFirewallRuleConnection.ConnectionBuilder()
+                    .ipProtocol(ipProtocol)
+                    .ports(new String[]{portRange})
                     .build();
-
-            this.connection = connection;
+            if(this.direction.equalsIgnoreCase(Direction.IN.toString())) {
+                this.allowedConnection = new CreateFirewallRuleConnection[]{connection};
+            } else if(this.direction.equalsIgnoreCase(Direction.OUT.toString())) {
+                this.deniedConnection = new CreateFirewallRuleConnection[]{connection};
+            }
             return this;
         }
 
         public Builder incomeCidr(String cidr) {
-            if(this.direction.equals(Direction.IN.toString().toUpperCase())) {
+            if(this.direction.equalsIgnoreCase(Direction.IN.toString())) {
                 this.incomeCidr = new String[] {cidr};
             }
             return this;
         }
 
         public Builder outcomeCidr(String cidr) {
-            if(this.direction.equals(Direction.OUT.toString().toUpperCase())) {
+            if(this.direction.equalsIgnoreCase(Direction.OUT.toString())) {
                 this.outcomeCidr = new String[] {cidr};
             }
-            return this;
-        }
-
-        public Builder ipProtocol(String ipProtocol) {
-            this.ipProtocol = ipProtocol;
             return this;
         }
 

@@ -87,6 +87,7 @@ public class Messages {
         public static final String CHANGE_TO_DEFAULT_RESOURCE_GROUP = "Changing to the default resource group.";
         public static final String CONNECTING_UP_PACKET_SENDER = "Connecting XMPP packet sender.";
         public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
+        public static final String CONTENT_SECURITY_GROUP_EMPTY = "The content of SecurityGroups is empty.";
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String DELETING_INSTANCE_S_WITH_TOKEN_S = "Deleting instance %s with token %s.";
         public static final String DELETING_INSTANCE_S = "Deleting instance %s.";
