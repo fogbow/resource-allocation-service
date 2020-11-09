@@ -2,8 +2,6 @@ package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.comput
 
 import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.api.parameters.SecurityRule;
-import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;

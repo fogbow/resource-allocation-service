@@ -7,8 +7,6 @@ import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.api.parameters.SecurityRule.EtherType;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
-
 public class GetFirewallRuleResponse {
 
     public static GetFirewallRuleResponse fromJson(String json) {

@@ -10,12 +10,6 @@ public interface OrderPlugin<R extends OrderInstance, T extends Order, S extends
 
     public void deleteInstance(T Order, S cloudUser) throws FogbowException;
 
-    public void pauseInstance(T Order, S cloudUser) throws FogbowException;
-
-    public void hibernateInstance(T Order, S cloudUser) throws FogbowException;
-
-    public void resumeInstance(T Order, S cloudUser) throws FogbowException;
-
     public R getInstance(T Order, S cloudUser) throws FogbowException;
 
     public boolean isReady(String instanceState);

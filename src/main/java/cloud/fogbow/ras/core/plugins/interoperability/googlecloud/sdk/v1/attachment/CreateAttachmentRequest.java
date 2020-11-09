@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.attachment;
+package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.attachment;
 
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;

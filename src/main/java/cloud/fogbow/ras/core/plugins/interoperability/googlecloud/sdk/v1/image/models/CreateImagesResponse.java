@@ -6,7 +6,6 @@ import com.google.gson.annotations.SerializedName;
 
 import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.image.models.GetImageResponse;
 
 public class CreateImagesResponse {
 	

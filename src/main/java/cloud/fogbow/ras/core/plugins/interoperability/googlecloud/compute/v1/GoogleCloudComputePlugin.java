@@ -9,11 +9,9 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.CreateComputeRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.CreateComputeResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.CreateComputeRequest.*;
 import cloud.fogbow.common.util.connectivity.cloud.googlecloud.GoogleCloudHttpClient;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -24,7 +22,6 @@ import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.GetFirewallRulesResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudStateMapper;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.log4j.Logger;
@@ -63,8 +60,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder);
         String name = computeOrder.getName();
         String flavorId = getFlavorId(hardwareRequirements.getFlavorId());
-        MetaData metaData = getMetaData(computeOrder);
-        List<Disk> disks = getDisks(projectId, computeOrder.getImageId(), hardwareRequirements.getDisk());
+        CreateComputeRequest.MetaData metaData = getMetaData(computeOrder);
+        List<CreateComputeRequest.Disk> disks = getDisks(projectId, computeOrder.getImageId(), hardwareRequirements.getDisk());
         List<CreateComputeRequest.Network> networks = getNetworkIds(projectId, computeOrder);
 
         CreateComputeRequest request = getComputeRequestBody(name, flavorId, metaData, networks, disks);
@@ -100,6 +97,21 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         String endpoint = getPathWithId(computeEndpoint, instanceId);
 
         this.client.doDeleteRequest(endpoint, cloudUser);
+    }
+
+    @Override
+    public void pauseInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void hibernateInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void resumeInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
+        // ToDo: implement
     }
 
     @Override
@@ -155,8 +167,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return computeNetworks;
     }
 
-    private CreateComputeRequest getComputeRequestBody(String name, String flavorId, MetaData metaData,
-                                                       List<CreateComputeRequest.Network> networks, List<Disk> disks) {
+    private CreateComputeRequest getComputeRequestBody(String name, String flavorId, CreateComputeRequest.MetaData metaData,
+                                                       List<CreateComputeRequest.Network> networks, List<CreateComputeRequest.Disk> disks) {
 
         CreateComputeRequest createComputeRequest = new CreateComputeRequest.Builder()
                 .name(name)
@@ -238,43 +250,43 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         networks.add(new CreateComputeRequest.Network(netword));
     }
 
-    private List<Disk> getDisks(String projectId, String imageId, int diskSizeGb) {
-        List<Disk> disks = new ArrayList<Disk>();
-        Disk disk = getDisk(projectId, imageId, diskSizeGb);
+    private List<CreateComputeRequest.Disk> getDisks(String projectId, String imageId, int diskSizeGb) {
+        List<CreateComputeRequest.Disk> disks = new ArrayList<CreateComputeRequest.Disk>();
+        CreateComputeRequest.Disk disk = getDisk(projectId, imageId, diskSizeGb);
         disks.add(disk);
         return disks;
     }
 
-    private Disk getDisk(String projectId, String imageId, int diskSizeGb) {
+    private CreateComputeRequest.Disk getDisk(String projectId, String imageId, int diskSizeGb) {
         String imageSourceId = getImageId(imageId, projectId);
         CreateComputeRequest.InicialeParams initializeParams =
                 new CreateComputeRequest.InicialeParams(imageSourceId, diskSizeGb);
-        return new Disk(GoogleCloudConstants.Compute.Disk.BOOT_DEFAULT_VALUE,
+        return new CreateComputeRequest.Disk(GoogleCloudConstants.Compute.Disk.BOOT_DEFAULT_VALUE,
                 GoogleCloudConstants.Compute.Disk.AUTO_DELETE_DEFAULT_VALUE,
                 initializeParams);
     }
 
-    private MetaData getMetaData(ComputeOrder computeOrder) throws InternalServerErrorException {
-        List<Item> items = new ArrayList<Item>();
-        Item userData = getUserData(computeOrder);
+    private CreateComputeRequest.MetaData getMetaData(ComputeOrder computeOrder) throws InternalServerErrorException {
+        List<CreateComputeRequest.Item> items = new ArrayList<CreateComputeRequest.Item>();
+        CreateComputeRequest.Item userData = getUserData(computeOrder);
         if (userData != null)
             items.add(userData);
 
-        Item publicSSHKey = getPublicSSHKey(computeOrder.getPublicKey());
+        CreateComputeRequest.Item publicSSHKey = getPublicSSHKey(computeOrder.getPublicKey());
         if(publicSSHKey != null)
             items.add(publicSSHKey);
 
-        return new MetaData(items);
+        return new CreateComputeRequest.MetaData(items);
     }
 
-    private Item getPublicSSHKey(String publicKey) {
-        return new Item(GoogleCloudConstants.Compute.PUBLIC_SSH_KEY_JSON, publicKey);
+    private CreateComputeRequest.Item getPublicSSHKey(String publicKey) {
+        return new CreateComputeRequest.Item(GoogleCloudConstants.Compute.PUBLIC_SSH_KEY_JSON, publicKey);
     }
 
-    private Item getUserData(ComputeOrder computeOrder) throws InternalServerErrorException {
+    private CreateComputeRequest.Item getUserData(ComputeOrder computeOrder) throws InternalServerErrorException {
 
         String userDataValue = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-        return new Item(GoogleCloudConstants.Compute.USER_DATA_KEY_JSON, userDataValue);
+        return new CreateComputeRequest.Item(GoogleCloudConstants.Compute.USER_DATA_KEY_JSON, userDataValue);
     }
 
     private String getImageId(String imageId, String projectId) {

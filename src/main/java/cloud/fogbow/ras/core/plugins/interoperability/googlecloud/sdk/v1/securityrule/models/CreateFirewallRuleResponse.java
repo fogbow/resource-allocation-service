@@ -1,8 +1,6 @@
 package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.securityrule.models;
 
-import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.util.GsonHolder;
-import com.google.gson.annotations.SerializedName;
 
 public class CreateFirewallRuleResponse {
     private String id;

@@ -13,7 +13,7 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class ResumingProcessor implements Runnable {
+public class ResumingProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(AssignedForDeletionProcessor.class);
 
     private String localProviderId;
@@ -28,6 +28,12 @@ public class ResumingProcessor implements Runnable {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.resumingOrdersList = sharedOrderHolders.getResumingOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
+        this.isActive = false;
+        this.mustStop = false;
+    }
+
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
     }
 
     /**
@@ -110,5 +116,20 @@ public class ResumingProcessor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
             }
         }
+    }
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processResumingOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.resumingOrdersList.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.resumingOrdersList.resetPointer();
     }
 }

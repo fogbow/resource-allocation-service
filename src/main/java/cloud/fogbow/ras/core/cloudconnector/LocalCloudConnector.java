@@ -354,10 +354,9 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     protected void doPauseInstance(Order order, CloudUser cloudUser) throws FogbowException {
-        OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
         try {
             if (order.getInstanceId() != null) {
-                plugin.pauseInstance(order, cloudUser);
+                this.computePlugin.pauseInstance((ComputeOrder) order, cloudUser);
             } else {
                 return;
             }
@@ -368,10 +367,9 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     protected void doHibernateInstance(Order order, CloudUser cloudUser) throws FogbowException {
-        OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
         try {
             if (order.getInstanceId() != null) {
-                plugin.hibernateInstance(order, cloudUser);
+                this.computePlugin.hibernateInstance((ComputeOrder) order, cloudUser);
             } else {
                 return;
             }

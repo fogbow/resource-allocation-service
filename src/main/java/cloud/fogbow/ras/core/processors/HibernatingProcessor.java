@@ -13,11 +13,11 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class HibernatingProcessor implements Runnable {
+public class HibernatingProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(AssignedForDeletionProcessor.class);
 
     private String localProviderId;
-    private ChainedList<Order> pausingOrdersList;
+    private ChainedList<Order> hibernatingOrdersList;
     /**
      * Attribute that represents the thread sleep time when there are no orders to be processed.
      */
@@ -26,8 +26,14 @@ public class HibernatingProcessor implements Runnable {
     public HibernatingProcessor(String localProviderId, String sleepTimeStr) {
         this.localProviderId = localProviderId;
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.pausingOrdersList = sharedOrderHolders.getPausingOrdersList();
+        this.hibernatingOrdersList = sharedOrderHolders.getHibernatingOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
+        this.isActive = false;
+        this.mustStop = false;
+    }
+
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
     }
 
     /**
@@ -49,12 +55,12 @@ public class HibernatingProcessor implements Runnable {
     @VisibleForTesting
     void assignForDeletion() throws InterruptedException {
         try {
-            Order order = this.pausingOrdersList.getNext();
+            Order order = this.hibernatingOrdersList.getNext();
 
             if (order != null) {
-                processPausingOrder(order);
+                processHibernatingOrder(order);
             } else {
-                this.pausingOrdersList.resetPointer();
+                this.hibernatingOrdersList.resetPointer();
                 Thread.sleep(this.sleepTime);
             }
         } catch (InterruptedException e) {
@@ -76,7 +82,7 @@ public class HibernatingProcessor implements Runnable {
      * @param order {@link Order}
      */
     @VisibleForTesting
-    void processPausingOrder(Order order) throws FogbowException {
+    void processHibernatingOrder(Order order) throws FogbowException {
         // The order object synchronization is needed to prevent a race condition on order access.
         synchronized (order) {
             // Check if the order is still in the ASSIGNED_FOR_DELETION state (for this particular state, this should
@@ -110,5 +116,20 @@ public class HibernatingProcessor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
             }
         }
+    }
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processHibernatingOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.hibernatingOrdersList.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.hibernatingOrdersList.resetPointer();
     }
 }

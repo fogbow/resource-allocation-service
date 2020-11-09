@@ -10,7 +10,6 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.googlecloud.GoogleCloudHttpClient;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.api.parameters.Network;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
