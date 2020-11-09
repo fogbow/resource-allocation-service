@@ -11,9 +11,9 @@ import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.attachment.CreateAttachmentRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.attachment.CreateAttachmentResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.attachment.GetAttachmentResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.attachment.models.CreateAttachmentRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.attachment.models.CreateAttachmentResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.attachment.models.GetAttachmentResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudPluginUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonSyntaxException;
@@ -65,7 +65,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String jsonRequest = generateJsonRequest(volumeSource, device);
         //  TODO - Google Cloud compatible response
         CreateAttachmentResponse response = doRequestInstance(endpoint, jsonRequest, cloudUser);
-        return response.getAttachmentName();
+        return response.getName();
     }
 
 
