@@ -23,6 +23,10 @@ public class PropertiesHolder {
         return instance;
     }
 
+    public static synchronized void reset() {
+        instance = null;
+    }
+
     public String getProperty(String propertyName) {
         return properties.getProperty(propertyName);
     }

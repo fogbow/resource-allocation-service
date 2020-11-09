@@ -7,10 +7,12 @@ import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
@@ -29,11 +31,14 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.NetworkAllocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.PublicIpAllocation;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
+import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
@@ -47,9 +52,15 @@ import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
 
-@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class, ServiceAsymmetricKeysHolder.class, })
+@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class, ServiceAsymmetricKeysHolder.class, 
+                  SynchronizationManager.class, PropertiesHolder.class, RasPublicKeysHolder.class,
+                  AuthorizationPluginInstantiator.class, RemoteFacade.class })
 public class ApplicationFacadeTest extends BaseUnitTests {
 
+    private static final String AUTHORIZATION_PLUGIN = "authorization_plugin";
+    private static final String CLOUD_NAMES = "cloud";
+    private static final String PRIVATE_KEY = "private_key";
+    private static final String PUBLIC_KEY = "public_key";
     private static final String ANY_VALUE = "anything";
 	private static final String BUILD_NUMBER_FORMAT = "%s-abcd";
 	private static final String BUILD_NUMBER_FORMAT_FOR_TESTING = "%s-[testing mode]";
@@ -1719,6 +1730,216 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             // verify
             Assert.assertEquals(expected, e.getMessage());
         }
+    }
+    
+    @Test
+    public void testReloadWithConcurrentOperations() throws FogbowException {
+
+        //
+        // set up
+        //
+        
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        String publicKey = PUBLIC_KEY;
+        String privateKey = PRIVATE_KEY;
+        String cloudNames = CLOUD_NAMES;
+        String authorizationPluginName = AUTHORIZATION_PLUGIN;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
+        
+        // set up SynchronizationManager
+        PowerMockito.mockStatic(SynchronizationManager.class);
+        SynchronizationManager syncManager = Mockito.mock(SynchronizationManager.class);
+        Mockito.doReturn(false).when(syncManager).isReloading();
+        BDDMockito.given(SynchronizationManager.getInstance()).willReturn(syncManager);
+
+        // set up RemoteFacade
+        PowerMockito.mockStatic(RemoteFacade.class);
+        RemoteFacade remoteFacade = Mockito.mock(RemoteFacade.class);
+        Mockito.doReturn(true).when(remoteFacade).noOnGoingRequests();
+        BDDMockito.given(RemoteFacade.getInstance()).willReturn(remoteFacade);
+        
+        // set up PropertiesHolder 
+        PowerMockito.mockStatic(PropertiesHolder.class);
+        PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
+        Mockito.doReturn(publicKey).when(propertiesHolder).getProperty(FogbowConstants.PUBLIC_KEY_FILE_PATH);
+        Mockito.doReturn(privateKey).when(propertiesHolder).getProperty(FogbowConstants.PRIVATE_KEY_FILE_PATH);
+        Mockito.doReturn(cloudNames).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.CLOUD_NAMES_KEY);     
+        Mockito.doReturn(authorizationPluginName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.AUTHORIZATION_PLUGIN_CLASS_KEY);
+        BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
+
+        // set up RasPublicKeysHolder
+        PowerMockito.mockStatic(RasPublicKeysHolder.class);
+        RasPublicKeysHolder publicKeysHolder = Mockito.mock(RasPublicKeysHolder.class);
+        BDDMockito.given(RasPublicKeysHolder.getInstance()).willReturn(publicKeysHolder);
+
+        // set up AuthorizationPluginInstantiator        
+        PowerMockito.mockStatic(AuthorizationPluginInstantiator.class);
+        AuthorizationPlugin<RasOperation> authorizationPlugin = mockAuthorizationPlugin();
+        BDDMockito.given(AuthorizationPluginInstantiator.getAuthorizationPlugin(Mockito.anyString())).willReturn(authorizationPlugin);
+        
+        // set up ServiceAsymmetricKeysHolder
+        PowerMockito.mockStatic(ServiceAsymmetricKeysHolder.class);
+        
+        //         
+        Thread thread = new Thread(new FacadeOperationFinisher(this.facade));
+
+        // Increment the onGoingRequests counter
+        this.facade.startOperation();
+        
+        // Start thread to decrement counter
+        thread.start();
+        
+        // Wait until decrement
+        this.facade.reload(userToken);
+        
+        //
+        // verify
+        //
+        
+        // authenticates
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .authenticate(Mockito.eq(userToken));
+                
+        // authorizes
+        RasOperation expectedOperation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+                
+        // sets as reloading
+        Mockito.verify(syncManager, Mockito.times(TestUtils.RUN_ONCE)).setAsReloading();
+        
+        // resets PropertiesHolder
+        PowerMockito.verifyStatic(PropertiesHolder.class, Mockito.times(TestUtils.RUN_ONCE));
+        PropertiesHolder.reset();
+        
+        // resets AS keys
+        PowerMockito.verifyStatic(RasPublicKeysHolder.class, Mockito.times(TestUtils.RUN_ONCE));
+        RasPublicKeysHolder.reset();
+        
+        // resets authorization plugin
+        PowerMockito.verifyStatic(AuthorizationPluginInstantiator.class, Mockito.times(TestUtils.RUN_ONCE));
+        AuthorizationPluginInstantiator.getAuthorizationPlugin(authorizationPluginName);
+        
+        // resets keys
+        PowerMockito.verifyStatic(ServiceAsymmetricKeysHolder.class, Mockito.times(TestUtils.RUN_ONCE));
+        ServiceAsymmetricKeysHolder.reset(publicKey, privateKey);
+        
+        // reloads remote facade
+        Mockito.verify(remoteFacade, Mockito.times(TestUtils.RUN_ONCE)).reload();
+        
+        // reloads synchronization manager  
+        Mockito.verify(syncManager, Mockito.times(TestUtils.RUN_ONCE)).reload();
+    }
+
+    private class FacadeOperationFinisher implements Runnable {
+
+        private ApplicationFacade facade;
+
+        public FacadeOperationFinisher(ApplicationFacade facade) {
+            this.facade = facade;    
+        }
+
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(1000);
+                this.facade.finishOperation();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Test
+    public void testReloadWithoutConcurrentOperations() throws FogbowException {
+
+        //
+        // set up
+        //
+        
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        String publicKey = PUBLIC_KEY;
+        String privateKey = PRIVATE_KEY;
+        String cloudNames = CLOUD_NAMES;
+        String authorizationPluginName = AUTHORIZATION_PLUGIN;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
+        
+        // set up SynchronizationManager
+        PowerMockito.mockStatic(SynchronizationManager.class);
+        SynchronizationManager syncManager = Mockito.mock(SynchronizationManager.class);
+        BDDMockito.given(SynchronizationManager.getInstance()).willReturn(syncManager);
+        
+        // set up RemoteFacade
+        PowerMockito.mockStatic(RemoteFacade.class);
+        RemoteFacade remoteFacade = Mockito.mock(RemoteFacade.class);
+        Mockito.doReturn(true).when(remoteFacade).noOnGoingRequests();
+        BDDMockito.given(RemoteFacade.getInstance()).willReturn(remoteFacade);
+        
+        // set up PropertiesHolder 
+        PowerMockito.mockStatic(PropertiesHolder.class);
+        PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
+        Mockito.doReturn(publicKey).when(propertiesHolder).getProperty(FogbowConstants.PUBLIC_KEY_FILE_PATH);
+        Mockito.doReturn(privateKey).when(propertiesHolder).getProperty(FogbowConstants.PRIVATE_KEY_FILE_PATH);
+        Mockito.doReturn(cloudNames).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.CLOUD_NAMES_KEY);     
+        Mockito.doReturn(authorizationPluginName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.AUTHORIZATION_PLUGIN_CLASS_KEY);
+        BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
+
+        // set up RasPublicKeysHolder
+        PowerMockito.mockStatic(RasPublicKeysHolder.class);
+        RasPublicKeysHolder publicKeysHolder = Mockito.mock(RasPublicKeysHolder.class);
+        BDDMockito.given(RasPublicKeysHolder.getInstance()).willReturn(publicKeysHolder);
+
+        // set up AuthorizationPluginInstantiator        
+        PowerMockito.mockStatic(AuthorizationPluginInstantiator.class);
+        AuthorizationPlugin<RasOperation> authorizationPlugin = mockAuthorizationPlugin();
+        BDDMockito.given(AuthorizationPluginInstantiator.getAuthorizationPlugin(Mockito.anyString())).willReturn(authorizationPlugin);
+        
+        // set up ServiceAsymmetricKeysHolder
+        PowerMockito.mockStatic(ServiceAsymmetricKeysHolder.class);
+        
+        
+        this.facade.reload(userToken);
+
+
+        //
+        // verify
+        //
+        
+        // authenticates
+        Mockito.verify(this.facade, Mockito.times(TestUtils.RUN_ONCE))
+                .authenticate(Mockito.eq(userToken));
+                
+        // authorizes
+        RasOperation expectedOperation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
+        Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
+                Mockito.eq(expectedOperation));
+                
+        // sets as reloading
+        Mockito.verify(syncManager, Mockito.times(TestUtils.RUN_ONCE)).setAsReloading();
+        
+        // resets PropertiesHolder
+        PowerMockito.verifyStatic(PropertiesHolder.class, Mockito.times(TestUtils.RUN_ONCE));
+        PropertiesHolder.reset();
+        
+        // resets AS keys
+        PowerMockito.verifyStatic(RasPublicKeysHolder.class, Mockito.times(TestUtils.RUN_ONCE));
+        RasPublicKeysHolder.reset();
+        
+        // resets authorization plugin
+        PowerMockito.verifyStatic(AuthorizationPluginInstantiator.class, Mockito.times(TestUtils.RUN_ONCE));
+        AuthorizationPluginInstantiator.getAuthorizationPlugin(authorizationPluginName);
+        
+        // resets keys
+        PowerMockito.verifyStatic(ServiceAsymmetricKeysHolder.class, Mockito.times(TestUtils.RUN_ONCE));
+        ServiceAsymmetricKeysHolder.reset(publicKey, privateKey);
+        
+        // reloads remote facade
+        Mockito.verify(remoteFacade, Mockito.times(TestUtils.RUN_ONCE)).reload();
+        
+        // reloads synchronization manager  
+        Mockito.verify(syncManager, Mockito.times(TestUtils.RUN_ONCE)).reload();
     }
 
     private ArrayList<UserData> generateVeryLongUserDataFileContent() {

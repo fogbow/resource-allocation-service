@@ -24,7 +24,7 @@ public class GetFirewallRulesResponse {
         private String id;
         @SerializedName(GoogleCloudConstants.Network.Firewall.NAME_KEY_JSON)
         private String name;
-        @SerializedName(GoogleCloudConstants.Network.NETWORK_KEY_JSON)
+        @SerializedName(GoogleCloudConstants.Network.Firewall.NETWORK_KEY_JSON)
         private String network;
         @SerializedName(GoogleCloudConstants.Network.Firewall.DIRECTION_KEY_JSON)
         private String direction;
@@ -33,9 +33,9 @@ public class GetFirewallRulesResponse {
         @SerializedName(GoogleCloudConstants.Network.Firewall.CIDR_OUTCOME_KEY_JSON)
         private String[] outcomeCidr;
         @SerializedName(GoogleCloudConstants.Network.Firewall.ALLOWED_KEY_JSON)
-        private Connection connection;
-        private String ipProtocol;
-        private String[] ports;
+        private Connection[] allowedConnection;
+        @SerializedName(GoogleCloudConstants.Network.Firewall.DENIED_KEY_JSON)
+        private Connection[] deniedConnection;
         @SerializedName(GoogleCloudConstants.Network.Firewall.ETHERTYPE_KEY_JSON)
         private final String ETHERTYPE = EtherType.IPv4.toString();
 
@@ -49,22 +49,21 @@ public class GetFirewallRulesResponse {
             return this.network;
         }
         public String getCidr() {
-            String[] cidr = null;
-            if(this.getDirection().equals(SecurityRule.Direction.IN)) {
-                cidr = this.incomeCidr;
-            } else {
-                cidr = this.outcomeCidr;
-            }
-            return cidr[0];
+            return this.getDirection().equalsIgnoreCase(SecurityRule.Direction.IN.toString()) ? this.incomeCidr[0] : this.outcomeCidr[0];
         }
-        public Connection[] getConnection() {
-            return new Connection[] {this.connection};
+        public Connection[] getAllowedConnection() {
+            return this.allowedConnection;
+        }
+        public Connection[] getDeniedConnection() {
+            return this.deniedConnection;
         }
         public String getIpProtocol() {
-            return this.connection.getIpProtocol();
+            return this.getDirection().equalsIgnoreCase(SecurityRule.Direction.IN.toString()) ? this.allowedConnection[0].getIpProtocol() :
+                                                                                                this.deniedConnection[0].getIpProtocol();
         }
         public String getPort() {
-            return this.connection.getPort();
+            return this.getDirection().equalsIgnoreCase(SecurityRule.Direction.IN.toString()) ? this.allowedConnection[0].getPort() :
+                                                                                                this.deniedConnection[0].getPort();
         }
         public String getDirection() {
             return this.direction;

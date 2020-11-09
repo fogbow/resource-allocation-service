@@ -27,11 +27,15 @@ public class ConfigurationPropertyDefaults {
     public static final String BUILD_NUMBER = "[testing mode]";
 
     // INTERCOMPONENT CONF DEFAULT
-    public static final String XMPP_ENABLED = "true";
+    public static final String XMPP_ENABLED = SystemConstants.XMPP_IS_ENABLED;
     public static final String XMPP_TIMEOUT = Long.toString(TimeUnit.SECONDS.toMillis(5));
     // reference value is 5 seconds
     public static final String XMPP_CSC_PORT = Integer.toString(5347);
 
     // SSH CONF DEFAULTS
     public static final String SSH_COMMON_USER = "fogbow";
+    
+    // AUTHORIZATION
+    public static final String AUTHORIZATION_ROLES = "";
+    public static final String SUPERUSER_ROLE = "admin";
 }

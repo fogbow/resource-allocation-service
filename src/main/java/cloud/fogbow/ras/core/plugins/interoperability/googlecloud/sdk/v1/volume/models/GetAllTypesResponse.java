@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume;
+package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.volume.models;
 
 import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
@@ -15,21 +15,22 @@ import java.util.List;
  *   "items": [
  *         {
  *             "name": "pd-standard",
- *             "description": "Standard Persistent Disk"
- *             validDiskSize: "10GB-65536GB"
+ *             "description": "Standard Persistent Disk",
+ *             "validDiskSize": "10GB-65536GB",
+ *             "selfLink": ""
  *         },
  *         {
  *             "name": "pd-ssd",
- *             "description": "SSD Persistent Disk"
- *             validDiskSize: "10GB-65536GB"
+ *             "description": "SSD Persistent Disk",
+ *             "validDiskSize": "10GB-65536GB",
+ *             "selfLink": ""
  *         }
  *     ]
  * }
  */
-
-//TODO
 public class GetAllTypesResponse {
-    @SerializedName(VOLUME_KEY_JSON)
+
+    @SerializedName(ITEMS_KEY_JSON)
     private List<Type> types;
 
     public static GetAllTypesResponse fromJson(String json) {
@@ -47,6 +48,9 @@ public class GetAllTypesResponse {
         @SerializedName(VALID_DISK_SIZE_KEY_JSON)
         private String validDiskSize;
 
+        @SerializedName(SELF_LINK_KEY_JSON)
+        private String selfLink;
+
         public String getValidDiskSize() {
             return validDiskSize;
         }
@@ -54,6 +58,12 @@ public class GetAllTypesResponse {
         public String getName() {
             return name;
         }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getSelfLink() { return selfLink; }
     }
 
     public List<Type> getTypes() {
