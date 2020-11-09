@@ -13,6 +13,7 @@ import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.api.parameters.Network;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.NetworkAllocationMode;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
@@ -32,6 +33,7 @@ import org.json.JSONException;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudNetworkPlugin.class);
@@ -197,12 +199,17 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
         int portTo = GoogleCloudConstants.Network.Firewall.HIGHEST_PORT_LIMIT;
         String cidr = GoogleCloudConstants.Network.Firewall.INTERNAL_VPC_CIDR;
 
+        String securityRuleName = SystemConstants.PN_SECURITY_GROUP_PREFIX
+                + ((NetworkOrder) majorOrder).getName()
+                + GoogleCloudConstants.ELEMENT_SEPARATOR
+                + UUID.randomUUID().toString();
+
         SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
 
         GoogleCloudSecurityRulePlugin googleCloudSecurityRulePluginTemp = new GoogleCloudSecurityRulePlugin(confFilePath);
 
         return googleCloudSecurityRulePluginTemp.buildCreateSecurityRuleRequest(securityRule, majorOrder, GoogleCloudConstants
-        .Network.Firewall.LOWEST_PORT_LIMIT);
+        .Network.Firewall.LOWEST_PORT_LIMIT, securityRuleName);
     }
     @VisibleForTesting
     public InsertNetworkResponse insertNetwork(String networkName, GoogleCloudUser cloudUser, String projectId) throws FogbowException{
