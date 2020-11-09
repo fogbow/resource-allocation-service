@@ -14,6 +14,8 @@ public enum OrderState {
     CLOSED("CLOSED"),
     PAUSED("PAUSED"),
     PAUSING("PAUSING"),
+    HIBERNATED("HIBERNATED"),
+    HIBERNATING("HIBERNATING"),
     RESUMING("RESUMING");
 
     private final String repr;

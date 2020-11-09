@@ -8,6 +8,7 @@ public enum Operation {
     GET_USER_ALLOCATION("getUserAllocation"),
     RELOAD("reload"),
     PAUSE("pause"),
+    HIBERNATE("hibernate"),
     RESUME("resume");
 
     private String value;

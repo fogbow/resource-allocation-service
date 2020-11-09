@@ -110,6 +110,36 @@ public class RemoteFacade {
         }
     }
 
+    public void pauseOrder(String requestingProvider, String orderId, SystemUser systemUser,
+                            ResourceType resourceType) throws FogbowException {
+        Order order = this.orderController.getOrder(orderId);
+        // The user has already been authenticated by the requesting provider.
+        checkOrderConsistency(requestingProvider, order);
+        RasOperation rasOperation = new RasOperation(Operation.PAUSE, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+        this.orderController.pauseOrder(order);
+    }
+
+    public void hibernateOrder(String requestingProvider, String orderId, SystemUser systemUser,
+                            ResourceType resourceType) throws FogbowException {
+        Order order = this.orderController.getOrder(orderId);
+        // The user has already been authenticated by the requesting provider.
+        checkOrderConsistency(requestingProvider, order);
+        RasOperation rasOperation = new RasOperation(Operation.HIBERNATE, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+        this.orderController.hibernateOrder(order);
+    }
+
+    public void resumeOrder(String requestingProvider, String orderId, SystemUser systemUser,
+                            ResourceType resourceType) throws FogbowException {
+        Order order = this.orderController.getOrder(orderId);
+        // The user has already been authenticated by the requesting provider.
+        checkOrderConsistency(requestingProvider, order);
+        RasOperation rasOperation = new RasOperation(Operation.RESUME, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+        this.orderController.resumeOrder(order);
+    }
+
     public Quota getUserQuota(String requestingProvider, String cloudName, SystemUser systemUser) throws FogbowException {
         startOperation();
         try {

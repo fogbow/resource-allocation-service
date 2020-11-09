@@ -358,7 +358,15 @@ public class ApplicationFacade {
         Order order = this.orderController.getOrder(orderId);
         RasOperation rasOperation = new RasOperation(Operation.PAUSE, resourceType, order.getCloudName(), order);
         this.authorizationPlugin.isAuthorized(requester,rasOperation);
-        this.orderController.pauseCompute(order);
+        this.orderController.pauseOrder(order);
+    }
+
+    public void hibernateCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
+        SystemUser requester = authenticate(userToken);
+        Order order = this.orderController.getOrder(orderId);
+        RasOperation rasOperation = new RasOperation(Operation.HIBERNATE, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(requester,rasOperation);
+        this.orderController.hibernateOrder(order);
     }
 
     public void resumeCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
@@ -366,7 +374,7 @@ public class ApplicationFacade {
         Order order = this.orderController.getOrder(orderId);
         RasOperation rasOperation = new RasOperation(Operation.RESUME, resourceType, order.getCloudName(), order);
         this.authorizationPlugin.isAuthorized(requester,rasOperation);
-        this.orderController.resumeCompute(order);
+        this.orderController.resumeOrder(order);
     }
 
     // These methods are protected to be used in testing

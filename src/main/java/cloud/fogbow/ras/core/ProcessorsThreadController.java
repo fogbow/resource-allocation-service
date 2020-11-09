@@ -16,6 +16,9 @@ public class ProcessorsThreadController {
     private final UnableToCheckStatusProcessor unableToCheckStatusProcessor;
     private final AssignedForDeletionProcessor assignedForDeletionProcessor;
     private final RemoteOrdersStateSynchronizationProcessor remoteOrdersStateSynchronizationProcessor;
+    private final PausingProcessor pausingProcessorThread;
+    private final HibernatingProcessor hibernatingProcessorThread;
+    private final ResumingProcessor resumingProcessorThread;
     
     private final static String OPEN_PROCESSOR_THREAD_NAME = "open-proc";
     private final static String SPAWNING_PROCESSOR_THREAD_NAME = "spawning-proc";
@@ -24,6 +27,9 @@ public class ProcessorsThreadController {
     private final static String FAILED_PROCESSOR_THREAD_NAME = "failed-proc";
     private final static String ASSIGNED_FOR_DELETION_PROCESSOR_THREAD_NAME = "assigned-for-deletion-proc";
     private final static String REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME = "remote-sync-proc";
+    private final static String PAUSING_PROCESSOR_THREAD_NAME = "pausing-proc";
+    private final static String HIBERNATING_PROCESSOR_THREAD_NAME = "hibernating-proc";
+    private final static String RESUMING_PROCESSOR_THREAD_NAME = "resuming-proc";
 
     private Boolean threadsAreRunning;
     
@@ -67,8 +73,26 @@ public class ProcessorsThreadController {
         String remoteOrdersStateSynchronizationProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME);
-
+        
         this.remoteOrdersStateSynchronizationProcessor = new RemoteOrdersStateSynchronizationProcessor(localProviderId, remoteOrdersStateSynchronizationProcSleepTimeStr);
+
+        String pausingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.PAUSING_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.PAUSING_ORDERS_SLEEP_TIME);
+
+        this.pausingProcessor = new PausingProcessor(localProviderId, pausingOrdersProcSleepTimeStr);
+
+        String hibernatingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.HIBERNATING_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.HIBERNATING_ORDERS_SLEEP_TIME);
+
+        this.hibernatingProcessor = new HibernatingProcessor(localProviderId, hibernatingOrdersProcSleepTimeStr);
+
+        String resumingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.RESUMING_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.RESUMING_ORDERS_SLEEP_TIME);
+
+        this.resumingProcessor = new ResumingProcessor(localProviderId, resumingOrdersProcSleepTimeStr);
         
         this.threadsAreRunning = false;
     }
@@ -78,6 +102,7 @@ public class ProcessorsThreadController {
      * operation require a new thread to run, you should start this thread at this method.
      */
     public void startRasThreads() {
+
         if (!this.threadsAreRunning) {
             LOGGER.info(Messages.Log.STARTING_THREADS);
             
@@ -88,7 +113,13 @@ public class ProcessorsThreadController {
             Thread failedProcessorThread = new Thread(unableToCheckStatusProcessor, FAILED_PROCESSOR_THREAD_NAME);
             Thread assignedForDeletionProcessorThread = new Thread(assignedForDeletionProcessor, ASSIGNED_FOR_DELETION_PROCESSOR_THREAD_NAME);
             Thread remoteOrdersStateSynchronizationProcessorThread = new Thread(remoteOrdersStateSynchronizationProcessor, REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME);
-            
+            Thread pausingProcessorThread = new Thread(remoteOrdersStateSynchronizationProcessor, REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME);
+            Thread hibernatingProcessorThread = new Thread(remoteOrdersStateSynchronizationProcessor, REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME);
+            Thread resumingProcessorThread = new Thread(remoteOrdersStateSynchronizationProcessor, REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME);
+            Thread pausingProcessorThread = new Thread(pausingProcessor, PAUSING_PROCESSOR_THREAD_NAME);
+            Thread resumingProcessorThread = new Thread(hibernatingProcessor, HIBERNATING_PROCESSOR_THREAD_NAME);
+            Thread resumingProcessorThread = new Thread(resumingProcessor, RESUME_PROCESSOR_THREAD_NAME);
+
             openProcessorThread.start();
             spawningProcessorThread.start();
             fulfilledProcessorThread.start();
@@ -96,6 +127,9 @@ public class ProcessorsThreadController {
             failedProcessorThread.start();
             assignedForDeletionProcessorThread.start();
             remoteOrdersStateSynchronizationProcessorThread.start();
+            pausingProcessorThread.start();
+            hibernatingProcessorThread.start();
+            resumingProcessorThread.start();
             
             /*
              * This line of code treats the unlikely situation where 
@@ -120,6 +154,9 @@ public class ProcessorsThreadController {
         while (!this.unableToCheckStatusProcessor.isActive());
         while (!this.assignedForDeletionProcessor.isActive());
         while (!this.remoteOrdersStateSynchronizationProcessor.isActive());
+        while (!this.pausingProcessor.isActive());
+        while (!this.hibernatingProcessor.isActive());
+        while (!this.resumingProcessor.isActive());
     }
 
     public void stopRasThreads() {
@@ -133,6 +170,9 @@ public class ProcessorsThreadController {
             this.unableToCheckStatusProcessor.stop();
             this.assignedForDeletionProcessor.stop();
             this.remoteOrdersStateSynchronizationProcessor.stop();
+            this.pausingProcessor.stop();
+            this.hibernatingProcessor.stop();
+            this.resumingProcessor.stop();
             
             this.threadsAreRunning = false;
         } else {
@@ -173,5 +213,17 @@ public class ProcessorsThreadController {
         Long remoteOrdersStateSynchronizationProcSleepTimeStr = getSleepTimeFromProperties(ConfigurationPropertyKeys.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME_KEY,
                                                                              ConfigurationPropertyDefaults.REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME);
         this.remoteOrdersStateSynchronizationProcessor.setSleepTime(remoteOrdersStateSynchronizationProcSleepTimeStr);
+      
+        Long pausingProcSleepTimeStr = getSleepTimeFromProperties(ConfigurationPropertyKeys.PAUSING_SLEEP_TIME_KEY,
+                                                                             ConfigurationPropertyDefaults.PAUSING_SLEEP_TIME);
+        this.pausingProcessor.setSleepTime(pausingProcSleepTimeStr);
+      
+        Long hibernatingProcSleepTimeStr = getSleepTimeFromProperties(ConfigurationPropertyKeys.HIBERNATING_SLEEP_TIME_KEY,
+                                                                             ConfigurationPropertyDefaults.HIBERNATING_SLEEP_TIME);
+        this.hibernatingProcessor.setSleepTime(hibernatingProcSleepTimeStr);
+      
+        Long resumingProcSleepTimeStr = getSleepTimeFromProperties(ConfigurationPropertyKeys.RESUMING_SLEEP_TIME_KEY,
+                                                                             ConfigurationPropertyDefaults.RESUMING_SLEEP_TIME);
+        this.resumingProcessor.setSleepTime(resumingProcSleepTimeStr);
     }
 }
