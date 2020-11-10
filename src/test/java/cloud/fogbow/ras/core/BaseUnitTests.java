@@ -32,10 +32,15 @@ public class BaseUnitTests {
     protected TestUtils testUtils;
     protected SharedOrderHolders sharedOrderHolders;
     
-    private final List<OrderState> orderStatesToIgnore = Arrays.asList(OrderState.CLOSED,
-                                                                       OrderState.PAUSED, 
-                                                                       OrderState.PAUSING,
-                                                                       OrderState.RESUMING);
+    private final List<OrderState> orderStatesToIgnore =
+            Arrays.asList(
+                    OrderState.CLOSED,
+                    OrderState.PAUSED,
+                    OrderState.PAUSING,
+                    OrderState.RESUMING,
+                    OrderState.HIBERNATING,
+                    OrderState.HIBERNATED
+            );
 
     @Before
     public void setup() throws FogbowException {
