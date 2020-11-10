@@ -269,7 +269,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void pauseInstance(Order order) throws FogbowException {
+    public void pauseComputeInstance(Order order) throws FogbowException {
         LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, PAUSE_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
         LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
@@ -288,7 +288,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void hibernateInstance(Order order) throws FogbowException {
+    public void hibernateComputeInstance(Order order) throws FogbowException {
         LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, HIBERNATE_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
         LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
@@ -307,7 +307,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void resumeInstance(Order order) throws FogbowException {
+    public void resumeComputeInstance(Order order) throws FogbowException {
         LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, RESUME_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
         LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
