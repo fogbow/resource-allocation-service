@@ -4,7 +4,7 @@ import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 import static cloud.fogbow.common.constants.GoogleCloudConstants.Volume.*;
-import static cloud.fogbow.common.constants.GoogleCloudConstants.GOOGLE_APIS_BASE_URL;
+import static cloud.fogbow.common.constants.GoogleCloudConstants.GOOGLE_RESPONSE_BASE_URL;
 import static cloud.fogbow.common.constants.GoogleCloudConstants.EMPTY_STRING;
 
 
@@ -36,7 +36,7 @@ public class CreateVolumeResponse {
     }
 
     public String getTargetEndpoint() {
-        String targetEndpoint = targetLink.replace(GOOGLE_APIS_BASE_URL, EMPTY_STRING);
+        String targetEndpoint = targetLink.replace(GOOGLE_RESPONSE_BASE_URL, EMPTY_STRING);
         return targetEndpoint;
     }
 

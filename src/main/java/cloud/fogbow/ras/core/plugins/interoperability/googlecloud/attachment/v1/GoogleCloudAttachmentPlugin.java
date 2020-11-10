@@ -200,7 +200,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
                 + GoogleCloudConstants.PROJECT_ENDPOINT
                 + projectId
                 + getZoneEndpoint(cloud.fogbow.common.constants.GoogleCloudConstants.DEFAULT_ZONE)
-                + GoogleCloudConstants.DISKS_ENDPOINT
+                + GoogleCloudConstants.VOLUME_ENDPOINT
                 + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + resource;
     }
