@@ -161,7 +161,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void pauseInstance(Order order) throws FogbowException {
+    public void pauseComputeInstance(Order order) throws FogbowException {
         try {
             RemotePauseOrderRequest remotePauseOrderRequest = new RemotePauseOrderRequest(order);
             remotePauseOrderRequest.send();
@@ -176,7 +176,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void hibernateInstance(Order order) throws FogbowException {
+    public void hibernateComputeInstance(Order order) throws FogbowException {
         try {
             RemoteHibernateOrderRequest remoteHibernateOrderRequest = new RemoteHibernateOrderRequest(order);
             remoteHibernateOrderRequest.send();
@@ -191,7 +191,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void resumeInstance(Order order) throws FogbowException {
+    public void resumeComputeInstance(Order order) throws FogbowException {
         try {
             RemoteResumeOrderRequest remoteResumeOrderRequest = new RemoteResumeOrderRequest(order);
             remoteResumeOrderRequest.send();
