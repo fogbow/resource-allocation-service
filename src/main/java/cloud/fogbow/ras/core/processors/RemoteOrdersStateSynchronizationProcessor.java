@@ -12,14 +12,10 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
+public class RemoteOrdersStateSynchronizationProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(RemoteOrdersStateSynchronizationProcessor.class);
 
     private ChainedList<Order> remoteProviderOrders;
-    /**
-     * Attribute that represents the thread sleep time when there are no orders to be processed.
-     */
-    private Long sleepTime;
     private String localProviderId;
 
     public RemoteOrdersStateSynchronizationProcessor(String localProviderId, String sleepTimeStr) {
@@ -27,42 +23,12 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
         this.remoteProviderOrders = sharedOrdersHolder.getRemoteProviderOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.localProviderId = localProviderId;
+        this.isActive = false;
+        this.mustStop = false;
     }
 
-    /**
-     * Iterates over the remoteProviderOrders list and tries to process one order at a time. When the order
-     * is null, it indicates that the iteration ended. A new iteration is started after some time.
-     */
-    @Override
-    public void run() {
-        boolean isActive = true;
-        while (isActive) {
-            try {
-                synchronizeWithRemote();
-            } catch (InterruptedException e) {
-                isActive = false;
-            }
-        }
-    }
-
-    @VisibleForTesting
-    void synchronizeWithRemote() throws InterruptedException {
-        try {
-            Order order = this.remoteProviderOrders.getNext();
-            if (order != null) {
-                processRemoteProviderOrder(order);
-            } else {
-                this.remoteProviderOrders.resetPointer();
-                Thread.sleep(this.sleepTime);
-            }
-        } catch (InterruptedException e) {
-            LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
-            throw e;
-        } catch (InternalServerErrorException e) {
-            LOGGER.error(e.getMessage(), e);
-        } catch (Throwable e) {
-            LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
-        }
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
     }
 
     /**
@@ -96,5 +62,20 @@ public class RemoteOrdersStateSynchronizationProcessor implements Runnable {
                 LOGGER.warn(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()));
             }
         }
+    }
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processRemoteProviderOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.remoteProviderOrders.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.remoteProviderOrders.resetPointer();
     }
 }

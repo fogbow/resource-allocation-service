@@ -17,6 +17,9 @@ public class ConfigurationPropertyKeys {
     public static final String CHECKING_DELETION_ORDERS_SLEEP_TIME_KEY = "checking_deletion_orders_sleep_period";
     public static final String ASSIGNED_FOR_DELETION_ORDERS_SLEEP_TIME_KEY = "assigned_for_deletion_orders_sleep_period";
     public static final String REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME_KEY = "remote_order_state_synchronization_sleep_period";
+    public static final String PAUSING_ORDERS_SLEEP_TIME_KEY = "pausing_order_sleep_period";
+    public static final String HIBERNATING_ORDERS_SLEEP_TIME_KEY = "hibernating_order_sleep_period";
+    public static final String RESUMING_ORDERS_SLEEP_TIME_KEY = "resuming_order_sleep_period";
     public static final String CLOUD_NAMES_KEY = "cloud_names";
     public static final String BUILD_NUMBER_KEY = "build_number";
 
@@ -39,4 +42,9 @@ public class ConfigurationPropertyKeys {
 
     // SSH configuration
     public static final String SSH_COMMON_USER_KEY = "ssh_common_user";
+    
+    // Authorization
+    public static final String AUTHORIZATION_ROLES_KEY = "roles";
+    public static final String SUPERUSER_ROLE_KEY = "superuser_role";
+    public static final String DEFAULT_AUTH_PLUGIN_KEY = "default_auth_plugin_class";
 }

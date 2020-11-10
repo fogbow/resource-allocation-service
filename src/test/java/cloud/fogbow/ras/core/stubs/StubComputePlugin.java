@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.stubs;
 
+import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
@@ -26,6 +27,18 @@ public class StubComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public void deleteInstance(ComputeOrder computeOrder, CloudUser cloudUser) {
+    }
+
+    @Override
+    public void pauseInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+    }
+
+    @Override
+    public void hibernateInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+    }
+
+    @Override
+    public void resumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
     }
 
     @Override

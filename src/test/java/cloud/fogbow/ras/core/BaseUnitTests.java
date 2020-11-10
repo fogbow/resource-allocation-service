@@ -1,6 +1,8 @@
 package cloud.fogbow.ras.core;
 
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -29,6 +31,16 @@ public class BaseUnitTests {
     
     protected TestUtils testUtils;
     protected SharedOrderHolders sharedOrderHolders;
+    
+    private final List<OrderState> orderStatesToIgnore =
+            Arrays.asList(
+                    OrderState.CLOSED,
+                    OrderState.PAUSED,
+                    OrderState.PAUSING,
+                    OrderState.RESUMING,
+                    OrderState.HIBERNATING,
+                    OrderState.HIBERNATED
+            );
 
     @Before
     public void setup() throws FogbowException {
@@ -41,8 +53,9 @@ public class BaseUnitTests {
     @After
     public void tearDown() throws InternalServerErrorException {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        
         for (OrderState state : OrderState.values()) {
-            if (!state.equals(OrderState.CLOSED)) {
+            if (!orderStatesToIgnore.contains(state)) {
                 SynchronizedDoublyLinkedList<Order> ordersList = sharedOrderHolders.getOrdersList(state);
                 this.testUtils.cleanList(ordersList);
             }

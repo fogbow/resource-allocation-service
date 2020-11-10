@@ -159,4 +159,49 @@ public class RemoteCloudConnector implements CloudConnector {
             throw new FogbowException(e.getMessage());
         }
     }
+
+    @Override
+    public void pauseInstance(Order order) throws FogbowException {
+        try {
+            RemotePauseOrderRequest remotePauseOrderRequest = new RemotePauseOrderRequest(order);
+            remotePauseOrderRequest.send();
+        } catch (InstanceNotFoundException e) {
+            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
+            throw e;
+        } catch (Exception e) {
+            String exceptionMessage = e.getMessage();
+            LOGGER.error(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage);
+        }
+    }
+
+    @Override
+    public void hibernateInstance(Order order) throws FogbowException {
+        try {
+            RemoteHibernateOrderRequest remoteHibernateOrderRequest = new RemoteHibernateOrderRequest(order);
+            remoteHibernateOrderRequest.send();
+        } catch (InstanceNotFoundException e) {
+            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
+            throw e;
+        } catch (Exception e) {
+            String exceptionMessage = e.getMessage();
+            LOGGER.error(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage);
+        }
+    }
+
+    @Override
+    public void resumeInstance(Order order) throws FogbowException {
+        try {
+            RemoteResumeOrderRequest remoteResumeOrderRequest = new RemoteResumeOrderRequest(order);
+            remoteResumeOrderRequest.send();
+        } catch (InstanceNotFoundException e) {
+            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
+            throw e;
+        } catch (Exception e) {
+            String exceptionMessage = e.getMessage();
+            LOGGER.error(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage);
+        }
+    }
 }

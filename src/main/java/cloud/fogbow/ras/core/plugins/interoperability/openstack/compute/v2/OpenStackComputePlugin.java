@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.models.OpenStackV3User;
@@ -101,6 +102,21 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
                 + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
         this.doDeleteRequest(endpoint, cloudUser);
+    }
+
+    @Override
+    public void pauseInstance(ComputeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void hibernateInstance(ComputeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void resumeInstance(ComputeOrder order, OpenStackV3User cloudUser) throws FogbowException {
+        // ToDo: implement
     }
 
     @VisibleForTesting

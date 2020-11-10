@@ -13,58 +13,23 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class AssignedForDeletionProcessor implements Runnable {
+public class AssignedForDeletionProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(AssignedForDeletionProcessor.class);
 
     private String localProviderId;
     private ChainedList<Order> assignedForDeletionOrdersList;
-    /**
-     * Attribute that represents the thread sleep time when there are no orders to be processed.
-     */
-    private Long sleepTime;
 
     public AssignedForDeletionProcessor(String localProviderId, String sleepTimeStr) {
         this.localProviderId = localProviderId;
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.assignedForDeletionOrdersList = sharedOrderHolders.getAssignedForDeletionOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
+        this.isActive = false;
+        this.mustStop = false;
     }
 
-    /**
-     * Iterates over the assignedForDeletion orders list and tries to process one order at a time. When the order
-     * is null, it indicates that the iteration ended. A new iteration is started after some time.
-     */
-    @Override
-    public void run() {
-        boolean isActive = true;
-        while (isActive) {
-            try {
-                assignForDeletion();
-            } catch (InterruptedException e) {
-                isActive = false;
-            }
-        }
-    }
-
-    @VisibleForTesting
-    void assignForDeletion() throws InterruptedException {
-        try {
-            Order order = this.assignedForDeletionOrdersList.getNext();
-
-            if (order != null) {
-                processAssignedForDeletionOrder(order);
-            } else {
-                this.assignedForDeletionOrdersList.resetPointer();
-                Thread.sleep(this.sleepTime);
-            }
-        } catch (InterruptedException e) {
-            LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
-            throw e;
-        } catch (FogbowException e) {
-            LOGGER.error(e.getMessage(), e);
-        } catch (Throwable e) {
-            LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
-        }
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
     }
 
     /**
@@ -110,5 +75,20 @@ public class AssignedForDeletionProcessor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.CHECKING_DELETION);
             }
         }
+    }
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processAssignedForDeletionOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.assignedForDeletionOrdersList.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.assignedForDeletionOrdersList.resetPointer();     
     }
 }
