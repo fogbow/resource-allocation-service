@@ -24,6 +24,7 @@ import cloud.fogbow.ras.core.plugins.authorization.DefaultAuthorizationPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -31,7 +32,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import java.util.ArrayList;
 import java.util.List;
 
-@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class, PacketSenderHolder.class })
+@PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class, PacketSenderHolder.class,
+    AuthorizationPluginInstantiator.class, PropertiesHolder.class, SynchronizationManager.class })
 public class RemoteFacadeTest extends BaseUnitTests {
 
 	private static final String DEFAULT_CLOUD_NAME = "default";
@@ -552,6 +554,62 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		this.facade.closeOrderAtRemoteRequester(signallingMember, remoteOrder.getId());
 	}
 
+	// test case: When calling the reload method, it must recreate the AuthorizationPlugin
+	// and the CloudListController
+	@Test
+	public void testReload() {
+	    PowerMockito.mockStatic(AuthorizationPluginInstantiator.class);
+	    AuthorizationPlugin authorizationPlugin = Mockito.mock(AuthorizationPlugin.class);
+	    PowerMockito.when(AuthorizationPluginInstantiator.getAuthorizationPlugin(Mockito.anyString())).thenReturn(authorizationPlugin);
+	    
+	    String cloudNames = "cloud";
+	    String authorizationPluginName = "plugin";
+	    
+        // set up PropertiesHolder 
+        PowerMockito.mockStatic(PropertiesHolder.class);
+        PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
+        Mockito.doReturn(cloudNames).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.CLOUD_NAMES_KEY);     
+        Mockito.doReturn(authorizationPluginName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.AUTHORIZATION_PLUGIN_CLASS_KEY);
+        BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
+	    
+        // used on CloudListController instantiation
+        CloudConnectorFactory factory = mockCloudConnectorFactory();
+        mockCloudConnector(factory);
+        
+	    this.facade.reload();
+	    
+	    PowerMockito.verifyStatic(AuthorizationPluginInstantiator.class, Mockito.times(TestUtils.RUN_ONCE));
+	}
+	
+	// test case: the number of ongoing operations, changed through 
+	// calls to startOperation and finishOperation, must be reflected 
+	// properly on the return value of the method noOnGoingRequests
+	@Test
+	public void testStartAndFinishOperation() {
+	    PowerMockito.mockStatic(SynchronizationManager.class);
+	    SynchronizationManager synchronizationManager = Mockito.mock(SynchronizationManager.class);
+	    Mockito.doReturn(false).when(synchronizationManager).isReloading();
+        PowerMockito.when(SynchronizationManager.getInstance()).thenReturn(synchronizationManager);
+        
+        // At the beginning, no on going requests
+	    Assert.assertTrue(this.facade.noOnGoingRequests());
+	    
+	    // noOnGoingRequests return must reflect the new request
+	    this.facade.startOperation();
+	    Assert.assertFalse(this.facade.noOnGoingRequests());
+	    
+	    this.facade.startOperation();
+	    Assert.assertFalse(this.facade.noOnGoingRequests());
+	    
+	    // finishing just one operation is not enough to 
+	    this.facade.finishOperation();
+	    Assert.assertFalse(this.facade.noOnGoingRequests());
+	    
+	    this.facade.finishOperation();
+	    
+	    Assert.assertTrue(this.facade.noOnGoingRequests());
+	}
+	
 	private AuthorizationPlugin mockAuthorizationPlugin(SystemUser systemUser, RasOperation operation)
 			throws InternalServerErrorException, UnauthorizedRequestException {
 		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(DefaultAuthorizationPlugin.class);

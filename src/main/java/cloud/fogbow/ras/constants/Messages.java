@@ -19,6 +19,7 @@ public class Messages {
         public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found.";
         public static final String FAILED_TO_GET_QUOTA = "Failed to get quota.";
         public static final String GENERIC_EXCEPTION_S = Log.GENERIC_EXCEPTION_S;
+        public static final String HIBERNATE_OPERATION_ONGOING = "The virtual Machine is already being hibernated.";
         public static final String IMAGE_NOT_FOUND = "Image not found.";
         public static final String INCORRECT_PROVIDER = "Incorrect provider.";
         public static final String INCORRECT_REQUESTING_PROVIDER = "Mismatch on requesting provider information.";
@@ -44,6 +45,7 @@ public class Messages {
         public static final String NO_PROJECT_ID = "No projectId in local token.";
         public static final String NO_SECURITY_GROUP_FOUND_S = "There is no security group with the id %s";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
+        public static final String PAUSE_OPERATION_ONGOING = "The virtual Machine is already being paused.";
         public static final String PORT_NOT_FOUND_S = "No port found connecting virtual machine %s to default network %s.";
         public static final String PROVIDERS_DONT_MATCH = "The attachment provider does not match with the compute and/or volume providers.";
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
@@ -52,7 +54,8 @@ public class Messages {
         public static final String REQUEST_INSTANCE_NULL_S = "Request instance id for request %s is null.";
         public static final String RESOURCE_GROUP_LIMIT_EXCEEDED = "Resource group limit exceeded.";
         public static final String RESOURCE_TYPE_NOT_COMPATIBLE_S = "Resource type not compatible with %s request.";
-        public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
+        public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resource type not yet implemented.";
+        public static final String RESUME_OPERATION_ONGOING = "The virtual Machine is already being resumed.";
         public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
         public static final String SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND_S = "There is no security group with name: %s.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER_S_S = "Signalling provider %s is not the provider %s.";
@@ -78,6 +81,10 @@ public class Messages {
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE_S = "Request type %s not supported.";
+        public static final String USER_DOES_NOT_HAVE_REQUIRED_ROLE = "User does not have a role required by operation.";
+        public static final String VIRTUAL_MACHINE_ALREADY_HIBERNATED = "The Virtual Machine has already been hibernated.";
+        public static final String VIRTUAL_MACHINE_ALREADY_PAUSED = "The Virtual Machine has already been paused.";
+        public static final String VIRTUAL_MACHINE_IS_NOT_RUNNING = "The Virtual Machine is not running.";
         public static final String WRONG_URI_SYNTAX_S = "Wrong syntax for endpoint %s.";
     }
 
@@ -87,6 +94,7 @@ public class Messages {
         public static final String CHANGE_TO_DEFAULT_RESOURCE_GROUP = "Changing to the default resource group.";
         public static final String CONNECTING_UP_PACKET_SENDER = "Connecting XMPP packet sender.";
         public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
+        public static final String CONTENT_SECURITY_GROUP_EMPTY = "The content of SecurityGroups is empty.";
         public static final String COULD_NOT_FIND_DEPENDENCY_S_S = "Could not find dependency %s for order %s.";
         public static final String DELETING_INSTANCE_S_WITH_TOKEN_S = "Deleting instance %s with token %s.";
         public static final String DELETING_INSTANCE_S = "Deleting instance %s.";
@@ -168,6 +176,9 @@ public class Messages {
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: %s.";
         public static final String INSTANCE_S_OPERATIONAL_LOST_MEMORY_FAILURE = "The instance %s had an operational failure due to the memory loss. It might have left trash in the cloud.";
         public static final String INSTANCE_S_ALREADY_DELETED = "Instance %s has already been deleted.";
+        public static final String INSTANCE_S_ALREADY_HIBERNATED = "Instance %s has already been hibernated.";
+        public static final String INSTANCE_S_ALREADY_PAUSED = "Instance %s has already been paused.";
+        public static final String INSTANCE_S_ALREADY_RUNNING = "Instance %s is already running.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE_S = "Invalid list security rule type. Order irregular: %s.";
         public static final String INVALID_NUMBER_FORMAT = "Invalid number format.";
@@ -186,6 +197,7 @@ public class Messages {
         public static final String RECEIVING_GET_CLOUDS_REQUEST = "Get request for cloud names received.";
         public static final String RECEIVING_GET_IMAGE_REQUEST_S = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST_S = "Get request for %s %s received.";
+        public static final String RECEIVING_RELOAD_CONFIGURATION_REQUEST = "Received reload configuration request.";
         public static final String RECEIVING_REMOTE_REQUEST_S = "Received remote request for request: %s.";
         public static final String RECEIVING_RESOURCE_S_REQUEST_S = "Get %s request for provider %s received.";
         public static final String RECOVERING_LIST_OF_ORDERS_S_D = "Recovering requests in %s list: %d requests recovered so far.";
@@ -193,6 +205,13 @@ public class Messages {
         public static final String REQUESTING_GET_ALL_FROM_PROVIDER = "Requesting all images from provider.";
         public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
         public static final String REQUESTING_TO_CLOUD_S_S = "Requesting to the cloud by the user %s. URL: %s";
+        public static final String RESETTING_AS_PUBLIC_KEYS = "Resetting AS public keys.";
+        public static final String RESETTING_AUTHORIZATION_PLUGIN = "Resetting authorization plugin.";
+        public static final String RESETTING_AUTHORIZATION_PLUGIN_ON_REMOTE_FACADE = "Resetting authorization plugin on Remote Facade.";
+        public static final String RESETTING_CLOUD_LIST_CONTROLLER = "Resetting cloud list controller.";
+        public static final String RESETTING_CLOUD_LIST_CONTROLLER_ON_REMOTE_FACADE = "Resetting cloud list controller on Remote Facade.";
+        public static final String RESETTING_PROPERTIES_HOLDER = "Resetting properties holder.";
+        public static final String RESETTING_PROCESSORS_CONFIGURATION = "Resetting processors configuration.";
         public static final String RESOURCE_CREATION_FAILED_S = "Resource creation failed: %s";
         public static final String RESPONSE_RECEIVED_S = "Received response: %s.";
         public static final String SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR = "Second step: Create network security group and associated with the network interface.";
@@ -203,8 +222,11 @@ public class Messages {
         public static final String SETTING_UP_PACKET_SENDER = "Setting up XMPP packet sender.";
         public static final String SLEEP_THREAD_INTERRUPTED = "Thread is not able to sleep.";
         public static final String STARTING_THREADS = "Starting processor threads.";
+        public static final String STOPPING_THREADS = "Stopping processor threads.";
         public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
         public static final String SUCCESS = "Successfully executed operation.";
+        public static final String THREADS_ARE_ALREADY_RUNNING = "Processor threads are already running!";
+        public static final String THREADS_ARE_NOT_RUNNING = "Processor threads are not running!";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";

@@ -75,6 +75,12 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         int remoteUnableToCheckRequestOrderSize = 17;
         int localAssignedForDeletionOrderSize = 18;
         int remoteAssignedForDeletionOrderSize = 19;
+        int localPausingOrderSize = 20;
+        int remotePausingOrderSize = 21;
+        int localResumingOrderSize = 22;
+        int remoteResumingOrderSize = 23;
+        int localHibernatingOrderSize = 24;
+        int remoteHibernatingOrderSize = 25;
 
         int activeOrdersSizeExpected = localOpenOrderSize + remoteOpenOrderSize
                 + remotePendingOrderSize
@@ -85,7 +91,11 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
                 + localSpawningOrderSize + remoteSpawningOrderSize
                 + localFailedOnRequestOrderSize + remoteFailedOnRequestOrderSize
                 + localUnableToCheckRequestOrderSize + remoteUnableToCheckRequestOrderSize
-                + localAssignedForDeletionOrderSize + remoteAssignedForDeletionOrderSize;
+                + localAssignedForDeletionOrderSize + remoteAssignedForDeletionOrderSize
+                + localPausingOrderSize + remotePausingOrderSize
+                + localResumingOrderSize + remoteResumingOrderSize
+                + localHibernatingOrderSize + remoteHibernatingOrderSize;
+
         int remoteOrdersSizeExpected = localPendingOrderSize + remotePendingOrderSize
                 + remoteSelectedOrderSize
                 + remoteFulfilledOrderSize
@@ -94,7 +104,10 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
                 + remoteSpawningOrderSize
                 + remoteFailedOnRequestOrderSize
                 + remoteUnableToCheckRequestOrderSize
-                + remoteAssignedForDeletionOrderSize;
+                + remoteAssignedForDeletionOrderSize
+                + remotePausingOrderSize
+                + remoteResumingOrderSize
+                + remoteHibernatingOrderSize;
 
         int openOrderListSizeExpected = localOpenOrderSize + remoteOpenOrderSize;
         int selectedOrderListSizeExpected = localSelectedOrderSize;
@@ -105,6 +118,9 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         int failedOnRequestOrderListSizeExpected = localFailedOnRequestOrderSize;
         int unableToCheckRequestOrderListSizeExpected = localUnableToCheckRequestOrderSize;
         int assignedForDeletionOrderListSizeExpected = localAssignedForDeletionOrderSize;
+        int pausingOrderListSizeExpected = localPausingOrderSize;
+        int resumingOrderListSizeExpected = localResumingOrderSize;
+        int hibernatingOrderListSizeExpected = localHibernatingOrderSize;
 
         SynchronizedDoublyLinkedList<Order> openList = createOrderList(localOpenOrderSize, remoteOpenOrderSize);
         SynchronizedDoublyLinkedList<Order> selectedList = createOrderList(localSelectedOrderSize, remoteSelectedOrderSize);
@@ -119,12 +135,18 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
                 localFailedOnRequestOrderSize, remoteFailedOnRequestOrderSize);
         SynchronizedDoublyLinkedList<Order> unableToCheckRequestList = createOrderList(
                 localUnableToCheckRequestOrderSize, remoteUnableToCheckRequestOrderSize);
-        SynchronizedDoublyLinkedList<Order> assignedForDeletionRequestLis = createOrderList(
+        SynchronizedDoublyLinkedList<Order> assignedForDeletionRequestList = createOrderList(
                 localAssignedForDeletionOrderSize, remoteAssignedForDeletionOrderSize);
+        SynchronizedDoublyLinkedList<Order> pausingRequestList = createOrderList(
+                localPausingOrderSize, remotePausingOrderSize);
+        SynchronizedDoublyLinkedList<Order> resumingRequestList = createOrderList(
+                localResumingOrderSize, remoteResumingOrderSize);
+        SynchronizedDoublyLinkedList<Order> hibernatingRequestList = createOrderList(
+                localHibernatingOrderSize, remoteHibernatingOrderSize);
 
         this.testUtils.mockReadOrdersFromDataBase(openList, selectedList, fulfilledList, failedAfterSuccessRequestList,
                 checkingDeletionList, pendingList, spawningList, failedOnRequestList, unableToCheckRequestList,
-                assignedForDeletionRequestLis);
+                assignedForDeletionRequestList, pausingRequestList, resumingRequestList, hibernatingRequestList);
 
         // exercise
         SharedOrderHolders sharedOrderHolders = new SharedOrderHolders();
@@ -143,6 +165,9 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         checkList(failedOnRequestOrderListSizeExpected, sharedOrderHolders.getFailedOnRequestOrdersList());
         checkList(unableToCheckRequestOrderListSizeExpected, sharedOrderHolders.getUnableToCheckStatusOrdersList());
         checkList(assignedForDeletionOrderListSizeExpected, sharedOrderHolders.getAssignedForDeletionOrdersList());
+        checkList(pausingOrderListSizeExpected, sharedOrderHolders.getPausingOrdersList());
+        checkList(resumingOrderListSizeExpected, sharedOrderHolders.getResumingOrdersList());
+        checkList(hibernatingOrderListSizeExpected, sharedOrderHolders.getHibernatingOrdersList());
     }
 
     private void checkList(int sizeExpected, SynchronizedDoublyLinkedList<Order> list) {

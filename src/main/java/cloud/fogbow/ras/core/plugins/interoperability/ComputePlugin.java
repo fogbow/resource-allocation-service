@@ -24,4 +24,10 @@ public interface ComputePlugin<S extends CloudUser> extends OrderPlugin<ComputeI
     public ComputeInstance getInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
 
     public void deleteInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
+
+    public void pauseInstance(ComputeOrder order, S cloudUser) throws FogbowException;
+
+    public void hibernateInstance(ComputeOrder order, S cloudUser) throws FogbowException;
+
+    public void resumeInstance(ComputeOrder order, S cloudUser) throws FogbowException;
 }
