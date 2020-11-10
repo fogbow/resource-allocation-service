@@ -148,7 +148,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.HIBERNATE_OPERATION)
-    @RequestMapping(value = "/pause/{computeId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/hibernate/{computeId}", method = RequestMethod.PUT)
     public void hibernateCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
