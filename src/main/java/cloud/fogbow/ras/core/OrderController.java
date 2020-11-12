@@ -133,7 +133,7 @@ public class OrderController {
             } else {
                 try {
                     CloudConnector cloudConnector = getCloudConnector(order);
-                    cloudConnector.pauseInstance(order);
+                    cloudConnector.pauseComputeInstance(order);
                 } catch (Exception e) {
                     LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
                     throw e;
@@ -158,7 +158,7 @@ public class OrderController {
             } else {
                 try {
                     CloudConnector cloudConnector = getCloudConnector(order);
-                    cloudConnector.hibernateInstance(order);
+                    cloudConnector.hibernateComputeInstance(order);
                 } catch (Exception e) {
                     LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
                     throw e;
@@ -180,7 +180,7 @@ public class OrderController {
             } else {
                 try {
                     CloudConnector cloudConnector = getCloudConnector(order);
-                    cloudConnector.pauseInstance(order);
+                    cloudConnector.resumeComputeInstance(order);
                 } catch (Exception e) {
                     LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
                     throw e;

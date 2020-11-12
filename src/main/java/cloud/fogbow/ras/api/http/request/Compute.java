@@ -130,7 +130,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.PAUSE_OPERATION)
-    @RequestMapping(value = "/pause/{computeId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/pause/{computeId}", method = RequestMethod.POST)
     public void pauseCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
@@ -148,7 +148,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.HIBERNATE_OPERATION)
-    @RequestMapping(value = "/pause/{computeId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/hibernate/{computeId}", method = RequestMethod.POST)
     public void hibernateCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
@@ -166,7 +166,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.RESUME_OPERATION)
-    @RequestMapping(value = "/resume/{computeId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/resume/{computeId}", method = RequestMethod.POST)
     public void resumeCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,

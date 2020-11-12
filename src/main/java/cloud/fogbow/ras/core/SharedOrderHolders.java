@@ -46,58 +46,62 @@ public class SharedOrderHolders {
             // OpenProcessor.
             addOrdersToMap(this.openOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.OPEN, this.activeOrdersMap.size()));
+
             this.selectedOrders = databaseManager.readActiveOrders(OrderState.SELECTED);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.selectedOrders);
             addOrdersToMap(this.selectedOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.SELECTED, this.activeOrdersMap.size()));
+
             this.spawningOrders = databaseManager.readActiveOrders(OrderState.SPAWNING);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.spawningOrders);
             addOrdersToMap(this.spawningOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.SPAWNING, this.activeOrdersMap.size()));
+
             this.failedAfterSuccessfulRequestOrders = databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.failedAfterSuccessfulRequestOrders);
             addOrdersToMap(this.failedAfterSuccessfulRequestOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST, this.activeOrdersMap.size()));
+
             this.failedOnRequestOrders = databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.failedOnRequestOrders);
             addOrdersToMap(this.failedOnRequestOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.FAILED_ON_REQUEST, this.activeOrdersMap.size()));
+
             this.fulfilledOrders = databaseManager.readActiveOrders(OrderState.FULFILLED);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.fulfilledOrders);
             addOrdersToMap(this.fulfilledOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.FULFILLED, this.activeOrdersMap.size()));
+
             this.unableToCheckStatus = databaseManager.readActiveOrders(OrderState.UNABLE_TO_CHECK_STATUS);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.unableToCheckStatus);
             addOrdersToMap(this.unableToCheckStatus, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.UNABLE_TO_CHECK_STATUS, this.activeOrdersMap.size()));
+
             this.assignedForDeletionOrders = databaseManager.readActiveOrders(OrderState.ASSIGNED_FOR_DELETION);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.assignedForDeletionOrders);
             addOrdersToMap(this.assignedForDeletionOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.ASSIGNED_FOR_DELETION, this.activeOrdersMap.size()));
+
             this.checkingDeletionOrders = databaseManager.readActiveOrders(OrderState.CHECKING_DELETION);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.checkingDeletionOrders);
             addOrdersToMap(this.checkingDeletionOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.CHECKING_DELETION, this.activeOrdersMap.size()));
-            addOrdersToMap(this.remoteProviderOrders, this.activeOrdersMap);
-            LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, "REMOTE", this.activeOrdersMap.size()));
+
             this.pausingOrders = databaseManager.readActiveOrders(OrderState.PAUSING);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.pausingOrders);
-            addOrdersToMap(this.checkingDeletionOrders, this.activeOrdersMap);
+            addOrdersToMap(this.pausingOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.PAUSING, this.activeOrdersMap.size()));
-            addOrdersToMap(this.resumingOrders, this.activeOrdersMap);
-            LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, "REMOTE", this.activeOrdersMap.size()));
 
             this.resumingOrders = databaseManager.readActiveOrders(OrderState.RESUMING);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.resumingOrders);
             addOrdersToMap(this.resumingOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.RESUMING, this.activeOrdersMap.size()));
-            addOrdersToMap(this.remoteProviderOrders, this.activeOrdersMap);
-            LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, "REMOTE", this.activeOrdersMap.size()));
 
             this.hibernatingOrders = databaseManager.readActiveOrders(OrderState.HIBERNATING);
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.hibernatingOrders);
             addOrdersToMap(this.hibernatingOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.HIBERNATING, this.activeOrdersMap.size()));
+
             addOrdersToMap(this.remoteProviderOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, "REMOTE", this.activeOrdersMap.size()));
         } catch (Exception e) {
