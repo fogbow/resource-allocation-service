@@ -22,6 +22,9 @@ public class GoogleCloudStateMapper {
     private static final String SUSPENDING_STATE = "suspending";
     private static final String SUSPENDED_STATE = "suspended";
 
+    //Network states
+    private static final String SIMULATED_ERROR_STATE = "error";
+
     public static InstanceState map(ResourceType type, String state) {
         state = state.toLowerCase();
 
@@ -45,6 +48,16 @@ public class GoogleCloudStateMapper {
                     case SUSPENDING_STATE:
                         return InstanceState.BUSY;
                     case REPAIRING_STATE:
+                        return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, COMPUTE_PLUGIN));
+                        return InstanceState.INCONSISTENT;
+                }
+            case NETWORK:
+                switch (state) {
+                    case RUNNING_STATE:
+                        return InstanceState.READY;
+                    case SIMULATED_ERROR_STATE:
                         return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, COMPUTE_PLUGIN));

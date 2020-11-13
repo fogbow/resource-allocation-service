@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudUser;
+import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
@@ -24,6 +25,8 @@ public interface ComputePlugin<S extends CloudUser> extends OrderPlugin<ComputeI
     public ComputeInstance getInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
 
     public void deleteInstance(ComputeOrder computeOrder, S cloudUser) throws FogbowException;
+
+    public void takeSnapshot(ComputeOrder computeOrder, String name, S cloudUser) throws FogbowException;
 
     public void pauseInstance(ComputeOrder order, S cloudUser) throws FogbowException;
 
