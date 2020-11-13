@@ -24,6 +24,7 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.apache.log4j.Logger;
 
@@ -128,6 +129,15 @@ public class RemoteFacade {
         RasOperation rasOperation = new RasOperation(Operation.HIBERNATE, resourceType, order.getCloudName(), order);
         this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         this.orderController.hibernateOrder(order);
+    }
+
+    public void takeSnapshot(String requestingProvider, String orderId, String name, SystemUser systemUser) throws FogbowException {
+        ComputeOrder computeOrder = (ComputeOrder) this.orderController.getOrder(orderId);
+        checkOrderConsistency(requestingProvider, computeOrder);
+        RasOperation rasOperation =
+                new RasOperation(Operation.TAKE_SNAPSHOT, ResourceType.COMPUTE, computeOrder.getCloudName(), computeOrder);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+        this.orderController.takeSnapshot(computeOrder, name, systemUser);
     }
 
     public void resumeOrder(String requestingProvider, String orderId, SystemUser systemUser,
@@ -310,7 +320,7 @@ public class RemoteFacade {
         this.cloudListController = new CloudListController();
     }
     
-    @VisibleForTesting
+    //@VisibleForTesting
     void startOperation() {
         while (SynchronizationManager.getInstance().isReloading())
             ;
