@@ -13,7 +13,6 @@ import java.util.List;
  * <p>
  * Response example:
  *   {
- *     "instance": {
  *       "name": "instance-1",
  *       "disks": [
  *          {
@@ -25,29 +24,21 @@ import java.util.List;
  *              "deviceName": "disk2"
  *          }
  *       ]
- *     }
  *  }
  */
 public class GetInstanceResponse {
 
     private static final Integer ZERO_INDEXED = -1;
+    @SerializedName(INSTANCE_NAME_KEY_JSON)
+    private String name;
+    @SerializedName(DISKS_KEY_JSON)
+    private List<Disk> disks;
 
-    @SerializedName(INSTANCE_KEY_JSON)
-    private Instance instance;
+    public String getName() { return name; }
+    public List<Disk> getDisks() { return disks; };
 
     public static GetInstanceResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, GetInstanceResponse.class);
-    }
-
-    public class Instance {
-        @SerializedName(INSTANCE_KEY_JSON)
-        private String name;
-        @SerializedName(DISKS_KEY_JSON)
-        private List<Disk> disks;
-
-        public String getName() { return name; }
-        public List<Disk> getDisks() { return disks; };
-
     }
 
     public class Disk {
@@ -65,6 +56,4 @@ public class GetInstanceResponse {
             return sourceSplit[size+ZERO_INDEXED];
         }
     }
-
-    public Instance getInstance(){ return instance; }
 }

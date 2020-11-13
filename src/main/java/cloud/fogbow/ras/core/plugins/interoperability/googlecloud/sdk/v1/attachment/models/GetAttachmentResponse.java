@@ -10,11 +10,12 @@ import static cloud.fogbow.common.constants.GoogleCloudConstants.Attachment.*;
  * Documentation:
  * <p>
  * Response example:
-*   {
-*     "deviceName": "disk1",
-*     "name": "operation-1603404163017-5b2499f9169f3-be0a4b37-5471f304",
-*     "serverId": "instance-1",
-*     "volumeSource": "/compute/v1/projects/diesel-talon-291703/zones/southamerica-east1-b/disks/testattach"
+ *   {
+ *    "id": "1231313131231",
+ *     "deviceName": "disk1",
+ *     "name": "operation-1603404163017-5b2499f9169f3-be0a4b37-5471f304",
+ *     "serverId": "instance-1",
+ *     "volumeSource": "/compute/v1/projects/diesel-talon-291703/zones/southamerica-east1-b/disks/testattach"
  *  }
  */
 public class GetAttachmentResponse {
@@ -50,5 +51,5 @@ public class GetAttachmentResponse {
     public String getDevice() {
         return device;
     }
-
+    public void setDevice(String deviceName) { device = deviceName; }
 }

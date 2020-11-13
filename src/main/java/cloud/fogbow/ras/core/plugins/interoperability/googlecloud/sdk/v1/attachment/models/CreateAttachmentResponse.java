@@ -17,6 +17,8 @@ import static cloud.fogbow.common.constants.GoogleCloudConstants.Attachment.*;
  */
 public class CreateAttachmentResponse {
 
+    @SerializedName(ATTACH_ID_KEY_JSON)
+    private String id;
     @SerializedName(TARGET_LINK_KEY_JSON)
     private String targetLink;
     @SerializedName(STATUS_KEY_JSON)
@@ -35,5 +37,7 @@ public class CreateAttachmentResponse {
     public String getStatus() { return status; }
 
     public String getName() { return name; }
+
+    public String getId() { return id; }
 
 }
