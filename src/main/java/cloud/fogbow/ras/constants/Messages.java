@@ -3,6 +3,7 @@ package cloud.fogbow.ras.constants;
 public class Messages {
 
     public static class Exception {
+        public static final String ACTIVE_SOURCE_COMPUTE = "The source compute needs to be paused or hibernated before taking the snapshot";
         public static final String CLOUD_NAMES_DO_NOT_MATCH = "The embedded resource has not been instantiated in the same cloud.";
         public static final String DEFAULT_CREDENTIALS_NOT_FOUND = "Default credentials not found.";
         public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found.";
@@ -52,7 +53,7 @@ public class Messages {
         public static final String REQUEST_INSTANCE_NULL_S = "Request instance id for request %s is null.";
         public static final String RESOURCE_GROUP_LIMIT_EXCEEDED = "Resource group limit exceeded.";
         public static final String RESOURCE_TYPE_NOT_COMPATIBLE_S = "Resource type not compatible with %s request.";
-        public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
+        public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resource type not yet implemented.";
         public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
         public static final String SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND_S = "There is no security group with name: %s.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER_S_S = "Signalling provider %s is not the provider %s.";
@@ -205,6 +206,7 @@ public class Messages {
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
         public static final String SUCCESS = "Successfully executed operation.";
+        public static final String TAKING_SNAPSHOT_OF_S = "Taking snapshot of %s";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";

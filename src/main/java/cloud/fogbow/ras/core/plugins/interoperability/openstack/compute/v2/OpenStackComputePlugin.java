@@ -16,6 +16,7 @@ import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.*;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.CreateImageRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
@@ -101,6 +102,30 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
                 + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
         this.doDeleteRequest(endpoint, cloudUser);
+    }
+
+    @VisibleForTesting
+    public void takeSnapshot(ComputeOrder computeOrder, String name, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.TAKING_SNAPSHOT_OF_S, instanceId));
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
+
+        String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR + instanceId
+                + OpenStackConstants.ENDPOINT_SEPARATOR + OpenStackConstants.ACTION);
+
+        CreateImageRequest createImageRequest = new CreateImageRequest.Builder()
+                .name(name)
+                .build();
+
+        String body = createImageRequest.toJson();
+
+        doTakeSnapshot(endpoint, body, cloudUser);
+    }
+
+    @VisibleForTesting
+    void doTakeSnapshot(String endpoint, String body, OpenStackV3User cloudUser) throws FogbowException {
+        this.client.doPostRequest(endpoint, body, cloudUser);
     }
 
     @VisibleForTesting

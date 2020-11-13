@@ -181,6 +181,27 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
+    public void takeSnapshot(ComputeOrder computeOrder, String name, SystemUser systemUser) throws FogbowException{
+        //todo: fix auditing logic
+
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, GET_IMAGE_OPERATION, systemUser));
+        CloudUser cloudUser = this.mapperPlugin.map(systemUser);
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
+
+        //String auditableResponse = null;
+        try {
+            doTakeSnapshot(computeOrder, name, cloudUser);
+            //auditableResponse = imageInstance.toString();
+        } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
+            //auditableResponse = e.getClass().getName();
+            throw e;
+        } /*finally {
+            auditRequest(Operation.GET, ResourceType.IMAGE, systemUser, auditableResponse);
+        }*/
+    }
+
+    @Override
     public ImageInstance getImage(String imageId, SystemUser systemUser) throws FogbowException {
         LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, GET_IMAGE_OPERATION, systemUser));
         CloudUser cloudUser = this.mapperPlugin.map(systemUser);
@@ -306,6 +327,10 @@ public class LocalCloudConnector implements CloudConnector {
             // with the appropriate state.
             return EmptyOrderInstanceGenerator.createEmptyInstance(order);
         }
+    }
+
+    protected void doTakeSnapshot(ComputeOrder computeOrder, String name, CloudUser cloudUser) throws FogbowException {
+        this.computePlugin.takeSnapshot(computeOrder, name, cloudUser);
     }
 
     private OrderInstance getResourceInstance(Order order, ResourceType resourceType, CloudUser cloudUser) throws FogbowException {

@@ -12,6 +12,7 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.compute.AzureVirtualMachineOperationSDK;
@@ -214,6 +215,11 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         this.azureVirtualMachineOperation.doDeleteInstance(azureUser, resourceName);
         endInstanceCreation(instanceId);
+    }
+
+    @Override
+    public void takeSnapshot(Order order, String name, AzureUser cloudUser) throws FogbowException {
+
     }
 
     @VisibleForTesting

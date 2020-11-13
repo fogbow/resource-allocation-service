@@ -12,7 +12,8 @@ public enum RemoteMethod {
     REMOTE_NOTIFY_EVENT("remoteNotifyEvent"),
     REMOTE_CREATE_SECURITY_RULE("remoteCreateSecurityRule"),
     REMOTE_GET_ALL_SECURITY_RULES("remoteGetAllSecurityRules"),
-    REMOTE_DELETE_SECURITY_RULE("remoteDeleteSecurityRule");
+    REMOTE_DELETE_SECURITY_RULE("remoteDeleteSecurityRule"),
+    REMOTE_TAKE_SNAPSHOT("remoteTakeSnapshot");
 
     private final String method;
 

@@ -12,6 +12,7 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.CloseOrderAtRemoteProviderRequest;
 import cloud.fogbow.ras.core.models.Operation;
@@ -154,6 +155,20 @@ public class OrderController {
             } else {
                 OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
             }
+        }
+    }
+
+    public void takeSnapshot(ComputeOrder computeOrder, String name, SystemUser systemUser) throws FogbowException {
+        //todo: check whether a resume operation while the snapshot is still being saved will lead to a failure
+        synchronized (computeOrder) {
+            OrderState orderState = computeOrder.getOrderState();
+
+            if (!orderState.equals(OrderState.PAUSED) && !orderState.equals(OrderState.HIBERNATED)) {
+                throw new UnacceptableOperationException(Messages.Exception.ACTIVE_SOURCE_COMPUTE);
+            }
+
+            CloudConnector cloudConnector = getCloudConnector(computeOrder);
+            cloudConnector.takeSnapshot(computeOrder, name, systemUser);
         }
     }
 

@@ -24,7 +24,8 @@ public enum IqElement {
     RULE_ID("ruleId"),
     SECURITY_RULE_LIST("securityRuleList"),
     SECURITY_RULE_LIST_CLASS_NAME("imagesMapClassName"),
-    SECURITY_RULE("securityRule");
+    SECURITY_RULE("securityRule"),
+    SNAPSHOT_NAME("snapshotName");
 
     private final String element;
 

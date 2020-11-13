@@ -24,6 +24,7 @@ public class XmppComponentManager extends XMPPComponent {
         addGetHandler(new RemoteGetOrderRequestHandler());
         addGetHandler(new RemoteGetUserQuotaRequestHandler());
         addGetHandler(new RemoteGetAllSecurityRuleHandler());
+        addGetHandler(new RemoteTakeSnapshotRequestHandler());
         LOGGER.info(Messages.Log.XMPP_HANDLERS_SET);
     }
 }

@@ -1,6 +1,5 @@
 package cloud.fogbow.ras.core;
 
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -312,6 +311,24 @@ public class ApplicationFacade {
         RasOperation rasOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName, order);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         this.securityRuleController.deleteSecurityRule(order.getProvider(), cloudName, securityRuleId, requester);
+    }
+
+    public void takeSnapshot(String orderId, String name, String userToken, ResourceType resourceType) throws FogbowException{
+        SystemUser requester = authenticate(userToken);
+        Order order = this.orderController.getOrder(orderId);
+
+        if (!order.getType().equals(ResourceType.COMPUTE)) {
+            throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+        }
+
+        ComputeOrder computeOrder = (ComputeOrder) order;
+
+        RasOperation rasOperation =
+                new RasOperation(Operation.TAKE_SNAPSHOT, resourceType, computeOrder.getCloudName(), computeOrder);
+
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
+        this.orderController.takeSnapshot(computeOrder, name, requester);
+
     }
 
     // These methods are protected to be used in testing

@@ -16,6 +16,7 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.*;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.compute.model.CreateComputeRequest;
@@ -126,7 +127,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 		}
 	}
 
-	@VisibleForTesting
+    @Override
+    public void takeSnapshot(Order order, String name, CloudUser cloudUser) throws FogbowException {
+
+    }
+
+    @VisibleForTesting
     String doRequestInstance(Client client, CreateComputeRequest request)
 			throws InvalidParameterException, UnacceptableOperationException {
 
