@@ -39,6 +39,11 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     private static int LOWER_BOUND_DISK_GB = 10;
     private static int ONE_GB_IN_MB = 1024;
 
+    private static String DEFAULT_USER_DATA_ENCODING = "base64";
+
+    private static String SSH_PARTS_SEPARATOR = " ";
+    private static String COLON_SEPARATOR = ":";
+
     private Properties properties;
     private GoogleCloudHttpClient client;
     private LaunchCommandGenerator launchCommandGenerator;
@@ -268,18 +273,33 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
 
     private CreateComputeRequest.MetaData getMetaData(ComputeOrder computeOrder) throws InternalServerErrorException {
         List<CreateComputeRequest.Item> items = new ArrayList<CreateComputeRequest.Item>();
-        CreateComputeRequest.Item userData = getUserData(computeOrder);
-        if (userData != null)
-            items.add(userData);
+        String publicKey = computeOrder.getPublicKey();
 
-        CreateComputeRequest.Item publicSSHKey = getPublicSSHKey(computeOrder.getPublicKey());
-        if(publicSSHKey != null)
+        // Item related to public key
+        if (publicKey != null) {
+            CreateComputeRequest.Item publicSSHKey = getPublicSSHKey(publicKey);
             items.add(publicSSHKey);
+        }
+
+        // Items related to user-data
+        CreateComputeRequest.Item userData = getUserData(computeOrder);
+        items.add(userData);
+        CreateComputeRequest.Item userDataEncoding = getUserDataEncoding();
+        items.add(userDataEncoding);
 
         return new CreateComputeRequest.MetaData(items);
     }
 
+    private CreateComputeRequest.Item getUserDataEncoding() {
+        return new CreateComputeRequest.Item(GoogleCloudConstants.Compute.USER_DATA_ENCODING_KEY_JSON,
+                DEFAULT_USER_DATA_ENCODING);
+    }
+
     private CreateComputeRequest.Item getPublicSSHKey(String publicKey) {
+        String[] publicKeySplit = publicKey.split(SSH_PARTS_SEPARATOR);
+        int sshUserNameIndex = publicKeySplit.length - 1;
+        String userName = publicKeySplit[sshUserNameIndex];
+        publicKey = userName.concat(COLON_SEPARATOR).concat(publicKey);
         return new CreateComputeRequest.Item(GoogleCloudConstants.Compute.PUBLIC_SSH_KEY_JSON, publicKey);
     }
 
@@ -338,7 +358,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     }
 
     private String getFlavorId(int vCPU, int ramSize) {
-        return GoogleCloudConstants.Compute.CUSTOM_FLAVOR + "-" + vCPU + "-" + ramSize;
+        return GoogleCloudConstants.Compute.CUSTOM_FLAVOR + GoogleCloudConstants.ELEMENT_SEPARATOR
+                + vCPU + GoogleCloudConstants.ELEMENT_SEPARATOR + ramSize;
     }
 
     private int getSmallestvCPU(int vCPU) {
