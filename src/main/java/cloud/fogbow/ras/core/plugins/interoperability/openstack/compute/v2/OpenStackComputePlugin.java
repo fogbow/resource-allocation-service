@@ -15,6 +15,7 @@ import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.*;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.CreateImageRequest;
@@ -106,18 +107,51 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     @Override
-    public void pauseInstance(ComputeOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        // ToDo: implement
+    public void pauseInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.PAUSING_INSTANCE_S, instanceId));
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
+        String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
+
+        PauseComputeRequest request = getPauseComputeRequest();
+        String body = request.toJson();
+
+        this.doPostRequest(endpoint, body, cloudUser);
     }
 
     @Override
-    public void hibernateInstance(ComputeOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        // ToDo: implement
+    public void hibernateInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.HIBERNATING_INSTANCE_S, instanceId));
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
+        String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
+
+        SuspendComputeRequest request = getSuspendComputeRequest();
+        String body = request.toJson();
+
+        this.doPostRequest(endpoint, body, cloudUser);
     }
 
     @Override
-    public void resumeInstance(ComputeOrder order, OpenStackV3User cloudUser) throws FogbowException {
-        // ToDo: implement
+    public void resumeInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.RESUMING_INSTANCE_S, instanceId));
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
+        String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
+
+        if(computeOrder.getOrderState().equals(OrderState.PAUSED)) {
+            UnpauseComputeRequest request = getUnpauseComputeRequest();
+            String body = request.toJson();
+            this.doPostRequest(endpoint, body, cloudUser);
+
+        } else if(computeOrder.getOrderState().equals(OrderState.HIBERNATED)) {
+            ResumeComputeRequest request = getResumeComputeRequest();
+            String body = request.toJson();
+            this.doPostRequest(endpoint, body, cloudUser);
+        }
     }
 
     @VisibleForTesting
@@ -295,6 +329,30 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     @VisibleForTesting
+    PauseComputeRequest getPauseComputeRequest() {
+        PauseComputeRequest pauseComputeRequest = new PauseComputeRequest.Builder().build();
+        return pauseComputeRequest;
+    }
+
+    @VisibleForTesting
+    UnpauseComputeRequest getUnpauseComputeRequest() {
+        UnpauseComputeRequest unpauseComputeRequest = new UnpauseComputeRequest.Builder().build();
+        return unpauseComputeRequest;
+    }
+
+    @VisibleForTesting
+    SuspendComputeRequest getSuspendComputeRequest() {
+        SuspendComputeRequest suspendComputeRequest = new SuspendComputeRequest.Builder().build();
+        return suspendComputeRequest;
+    }
+
+    @VisibleForTesting
+    ResumeComputeRequest getResumeComputeRequest() {
+        ResumeComputeRequest resumeComputeRequest = new ResumeComputeRequest.Builder().build();
+        return resumeComputeRequest;
+    }
+
+    @VisibleForTesting
     HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, OpenStackV3User cloudUser)
             throws FogbowException {
         HardwareRequirements bestFlavor = getBestFlavor(computeOrder, cloudUser);
@@ -433,6 +491,12 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     @VisibleForTesting
     String doGetRequest(String endpoint, OpenStackV3User clouUser) throws FogbowException {
         String responseStr = this.client.doGetRequest(endpoint, clouUser);
+        return responseStr;
+    }
+
+    @VisibleForTesting
+    String doPostRequest(String endpoint, String bodyContent, OpenStackV3User cloudUser) throws FogbowException {
+        String responseStr = this.client.doPostRequest(endpoint, bodyContent, cloudUser);
         return responseStr;
     }
 

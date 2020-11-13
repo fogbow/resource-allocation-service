@@ -170,6 +170,7 @@ public class Messages {
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
         public static final String GETTING_QUOTA = "Getting quota.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
+        public static final String HIBERNATING_INSTANCE_S = "Hibernating instance %s.";
         public static final String INCONSISTENT_DIRECTION_S = "The direction (%s) is inconsistent.";
         public static final String INCONSISTENT_PROTOCOL_S = "The protocol (%s) is inconsistent.";
         public static final String INCONSISTENT_RANGE_S = "The range(%s) is inconsistent";
@@ -190,6 +191,7 @@ public class Messages {
         public static final String NO_REMOTE_COMMUNICATION_CONFIGURED = "No remote communication configured.";
         public static final String ORDER_S_CHANGED_STATE_TO_S = "Order changed %s state to %s.";
         public static final String PACKET_SENDER_INITIALIZED = "XMPP packet sender initialized.";
+        public static final String PAUSING_INSTANCE_S = "Pausing instance %s.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST_S_S = "Get compute %s request for provider %s received.";
         public static final String RECEIVING_CREATE_REQUEST_S = "Create request for %s received.";
         public static final String RECEIVING_DELETE_REQUEST_S_S = "Delete request for %s %s received.";
@@ -203,6 +205,7 @@ public class Messages {
         public static final String RECEIVING_RESOURCE_S_REQUEST_S = "Get %s request for provider %s received.";
         public static final String RECOVERING_LIST_OF_ORDERS_S_D = "Recovering requests in %s list: %d requests recovered so far.";
         public static final String REMOVING_ORDER_IN_SELECT_STATE_S = "Order %s might have left garbage in cloud.";
+        public static final String RESUMING_INSTANCE_S = "Resuming instance %s.";
         public static final String REQUESTING_GET_ALL_FROM_PROVIDER = "Requesting all images from provider.";
         public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
         public static final String REQUESTING_TO_CLOUD_S_S = "Requesting to the cloud by the user %s: %s.";
