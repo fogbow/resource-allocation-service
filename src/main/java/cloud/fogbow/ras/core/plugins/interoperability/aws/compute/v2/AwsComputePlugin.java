@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.GoogleCloudUser;
 import cloud.fogbow.common.util.BinaryUnit;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.aws.sdk.v2.compute.model.AwsHardwareRequirements;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
@@ -126,6 +127,11 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
         Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
         String instanceId = computeOrder.getInstanceId();
         doDeleteInstance(instanceId, client);
+    }
+
+    @Override
+    public void takeSnapshot(ComputeOrder order, String name, AwsV2User cloudUser) throws FogbowException {
+        // ToDo: implement
     }
 
     @Override

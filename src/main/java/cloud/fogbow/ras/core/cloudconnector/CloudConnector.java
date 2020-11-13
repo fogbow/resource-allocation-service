@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
@@ -46,6 +47,9 @@ public interface CloudConnector {
      * @return the quota associated to the user
      * @throws FogbowException
      */
+
+    void takeSnapshot(ComputeOrder computeOrder, String name, SystemUser systemUser) throws FogbowException;
+
     Quota getUserQuota(SystemUser systemUser) throws FogbowException;
 
     /**
