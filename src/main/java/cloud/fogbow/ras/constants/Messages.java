@@ -3,7 +3,7 @@ package cloud.fogbow.ras.constants;
 public class Messages {
 
     public static class Exception {
-        public static final String ACTIVE_SOURCE_COMPUTE = "The source compute needs to be paused or hibernated before taking the snapshot";
+        public static final String ACTIVE_SOURCE_COMPUTE = "The source compute needs to be paused or hibernated before taking the snapshot.";
         public static final String CLOUD_NAMES_DO_NOT_MATCH = "The embedded resource has not been instantiated in the same cloud.";
         public static final String DEFAULT_CREDENTIALS_NOT_FOUND = "Default credentials not found.";
         public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found.";
@@ -27,7 +27,7 @@ public class Messages {
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INSTANCE_NULL_S = "There is no active instance with id: <%s>.";
         public static final String INVALID_CIDR_S = "CIDR %s is not valid.";
-        public static final String INVALID_CIDR_FORMAT_S = "The cidr %s does not follow the expected format";
+        public static final String INVALID_CIDR_FORMAT_S = "The cidr %s does not follow the expected format.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PARAMETER_S = "Invalid parameter: %s.";
         public static final String INVALID_REGION_NAME_S = "The region name '%s' is invalid.";
@@ -170,8 +170,8 @@ public class Messages {
         public static final String GETTING_INSTANCE_S = "Getting instance %s.";
         public static final String GETTING_QUOTA = "Getting quota.";
         public static final String GET_PUBLIC_KEY = "Get public key received.";
-        public static final String INCONSISTENT_DIRECTION_S = "The direction (%s) is inconsistent";
-        public static final String INCONSISTENT_PROTOCOL_S = "The protocol (%s) is inconsistent";
+        public static final String INCONSISTENT_DIRECTION_S = "The direction (%s) is inconsistent.";
+        public static final String INCONSISTENT_PROTOCOL_S = "The protocol (%s) is inconsistent.";
         public static final String INCONSISTENT_RANGE_S = "The range(%s) is inconsistent";
         public static final String INSTANCE_S_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String INSTANCE_NOT_FOUND_S = "Instance not found: %s.";
@@ -181,7 +181,7 @@ public class Messages {
         public static final String INSTANCE_S_ALREADY_PAUSED = "Instance %s has already been paused.";
         public static final String INSTANCE_S_ALREADY_RUNNING = "Instance %s is already running.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
-        public static final String INVALID_LIST_SECURITY_RULE_TYPE_S = "Invalid list security rule type. Order irregular: %s.";
+        public static final String INVALID_LIST_SECURITY_RULE_TYPE_S = "Invalid list security rule type: %s.";
         public static final String INVALID_NUMBER_FORMAT = "Invalid number format.";
         public static final String MAPPED_USER_S = "User mapped to: %s.";
         public static final String MAPPING_USER_OP_S = "Mapping user for operation %s on order/systemUser %s.";
@@ -205,7 +205,7 @@ public class Messages {
         public static final String REMOVING_ORDER_IN_SELECT_STATE_S = "Order %s might have left garbage in cloud.";
         public static final String REQUESTING_GET_ALL_FROM_PROVIDER = "Requesting all images from provider.";
         public static final String REQUESTING_INSTANCE_FROM_PROVIDER = "Requesting instance from provider.";
-        public static final String REQUESTING_TO_CLOUD_S_S = "Requesting to the cloud by the user %s. URL: %s";
+        public static final String REQUESTING_TO_CLOUD_S_S = "Requesting to the cloud by the user %s: %s.";
         public static final String RESETTING_AS_PUBLIC_KEYS = "Resetting AS public keys.";
         public static final String RESETTING_AUTHORIZATION_PLUGIN = "Resetting authorization plugin.";
         public static final String RESETTING_AUTHORIZATION_PLUGIN_ON_REMOTE_FACADE = "Resetting authorization plugin on Remote Facade.";
@@ -215,10 +215,10 @@ public class Messages {
         public static final String RESETTING_PROCESSORS_CONFIGURATION = "Resetting processors configuration.";
         public static final String RESOURCE_CREATION_FAILED_S = "Resource creation failed: %s";
         public static final String RESPONSE_RECEIVED_S = "Received response: %s.";
-        public static final String SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR = "Second step: Create network security group and associated with the network interface.";
-        public static final String SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR = "Second step on virtual network creation: Network created.";
-        public static final String SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME_S_S = "Seek for the Virtual Machine Size by name %s at region %s";
-        public static final String SEEK_VIRTUAL_MACHINE_SIZE_NAME_S_S = "Seek for the Virtual Machine Size that fits with memory(%s) and vCpu(%s) at region %s";
+        public static final String SECOND_STEP_CREATE_AND_ATTACH_NSG_ASYNC_BEHAVIOUR = "Second step: create network security group and associate with the network interface.";
+        public static final String SECOND_STEP_CREATE_VNET_ASYNC_BEHAVIOUR = "Second step on virtual network creation: network created.";
+        public static final String SEEK_VIRTUAL_MACHINE_SIZE_BY_NAME_S_S = "Seek for the Virtual Machine Size by name %s at region %s.";
+        public static final String SEEK_VIRTUAL_MACHINE_SIZE_NAME_S_S = "Seek for the Virtual Machine Size that fits with memory(%s) and vCpu(%s) at region %s.";
         public static final String SENDING_MSG_S = "Sending remote request for request: %s.";
         public static final String SETTING_UP_PACKET_SENDER = "Setting up XMPP packet sender.";
         public static final String SLEEP_THREAD_INTERRUPTED = "Thread is not able to sleep.";
@@ -226,7 +226,7 @@ public class Messages {
         public static final String STOPPING_THREADS = "Stopping processor threads.";
         public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
         public static final String SUCCESS = "Successfully executed operation.";
-        public static final String TAKING_SNAPSHOT_OF_S = "Taking snapshot of %s";
+        public static final String TAKING_SNAPSHOT_OF_S = "Taking snapshot of %s.";
         public static final String THREADS_ARE_ALREADY_RUNNING = "Processor threads are already running!";
         public static final String THREADS_ARE_NOT_RUNNING = "Processor threads are not running!";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
