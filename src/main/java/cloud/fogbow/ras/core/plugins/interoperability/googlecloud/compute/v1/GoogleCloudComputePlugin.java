@@ -73,7 +73,7 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         String body = request.toJson();
 
         String instanceId = doRequestInstance(endpoint, body, cloudUser);
-        deletePrePopulatedDefaultNetworkSecurityRules(projectId, cloudUser);
+        //deletePrePopulatedDefaultNetworkSecurityRules(projectId, cloudUser);
         setAllocationToOrder(computeOrder, hardwareRequirements);
         return instanceId;
     }
