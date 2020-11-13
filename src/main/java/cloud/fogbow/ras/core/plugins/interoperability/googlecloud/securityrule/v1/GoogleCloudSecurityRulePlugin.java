@@ -41,7 +41,7 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
 
     public GoogleCloudSecurityRulePlugin(String confFilePath) {
         Properties properties = PropertiesUtil.readProperties(confFilePath);
-        this.prefixEndpoint = properties.getProperty(GoogleCloudPluginUtils.NETWORK_URL_KEY)
+        this.prefixEndpoint = GoogleCloudConstants.BASE_COMPUTE_API_URL
                 + GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT;
         this.client = new GoogleCloudHttpClient();
     }
