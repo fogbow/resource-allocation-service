@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.emulatedcloud.compute;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -111,8 +112,23 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
     }
 
     @Override
-    public void takeSnapshot(Order order, String name, CloudUser cloudUser) throws FogbowException {
+    public void takeSnapshot(ComputeOrder computeOrder, String name, CloudUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
 
+    @Override
+    public void pauseInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void hibernateInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void resumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        // ToDo: implement
     }
 
     private EmulatedCompute createCompute(ComputeOrder computeOrder) {

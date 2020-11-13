@@ -31,7 +31,19 @@ public class StubComputePlugin implements ComputePlugin<CloudUser> {
     }
 
     @Override
-    public void takeSnapshot(Order order, String name, CloudUser cloudUser) throws FogbowException {
+    public void takeSnapshot(ComputeOrder computeOrder, String name, CloudUser cloudUser) throws FogbowException {
+    }
+
+    @Override
+    public void pauseInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+    }
+
+    @Override
+    public void hibernateInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+    }
+
+    @Override
+    public void resumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
 
     }
 

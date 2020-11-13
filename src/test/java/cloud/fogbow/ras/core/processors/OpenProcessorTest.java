@@ -1,9 +1,13 @@
 package cloud.fogbow.ras.core.processors;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -32,6 +36,9 @@ public class OpenProcessorTest extends BaseUnitTests {
     private OrderController orderController;
     private OpenProcessor processor;
     private Thread thread;
+    
+    @Rule
+    public Timeout globalTimeout = new Timeout(100, TimeUnit.SECONDS);
 
     @Before
     public void setUp() throws InternalServerErrorException {
@@ -379,6 +386,21 @@ public class OpenProcessorTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.OPEN, localOrder.getOrderState());
     }
 
+    // test case: this method tests if, after starting a thread using an 
+    // OpenProcessor instance, the method 'stop' stops correctly the thread
+    @Test
+    public void testStop() throws InterruptedException, FogbowException {
+        this.thread = new Thread(this.processor);
+        this.thread.start();
+        
+        while (!this.processor.isActive()) ;
+        
+        this.processor.stop();
+        this.thread.join();
+        
+        Assert.assertFalse(this.thread.isAlive());
+    }
+    
     private boolean listIsEmpty(ChainedList<Order> list) {
         list.resetPointer();
         return list.getNext() == null;

@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -128,11 +129,26 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	}
 
     @Override
-    public void takeSnapshot(Order order, String name, CloudUser cloudUser) throws FogbowException {
-
+    public void takeSnapshot(ComputeOrder computeOrder, String name, CloudUser cloudUser) throws FogbowException {
+		// ToDo: implement
     }
 
-    @VisibleForTesting
+	@Override
+	public void pauseInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+		// ToDo: implement
+	}
+
+	@Override
+	public void hibernateInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+		// ToDo: implement
+	}
+
+	@Override
+	public void resumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+		// ToDo: implement
+	}
+
+	@VisibleForTesting
     String doRequestInstance(Client client, CreateComputeRequest request)
 			throws InvalidParameterException, UnacceptableOperationException {
 

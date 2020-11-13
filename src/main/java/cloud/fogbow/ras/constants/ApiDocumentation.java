@@ -8,6 +8,12 @@ public class ApiDocumentation {
                         "how to use it, and describes the available features accessible from it.";
     }
 
+    public static class Admin {
+        public static final String API = "Manages admin-only operations";
+        public static final String RELOAD_OPERATION = "Reloads configuration parameters.";
+        
+    }
+    
     public static class Attachment {
         public static final String API = "Manages attachments.";
         public static final String CREATE_OPERATION = "Creates an attachment.";
@@ -15,7 +21,6 @@ public class ApiDocumentation {
         public static final String GET_BY_ID_OPERATION = "Lists a specific attachment.";
         public static final String DELETE_OPERATION = "Deletes a specific attachment.";
         public static final String ID = "The ID of the specific attachment.";
-
         public static final String CREATE_REQUEST_BODY =
                 "The body of the request must specify the ID of the volume and the ID of the " +
                 "compute instance where the volume will be attached; optionally, it may specify " +
@@ -36,6 +41,9 @@ public class ApiDocumentation {
         public static final String GET_BY_ID_OPERATION = "Lists a specific compute instance.";
         public static final String DELETE_OPERATION = "Deletes a specific compute instance.";
         public static final String GET_ALLOCATION = "Gets the current compute allocation for the user on a particular provider.";
+        public static final String PAUSE_OPERATION = "Pause the execution of a specific compute instance storing the state of the VM in memory RAM.";
+        public static final String HIBERNATE_OPERATION = "Pause the execution of a specific compute instance storing the state of the VM on disk.";
+        public static final String RESUME_OPERATION = "Resume the execution of a specific compute instance.";
         public static final String ID = "The ID of the specific compute instance.";
         public static final String CREATE_REQUEST_BODY = "The body of the request is quite complex; please, have a look at the model description.";
     }

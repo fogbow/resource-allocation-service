@@ -4,6 +4,7 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -218,8 +219,23 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     }
 
     @Override
-    public void takeSnapshot(Order order, String name, AzureUser cloudUser) throws FogbowException {
+    public void takeSnapshot(ComputeOrder computeOrder, String name, AzureUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
 
+    @Override
+    public void pauseInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void hibernateInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void resumeInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
+        // ToDo: implement
     }
 
     @VisibleForTesting

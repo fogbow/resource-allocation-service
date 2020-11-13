@@ -103,4 +103,28 @@ public interface CloudConnector {
      * @throws FogbowException
      */
     void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException;
+
+    /**
+     * Pause the virtual machine instance associated to the order. Storing the state of the VM in memory RAM.
+     *
+     * @param order the order to be paused
+     * @throws FogbowException
+     */
+    void pauseComputeInstance(Order order) throws FogbowException;
+
+    /**
+     * Pause the virtual machine instance associated to the order. Storing the state of the VM on disk.
+     *
+     * @param order the order to be hibernated.
+     * @throws FogbowException
+     */
+    void hibernateComputeInstance(Order order) throws FogbowException;
+
+    /**
+     * Resume the virtual machine instance associated to the order.
+     *
+     * @param order the order to be resumed
+     * @throws FogbowException
+     */
+    void resumeComputeInstance(Order order) throws FogbowException;
 }
