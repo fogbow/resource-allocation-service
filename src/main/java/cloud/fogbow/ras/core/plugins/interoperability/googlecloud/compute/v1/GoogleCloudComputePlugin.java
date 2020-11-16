@@ -10,16 +10,13 @@ import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.CreateComputeRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.CreateComputeResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.*;
 import cloud.fogbow.common.util.connectivity.cloud.googlecloud.GoogleCloudHttpClient;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.GetComputeResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.compute.models.GetFirewallRulesResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
@@ -67,12 +64,13 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         String flavorId = getFlavorId(hardwareRequirements.getFlavorId());
         CreateComputeRequest.MetaData metaData = getMetaData(computeOrder);
         List<CreateComputeRequest.Disk> disks = getDisks(projectId, computeOrder.getImageId(), hardwareRequirements.getDisk());
-        List<CreateComputeRequest.Network> networks = getNetworkIds(projectId, computeOrder);
+        List<CreateComputeRequest.Network> networks = getNetworkIds(projectId, computeOrder, cloudUser);
 
         CreateComputeRequest request = getComputeRequestBody(name, flavorId, metaData, networks, disks);
         String body = request.toJson();
 
         String instanceId = doRequestInstance(endpoint, body, cloudUser);
+        // By default, Fogbow will keep the default security rules of default network
         //deletePrePopulatedDefaultNetworkSecurityRules(projectId, cloudUser);
         setAllocationToOrder(computeOrder, hardwareRequirements);
         return instanceId;
@@ -103,11 +101,10 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
 
         this.client.doDeleteRequest(endpoint, cloudUser);
     }
+
     @Override
     public void takeSnapshot(ComputeOrder computeOrder, String name, GoogleCloudUser cloudUser) throws FogbowException {
-        // ToDo: implement
     }
-
 
     @Override
     public void pauseInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
@@ -168,6 +165,14 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         ComputeInstance computeInstance = getInstanceFromJson(responseJson);
 
         return computeInstance;
+    }
+
+    private String doGetNetworkInstanceName(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
+        String responseJson = this.client.doGetRequest(endpoint, cloudUser);
+
+        GetNetworkResponse networkResponse = GetNetworkResponse.fromJson(responseJson);
+
+        return networkResponse.getName();
     }
 
     private List<NetworkSummary> getComputeNetworks(String projectId) {
@@ -245,19 +250,26 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return isDefaultAllowICMP || isDefaultAllowInternal || isDefaultAllowRDP || isDefaultAllowSSH;
     }
 
-    private List<CreateComputeRequest.Network> getNetworkIds(String projectId, ComputeOrder computeOrder) {
+    private List<CreateComputeRequest.Network> getNetworkIds(String projectId, ComputeOrder computeOrder, GoogleCloudUser cloudUser) throws FogbowException {
         List<CreateComputeRequest.Network> networks = new ArrayList<CreateComputeRequest.Network>();
         // Add default network
-        addToNetworks(projectId, networks, GoogleCloudConstants.Network.DEFAULT_NETWORK_NAME);
+        addToNetworksByName(networks, GoogleCloudConstants.Network.DEFAULT_NETWORK_NAME);
         for (String networkId : computeOrder.getNetworkIds()) {
-            addToNetworks(projectId, networks, networkId);
+            String endpoint = getNetworkEndpoint(projectId, networkId);
+            String networkName = doGetNetworkInstanceName(endpoint, cloudUser);
+            addToNetworksByName(networks, networkName);
         }
         return networks;
     }
 
-    private void addToNetworks(String projectId, List<CreateComputeRequest.Network> networks, String networkId) {
-        String netword = getNetworkId(projectId, networkId);
-        networks.add(new CreateComputeRequest.Network(netword));
+    private String getNetworkEndpoint(String projectId, String networkId) {
+        return getBaseUrl() + GoogleCloudPluginUtils.getProjectEndpoint(projectId)
+                + getPathWithId(GoogleCloudConstants.GLOBAL_NETWORKS_ENDPOINT, networkId);
+    }
+
+    private void addToNetworksByName(List<CreateComputeRequest.Network> networks, String networkName) {
+        String subnetwork = getSubnetworkId(networkName);
+        networks.add(new CreateComputeRequest.Network(subnetwork));
     }
 
     private List<CreateComputeRequest.Disk> getDisks(String projectId, String imageId, int diskSizeGb) {
@@ -326,6 +338,19 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     private String getNetworkId(String projectId, String networkId) {
         return GoogleCloudPluginUtils.getProjectEndpoint(projectId)
                 + getPathWithId(GoogleCloudConstants.GLOBAL_NETWORKS_ENDPOINT, networkId);
+    }
+
+    private String getSubnetworkId(String networkName) {
+        String region = getRegionByZone();
+        return getPathWithId(GoogleCloudConstants.REGIONS_ENDPOINT, region)
+                + getPathWithId(GoogleCloudConstants.SUBNETS_ENDPOINT, networkName);
+    }
+
+    private String getRegionByZone() {
+        String[] zoneSplit = this.zone.split(GoogleCloudConstants.ELEMENT_SEPARATOR);
+        // A zone id have this format: [GLOBAL]-[REGION]-[ZONE NUMBER]
+        String zoneNumber = GoogleCloudConstants.ELEMENT_SEPARATOR.concat(zoneSplit[zoneSplit.length - 1]);
+        return this.zone.replaceFirst(zoneNumber, GoogleCloudConstants.EMPTY_STRING);
     }
 
     private String getPathWithId(String path, String id) {
