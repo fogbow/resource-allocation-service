@@ -15,6 +15,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
@@ -136,6 +137,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .build(this.cloudStackUrl);
 
         doDeleteInstance(request, cloudUser, instanceId);
+    }
+
+    @Override
+    public void takeSnapshot(ComputeOrder computeOrder, String name, CloudStackUser cloudUser) throws FogbowException {
+        // ToDo: implement
     }
 
     @Override

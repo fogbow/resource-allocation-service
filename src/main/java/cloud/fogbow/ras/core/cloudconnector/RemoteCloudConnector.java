@@ -10,7 +10,9 @@ import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.intercomponent.xmpp.handlers.RemoteTakeSnapshotRequestHandler;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.*;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.apache.log4j.Logger;
 
@@ -115,6 +117,18 @@ public class RemoteCloudConnector implements CloudConnector {
                     this.cloudName, imageId, systemUser);
             ImageInstance imageInstance = remoteGetImageRequest.send();
             return imageInstance;
+        } catch (Exception e) {
+            LOGGER.error(e.toString(), e);
+            throw new FogbowException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void takeSnapshot(ComputeOrder computeOrder, String name, SystemUser systemUser) throws FogbowException {
+        try {
+            RemoteTakeSnapshotRequest remoteTakeSnapshotRequest = new RemoteTakeSnapshotRequest(computeOrder, name,
+                    systemUser);
+            remoteTakeSnapshotRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());

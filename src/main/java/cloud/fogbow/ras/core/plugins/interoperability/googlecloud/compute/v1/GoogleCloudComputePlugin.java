@@ -103,6 +103,11 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
 
         this.client.doDeleteRequest(endpoint, cloudUser);
     }
+    @Override
+    public void takeSnapshot(ComputeOrder computeOrder, String name, GoogleCloudUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
 
     @Override
     public void pauseInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
