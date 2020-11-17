@@ -1,7 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models;
 
-import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
+import cloud.fogbow.common.util.SerializeNullsGsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 import static cloud.fogbow.common.constants.OpenStackConstants.Compute.*;
@@ -27,7 +27,7 @@ public class UnpauseComputeRequest implements JsonSerializable {
 
     @Override
     public String toJson() {
-        return GsonHolder.getInstance().toJson(this);
+        return SerializeNullsGsonHolder.getInstance().toJson(this);
     }
 
     public static class Builder {
