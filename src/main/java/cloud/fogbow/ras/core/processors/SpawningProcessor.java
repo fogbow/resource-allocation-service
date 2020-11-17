@@ -11,17 +11,25 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SpawningProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
+    private static final int INITIAL_FAILED_REQUESTS_COUNT = 0;
+    @VisibleForTesting static final int FAILED_REQUESTS_LIMIT = 5;
 
     private ChainedList<Order> spawningOrderList;
+    private Map<Order, Integer> failedRequestsMap;
     private String localProviderId;
 
     public SpawningProcessor(String providerId, String sleepTimeStr) {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
+        this.failedRequestsMap = new HashMap<>();
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.localProviderId = providerId;
         this.isActive = false;
@@ -65,15 +73,39 @@ public class SpawningProcessor extends StoppableProcessor implements Runnable {
                 } else if (instance.isReady()) {
                     OrderStateTransitioner.transition(order, OrderState.FULFILLED);
                 }
+
+                if (this.failedRequestsMap.containsKey(order)) {
+                    this.failedRequestsMap.remove(order);
+                }
             } catch (UnavailableProviderException e1) {
                 OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
                 throw e1;
             } catch (Exception e2) {
-                order.setOnceFaultMessage(e2.getMessage());
-                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e2));
-                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                if (!this.failedRequestsMap.containsKey(order)) {
+                    this.failedRequestsMap.put(order, INITIAL_FAILED_REQUESTS_COUNT);
+                }
+
+                int failedRequestsCount = this.failedRequestsMap.get(order);
+                failedRequestsCount++;
+
+                if (failedRequestsCount >= FAILED_REQUESTS_LIMIT) {
+                    order.setOnceFaultMessage(e2.getMessage());
+                    LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e2));
+                    this.failedRequestsMap.remove(order);
+                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                } else {
+                    int attemptsLeft = FAILED_REQUESTS_LIMIT - failedRequestsCount;
+                    LOGGER.info(String.format(Messages.Exception.ERROR_WHILE_CHECKING_INSTANCE_STATUS_ATTEMPTS_LEFT_D,
+                            attemptsLeft));
+                    this.failedRequestsMap.put(order, failedRequestsCount);
+                }
             }
         }
+    }
+
+    @VisibleForTesting
+    void setFailedRequestsMap(Map<Order, Integer> failedRequestsMap) {
+        this.failedRequestsMap = failedRequestsMap;
     }
 
     @Override

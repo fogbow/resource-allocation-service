@@ -10,6 +10,7 @@ public class Messages {
         public static final String DELETE_OPERATION_ALREADY_ONGOING = "Delete operation is already on-going.";
         public static final String DEPENDENCY_DETECTED_S_S = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String EMPTY_PROPERTY_MAP = "Empty property getCloudUser.";
+        public static final String ERROR_WHILE_CHECKING_INSTANCE_STATUS_ATTEMPTS_LEFT_D = "Error while checking instance status; attempts left: %d";
         public static final String ERROR_WHILE_CREATING_RESOURCE_S = Log.ERROR_WHILE_CREATING_RESOURCE_S;
         public static final String ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD = Log.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD;
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = Log.ERROR_WHILE_GETTING_VOLUME_INSTANCE;
