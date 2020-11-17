@@ -339,9 +339,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @VisibleForTesting
     UnpauseComputeRequest getUnpauseComputeRequest() {
-        UnpauseComputeRequest unpauseComputeRequest = new UnpauseComputeRequest.Builder()
-//                .unpause()
-                .build();
+        UnpauseComputeRequest unpauseComputeRequest = new UnpauseComputeRequest.Builder().build();
         return unpauseComputeRequest;
     }
 
