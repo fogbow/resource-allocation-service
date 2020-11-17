@@ -96,7 +96,9 @@ public class CreateFirewallRuleRequest {
         public Builder connection(String portFrom, String portTo, String ipProtocol) {
             String portRange = null;
 
-            if(portFrom.equals(portTo)) {
+            if(portFrom == null || portTo == null) {
+                portRange = null;
+            } else if(portFrom.equals(portTo)) {
                 portRange = portFrom;
             } else {
                 portRange = portFrom + "-" + portTo;

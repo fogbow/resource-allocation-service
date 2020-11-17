@@ -63,8 +63,6 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
                             + ((GoogleCloudSystemUser) majorOrder.getSystemUser()).getProjectId()
                             + GoogleCloudConstants.GLOBAL_FIREWALL_ENDPOINT;
 
-
-
         String requestJson = request.toJson();
         String responseJson = this.client.doPostRequest(endpoint, requestJson, cloudUser);
 
@@ -84,8 +82,8 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
                 + networkName;
         String cidr = securityRule.getCidr();
         String direction = securityRule.getDirection().toString();
-        String portFrom = String.valueOf(securityRule.getPortFrom());
-        String portTo = String.valueOf(securityRule.getPortTo());
+        String portFrom = isPortAllowed(securityRule) ? String.valueOf(securityRule.getPortFrom()) : null;
+        String portTo = isPortAllowed(securityRule) ? String.valueOf(securityRule.getPortTo()) : null;
         String protocol = securityRule.getProtocol().toString();
         int priority = securityRulePriority;
 
@@ -100,6 +98,12 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
                 .build();
 
         return request;
+    }
+
+    private boolean isPortAllowed(SecurityRule securityRule) {
+        String incomingProtocol = securityRule.getProtocol().toString();
+
+        return !incomingProtocol.equalsIgnoreCase(SecurityRule.Protocol.ICMP.toString());
     }
 
     @Override
