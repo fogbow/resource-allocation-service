@@ -112,7 +112,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         LOGGER.info(String.format(Messages.Log.PAUSING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
-                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId()
+                + OpenStackConstants.ENDPOINT_SEPARATOR + OpenStackConstants.ACTION);
 
         PauseComputeRequest request = getPauseComputeRequest();
         String body = request.toJson();
@@ -126,7 +127,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         LOGGER.info(String.format(Messages.Log.HIBERNATING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
-                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId()
+                + OpenStackConstants.ENDPOINT_SEPARATOR + OpenStackConstants.ACTION);
 
         SuspendComputeRequest request = getSuspendComputeRequest();
         String body = request.toJson();
@@ -140,7 +142,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         LOGGER.info(String.format(Messages.Log.RESUMING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
-                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId()
+                + OpenStackConstants.ENDPOINT_SEPARATOR + OpenStackConstants.ACTION);
 
         if(computeOrder.getOrderState().equals(OrderState.PAUSED)) {
             UnpauseComputeRequest request = getUnpauseComputeRequest();
@@ -336,7 +339,9 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
     @VisibleForTesting
     UnpauseComputeRequest getUnpauseComputeRequest() {
-        UnpauseComputeRequest unpauseComputeRequest = new UnpauseComputeRequest.Builder().build();
+        UnpauseComputeRequest unpauseComputeRequest = new UnpauseComputeRequest.Builder()
+//                .unpause()
+                .build();
         return unpauseComputeRequest;
     }
 
