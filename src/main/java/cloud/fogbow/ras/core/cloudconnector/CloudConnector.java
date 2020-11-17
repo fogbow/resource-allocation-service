@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ImageSummary;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.api.http.response.ImageInstance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
@@ -46,6 +47,9 @@ public interface CloudConnector {
      * @return the quota associated to the user
      * @throws FogbowException
      */
+
+    void takeSnapshot(ComputeOrder computeOrder, String name, SystemUser systemUser) throws FogbowException;
+
     Quota getUserQuota(SystemUser systemUser) throws FogbowException;
 
     /**
@@ -100,6 +104,27 @@ public interface CloudConnector {
      */
     void deleteSecurityRule(String securityRuleId, SystemUser systemUser) throws FogbowException;
 
-    //void pauselInstance();
-    //void resumeInstance();
+    /**
+     * Pause the virtual machine instance associated to the order. Storing the state of the VM in memory RAM.
+     *
+     * @param order the order to be paused
+     * @throws FogbowException
+     */
+    void pauseComputeInstance(Order order) throws FogbowException;
+
+    /**
+     * Pause the virtual machine instance associated to the order. Storing the state of the VM on disk.
+     *
+     * @param order the order to be hibernated.
+     * @throws FogbowException
+     */
+    void hibernateComputeInstance(Order order) throws FogbowException;
+
+    /**
+     * Resume the virtual machine instance associated to the order.
+     *
+     * @param order the order to be resumed
+     * @throws FogbowException
+     */
+    void resumeComputeInstance(Order order) throws FogbowException;
 }

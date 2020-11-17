@@ -16,12 +16,15 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @PrepareForTest({DatabaseManager.class,
         CloudConnectorFactory.class,
@@ -34,9 +37,14 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     private ChainedList<Order> remoteOrderList;
     private CheckingDeletionProcessor processor;
     private OrderController orderController;
-
+    private Thread thread;
+    
     private LoggerAssert loggerTestChecking = new LoggerAssert(CheckingDeletionProcessor.class);
+    private LoggerAssert loggerTestCheckingStoppableProcessor = new LoggerAssert(StoppableProcessor.class);
 
+    @Rule
+    public Timeout globalTimeout = new Timeout(100, TimeUnit.SECONDS);
+    
     @Before
     public void setUp() throws InternalServerErrorException {
         this.testUtils.mockReadOrdersFromDataBase();
@@ -49,6 +57,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         this.checkingDeletionOrderList = sharedOrderHolders.getCheckingDeletionOrdersList();
         this.remoteOrderList = sharedOrderHolders.getRemoteProviderOrdersList();
+        this.thread = null;
     }
 
     // test case: When calling the run method and throws an InterruptedException,
@@ -56,7 +65,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     @Test
     public void testRunFailWhenStopThread() throws InterruptedException {
         // set up
-        Mockito.doThrow(new InterruptedException()).when(this.processor).checkDeletion();
+        Mockito.doThrow(new InterruptedException()).when(this.processor).doRun();
 
         // exercise
         this.processor.run();
@@ -181,7 +190,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Assert.assertEquals(orderRemote, this.remoteOrderList.getNext());
     }
 
-    // test case: When calling the checkDeletion method and throws an InternalServerErrorException
+    // test case: When calling the doRun method and throws an InternalServerErrorException
     // it must verify if it logs an error message.
     @Test
     public void testCheckDeletionFailWhenThrowsUnexpectedException() throws InterruptedException, InternalServerErrorException {
@@ -194,10 +203,10 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Mockito.doThrow(internalServerErrorException).when(this.processor).processCheckingDeletionOrder(Mockito.eq(order));
 
         // exercise
-        this.processor.checkDeletion();
+        this.processor.doRun();
 
         // verify
-        this.loggerTestChecking.assertEqualsInOrder(Level.ERROR, errorMessage);
+        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
     }
 
     // test case: When calling the checkDeletion method and there is no order in the checkingDeletionList,
@@ -212,12 +221,12 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Thread.sleep(Mockito.anyLong());
 
         // exercise
-        this.processor.checkDeletion();
-
+        this.processor.doRun();
+        
         // verify
         Mockito.verify(this.processor, Mockito.times(TestUtils.NEVER_RUN))
                 .processCheckingDeletionOrder(Mockito.any(Order.class));
-        this.loggerTestChecking.verifyIfEmpty();
+        this.loggerTestCheckingStoppableProcessor.verifyIfEmpty();
     }
 
     // test case: When calling the checkDeletion method and throws an InterruptedException
@@ -230,7 +239,22 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         Thread.sleep(Mockito.anyLong());
 
         // exercise
-        this.processor.checkDeletion();
+        this.processor.doRun();
+    }
+    
+    // test case: this method tests if, after starting a thread using a
+    // CheckingDeletionProcessor instance, the method 'stop' stops correctly the thread
+    @Test
+    public void testStop() throws InterruptedException, FogbowException {
+        this.thread = new Thread(this.processor);
+        this.thread.start();
+        
+        while (!this.processor.isActive()) ;
+        
+        this.processor.stop();
+        this.thread.join();
+        
+        Assert.assertFalse(this.thread.isAlive());
     }
 
 }

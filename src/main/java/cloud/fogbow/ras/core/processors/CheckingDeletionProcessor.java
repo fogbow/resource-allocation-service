@@ -16,14 +16,10 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class CheckingDeletionProcessor implements Runnable {
+public class CheckingDeletionProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(CheckingDeletionProcessor.class);
 
     private ChainedList<Order> checkingDeletionOrders;
-    /**
-     * Attribute that represents the thread sleep time when there are no orders to be processed.
-     */
-    private Long sleepTime;
     private OrderController orderController;
     private String localProviderId;
 
@@ -33,44 +29,14 @@ public class CheckingDeletionProcessor implements Runnable {
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.orderController = orderController;
         this.localProviderId = localProviderId;
+        this.isActive = false;
+        this.mustStop = false;
     }
 
-    /**
-     * Iterates over the checkingDeletion orders list and tries to process one order at a time. When the order
-     * is null, it indicates that the iteration ended. A new iteration is started after some time.
-     */
-    @Override
-    public void run() {
-        boolean isActive = true;
-        while (isActive) {
-            try {
-                checkDeletion();
-            } catch (InterruptedException e) {
-                isActive = false;
-            }
-        }
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
     }
-
-    @VisibleForTesting
-    void checkDeletion() throws InterruptedException {
-        try {
-            Order order = this.checkingDeletionOrders.getNext();
-            if (order != null) {
-                processCheckingDeletionOrder(order);
-            } else {
-                this.checkingDeletionOrders.resetPointer();
-                Thread.sleep(this.sleepTime);
-            }
-        } catch (InterruptedException e) {
-            LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
-            throw e;
-        } catch (InternalServerErrorException e) {
-            LOGGER.error(e.getMessage(), e);
-        } catch (Throwable e) {
-            LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
-        }
-    }
-
+    
     /**
      * The CheckingDeletion processor monitors when the delete operation issued by the AssignedForDeletion processor
      * has finished. Essentially it keeps repeating getInstance() calls until an InstanceNotFound exception is raised.
@@ -120,5 +86,20 @@ public class CheckingDeletionProcessor implements Runnable {
                 LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()));
             }
         }
+    }
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processCheckingDeletionOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.checkingDeletionOrders.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.checkingDeletionOrders.resetPointer();
     }
 }

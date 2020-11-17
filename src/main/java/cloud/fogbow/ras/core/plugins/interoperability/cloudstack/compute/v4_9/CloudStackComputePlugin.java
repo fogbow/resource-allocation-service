@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.CloudStackUser;
 import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -14,6 +15,7 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackCloudUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
@@ -135,6 +137,26 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
                 .build(this.cloudStackUrl);
 
         doDeleteInstance(request, cloudUser, instanceId);
+    }
+
+    @Override
+    public void takeSnapshot(ComputeOrder computeOrder, String name, CloudStackUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void pauseInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void hibernateInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void resumeInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
+        // ToDo: implement
     }
 
     @VisibleForTesting

@@ -13,7 +13,9 @@ public enum OrderState {
     CHECKING_DELETION("CHECKING_DELETION"),
     CLOSED("CLOSED"),
     PAUSED("PAUSED"),
+    HIBERNATED("HIBERNATED"),
     PAUSING("PAUSING"),
+    HIBERNATING("HIBERNATING"),
     RESUMING("RESUMING");
 
     private final String repr;

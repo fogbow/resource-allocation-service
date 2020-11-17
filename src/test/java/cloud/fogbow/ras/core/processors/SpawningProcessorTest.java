@@ -1,10 +1,17 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
@@ -39,6 +46,9 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private CloudConnector cloudConnector;
     private SpawningProcessor processor;
     private Thread thread;
+    
+    @Rule
+    public Timeout globalTimeout = new Timeout(100, TimeUnit.SECONDS);
 
     @Before
     public void setUp() throws InternalServerErrorException {
@@ -330,11 +340,11 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.processor.processSpawningOrder(order);
     }
     
-    // test case: When calling the processSpawningOrder method and the
-    // order instance is not found, it must change the order state to
+    // test case: When calling the processSpawningOrder method, if the order instance was not found
+    // multiple times and there is only one attempt left it must change the order state to
     // FAILED_AFTER_SUCCESSFUL_REQUEST.
     @Test
-    public void testProcessSpawningOrderWithInstanceNotFound() throws FogbowException {
+    public void testProcessSpawningOrderWithInstanceNotFoundMultipleTimes() throws FogbowException {
         // set up
         Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
         order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
@@ -343,6 +353,11 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         Mockito.doThrow(new InstanceNotFoundException()).when(this.cloudConnector)
                 .getInstance(Mockito.any(Order.class));
+
+        Map<Order, Integer> failedRequestsMap = new HashMap<>();
+        int attemptsLeft = SpawningProcessor.FAILED_REQUESTS_LIMIT - 1;
+        failedRequestsMap.put(order, attemptsLeft);
+        this.processor.setFailedRequestsMap(failedRequestsMap);
 
         // exercise
         this.processor.processSpawningOrder(order);
@@ -371,6 +386,21 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertEquals(order, this.remoteOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
+    }
+    
+    // test case: this method tests if, after starting a thread using a
+    // SpawningProcessor instance, the method 'stop' stops correctly the thread
+    @Test
+    public void testStop() throws InterruptedException, FogbowException {
+        this.thread = new Thread(this.processor);
+        this.thread.start();
+        
+        while (!this.processor.isActive()) ;
+
+        this.processor.stop();
+        this.thread.join();
+        
+        Assert.assertFalse(this.thread.isAlive());
     }
 
 }

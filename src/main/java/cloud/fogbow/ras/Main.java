@@ -8,6 +8,7 @@ import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.*;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.datastore.services.AuditableOrderStateChangeService;
@@ -16,6 +17,7 @@ import cloud.fogbow.ras.core.datastore.services.RecoveryService;
 import cloud.fogbow.ras.core.intercomponent.RemoteFacade;
 import cloud.fogbow.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import cloud.fogbow.ras.core.models.RasOperation;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -56,7 +58,7 @@ public class Main implements ApplicationRunner {
 
             // Setting up controllers and application facade
             String className = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AUTHORIZATION_PLUGIN_CLASS_KEY);
-            AuthorizationPlugin<RasOperation> authorizationPlugin = AuthorizationPluginInstantiator.getAuthorizationPlugin(className);
+            AuthorizationPlugin<RasOperation> authorizationPlugin = AuthorizationPluginInstantiator.getAuthorizationPlugin(className);            
             OrderController orderController = new OrderController();
             SecurityRuleController securityRuleController = new SecurityRuleController();
             CloudListController cloudListController = new CloudListController();
@@ -79,9 +81,12 @@ public class Main implements ApplicationRunner {
             // Starting threads
             processorsThreadController.startRasThreads();
 
+            // Creating synchronization manager
+            SynchronizationManager.getInstance().setProcessorsThreadController(processorsThreadController);
+
             String xmpp_enabled = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.XMPP_ENABLED_KEY,
                     ConfigurationPropertyDefaults.XMPP_ENABLED);
-            if (xmpp_enabled.equals(ConfigurationPropertyDefaults.XMPP_ENABLED)) {
+            if (xmpp_enabled.equals(SystemConstants.XMPP_IS_ENABLED)) {
                 // Starting PacketSender
                 while (true) {
                     try {

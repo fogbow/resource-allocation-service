@@ -4,47 +4,53 @@ import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.GoogleCloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.googlecloud.GoogleCloudHttpClient;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.VolumeAllocation;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume.CreateVolumeRequest;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume.GetAllTypesResponse;
-import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.volume.GetVolumeResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.volume.models.CreateVolumeRequest;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.volume.models.CreateVolumeResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.volume.models.GetAllTypesResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.volume.models.GetAllTypesResponse.Type;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.volume.models.GetVolumeResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudPluginUtils;
+import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudStateMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonSyntaxException;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 
 import java.util.Map;
+import java.util.List;
 import java.util.Properties;
 
 public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudVolumePlugin.class);
-    private static final String EMPTY_STRING = "";
 
 
     private Properties properties;
     private GoogleCloudHttpClient client;
 
-    public GoogleCloudVolumePlugin( String confFilePath) throws FatalErrorException {
+    public GoogleCloudVolumePlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
         initClient();
     }
 
     @Override
     public boolean isReady(String instanceState) {
-        return false; //TODO
+        return GoogleCloudStateMapper.map(ResourceType.VOLUME, instanceState).equals(InstanceState.READY);
     }
 
     @Override
     public boolean hasFailed(String instanceState) {
-        return false; //TODO
+        return GoogleCloudStateMapper.map(ResourceType.VOLUME, instanceState).equals(InstanceState.FAILED);
     }
 
     @VisibleForTesting
@@ -60,37 +66,63 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
 
 
     @VisibleForTesting
+    String getZoneEndpoint(String zone){
+        return GoogleCloudConstants.ZONES_ENDPOINT + GoogleCloudConstants.ENDPOINT_SEPARATOR + zone;
+    }
+
+    @VisibleForTesting
     String getPrefixEndpoint(String projectId) {
-        return this.properties.getProperty(GoogleCloudPluginUtils.VOLUME_COMPUTE_URL_KEY) +
-                GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId;
+        return GoogleCloudConstants.BASE_COMPUTE_API_URL + GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT
+                + GoogleCloudConstants.PROJECT_ENDPOINT + GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId;
     }
 
     @Override
     public String requestInstance(VolumeOrder volumeOrder, GoogleCloudUser cloudUser) throws FogbowException {
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
+
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String size = String.valueOf(volumeOrder.getVolumeSize());
         String name = volumeOrder.getName();
-        String volumeTypeId = findVolumeTypeId(volumeOrder.getRequirements(), projectId, cloudUser);
+        String volumeTypeId = findVolumeTypeSource(volumeOrder.getRequirements(), projectId, cloudUser);
         String jsonRequest = generateJsonRequest(size, name, volumeTypeId);
-        String endpoint = getPrefixEndpoint(projectId) + cloud.fogbow.common.constants.GoogleCloudConstants.VOLUME_ENDPOINT;
+        String endpoint = getPrefixEndpoint(projectId)
+                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + GoogleCloudConstants.VOLUME_ENDPOINT;
 
         GetVolumeResponse volumeResponse = doRequestInstance(endpoint, jsonRequest, cloudUser);
         setAllocationToOrder(volumeOrder);
 
-        return volumeResponse.getId();
+        return volumeResponse.getName();
     }
 
     @VisibleForTesting
     GetVolumeResponse doRequestInstance(String endpoint, String jsonRequest, GoogleCloudUser cloudUser)
             throws FogbowException {
-        return null;    //  TODO
+        GetVolumeResponse volumeResponse = null;
+        try {
+            String jsonOperationResponse = this.client.doPostRequest(endpoint, jsonRequest, cloudUser);
+            CreateVolumeResponse operation = doCreateVolumeResponseFrom(jsonOperationResponse);
+            String jsonVolumeResponse = doGetResponseFromCloud(operation.getTargetLink(), cloudUser);
+            volumeResponse = doGetVolumeResponseFrom(jsonVolumeResponse);
+        } catch (FogbowException exception){ throw exception; }
+
+        return volumeResponse;
     }
 
     @VisibleForTesting
     GetVolumeResponse doGetVolumeResponseFrom(String jsonResponse) throws InternalServerErrorException {
         try {
             return GetVolumeResponse.fromJson(jsonResponse);
+        } catch (JsonSyntaxException e) {
+            LOGGER.error(Messages.Log.ERROR_WHILE_GETTING_VOLUME_INSTANCE, e);
+            throw new InternalServerErrorException(Messages.Exception.ERROR_WHILE_GETTING_VOLUME_INSTANCE);
+        }
+    }
+
+    @VisibleForTesting
+    CreateVolumeResponse doCreateVolumeResponseFrom(String jsonResponse) throws InternalServerErrorException {
+        try {
+            return CreateVolumeResponse.fromJson(jsonResponse);
         } catch (JsonSyntaxException e) {
             LOGGER.error(Messages.Log.ERROR_WHILE_GETTING_VOLUME_INSTANCE, e);
             throw new InternalServerErrorException(Messages.Exception.ERROR_WHILE_GETTING_VOLUME_INSTANCE);
@@ -106,17 +138,16 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
         }
     }
 
-
-
     @Override
     public VolumeInstance getInstance(VolumeOrder volumeOrder, GoogleCloudUser cloudUser) throws FogbowException {
-        String instanceId = volumeOrder.getInstanceId();
-        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceId));
+        String instanceName = volumeOrder.getName();
+        LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceName));
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId)
-                + cloud.fogbow.common.constants.GoogleCloudConstants.VOLUME_ENDPOINT
-                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
-                + volumeOrder.getInstanceId();
+                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + GoogleCloudConstants.VOLUME_ENDPOINT
+                + GoogleCloudConstants.ENDPOINT_SEPARATOR
+                + instanceName;
 
         return doGetInstance(endpoint, cloudUser);
     }
@@ -140,7 +171,7 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
         String status = response.getStatus();
         String name = response.getName();
         int size = response.getSize();
-        return new VolumeInstance(id, status, name, size);
+        return new VolumeInstance(id, status.toLowerCase(), name, size);
     }
 
 
@@ -150,9 +181,10 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId)
+                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
                 + GoogleCloudConstants.VOLUME_ENDPOINT
-                + cloud.fogbow.common.constants.GoogleCloudConstants.ENDPOINT_SEPARATOR
-                + volumeOrder.getInstanceId();
+                + GoogleCloudConstants.ENDPOINT_SEPARATOR
+                + instanceId;
 
         doDeleteInstance(endpoint, cloudUser);
     }
@@ -173,10 +205,30 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
     }
 
     @VisibleForTesting
-    String findVolumeTypeId(Map<String, String> requirements, String projectId, GoogleCloudUser cloudUser)
+    String findVolumeTypeSource(Map<String, String> requirements, String projectId, GoogleCloudUser cloudUser)
             throws FogbowException {
-        return EMPTY_STRING; // TODO
+
+        if (requirements == null || requirements.isEmpty() || !requirements.containsKey(GoogleCloudConstants.Volume.VOLUME_TYPE)) {
+            throw new InternalServerErrorException(Messages.Exception.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS);
+        }
+
+        String endpoint = getPrefixEndpoint(projectId)
+                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + GoogleCloudConstants.VOLUME_TYPES_ENDPOINT;
+
+        String json = doGetResponseFromCloud(endpoint, cloudUser);
+        GetAllTypesResponse response = doGetAllTypesResponseFrom(json);
+        List<Type> types = response.getTypes();
+
+        for (Type type : types) {
+            if (type.getName().equals(requirements.get(GoogleCloudConstants.Volume.VOLUME_TYPE))) {
+                return type.getSelfLink();
+            }
+        }
+        String message = Messages.Exception.UNABLE_TO_MATCH_REQUIREMENTS;
+        throw new UnacceptableOperationException(message);
     }
+
     private void initClient() {
         this.client = new GoogleCloudHttpClient();
     }

@@ -10,6 +10,7 @@ public enum ResourceType {
     SECURITY_RULE("securityRule"),
     CLOUD_NAME("cloudName"),
     QUOTA("quota"),
+    CONFIGURATION("configuration"),
     INVALID_RESOURCE("invalidResource");
 
     private String value;

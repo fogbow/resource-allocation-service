@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
@@ -12,53 +11,35 @@ import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
 import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class SpawningProcessor implements Runnable {
+import java.util.HashMap;
+import java.util.Map;
+
+public class SpawningProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
+    private static final int INITIAL_FAILED_REQUESTS_COUNT = 0;
+    @VisibleForTesting static final int FAILED_REQUESTS_LIMIT = 5;
 
     private ChainedList<Order> spawningOrderList;
-    /**
-     * Attribute that represents the thread sleep time when there are no orders to be processed.
-     */
-    private Long sleepTime;
+    private Map<Order, Integer> failedRequestsMap;
     private String localProviderId;
 
     public SpawningProcessor(String providerId, String sleepTimeStr) {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
+        this.failedRequestsMap = new HashMap<>();
         this.sleepTime = Long.valueOf(sleepTimeStr);
         this.localProviderId = providerId;
+        this.isActive = false;
+        this.mustStop = false;
     }
 
-    /**
-     * Iterates over the spawning orders list and tries to process one order at a time. When the order
-     * is null, it indicates that the iteration ended. A new iteration is started after some time.
-     */
-    @Override
-    public void run() {
-        boolean isActive = true;
-        Order order = null;
-        while (isActive) {
-            try {
-                order = this.spawningOrderList.getNext();
-                if (order != null) {
-                    processSpawningOrder(order);
-                } else {
-                    this.spawningOrderList.resetPointer();
-                    Thread.sleep(this.sleepTime);
-                }
-            } catch (InterruptedException e) {
-                isActive = false;
-                LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
-            } catch (InternalServerErrorException e) {
-                LOGGER.error(e.getMessage(), e);
-            } catch (Throwable e) {
-                LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
-            }
-        }
+    public void setSleepTime(Long sleepTime) {
+        this.sleepTime = sleepTime;
     }
-
+    
     protected void processSpawningOrder(Order order) throws FogbowException {
         // The order object synchronization is needed to prevent a race
         // condition on order access. For example: a user can delete an spawning
@@ -92,14 +73,53 @@ public class SpawningProcessor implements Runnable {
                 } else if (instance.isReady()) {
                     OrderStateTransitioner.transition(order, OrderState.FULFILLED);
                 }
+
+                if (this.failedRequestsMap.containsKey(order)) {
+                    this.failedRequestsMap.remove(order);
+                }
             } catch (UnavailableProviderException e1) {
                 OrderStateTransitioner.transition(order, OrderState.UNABLE_TO_CHECK_STATUS);
                 throw e1;
             } catch (Exception e2) {
-                order.setOnceFaultMessage(e2.getMessage());
-                LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e2));
-                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                if (!this.failedRequestsMap.containsKey(order)) {
+                    this.failedRequestsMap.put(order, INITIAL_FAILED_REQUESTS_COUNT);
+                }
+
+                int failedRequestsCount = this.failedRequestsMap.get(order);
+                failedRequestsCount++;
+
+                if (failedRequestsCount >= FAILED_REQUESTS_LIMIT) {
+                    order.setOnceFaultMessage(e2.getMessage());
+                    LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e2));
+                    this.failedRequestsMap.remove(order);
+                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSFUL_REQUEST);
+                } else {
+                    int attemptsLeft = FAILED_REQUESTS_LIMIT - failedRequestsCount;
+                    LOGGER.info(String.format(Messages.Exception.ERROR_WHILE_CHECKING_INSTANCE_STATUS_ATTEMPTS_LEFT_D,
+                            attemptsLeft));
+                    this.failedRequestsMap.put(order, failedRequestsCount);
+                }
             }
         }
+    }
+
+    @VisibleForTesting
+    void setFailedRequestsMap(Map<Order, Integer> failedRequestsMap) {
+        this.failedRequestsMap = failedRequestsMap;
+    }
+
+    @Override
+    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+        processSpawningOrder(order);
+    }
+
+    @Override
+    protected Order getNext() {
+        return this.spawningOrderList.getNext();
+    }
+
+    @Override
+    protected void reset() {
+        this.spawningOrderList.resetPointer();
     }
 }

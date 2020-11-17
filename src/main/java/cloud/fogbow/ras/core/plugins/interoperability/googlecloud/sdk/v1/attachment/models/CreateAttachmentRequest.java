@@ -1,4 +1,4 @@
-package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.models.attachment;
+package cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.attachment.models;
 
 import cloud.fogbow.common.util.GsonHolder;
 import cloud.fogbow.common.util.JsonSerializable;
@@ -18,11 +18,14 @@ import static cloud.fogbow.common.constants.GoogleCloudConstants.Attachment.*;
  * }
  */
 public class CreateAttachmentRequest implements JsonSerializable {
-    @SerializedName(ATTACH_DISK_KEY_JSON)
-    private Attachment attachment;
+    @SerializedName(VOLUME_SOURCE_KEY_JSON)
+    private final String volumeSource;
+    @SerializedName(DEVICE_NAME_KEY_JSON)
+    private final String device;
 
-    private CreateAttachmentRequest(Attachment attachment) {
-        this.attachment = attachment;
+    private CreateAttachmentRequest(String volumeSource, String device) {
+        this.volumeSource = volumeSource;
+        this.device = device;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class CreateAttachmentRequest implements JsonSerializable {
 
         public CreateAttachmentRequest build() {
             Attachment attachment = new Attachment(this);
-            return new CreateAttachmentRequest(attachment);
+            return new CreateAttachmentRequest(attachment.volumeSource, attachment.device);
         }
     }
 }

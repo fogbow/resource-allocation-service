@@ -6,7 +6,10 @@ public enum Operation {
     GET("get"),
     DELETE("delete"),
     GET_USER_ALLOCATION("getUserAllocation"),
+    TAKE_SNAPSHOT("takeSnapshot"),
+    RELOAD("reload"),
     PAUSE("pause"),
+    HIBERNATE("hibernate"),
     RESUME("resume");
 
 

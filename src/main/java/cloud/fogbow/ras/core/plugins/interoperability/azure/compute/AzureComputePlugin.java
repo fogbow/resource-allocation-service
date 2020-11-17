@@ -4,6 +4,7 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -12,6 +13,7 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.AzureAsync;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.compute.AzureVirtualMachineOperationSDK;
@@ -214,6 +216,26 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         this.azureVirtualMachineOperation.doDeleteInstance(azureUser, resourceName);
         endInstanceCreation(instanceId);
+    }
+
+    @Override
+    public void takeSnapshot(ComputeOrder computeOrder, String name, AzureUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void pauseInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void hibernateInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
+        // ToDo: implement
+    }
+
+    @Override
+    public void resumeInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
+        // ToDo: implement
     }
 
     @VisibleForTesting

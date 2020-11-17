@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import cloud.fogbow.common.exceptions.*;
+import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -16,6 +17,7 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.HardwareRequirements;
 import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
+import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.*;
 import cloud.fogbow.ras.core.plugins.interoperability.opennebula.sdk.v5_4.compute.model.CreateComputeRequest;
@@ -124,6 +126,26 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 			throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_VM_S_S,
 					instanceId, response.getMessage()));
 		}
+	}
+
+    @Override
+    public void takeSnapshot(ComputeOrder computeOrder, String name, CloudUser cloudUser) throws FogbowException {
+		// ToDo: implement
+    }
+
+	@Override
+	public void pauseInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+		// ToDo: implement
+	}
+
+	@Override
+	public void hibernateInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+		// ToDo: implement
+	}
+
+	@Override
+	public void resumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+		// ToDo: implement
 	}
 
 	@VisibleForTesting

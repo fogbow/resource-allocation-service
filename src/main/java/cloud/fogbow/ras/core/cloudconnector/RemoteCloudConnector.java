@@ -10,7 +10,9 @@ import cloud.fogbow.ras.api.http.response.SecurityRuleInstance;
 import cloud.fogbow.ras.api.http.response.quotas.Quota;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
+import cloud.fogbow.ras.core.intercomponent.xmpp.handlers.RemoteTakeSnapshotRequestHandler;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.*;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import org.apache.log4j.Logger;
 
@@ -122,6 +124,18 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
+    public void takeSnapshot(ComputeOrder computeOrder, String name, SystemUser systemUser) throws FogbowException {
+        try {
+            RemoteTakeSnapshotRequest remoteTakeSnapshotRequest = new RemoteTakeSnapshotRequest(computeOrder, name,
+                    systemUser);
+            remoteTakeSnapshotRequest.send();
+        } catch (Exception e) {
+            LOGGER.error(e.toString(), e);
+            throw new FogbowException(e.getMessage());
+        }
+    }
+
+    @Override
     public List<SecurityRuleInstance> getAllSecurityRules(Order order, SystemUser systemUser)
             throws FogbowException {
         try {
@@ -157,6 +171,51 @@ public class RemoteCloudConnector implements CloudConnector {
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void pauseComputeInstance(Order order) throws FogbowException {
+        try {
+            RemotePauseOrderRequest remotePauseOrderRequest = new RemotePauseOrderRequest(order);
+            remotePauseOrderRequest.send();
+        } catch (InstanceNotFoundException e) {
+            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
+            throw e;
+        } catch (Exception e) {
+            String exceptionMessage = e.getMessage();
+            LOGGER.error(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage);
+        }
+    }
+
+    @Override
+    public void hibernateComputeInstance(Order order) throws FogbowException {
+        try {
+            RemoteHibernateOrderRequest remoteHibernateOrderRequest = new RemoteHibernateOrderRequest(order);
+            remoteHibernateOrderRequest.send();
+        } catch (InstanceNotFoundException e) {
+            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
+            throw e;
+        } catch (Exception e) {
+            String exceptionMessage = e.getMessage();
+            LOGGER.error(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage);
+        }
+    }
+
+    @Override
+    public void resumeComputeInstance(Order order) throws FogbowException {
+        try {
+            RemoteResumeOrderRequest remoteResumeOrderRequest = new RemoteResumeOrderRequest(order);
+            remoteResumeOrderRequest.send();
+        } catch (InstanceNotFoundException e) {
+            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
+            throw e;
+        } catch (Exception e) {
+            String exceptionMessage = e.getMessage();
+            LOGGER.error(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage);
         }
     }
 }

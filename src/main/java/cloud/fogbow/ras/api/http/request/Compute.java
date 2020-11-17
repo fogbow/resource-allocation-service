@@ -34,6 +34,21 @@ public class Compute {
 
     private final Logger LOGGER = Logger.getLogger(Compute.class);
 
+    @RequestMapping(value = "/{computeId}/snapshot", method = RequestMethod.POST)
+    public ResponseEntity<Boolean> takeSnapshot(
+            @PathVariable String computeId,
+            @RequestBody String name,
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) throws FogbowException{
+        try {
+            ApplicationFacade.getInstance().takeSnapshot(computeId, name, systemUserToken, ResourceType.COMPUTE);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
     @ApiOperation(value = ApiDocumentation.Compute.CREATE_OPERATION)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ResourceId> createCompute(
@@ -130,7 +145,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.PAUSE_OPERATION)
-    @RequestMapping(value = "/pause/{computeId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{computeId}/pause", method = RequestMethod.POST)
     public void pauseCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
@@ -147,8 +162,26 @@ public class Compute {
         }
     }
 
+    @ApiOperation(value = ApiDocumentation.Compute.HIBERNATE_OPERATION)
+    @RequestMapping(value = "/{computeId}/hibernate", method = RequestMethod.POST)
+    public void hibernateCompute(
+            @ApiParam(value = ApiDocumentation.Compute.ID)
+            @PathVariable String computeId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, computeId));
+            ApplicationFacade.getInstance().hibernateCompute(computeId, systemUserToken, ResourceType.COMPUTE);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
+
     @ApiOperation(value = ApiDocumentation.Compute.RESUME_OPERATION)
-    @RequestMapping(value = "/resume/{computeId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{computeId}/resume", method = RequestMethod.POST)
     public void resumeCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,

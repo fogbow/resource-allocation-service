@@ -12,6 +12,7 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
+import cloud.fogbow.ras.core.cloudconnector.LocalCloudConnector;
 import cloud.fogbow.ras.core.cloudconnector.RemoteCloudConnector;
 import cloud.fogbow.ras.core.intercomponent.xmpp.requesters.CloseOrderAtRemoteProviderRequest;
 import cloud.fogbow.ras.core.models.Operation;
@@ -117,15 +118,75 @@ public class OrderController {
         }
     }
 
-    public void pauseCompute(Order order) throws FogbowException {
+    public void pauseOrder(Order order) throws FogbowException {
         synchronized (order) {
+            OrderState orderState = order.getOrderState();
 
+            if (orderState.equals(OrderState.PAUSED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_ALREADY_PAUSED);
+
+            } else if(orderState.equals(OrderState.PAUSING)) {
+                throw new UnacceptableOperationException(Messages.Exception.PAUSE_OPERATION_ONGOING);
+
+            } else if (!orderState.equals(OrderState.FULFILLED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
+
+            } else {
+                try {
+                    CloudConnector cloudConnector = getCloudConnector(order);
+                    cloudConnector.pauseComputeInstance(order);
+                } catch (Exception e) {
+                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
+                    throw e;
+                }
+            }
         }
     }
 
-    public void resumeCompute(Order order) throws FogbowException {
+    public void hibernateOrder(Order order) throws FogbowException {
         synchronized (order) {
+            OrderState orderState = order.getOrderState();
 
+            if (orderState.equals(OrderState.HIBERNATED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_ALREADY_HIBERNATED);
+
+            } else if(orderState.equals(OrderState.HIBERNATING)) {
+                throw new UnacceptableOperationException(Messages.Exception.HIBERNATE_OPERATION_ONGOING);
+
+            } else if (!orderState.equals(OrderState.FULFILLED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
+
+            } else {
+                try {
+                    CloudConnector cloudConnector = getCloudConnector(order);
+                    cloudConnector.hibernateComputeInstance(order);
+                } catch (Exception e) {
+                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
+                    throw e;
+                }
+            }
+        }
+    }
+
+    public void resumeOrder(Order order) throws FogbowException {
+        synchronized (order) {
+            OrderState orderState = order.getOrderState();
+
+            if (orderState.equals(OrderState.RESUMING)) {
+                throw new UnacceptableOperationException(Messages.Exception.RESUME_OPERATION_ONGOING);
+
+            } else if (!orderState.equals(OrderState.PAUSED) || !orderState.equals(OrderState.HIBERNATED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
+
+            } else {
+                try {
+                    CloudConnector cloudConnector = getCloudConnector(order);
+                    cloudConnector.resumeComputeInstance(order);
+                } catch (Exception e) {
+                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
+                    throw e;
+                }
+            }
         }
     }
 
@@ -166,6 +227,20 @@ public class OrderController {
             } else {
                 OrderStateTransitioner.transition(order, OrderState.ASSIGNED_FOR_DELETION);
             }
+        }
+    }
+
+    public void takeSnapshot(ComputeOrder computeOrder, String name, SystemUser systemUser) throws FogbowException {
+        //todo: check whether a resume operation while the snapshot is still being saved will lead to a failure
+        synchronized (computeOrder) {
+            OrderState orderState = computeOrder.getOrderState();
+
+            if (!orderState.equals(OrderState.PAUSED) && !orderState.equals(OrderState.HIBERNATED)) {
+                throw new UnacceptableOperationException(Messages.Exception.ACTIVE_SOURCE_COMPUTE);
+            }
+
+            CloudConnector cloudConnector = getCloudConnector(computeOrder);
+            cloudConnector.takeSnapshot(computeOrder, name, systemUser);
         }
     }
 

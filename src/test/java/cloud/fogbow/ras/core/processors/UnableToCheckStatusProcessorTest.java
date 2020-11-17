@@ -1,9 +1,13 @@
 package cloud.fogbow.ras.core.processors;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
@@ -25,13 +29,16 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 
 @PrepareForTest({ CloudConnectorFactory.class, DatabaseManager.class })
 public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
-
+    
     private ChainedList<Order> unableToCheckStatus;
     private ChainedList<Order> fulfilledOrderList;
     private ChainedList<Order> remoteOrderList;
     private CloudConnector cloudConnector;
     private UnableToCheckStatusProcessor processor;
     private Thread thread;
+    
+    @Rule
+    public Timeout globalTimeout = new Timeout(100, TimeUnit.SECONDS);
 
     @Before
     public void setUp() throws InternalServerErrorException {
@@ -292,6 +299,21 @@ public class UnableToCheckStatusProcessorTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.PENDING, order.getOrderState());
         Assert.assertEquals(order, this.remoteOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
+    }
+    
+    // test case: this method tests if, after starting a thread using an
+    // UnableToCheckStatusProcessor instance, the method 'stop' stops correctly the thread
+    @Test
+    public void testStop() throws InterruptedException, FogbowException {
+        this.thread = new Thread(this.processor);
+        this.thread.start();
+        
+        while (!this.processor.isActive()) ;
+
+        this.processor.stop();
+        this.thread.join();
+        
+        Assert.assertFalse(this.thread.isAlive());
     }
 
 }
