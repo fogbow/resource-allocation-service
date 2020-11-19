@@ -356,25 +356,43 @@ public class ApplicationFacade {
     public void pauseCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
-        RasOperation rasOperation = new RasOperation(Operation.PAUSE, resourceType, order.getCloudName(), order);
+
+        if (!order.getType().equals(ResourceType.COMPUTE)) {
+            throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+        }
+
+        ComputeOrder computeOrder = (ComputeOrder) order;
+        RasOperation rasOperation = new RasOperation(Operation.PAUSE, resourceType, computeOrder.getCloudName(), computeOrder);
         this.authorizationPlugin.isAuthorized(requester,rasOperation);
-        this.orderController.pauseOrder(order);
+        this.orderController.pauseOrder(computeOrder);
     }
 
     public void hibernateCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
-        RasOperation rasOperation = new RasOperation(Operation.HIBERNATE, resourceType, order.getCloudName(), order);
+
+        if (!order.getType().equals(ResourceType.COMPUTE)) {
+            throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+        }
+
+        ComputeOrder computeOrder = (ComputeOrder) order;
+        RasOperation rasOperation = new RasOperation(Operation.HIBERNATE, resourceType, computeOrder.getCloudName(), computeOrder);
         this.authorizationPlugin.isAuthorized(requester,rasOperation);
-        this.orderController.hibernateOrder(order);
+        this.orderController.hibernateOrder(computeOrder);
     }
 
     public void resumeCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
-        RasOperation rasOperation = new RasOperation(Operation.RESUME, resourceType, order.getCloudName(), order);
-        this.authorizationPlugin.isAuthorized(requester,rasOperation);
-        this.orderController.resumeOrder(order);
+
+        if (!order.getType().equals(ResourceType.COMPUTE)) {
+            throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+        }
+
+        ComputeOrder computeOrder = (ComputeOrder) order;
+        RasOperation rasOperation = new RasOperation(Operation.RESUME, resourceType, computeOrder.getCloudName(), computeOrder);
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
+        this.orderController.resumeOrder(computeOrder);
     }
 
     public void takeSnapshot(String orderId, String name, String userToken, ResourceType resourceType) throws FogbowException{
