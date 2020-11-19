@@ -71,10 +71,13 @@ public class OpenStackStateMapper {
                         return InstanceState.CREATING;
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
+                    case PAUSED_STATUS:
+                        return InstanceState.PAUSED;
+                    case SUSPENDED_STATUS:
+                        return InstanceState.HIBERNATED;
                     case DELETED_STATUS:
                     case HARD_REBOOT_STATUS:
                     case MIGRATING_STATUS:
-                    case PAUSED_STATUS:
                     case REBOOT_STATUS:
                     case RESIZE_STATUS:
                     case REVERT_RESIZE_STATUS:
@@ -82,7 +85,6 @@ public class OpenStackStateMapper {
                     case SHELVED_OFFLOADED_STATUS:
                     case SHUTOFF_STATUS:
                     case SOFT_DELETED_STATUS:
-                    case SUSPENDED_STATUS:
                     case VERIFY_RESIZE_STATUS:
                         return InstanceState.BUSY;
                     case UNKNOWN_STATUS:
