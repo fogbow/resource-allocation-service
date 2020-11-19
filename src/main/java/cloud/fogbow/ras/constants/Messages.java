@@ -88,6 +88,7 @@ public class Messages {
         public static final String VIRTUAL_MACHINE_ALREADY_PAUSED = "The Virtual Machine has already been paused.";
         public static final String VIRTUAL_MACHINE_IS_NOT_RUNNING = "The Virtual Machine is not running.";
         public static final String WRONG_URI_SYNTAX_S = "Wrong syntax for endpoint %s.";
+        public static final String VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED = "The virtual machine is not paused or hibernated.";
     }
 
     public static class Log {
