@@ -238,6 +238,16 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
         // ToDo: implement
     }
 
+    @Override
+    public boolean isPaused(String cloudState) throws FogbowException {
+        return false;
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) throws FogbowException {
+        return false;
+    }
+
     @VisibleForTesting
     void setAzureVirtualMachineOperation(AzureVirtualMachineOperationSDK azureVirtualMachineOperation) {
         this.azureVirtualMachineOperation = azureVirtualMachineOperation;
