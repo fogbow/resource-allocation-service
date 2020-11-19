@@ -6,6 +6,7 @@ import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.parameters.Snapshot;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -37,10 +38,10 @@ public class Compute {
     @RequestMapping(value = "/{computeId}/snapshot", method = RequestMethod.POST)
     public ResponseEntity<Boolean> takeSnapshot(
             @PathVariable String computeId,
-            @RequestBody String name,
+            @RequestBody Snapshot snapshot,
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) throws FogbowException{
         try {
-            ApplicationFacade.getInstance().takeSnapshot(computeId, name, systemUserToken, ResourceType.COMPUTE);
+            ApplicationFacade.getInstance().takeSnapshot(computeId, snapshot.getName(), systemUserToken, ResourceType.COMPUTE);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
