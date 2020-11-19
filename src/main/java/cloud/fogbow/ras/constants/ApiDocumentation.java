@@ -172,5 +172,7 @@ public class ApiDocumentation {
         public static final String NETWORK_ID_NOTE = "(the network ID)";
         public static final String NETWORK_NAME_NOTE = "(the network name)";
         public static final String COMPUTE_ID_NOTE = "(the ID of the compute to which the IP has been assigned)";
+        public static final String SNAPSHOT_NAME = "my snapshot";
+        public static final String SNAPSHOT_NAME_NOTE = "(the snapshot name)";
     }
 }
