@@ -53,6 +53,16 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     @Override
+    public boolean isPaused(String cloudState) throws FogbowException {
+        return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.PAUSED);
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) throws FogbowException {
+        return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.HIBERNATED);
+    }
+
+    @Override
     public String requestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, cloudUser);

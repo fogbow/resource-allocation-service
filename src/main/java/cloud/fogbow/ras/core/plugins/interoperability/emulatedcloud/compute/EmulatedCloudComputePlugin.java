@@ -131,6 +131,16 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         // ToDo: implement
     }
 
+    @Override
+    public boolean isPaused(String cloudState) throws FogbowException {
+        return false;
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) throws FogbowException {
+        return false;
+    }
+
     private EmulatedCompute createCompute(ComputeOrder computeOrder) {
         int disk = computeOrder.getDisk();
         int vCPU = computeOrder.getvCPU();

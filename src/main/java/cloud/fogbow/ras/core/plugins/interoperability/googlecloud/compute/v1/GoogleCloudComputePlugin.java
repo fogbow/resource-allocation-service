@@ -122,6 +122,16 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     }
 
     @Override
+    public boolean isPaused(String cloudState) throws FogbowException {
+        return false;
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) throws FogbowException {
+        return false;
+    }
+
+    @Override
     public boolean isReady(String instanceState) {
         return GoogleCloudStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.READY);
     }

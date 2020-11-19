@@ -159,6 +159,16 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
         // ToDo: implement
     }
 
+    @Override
+    public boolean isPaused(String cloudState) throws FogbowException {
+        return false;
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) throws FogbowException {
+        return false;
+    }
+
     @VisibleForTesting
     ComputeInstance doGetInstance(GetVirtualMachineRequest request,
                                   CloudStackUser cloudStackUser) throws FogbowException {
