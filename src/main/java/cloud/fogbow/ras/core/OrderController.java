@@ -135,6 +135,7 @@ public class OrderController {
                 try {
                     CloudConnector cloudConnector = getCloudConnector(order);
                     cloudConnector.pauseComputeInstance(order);
+                    OrderStateTransitioner.transition(order, OrderState.PAUSING);
                 } catch (Exception e) {
                     LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
                     throw e;
@@ -160,6 +161,7 @@ public class OrderController {
                 try {
                     CloudConnector cloudConnector = getCloudConnector(order);
                     cloudConnector.hibernateComputeInstance(order);
+                    OrderStateTransitioner.transition(order, OrderState.HIBERNATING);
                 } catch (Exception e) {
                     LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
                     throw e;
@@ -174,18 +176,19 @@ public class OrderController {
 
             if (orderState.equals(OrderState.RESUMING)) {
                 throw new UnacceptableOperationException(Messages.Exception.RESUME_OPERATION_ONGOING);
+            }
 
-            } else if (!orderState.equals(OrderState.PAUSED) || !orderState.equals(OrderState.HIBERNATED)) {
-                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
+            if (!orderState.equals(OrderState.PAUSED) && !orderState.equals(OrderState.HIBERNATED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED);
+            }
 
-            } else {
-                try {
-                    CloudConnector cloudConnector = getCloudConnector(order);
-                    cloudConnector.resumeComputeInstance(order);
-                } catch (Exception e) {
-                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
-                    throw e;
-                }
+            try {
+                CloudConnector cloudConnector = getCloudConnector(order);
+                cloudConnector.resumeComputeInstance(order);
+                OrderStateTransitioner.transition(order, OrderState.RESUMING);
+            } catch (Exception e) {
+                LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
+                throw e;
             }
         }
     }
