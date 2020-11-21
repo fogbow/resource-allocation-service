@@ -6,6 +6,7 @@ import java.util.List;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.core.models.orders.*;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -447,7 +448,8 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    private OrderInstance checkInstanceSpecificStatus(OrderInstance instance, ResourceType resourceType) throws FogbowException {
+    @VisibleForTesting
+    OrderInstance checkInstanceSpecificStatus(OrderInstance instance, ResourceType resourceType) throws FogbowException {
         switch (resourceType) {
             case COMPUTE:
                 boolean isPaused = this.computePlugin.isPaused(instance.getCloudState());
