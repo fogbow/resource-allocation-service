@@ -30,8 +30,11 @@ import java.util.Properties;
 public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloudUser> {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudAttachmentPlugin.class);
 
-    @VisibleForTesting
-    static final String EMPTY_STRING = "";
+
+    //To delete an instance the body must be empty.
+    //Somehow content_length is not added to headers when the request body is empty.
+    //So the request will return a code > 204 (HttpStatus.SC_NO_CONTENT) and CloudHttpClient will throw an exception.
+    static final String SPECIAL_EMPTY_BODY = "{null:null}";
 
     private Properties properties;
     private GoogleCloudHttpClient client;
@@ -72,8 +75,6 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         return operation.getId();
     }
 
-
-    //TODO - 404 error when detaching. Delete method and query params may be the source of the problem.
     @Override
     public void deleteInstance(AttachmentOrder attachmentOrder, GoogleCloudUser cloudUser) throws FogbowException {
         String instanceId = attachmentOrder.getInstanceId();
@@ -117,7 +118,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String device = response.getDevice();
 
         // TODO - Can I use 'status' from Cloud response?
-        String googleCloudState = EMPTY_STRING;
+        String googleCloudState = GoogleCloudConstants.EMPTY_STRING;
         AttachmentInstance attachmentInstance = new AttachmentInstance(id, googleCloudState, computeId, volumeId, device);
         return attachmentInstance;
     }
@@ -186,7 +187,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
 
     @VisibleForTesting
     void doDeleteInstance(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
-        this.client.doDeleteRequest(endpoint, cloudUser);
+        this.client.doPostRequest(endpoint, SPECIAL_EMPTY_BODY, cloudUser);
     }
 
     @VisibleForTesting
