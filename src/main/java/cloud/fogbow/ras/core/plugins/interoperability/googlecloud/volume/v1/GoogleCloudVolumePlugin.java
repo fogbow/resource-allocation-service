@@ -34,12 +34,13 @@ import java.util.Properties;
 public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudVolumePlugin.class);
 
-
     private Properties properties;
     private GoogleCloudHttpClient client;
+    private final String zone;
 
     public GoogleCloudVolumePlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.zone = properties.getProperty(GoogleCloudConstants.ZONE_KEY_CONFIG);
         initClient();
     }
 
@@ -54,26 +55,22 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
     }
 
     @VisibleForTesting
-    String generateJsonRequest(String size, String name, String volumeTypeId) throws JSONException {
+    String generateJsonRequest(String size, String name) throws JSONException {
         CreateVolumeRequest createVolumeRequest = new CreateVolumeRequest.Builder()
                 .name(name)
                 .size(size)
-                .volumeType(volumeTypeId)
                 .build();
 
         return createVolumeRequest.toJson();
     }
 
-
-    @VisibleForTesting
-    String getZoneEndpoint(String zone){
-        return GoogleCloudConstants.ZONES_ENDPOINT + GoogleCloudConstants.ENDPOINT_SEPARATOR + zone;
-    }
-
     @VisibleForTesting
     String getPrefixEndpoint(String projectId) {
         return GoogleCloudConstants.BASE_COMPUTE_API_URL + GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT
-                + GoogleCloudConstants.PROJECT_ENDPOINT + GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId;
+                + GoogleCloudConstants.PROJECT_ENDPOINT
+                + GoogleCloudConstants.ENDPOINT_SEPARATOR + projectId
+                + GoogleCloudConstants.ZONES_ENDPOINT
+                + GoogleCloudConstants.ENDPOINT_SEPARATOR + this.zone;
     }
 
     @Override
@@ -83,11 +80,8 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String size = String.valueOf(volumeOrder.getVolumeSize());
         String name = volumeOrder.getName();
-        String volumeTypeId = findVolumeTypeSource(volumeOrder.getRequirements(), projectId, cloudUser);
-        String jsonRequest = generateJsonRequest(size, name, volumeTypeId);
-        String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
-                + GoogleCloudConstants.VOLUME_ENDPOINT;
+        String jsonRequest = generateJsonRequest(size, name);
+        String endpoint = getPrefixEndpoint(projectId) + GoogleCloudConstants.VOLUME_ENDPOINT;
 
         GetVolumeResponse volumeResponse = doRequestInstance(endpoint, jsonRequest, cloudUser);
         setAllocationToOrder(volumeOrder);
@@ -144,7 +138,6 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
         LOGGER.info(String.format(Messages.Log.GETTING_INSTANCE_S, instanceName));
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
                 + GoogleCloudConstants.VOLUME_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + instanceName;
@@ -181,7 +174,6 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceId));
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
                 + GoogleCloudConstants.VOLUME_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + instanceId;
@@ -212,9 +204,7 @@ public class GoogleCloudVolumePlugin implements VolumePlugin<GoogleCloudUser> {
             throw new InternalServerErrorException(Messages.Exception.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS);
         }
 
-        String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
-                + GoogleCloudConstants.VOLUME_TYPES_ENDPOINT;
+        String endpoint = getPrefixEndpoint(projectId) + GoogleCloudConstants.VOLUME_TYPES_ENDPOINT;
 
         String json = doGetResponseFromCloud(endpoint, cloudUser);
         GetAllTypesResponse response = doGetAllTypesResponseFrom(json);
