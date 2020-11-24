@@ -127,6 +127,7 @@ public class ApplicationFacade {
         try {
             SystemUser requester = authenticate(userToken);
             RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
+            rasOperation.setTargetProvider(providerId);
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             if (providerId.equals(this.providerId)) {
                 return this.cloudListController.getCloudNames();
@@ -249,6 +250,7 @@ public class ApplicationFacade {
         try {
             SystemUser requester = authenticate(userToken);
             RasOperation rasOperation = new RasOperation(Operation.GET_ALL, resourceType);
+            // FIXME what is the target provider in this case?
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             return this.orderController.getInstancesStatus(requester, resourceType);
         } finally {
@@ -265,6 +267,7 @@ public class ApplicationFacade {
                 cloudName = this.cloudListController.getDefaultCloudName();
             }
             RasOperation rasOperation = new RasOperation(Operation.GET_ALL, ResourceType.IMAGE, cloudName);
+            rasOperation.setTargetProvider(providerId);
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             if (providerId == null) {
                 providerId = this.providerId;
@@ -285,6 +288,7 @@ public class ApplicationFacade {
                 cloudName = this.cloudListController.getDefaultCloudName();
             }
             RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.IMAGE, cloudName);
+            rasOperation.setTargetProvider(providerId);
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             if (providerId == null) {
                 providerId = this.providerId;
@@ -308,6 +312,7 @@ public class ApplicationFacade {
             SystemUser requester = authenticate(userToken);
             String cloudName = order.getCloudName();
             RasOperation rasOperation = new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, cloudName, order);
+            rasOperation.setTargetProvider(providerId);
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             return this.securityRuleController.createSecurityRule(order, securityRule, requester);
         } finally {

@@ -47,4 +47,6 @@ public class ConfigurationPropertyKeys {
     public static final String AUTHORIZATION_ROLES_KEY = "roles";
     public static final String SUPERUSER_ROLE_KEY = "superuser_role";
     public static final String DEFAULT_AUTH_PLUGIN_KEY = "default_auth_plugin_class";
+    public static final String MS_URL_KEY = "ms_url";
+    public static final String MS_PORT_KEY = "ms_port";
 }

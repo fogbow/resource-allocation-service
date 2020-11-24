@@ -12,7 +12,8 @@ public class RasOperation extends FogbowOperation {
     private String cloudName;
     private String genericRequest;
     private Order order;
-
+    private String targetProvider;
+    
     public RasOperation(Operation operationType, ResourceType resourceType, String cloudName) {
         this.operationType = operationType;
         this.resourceType = resourceType;
@@ -31,6 +32,14 @@ public class RasOperation extends FogbowOperation {
         this.resourceType = resourceType;
     }
 
+    public String getTargetProvider() {
+        return targetProvider;
+    }
+    
+    public void setTargetProvider(String targetProvider) {
+        this.targetProvider = targetProvider;
+    }
+    
     public Operation getOperationType() {
         return operationType;
     }

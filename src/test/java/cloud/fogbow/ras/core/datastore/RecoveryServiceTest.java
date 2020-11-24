@@ -13,6 +13,7 @@ import cloud.fogbow.common.util.CloudInitUserDataBuilder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -28,6 +29,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
 import java.util.*;
 
+@Ignore
 @PowerMockIgnore({"javax.management.*"})
 @PrepareForTest({DatabaseManager.class, PropertiesHolder.class})
 @RunWith(PowerMockRunner.class)
