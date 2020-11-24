@@ -24,15 +24,17 @@ import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.HttpRequestClient;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
+import cloud.fogbow.ms.api.http.response.AuthorizationResponse;
+import cloud.fogbow.ms.core.models.operation.RasAuthorizableOperation;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.RasPublicKeysHolder;
 import cloud.fogbow.ras.core.models.RasOperation;
 
-
 public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
 
+    public static final String AUTHORIZATION_REQUEST_CONTENT_TYPE = "application/json";
     private RSAPublicKey msPublicKey;
     private String membershipServiceAddress;
     private String membershipServicePort;
@@ -63,18 +65,16 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
                 // extract response
                 Map<String, Object> jsonResponse = gson.fromJson(response.getContent(), HashMap.class);
                 // TODO set new token
-                String tokenResponse = (String) jsonResponse.get("token");
-                authorized = (boolean) jsonResponse.get("authorized");
+                AuthorizationResponse dataResponse = new AuthorizationResponse(jsonResponse);
+                String tokenResponse = dataResponse.getToken();
+                authorized = dataResponse.getAuthorized();
             }
         } catch (InternalServerErrorException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (URISyntaxException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } catch (FogbowException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+            throw new UnauthorizedRequestException(e.getMessage());
+        } catch (URISyntaxException e) {
+            throw new UnauthorizedRequestException(e.getMessage());
+        } catch (FogbowException e) {
+            throw new UnauthorizedRequestException(e.getMessage());
         }
         
         if (!authorized) {
@@ -101,15 +101,13 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         // header
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, token);
-        headers.put("Content-Type", "application/json");
+        headers.put(CommonKeys.CONTENT_TYPE_KEY, AUTHORIZATION_REQUEST_CONTENT_TYPE);
         
         // body
-        HashMap<String, String> body = new HashMap<String, String>();
-        body.put("targetProvider", provider);
-        body.put("operationType", operation.getOperationType().getValue());
+        RasAuthorizableOperation bodyOperation = new RasAuthorizableOperation(provider, operation.getOperationType().getValue());
+        Map<String, String> body = bodyOperation.asRequestBody();
 
-        HttpResponse response = HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body);
-        return response;
+        return HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body);
     }
     
     protected RSAPublicKey getMSPublicKey() throws FogbowException {
