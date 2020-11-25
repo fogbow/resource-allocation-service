@@ -250,7 +250,7 @@ public class ApplicationFacade {
         try {
             SystemUser requester = authenticate(userToken);
             RasOperation rasOperation = new RasOperation(Operation.GET_ALL, resourceType);
-            // FIXME what is the target provider in this case?
+            rasOperation.setTargetProvider(this.providerId);
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             return this.orderController.getInstancesStatus(requester, resourceType);
         } finally {
@@ -312,7 +312,7 @@ public class ApplicationFacade {
             SystemUser requester = authenticate(userToken);
             String cloudName = order.getCloudName();
             RasOperation rasOperation = new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, cloudName, order);
-            rasOperation.setTargetProvider(providerId);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             return this.securityRuleController.createSecurityRule(order, securityRule, requester);
         } finally {
@@ -332,6 +332,7 @@ public class ApplicationFacade {
             SystemUser requester = authenticate(userToken);
             String cloudName = order.getCloudName();
             RasOperation rasOperation = new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, cloudName, order);
+            rasOperation.setTargetProvider(providerId);
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             return this.securityRuleController.getAllSecurityRules(order, requester);
         } finally {
@@ -351,6 +352,7 @@ public class ApplicationFacade {
             SystemUser requester = authenticate(userToken);
             String cloudName = order.getCloudName();
             RasOperation rasOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName, order);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             this.securityRuleController.deleteSecurityRule(order.getProvider(), cloudName, securityRuleId, requester);
         } finally {
@@ -362,7 +364,8 @@ public class ApplicationFacade {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
         RasOperation rasOperation = new RasOperation(Operation.PAUSE, resourceType, order.getCloudName(), order);
-        this.authorizationPlugin.isAuthorized(requester,rasOperation);
+        rasOperation.setTargetProvider(order.getProvider());
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         this.orderController.pauseOrder(order);
     }
 
@@ -370,7 +373,8 @@ public class ApplicationFacade {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
         RasOperation rasOperation = new RasOperation(Operation.HIBERNATE, resourceType, order.getCloudName(), order);
-        this.authorizationPlugin.isAuthorized(requester,rasOperation);
+        rasOperation.setTargetProvider(order.getProvider());
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         this.orderController.hibernateOrder(order);
     }
 
@@ -378,7 +382,8 @@ public class ApplicationFacade {
         SystemUser requester = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
         RasOperation rasOperation = new RasOperation(Operation.RESUME, resourceType, order.getCloudName(), order);
-        this.authorizationPlugin.isAuthorized(requester,rasOperation);
+        rasOperation.setTargetProvider(order.getProvider());
+        this.authorizationPlugin.isAuthorized(requester, rasOperation);
         this.orderController.resumeOrder(order);
     }
 
@@ -394,7 +399,7 @@ public class ApplicationFacade {
 
         RasOperation rasOperation =
                 new RasOperation(Operation.TAKE_SNAPSHOT, resourceType, computeOrder.getCloudName(), computeOrder);
-
+        rasOperation.setTargetProvider(order.getProvider());
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         this.orderController.takeSnapshot(computeOrder, name, requester);
 
@@ -424,6 +429,7 @@ public class ApplicationFacade {
             checkEmbeddedOrdersConsistency(order);
             // Check if the authenticated user is authorized to perform the requested operation
             RasOperation rasOperation = new RasOperation(Operation.CREATE, order.getType(), order.getCloudName(), order);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             // Add order to the poll of active orders and to the OPEN linked list
             return this.orderController.activateOrder(order);
@@ -438,6 +444,7 @@ public class ApplicationFacade {
             SystemUser requester = authenticate(userToken);
             Order order = this.orderController.getOrder(orderId);
             RasOperation rasOperation = new RasOperation(Operation.GET, resourceType, order.getCloudName(), order);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             return this.orderController.getResourceInstance(order);
         } finally {
@@ -451,6 +458,7 @@ public class ApplicationFacade {
             SystemUser requester = authenticate(userToken);
             Order order = this.orderController.getOrder(orderId);
             RasOperation rasOperation = new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             this.orderController.deleteOrder(order);
         } finally {
@@ -466,6 +474,7 @@ public class ApplicationFacade {
             if (cloudName == null || cloudName.isEmpty())
                 cloudName = this.cloudListController.getDefaultCloudName();
             RasOperation rasOperation = new RasOperation(Operation.GET_USER_ALLOCATION, resourceType, cloudName);
+            rasOperation.setTargetProvider(providerId);
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             return this.orderController.getUserAllocation(providerId, cloudName, requester, resourceType);
         } finally {
@@ -481,6 +490,7 @@ public class ApplicationFacade {
             if (cloudName == null || cloudName.isEmpty())
                 cloudName = this.cloudListController.getDefaultCloudName();
             RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.QUOTA, cloudName);
+            rasOperation.setTargetProvider(providerId);
             this.authorizationPlugin.isAuthorized(requester, rasOperation);
             CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
             return cloudConnector.getUserQuota(requester);
@@ -574,6 +584,7 @@ public class ApplicationFacade {
     public void reload(String userToken) throws FogbowException {
         SystemUser requester = authenticate(userToken);
         RasOperation rasOperation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
+        rasOperation.setTargetProvider(this.providerId);
         this.authorizationPlugin.isAuthorized(requester, rasOperation);
         
         SynchronizationManager.getInstance().setAsReloading();
