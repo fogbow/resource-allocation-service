@@ -63,17 +63,23 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
 
         String volumeId = attachmentOrder.getVolumeId();
         String volumeSource = createSourcePath(volumeId, projectId);
-        String device = attachmentOrder.getDevice();
+        // note(jadsonluan): Google Cloud Platform only accepts the device name.
+        // This device name will reflect into the "/dev/disk/by-id/google-{deviceName}"
+        String device = this.getDeviceName(attachmentOrder.getDevice());
         String jsonRequest = generateJsonRequest(volumeSource, device);
 
         CreateAttachmentResponse operation = doRequestInstance(endpointBase
-                + getInstanceEndpoint(serverId)
-                + GoogleCloudConstants.ATTACH_DISK_KEY_ENDPOINT,
+                        + getInstanceEndpoint(serverId)
+                        + GoogleCloudConstants.ATTACH_DISK_KEY_ENDPOINT,
                 jsonRequest, cloudUser);
 
         return operation.getId();
     }
 
+    @VisibleForTesting
+    String getDeviceName(String device) {
+        return device.replace(GoogleCloudConstants.Attachment.DEVICE_DEV_PREFIX, EMPTY_STRING);
+    }
 
     //TODO - 404 error when detaching. Delete method and query params may be the source of the problem.
     @Override
@@ -83,7 +89,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
 
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
-        String device = attachmentOrder.getDevice();
+        String device = this.getDeviceName(attachmentOrder.getDevice());
         String endpoint = getPrefixEndpoint(projectId)
                 + getZoneEndpoint(this.zone)
                 + getInstanceEndpoint(serverId)
@@ -116,7 +122,8 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String computeId = response.getServerId();
         String id = response.getId();
         String volumeId = response.getVolumeId();
-        String device = response.getDevice();
+        String deviceName = response.getDevice();
+        String device = this.formatDevice(deviceName);
 
         // TODO - Can I use 'status' from Cloud response?
         String googleCloudState = EMPTY_STRING;
@@ -124,6 +131,9 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         return attachmentInstance;
     }
 
+    private String formatDevice(String deviceName) {
+        return String.format(GoogleCloudConstants.Attachment.DEVICE_FORMAT, deviceName);
+    }
 
     @VisibleForTesting
     GetAttachmentResponse doGetInstance(String endpointBase, String volumeId, String serverId, GoogleCloudUser cloudUser)
