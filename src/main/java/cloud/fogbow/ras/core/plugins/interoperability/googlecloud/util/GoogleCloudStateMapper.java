@@ -53,6 +53,11 @@ public class GoogleCloudStateMapper {
                         LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, COMPUTE_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
+            case ATTACHMENT:
+                switch (state) {
+                    default:
+                        return InstanceState.READY;
+                }
             case NETWORK:
                 switch (state) {
                     case RUNNING_STATE:
