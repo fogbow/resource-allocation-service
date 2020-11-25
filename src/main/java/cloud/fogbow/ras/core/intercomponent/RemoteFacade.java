@@ -63,6 +63,7 @@ public class RemoteFacade {
             // The user has already been authenticated by the requesting provider.
             checkOrderConsistency(requestingProvider, order);
             RasOperation rasOperation = new RasOperation(Operation.CREATE, order.getType(), order.getCloudName(), order);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(order.getSystemUser(), rasOperation);
             this.orderController.activateOrder(order);
         } finally {
@@ -89,6 +90,7 @@ public class RemoteFacade {
             // The user has already been authenticated by the requesting provider.
             checkOrderConsistency(requestingProvider, order);
             RasOperation rasOperation = new RasOperation(Operation.GET, resourceType, order.getCloudName(), order);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             return this.orderController.getResourceInstance(order);            
         } finally {
@@ -104,6 +106,7 @@ public class RemoteFacade {
             // The user has already been authenticated by the requesting provider.
             checkOrderConsistency(requestingProvider, order);
             RasOperation rasOperation = new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             this.orderController.deleteOrder(order);            
         } finally {
@@ -117,6 +120,7 @@ public class RemoteFacade {
         // The user has already been authenticated by the requesting provider.
         checkOrderConsistency(requestingProvider, order);
         RasOperation rasOperation = new RasOperation(Operation.PAUSE, resourceType, order.getCloudName(), order);
+        rasOperation.setTargetProvider(order.getProvider());
         this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         this.orderController.pauseOrder(order);
     }
@@ -127,6 +131,7 @@ public class RemoteFacade {
         // The user has already been authenticated by the requesting provider.
         checkOrderConsistency(requestingProvider, order);
         RasOperation rasOperation = new RasOperation(Operation.HIBERNATE, resourceType, order.getCloudName(), order);
+        rasOperation.setTargetProvider(order.getProvider());
         this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         this.orderController.hibernateOrder(order);
     }
@@ -136,6 +141,7 @@ public class RemoteFacade {
         checkOrderConsistency(requestingProvider, computeOrder);
         RasOperation rasOperation =
                 new RasOperation(Operation.TAKE_SNAPSHOT, ResourceType.COMPUTE, computeOrder.getCloudName(), computeOrder);
+        rasOperation.setTargetProvider(computeOrder.getProvider());
         this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         this.orderController.takeSnapshot(computeOrder, name, systemUser);
     }
@@ -146,6 +152,7 @@ public class RemoteFacade {
         // The user has already been authenticated by the requesting provider.
         checkOrderConsistency(requestingProvider, order);
         RasOperation rasOperation = new RasOperation(Operation.RESUME, resourceType, order.getCloudName(), order);
+        rasOperation.setTargetProvider(order.getProvider());
         this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         this.orderController.resumeOrder(order);
     }
@@ -155,6 +162,7 @@ public class RemoteFacade {
         try {
             // The user has already been authenticated by the requesting provider.
             RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.QUOTA, cloudName);
+            rasOperation.setTargetProvider(this.localProviderId);
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
             return cloudConnector.getUserQuota(systemUser);            
@@ -168,6 +176,7 @@ public class RemoteFacade {
         try {
             // The user has already been authenticated by the requesting provider.
             RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.IMAGE, cloudName);
+            rasOperation.setTargetProvider(this.localProviderId);
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
             return cloudConnector.getImage(imageId, systemUser);            
@@ -181,6 +190,7 @@ public class RemoteFacade {
         try {
             // The user has already been authenticated by the requesting provider.
             RasOperation rasOperation = new RasOperation(Operation.GET_ALL, ResourceType.IMAGE, cloudName);
+            rasOperation.setTargetProvider(this.localProviderId);
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localProviderId, cloudName);
             return cloudConnector.getAllImages(systemUser);            
@@ -194,6 +204,7 @@ public class RemoteFacade {
         try {
             // The user has already been authenticated by the requesting provider.
             RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
+            rasOperation.setTargetProvider(this.localProviderId);
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             return this.cloudListController.getCloudNames();            
         } finally {
@@ -210,6 +221,7 @@ public class RemoteFacade {
             // The user has already been authenticated by the requesting provider.
             RasOperation rasOperation = new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, order.getCloudName(),
                     order);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             return securityRuleController.createSecurityRule(order, securityRule, systemUser);            
         } finally {
@@ -226,6 +238,7 @@ public class RemoteFacade {
             // The user has already been authenticated by the requesting provider.
             RasOperation rasOperation = new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, order.getCloudName(),
                     order);
+            rasOperation.setTargetProvider(order.getProvider());
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             return securityRuleController.getAllSecurityRules(order, systemUser);            
         } finally {
@@ -238,6 +251,7 @@ public class RemoteFacade {
         startOperation();
         try {
             RasOperation rasOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName);
+            rasOperation.setTargetProvider(this.localProviderId);
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             this.securityRuleController.deleteSecurityRule(this.localProviderId, cloudName, ruleId, systemUser);            
         } finally {
