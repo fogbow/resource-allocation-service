@@ -30,14 +30,15 @@ import java.util.Properties;
 public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloudUser> {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudAttachmentPlugin.class);
 
-    @VisibleForTesting
-    static final String EMPTY_STRING = "";
+    static final String SPECIAL_EMPTY_BODY = "{null:null}";
 
     private Properties properties;
     private GoogleCloudHttpClient client;
+    private final String zone;
 
     public GoogleCloudAttachmentPlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.zone = properties.getProperty(GoogleCloudConstants.ZONE_KEY_CONFIG);
         initClient();
     }
 
@@ -57,21 +58,27 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String endpointBase = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE);
+                + getZoneEndpoint(this.zone);
 
         String volumeId = attachmentOrder.getVolumeId();
         String volumeSource = createSourcePath(volumeId, projectId);
-        String device = attachmentOrder.getDevice();
+        // note(jadsonluan): Google Cloud Platform only accepts the device name.
+        // This device name will reflect into the "/dev/disk/by-id/google-{deviceName}"
+        String device = this.getDeviceName(attachmentOrder.getDevice());
         String jsonRequest = generateJsonRequest(volumeSource, device);
 
         CreateAttachmentResponse operation = doRequestInstance(endpointBase
-                + getInstanceEndpoint(serverId)
-                + GoogleCloudConstants.ATTACH_DISK_KEY_ENDPOINT,
+                        + getInstanceEndpoint(serverId)
+                        + GoogleCloudConstants.ATTACH_DISK_KEY_ENDPOINT,
                 jsonRequest, cloudUser);
 
         return operation.getId();
     }
 
+    @VisibleForTesting
+    String getDeviceName(String device) {
+        return device.replace(GoogleCloudConstants.Attachment.DEVICE_DEV_PREFIX, GoogleCloudConstants.EMPTY_STRING);
+    }
 
     //TODO - 404 error when detaching. Delete method and query params may be the source of the problem.
     @Override
@@ -81,9 +88,9 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
 
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
-        String device = attachmentOrder.getDevice();
+        String device = this.getDeviceName(attachmentOrder.getDevice());
         String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + getZoneEndpoint(this.zone)
                 + getInstanceEndpoint(serverId)
                 + GoogleCloudConstants.DETACH_DISK_KEY_ENDPOINT
                 + GoogleCloudConstants.DEVICE_NAME_QUERY_PARAM
@@ -101,7 +108,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE);
+                + getZoneEndpoint(this.zone);
 
         GetAttachmentResponse response = doGetInstance(endpoint, volumeId, serverId, cloudUser);
         AttachmentInstance attachmentInstance = buildAttachmentInstanceFrom(response);
@@ -114,14 +121,21 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String computeId = response.getServerId();
         String id = response.getId();
         String volumeId = response.getVolumeId();
-        String device = response.getDevice();
+        String deviceName = response.getDevice();
+        String device = this.formatDevice(deviceName);
 
-        // TODO - Can I use 'status' from Cloud response?
-        String googleCloudState = EMPTY_STRING;
+        /*
+         * There is no GoogleCloudState for attachments; we set it to empty string to
+         * allow its mapping by the OpenStackStateMapper.map() function.
+         */
+        String googleCloudState = GoogleCloudConstants.EMPTY_STRING;
         AttachmentInstance attachmentInstance = new AttachmentInstance(id, googleCloudState, computeId, volumeId, device);
         return attachmentInstance;
     }
 
+    private String formatDevice(String deviceName) {
+        return String.format(GoogleCloudConstants.Attachment.DEVICE_FORMAT, deviceName);
+    }
 
     @VisibleForTesting
     GetAttachmentResponse doGetInstance(String endpointBase, String volumeId, String serverId, GoogleCloudUser cloudUser)
@@ -186,7 +200,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
 
     @VisibleForTesting
     void doDeleteInstance(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
-        this.client.doDeleteRequest(endpoint, cloudUser);
+        this.client.doPostRequest(endpoint, SPECIAL_EMPTY_BODY, cloudUser);
     }
 
     @VisibleForTesting
@@ -246,7 +260,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
     @VisibleForTesting
     String createSourcePath(String resource, String projectId){
         return getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + getZoneEndpoint(this.zone)
                 + GoogleCloudConstants.VOLUME_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + resource;

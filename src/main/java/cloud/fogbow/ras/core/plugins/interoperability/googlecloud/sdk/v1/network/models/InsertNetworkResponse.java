@@ -20,7 +20,7 @@ public class InsertNetworkResponse {
 
     @SerializedName(GoogleCloudConstants.Network.TARGET_LINK_KEY_JSON)
     private String targetLink;
-    @SerializedName(GoogleCloudConstants.Network.ID_KEY_JSON)
+    @SerializedName(GoogleCloudConstants.Network.TARGET_ID_KEY_JSON)
     private String id;
 
     public InsertNetworkResponse(String targetLink, String id){

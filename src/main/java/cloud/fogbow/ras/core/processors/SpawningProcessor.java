@@ -20,7 +20,7 @@ import java.util.Map;
 public class SpawningProcessor extends StoppableProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
     private static final int INITIAL_FAILED_REQUESTS_COUNT = 0;
-    @VisibleForTesting static final int FAILED_REQUESTS_LIMIT = 5;
+    @VisibleForTesting static final int FAILED_REQUESTS_LIMIT = 20;
 
     private ChainedList<Order> spawningOrderList;
     private Map<Order, Integer> failedRequestsMap;
