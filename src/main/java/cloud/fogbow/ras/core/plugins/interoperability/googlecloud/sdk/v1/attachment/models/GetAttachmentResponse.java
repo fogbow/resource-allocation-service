@@ -4,6 +4,7 @@ import cloud.fogbow.common.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 import static cloud.fogbow.common.constants.GoogleCloudConstants.Attachment.*;
+import static cloud.fogbow.common.constants.GoogleCloudConstants.Volume.NAME_KEY_JSON;
 
 
 /**
@@ -21,9 +22,9 @@ import static cloud.fogbow.common.constants.GoogleCloudConstants.Attachment.*;
 public class GetAttachmentResponse {
     @SerializedName(ATTACH_ID_KEY_JSON)
     private String id;
-    @SerializedName(VOLUME_SOURCE_KEY_JSON)
-    private String volumeSource;
-    @SerializedName(INSTANCE_NAME_KEY_JSON)
+    @SerializedName(NAME_KEY_JSON)
+    private String volumeName;
+    @SerializedName(INSTANCE_KEY_JSON)
     private String serverId;
     @SerializedName(DEVICE_NAME_KEY_JSON)
     private String device;
@@ -40,8 +41,8 @@ public class GetAttachmentResponse {
         return id;
     }
 
-    public String getVolumeId() {
-        return volumeSource;
+    public String getVolumeName() {
+        return volumeName;
     }
 
     public String getServerId() {
@@ -51,5 +52,8 @@ public class GetAttachmentResponse {
     public String getDevice() {
         return device;
     }
+
+    public void setId(String id){ id = id; }
     public void setDevice(String deviceName) { device = deviceName; }
+    public void setServerId(String serverId) { serverId = serverId; }
 }
