@@ -17,6 +17,7 @@ import cloud.fogbow.as.core.util.AuthenticationUtil;
 import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.models.SystemUser;
@@ -60,14 +61,12 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
                 Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());
                 throw new UnavailableProviderException(e.getMessage());
             } else {
-                Gson gson = new Gson();
-                
-                // extract response
-                Map<String, Object> jsonResponse = gson.fromJson(response.getContent(), HashMap.class);
-                // TODO set new token
-                AuthorizationResponse dataResponse = new AuthorizationResponse(jsonResponse);
-                String tokenResponse = dataResponse.getToken();
-                authorized = dataResponse.getAuthorized();
+                // get information from request response
+                authorized = getAuthorizedAndUpdateUser(response, systemUser);
+            }
+            
+            if (!authorized) {
+                throw new UnauthorizedRequestException();
             }
         } catch (InternalServerErrorException e) {
             throw new UnauthorizedRequestException(e.getMessage());
@@ -75,10 +74,6 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
             throw new UnauthorizedRequestException(e.getMessage());
         } catch (FogbowException e) {
             throw new UnauthorizedRequestException(e.getMessage());
-        }
-        
-        if (!authorized) {
-            throw new UnauthorizedRequestException();
         }
         
         return authorized;
@@ -108,6 +103,19 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         Map<String, String> body = bodyOperation.asRequestBody();
 
         return HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body);
+    }
+    
+    private boolean getAuthorizedAndUpdateUser(HttpResponse response, SystemUser systemUser) throws UnauthenticatedUserException {
+        Gson gson = new Gson();
+        
+        // extract response
+        Map<String, Object> jsonResponse = gson.fromJson(response.getContent(), HashMap.class);
+        AuthorizationResponse dataResponse = new AuthorizationResponse(jsonResponse);
+        // set new token information
+        String tokenResponse = dataResponse.getToken();
+        SystemUser user = AuthenticationUtil.authenticate(msPublicKey, tokenResponse);
+        systemUser.setUserRoles(user.getUserRoles());
+        return dataResponse.getAuthorized();
     }
     
     protected RSAPublicKey getMSPublicKey() throws FogbowException {

@@ -1,11 +1,14 @@
 package cloud.fogbow.ras.core.plugins.authorization;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.HttpStatus;
 import org.junit.Before;
@@ -60,10 +63,17 @@ public class DistributedAuthorizationPluginTest {
     private RSAPublicKey msPublicKey;
     private RSAPrivateKey rasPrivateKey;
     private SystemUser user;
+    private SystemUser userWithRoles;
+    private String userRole = "role";
+    private Set<String> userRolesSet;
     
     @Before
     public void setUp() throws FogbowException {
         this.user = new SystemUser(userId, userName, providerId);
+        this.userWithRoles = new SystemUser(userId, userName, providerId);
+        this.userRolesSet = new HashSet<String>();
+        this.userRolesSet.add(userRole);
+        this.userWithRoles.setUserRoles(userRolesSet);
         
         // keys
         this.msPublicKey = Mockito.mock(RSAPublicKey.class);
@@ -81,6 +91,7 @@ public class DistributedAuthorizationPluginTest {
         // token
         PowerMockito.mockStatic(AuthenticationUtil.class);
         BDDMockito.given(AuthenticationUtil.createFogbowToken(this.user, this.rasPrivateKey, this.msPublicKey)).willReturn(token);
+        BDDMockito.given(AuthenticationUtil.authenticate(this.msPublicKey, returnedToken)).willReturn(this.userWithRoles);
         
         // request properties
         PowerMockito.mockStatic(PropertiesHolder.class);
@@ -106,7 +117,7 @@ public class DistributedAuthorizationPluginTest {
     
     // test case: when the "authorized" field of the response of an authorization request
     // is true and the response status code is equal to 200, the isAuthorized method will 
-    // return true.
+    // return true and update the user with the correct roles.
     @Test
     public void testIsAuthorizedOperationIsAuthorized() throws FogbowException {
         // response
@@ -128,7 +139,14 @@ public class DistributedAuthorizationPluginTest {
         BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).willReturn(response);
         
         this.plugin = new DistributedAuthorizationPlugin();
-        assertTrue(this.plugin.isAuthorized(this.user, operation));
+        
+        assertNull(this.user.getUserRoles());
+
+        boolean isAuthorized = this.plugin.isAuthorized(this.user, operation);
+        
+        assertTrue(isAuthorized);
+        assertTrue(this.user.getUserRoles().size() == 1);
+        assertTrue(this.user.getUserRoles().contains(this.userRole));
     }
     
     // test case: when the "authorized" field of the response of an authorization request
