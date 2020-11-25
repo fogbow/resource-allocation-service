@@ -30,8 +30,7 @@ import java.util.Properties;
 public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloudUser> {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudAttachmentPlugin.class);
 
-    @VisibleForTesting
-    static final String EMPTY_STRING = "";
+    static final String SPECIAL_EMPTY_BODY = "{null:null}";
 
     private Properties properties;
     private GoogleCloudHttpClient client;
@@ -78,7 +77,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
 
     @VisibleForTesting
     String getDeviceName(String device) {
-        return device.replace(GoogleCloudConstants.Attachment.DEVICE_DEV_PREFIX, EMPTY_STRING);
+        return device.replace(GoogleCloudConstants.Attachment.DEVICE_DEV_PREFIX, GoogleCloudConstants.EMPTY_STRING);
     }
 
     //TODO - 404 error when detaching. Delete method and query params may be the source of the problem.
@@ -125,8 +124,11 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String deviceName = response.getDevice();
         String device = this.formatDevice(deviceName);
 
-        // TODO - Can I use 'status' from Cloud response?
-        String googleCloudState = EMPTY_STRING;
+        /*
+         * There is no GoogleCloudState for attachments; we set it to empty string to
+         * allow its mapping by the OpenStackStateMapper.map() function.
+         */
+        String googleCloudState = GoogleCloudConstants.EMPTY_STRING;
         AttachmentInstance attachmentInstance = new AttachmentInstance(id, googleCloudState, computeId, volumeId, device);
         return attachmentInstance;
     }
@@ -198,7 +200,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
 
     @VisibleForTesting
     void doDeleteInstance(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
-        this.client.doDeleteRequest(endpoint, cloudUser);
+        this.client.doPostRequest(endpoint, SPECIAL_EMPTY_BODY, cloudUser);
     }
 
     @VisibleForTesting
