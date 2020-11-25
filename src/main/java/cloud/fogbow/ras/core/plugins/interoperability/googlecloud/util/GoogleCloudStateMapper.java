@@ -38,6 +38,11 @@ public class GoogleCloudStateMapper {
         state = state.toLowerCase();
 
         switch (type){
+            case ATTACHMENT:
+                switch (state) {
+                    default:
+                        return InstanceState.READY;
+                }
             case VOLUME:
                 switch (state) {
                     case READY_STATE:
