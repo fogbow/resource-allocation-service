@@ -30,17 +30,15 @@ import java.util.Properties;
 public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloudUser> {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudAttachmentPlugin.class);
 
-
-    //To delete an instance the body must be empty.
-    //Somehow content_length is not added to headers when the request body is empty.
-    //So the request will return a code > 204 (HttpStatus.SC_NO_CONTENT) and CloudHttpClient will throw an exception.
     static final String SPECIAL_EMPTY_BODY = "{null:null}";
 
     private Properties properties;
     private GoogleCloudHttpClient client;
+    private final String zone;
 
     public GoogleCloudAttachmentPlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.zone = properties.getProperty(GoogleCloudConstants.ZONE_KEY_CONFIG);
         initClient();
     }
 
@@ -59,20 +57,19 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
-        String endpointBase = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE);
+        String endpoint = getPrefixEndpoint(projectId)
+                + getZoneEndpoint()
+                + getInstanceEndpoint(serverId)
+                + GoogleCloudConstants.ATTACH_DISK_KEY_ENDPOINT;
 
         String volumeId = attachmentOrder.getVolumeId();
         String volumeSource = createSourcePath(volumeId, projectId);
         String device = attachmentOrder.getDevice();
         String jsonRequest = generateJsonRequest(volumeSource, device);
 
-        CreateAttachmentResponse operation = doRequestInstance(endpointBase
-                + getInstanceEndpoint(serverId)
-                + GoogleCloudConstants.ATTACH_DISK_KEY_ENDPOINT,
-                jsonRequest, cloudUser);
+        doRequestInstance(endpoint, jsonRequest, cloudUser);
 
-        return operation.getId();
+        return volumeId;
     }
 
     @Override
@@ -84,7 +81,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String serverId = attachmentOrder.getComputeId();
         String device = attachmentOrder.getDevice();
         String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + getZoneEndpoint()
                 + getInstanceEndpoint(serverId)
                 + GoogleCloudConstants.DETACH_DISK_KEY_ENDPOINT
                 + GoogleCloudConstants.DEVICE_NAME_QUERY_PARAM
@@ -101,8 +98,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
-        String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE);
+        String endpoint = getPrefixEndpoint(projectId) + getZoneEndpoint();
 
         GetAttachmentResponse response = doGetInstance(endpoint, volumeId, serverId, cloudUser);
         AttachmentInstance attachmentInstance = buildAttachmentInstanceFrom(response);
@@ -114,10 +110,13 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
     AttachmentInstance buildAttachmentInstanceFrom(GetAttachmentResponse response) {
         String computeId = response.getServerId();
         String id = response.getId();
-        String volumeId = response.getVolumeId();
+        String volumeId = response.getVolumeName();
         String device = response.getDevice();
 
-        // TODO - Can I use 'status' from Cloud response?
+        /*
+         * There is no GoogleCloudState for attachments; we set it to empty string to
+         * allow its mapping by the GoogleCloudStateMapper.map() function.
+         */
         String googleCloudState = GoogleCloudConstants.EMPTY_STRING;
         AttachmentInstance attachmentInstance = new AttachmentInstance(id, googleCloudState, computeId, volumeId, device);
         return attachmentInstance;
@@ -127,11 +126,13 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
     @VisibleForTesting
     GetAttachmentResponse doGetInstance(String endpointBase, String volumeId, String serverId, GoogleCloudUser cloudUser)
             throws FogbowException {
-        String jsonResponse = this.client.doGetRequest(endpointBase + getDiskEndpoint(volumeId), cloudUser);
+
+        String jsonResponse = this.client.doGetRequest(endpointBase + getVolumeEndpoint(volumeId), cloudUser);
         GetAttachmentResponse response = doGetAttachmentResponseFrom(jsonResponse);
         String deviceName = findDeviceNameFromVolume(endpointBase + getInstanceEndpoint(serverId),
                 volumeId, cloudUser);
         response.setDevice(deviceName);
+        response.setServerId(serverId);
 
         return response;
     }
@@ -144,18 +145,16 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         GetInstanceResponse instanceResponse = doGetInstanceResponseFrom(json);
         List<GetInstanceResponse.Disk> disks = instanceResponse.getDisks();
 
+        String deviceName = null;
         for (GetInstanceResponse.Disk disk : disks){
-            boolean match = false;
             String diskVolumeName = disk.getVolumeName();
             if (diskVolumeName.equals(volumeName)) {
-                match = true;
+                deviceName = disk.getDeviceName();
+                break;
             }
-
-            if (match) return disk.getDeviceName();
         }
 
-        String message = Messages.Exception.UNABLE_TO_MATCH_REQUIREMENTS;
-        throw new UnacceptableOperationException(message);
+        return deviceName;
     }
 
 
@@ -224,14 +223,14 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
     }
 
     @VisibleForTesting
-    String getZoneEndpoint(String zone){
+    String getZoneEndpoint(){
         return GoogleCloudConstants.ZONES_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
-                + zone;
+                + this.zone;
     }
 
     @VisibleForTesting
-    String getDiskEndpoint(String volumeId){
+    String getVolumeEndpoint(String volumeId){
         return GoogleCloudConstants.VOLUME_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + volumeId;
@@ -247,10 +246,8 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
     @VisibleForTesting
     String createSourcePath(String resource, String projectId){
         return getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
-                + GoogleCloudConstants.VOLUME_ENDPOINT
-                + GoogleCloudConstants.ENDPOINT_SEPARATOR
-                + resource;
+                + getZoneEndpoint()
+                + getVolumeEndpoint(resource);
     }
 
     private void initClient() {
