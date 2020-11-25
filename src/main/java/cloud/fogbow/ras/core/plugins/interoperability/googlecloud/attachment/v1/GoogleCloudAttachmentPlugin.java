@@ -35,9 +35,11 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
 
     private Properties properties;
     private GoogleCloudHttpClient client;
+    private final String zone;
 
     public GoogleCloudAttachmentPlugin(String confFilePath) throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.zone = properties.getProperty(GoogleCloudConstants.ZONE_KEY_CONFIG);
         initClient();
     }
 
@@ -57,7 +59,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
         String serverId = attachmentOrder.getComputeId();
         String endpointBase = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE);
+                + getZoneEndpoint(this.zone);
 
         String volumeId = attachmentOrder.getVolumeId();
         String volumeSource = createSourcePath(volumeId, projectId);
@@ -83,7 +85,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String serverId = attachmentOrder.getComputeId();
         String device = attachmentOrder.getDevice();
         String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + getZoneEndpoint(this.zone)
                 + getInstanceEndpoint(serverId)
                 + GoogleCloudConstants.DETACH_DISK_KEY_ENDPOINT
                 + GoogleCloudConstants.DEVICE_NAME_QUERY_PARAM
@@ -101,7 +103,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
         String serverId = order.getComputeId();
         String volumeId = order.getVolumeId();
         String endpoint = getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE);
+                + getZoneEndpoint(this.zone);
 
         GetAttachmentResponse response = doGetInstance(endpoint, volumeId, serverId, cloudUser);
         AttachmentInstance attachmentInstance = buildAttachmentInstanceFrom(response);
@@ -246,7 +248,7 @@ public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloud
     @VisibleForTesting
     String createSourcePath(String resource, String projectId){
         return getPrefixEndpoint(projectId)
-                + getZoneEndpoint(GoogleCloudConstants.DEFAULT_ZONE)
+                + getZoneEndpoint(this.zone)
                 + GoogleCloudConstants.VOLUME_ENDPOINT
                 + GoogleCloudConstants.ENDPOINT_SEPARATOR
                 + resource;
