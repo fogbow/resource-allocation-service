@@ -25,6 +25,8 @@ import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.HttpRequestClient;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
+import cloud.fogbow.ms.api.http.response.AuthorizationResponse;
+import cloud.fogbow.ms.core.models.operation.RasAuthorizableOperation;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -34,10 +36,6 @@ import cloud.fogbow.ras.core.models.RasOperation;
 public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
 
     public static final String AUTHORIZATION_REQUEST_CONTENT_TYPE = "application/json";
-    private static final String OPERATION_TYPE_REQUEST_KEY = "operationType";
-    private static final String TARGET_PROVIDER_REQUEST_KEY = "targetProvider";
-    private static final String AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD = "authorized";
-    private static final String AUTHORIZATION_RESPONSE_TOKEN_FIELD = "token";
     private RSAPublicKey msPublicKey;
     private String membershipServiceAddress;
     private String membershipServicePort;
@@ -101,9 +99,8 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         headers.put(CommonKeys.CONTENT_TYPE_KEY, AUTHORIZATION_REQUEST_CONTENT_TYPE);
         
         // body
-        Map<String, String> body = new HashMap<String, String>();
-        body.put(TARGET_PROVIDER_REQUEST_KEY, provider);
-        body.put(OPERATION_TYPE_REQUEST_KEY, operation.getOperationType().getValue());
+        RasAuthorizableOperation operationRas = new RasAuthorizableOperation(provider, operation.getOperationType().getValue());
+        Map<String, String> body = operationRas.asRequestBody();
         
         return HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body);
     }
@@ -114,10 +111,11 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         // extract response
         Map<String, Object> jsonResponse = gson.fromJson(response.getContent(), HashMap.class);
         // set new token information
-        String tokenResponse = (String) jsonResponse.get(AUTHORIZATION_RESPONSE_TOKEN_FIELD);
+        AuthorizationResponse authorizationResponse = new AuthorizationResponse(jsonResponse);
+        String tokenResponse = authorizationResponse.getToken();
         SystemUser user = AuthenticationUtil.authenticate(msPublicKey, tokenResponse);
         systemUser.setUserRoles(user.getUserRoles());
-        return (boolean) jsonResponse.get(AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD);
+        return authorizationResponse.getAuthorized();
     }
     
     protected RSAPublicKey getMSPublicKey() throws FogbowException {
