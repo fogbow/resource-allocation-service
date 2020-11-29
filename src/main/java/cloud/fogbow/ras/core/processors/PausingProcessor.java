@@ -4,8 +4,6 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
-import cloud.fogbow.ras.api.http.response.InstanceState;
-import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -22,10 +20,6 @@ public class PausingProcessor extends StoppableProcessor implements Runnable {
 
     private String localProviderId;
     private ChainedList<Order> pausingOrdersList;
-    /**
-     * Attribute that represents the thread sleep time when there are no orders to be processed.
-     */
-    private Long sleepTime;
 
     public PausingProcessor(String localProviderId, String sleepTimeStr) {
         this.localProviderId = localProviderId;
@@ -38,43 +32,6 @@ public class PausingProcessor extends StoppableProcessor implements Runnable {
 
     public void setSleepTime(Long sleepTime) {
         this.sleepTime = sleepTime;
-    }
-
-    /**
-     * Iterates over the assignedForDeletion orders list and tries to process one order at a time. When the order
-     * is null, it indicates that the iteration ended. A new iteration is started after some time.
-     */
-    @Override
-    public void run() {
-        boolean isActive = true;
-        while (isActive) {
-            try {
-                assignForDeletion();
-            } catch (InterruptedException e) {
-                isActive = false;
-            }
-        }
-    }
-
-    @VisibleForTesting
-    void assignForDeletion() throws InterruptedException {
-        try {
-            Order order = this.pausingOrdersList.getNext();
-
-            if (order != null) {
-                processPausingOrder(order);
-            } else {
-                this.pausingOrdersList.resetPointer();
-                Thread.sleep(this.sleepTime);
-            }
-        } catch (InterruptedException e) {
-            LOGGER.error(Messages.Log.THREAD_HAS_BEEN_INTERRUPTED, e);
-            throw e;
-        } catch (FogbowException e) {
-            LOGGER.error(e.getMessage(), e);
-        } catch (Throwable e) {
-            LOGGER.error(Messages.Log.UNEXPECTED_ERROR, e);
-        }
     }
 
     /**
