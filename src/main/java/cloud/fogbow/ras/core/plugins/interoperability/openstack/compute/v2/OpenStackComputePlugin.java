@@ -53,6 +53,16 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
 
     @Override
+    public boolean isPaused(String cloudState) throws FogbowException {
+        return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.PAUSED);
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) throws FogbowException {
+        return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.HIBERNATED);
+    }
+
+    @Override
     public String requestInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
         LOGGER.info(Messages.Log.REQUESTING_INSTANCE_FROM_PROVIDER);
         HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, cloudUser);
@@ -112,7 +122,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         LOGGER.info(String.format(Messages.Log.PAUSING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
-                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId()
+                + OpenStackConstants.ENDPOINT_SEPARATOR + OpenStackConstants.ACTION);
 
         PauseComputeRequest request = getPauseComputeRequest();
         String body = request.toJson();
@@ -126,7 +137,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         LOGGER.info(String.format(Messages.Log.HIBERNATING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
-                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId()
+                + OpenStackConstants.ENDPOINT_SEPARATOR + OpenStackConstants.ACTION);
 
         SuspendComputeRequest request = getSuspendComputeRequest();
         String body = request.toJson();
@@ -140,7 +152,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         LOGGER.info(String.format(Messages.Log.RESUMING_INSTANCE_S, instanceId));
         String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
         String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
-                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId());
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId()
+                + OpenStackConstants.ENDPOINT_SEPARATOR + OpenStackConstants.ACTION);
 
         if(computeOrder.getOrderState().equals(OrderState.PAUSED)) {
             UnpauseComputeRequest request = getUnpauseComputeRequest();

@@ -6,6 +6,7 @@ import cloud.fogbow.ras.api.http.response.ResourceId;
 import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
+import cloud.fogbow.ras.api.parameters.Snapshot;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -37,10 +38,10 @@ public class Compute {
     @RequestMapping(value = "/{computeId}/snapshot", method = RequestMethod.POST)
     public ResponseEntity<Boolean> takeSnapshot(
             @PathVariable String computeId,
-            @RequestBody String name,
+            @RequestBody Snapshot snapshot,
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) throws FogbowException{
         try {
-            ApplicationFacade.getInstance().takeSnapshot(computeId, name, systemUserToken, ResourceType.COMPUTE);
+            ApplicationFacade.getInstance().takeSnapshot(computeId, snapshot.getName(), systemUserToken, ResourceType.COMPUTE);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
@@ -145,7 +146,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.PAUSE_OPERATION)
-    @RequestMapping(value = "/pause/{computeId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{computeId}/pause", method = RequestMethod.POST)
     public void pauseCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
@@ -163,7 +164,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.HIBERNATE_OPERATION)
-    @RequestMapping(value = "/hibernate/{computeId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{computeId}/hibernate", method = RequestMethod.POST)
     public void hibernateCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,
@@ -181,7 +182,7 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.RESUME_OPERATION)
-    @RequestMapping(value = "/resume/{computeId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{computeId}/resume", method = RequestMethod.POST)
     public void resumeCompute(
             @ApiParam(value = ApiDocumentation.Compute.ID)
             @PathVariable String computeId,

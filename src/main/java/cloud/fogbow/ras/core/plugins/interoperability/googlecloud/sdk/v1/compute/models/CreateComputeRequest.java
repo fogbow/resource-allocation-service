@@ -118,11 +118,11 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class Network {
-        @SerializedName(GoogleCloudConstants.Network.NETWORK_KEY_JSON)
-        private String network;
+        @SerializedName(GoogleCloudConstants.Compute.Network.SUBNET_KEY_JSON)
+        private String subnetwork;
 
-        public Network(String network) {
-            this.network = network;
+        public Network(String subnetwork) {
+            this.subnetwork = subnetwork;
         }
     }
 

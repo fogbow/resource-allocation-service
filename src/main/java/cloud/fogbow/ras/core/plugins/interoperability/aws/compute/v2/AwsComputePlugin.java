@@ -150,6 +150,16 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     }
 
     @Override
+    public boolean isPaused(String cloudState) throws FogbowException {
+        return false;
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) throws FogbowException {
+        return false;
+    }
+
+    @Override
     public boolean isReady(String instanceState) {
         return AwsV2StateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.READY);
     }

@@ -6,6 +6,7 @@ import java.util.List;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.ras.api.http.response.*;
 import cloud.fogbow.ras.core.models.orders.*;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import cloud.fogbow.common.exceptions.FogbowException;
@@ -335,7 +336,8 @@ public class LocalCloudConnector implements CloudConnector {
 
         String response = null;
         try {
-            doResumeInstance(order, cloudUser);
+            ComputeOrder computeOrder = (ComputeOrder) order;
+            doResumeInstance(computeOrder, cloudUser);
             LOGGER.debug(Messages.Log.SUCCESS);
         } catch (Throwable e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
@@ -400,11 +402,10 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
-    protected void doResumeInstance(Order order, CloudUser cloudUser) throws FogbowException {
-        OrderPlugin plugin = checkOrderCastingAndSetPlugin(order, order.getType());
+    protected void doResumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
         try {
             if (order.getInstanceId() != null) {
-                plugin.requestInstance(order, cloudUser);
+                this.computePlugin.resumeInstance(order, cloudUser);
             } else {
                 return;
             }
@@ -441,9 +442,24 @@ public class LocalCloudConnector implements CloudConnector {
             boolean instanceIsReady = plugin.isReady(instance.getCloudState());
             if (instanceHasFailed) instance.setHasFailed();
             if (instanceIsReady) instance.setReady();
-            return instance;
+            return checkInstanceSpecificStatus(instance, resourceType);
         } else {
             throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+    }
+
+    @VisibleForTesting
+    OrderInstance checkInstanceSpecificStatus(OrderInstance instance, ResourceType resourceType) throws FogbowException {
+        switch (resourceType) {
+            case COMPUTE:
+                boolean isPaused = this.computePlugin.isPaused(instance.getCloudState());
+                boolean isHibernated = this.computePlugin.isHibernated(instance.getCloudState());
+                ComputeInstance computeInstance = (ComputeInstance) instance;
+                if (isPaused) computeInstance.setPaused();
+                if (isHibernated) computeInstance.setHibernated();
+                return computeInstance;
+            default:
+                return instance;
         }
     }
 

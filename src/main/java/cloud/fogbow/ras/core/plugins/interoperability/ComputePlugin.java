@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 
@@ -33,4 +34,8 @@ public interface ComputePlugin<S extends CloudUser> extends OrderPlugin<ComputeI
     public void hibernateInstance(ComputeOrder order, S cloudUser) throws FogbowException;
 
     public void resumeInstance(ComputeOrder order, S cloudUser) throws FogbowException;
+
+    public boolean isPaused(String cloudState) throws FogbowException;
+
+    public boolean isHibernated(String cloudState) throws FogbowException;
 }

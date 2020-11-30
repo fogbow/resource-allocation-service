@@ -117,6 +117,16 @@ public class InstanceStatus {
                 return InstanceState.DELETING;
             case CLOSED:
                 return InstanceState.DELETED;
+            case PAUSING:
+                return InstanceState.PAUSING;
+            case PAUSED:
+                return InstanceState.PAUSED;
+            case HIBERNATING:
+                return InstanceState.HIBERNATING;
+            case HIBERNATED:
+                return InstanceState.HIBERNATED;
+            case RESUMING:
+                return InstanceState.RESUMING;
             default:
                 throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_ERROR);
         }

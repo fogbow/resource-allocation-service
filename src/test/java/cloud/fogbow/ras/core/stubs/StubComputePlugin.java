@@ -48,6 +48,16 @@ public class StubComputePlugin implements ComputePlugin<CloudUser> {
     }
 
     @Override
+    public boolean isPaused(String cloudState) {
+        return false;
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) {
+        return false;
+    }
+
+    @Override
     public boolean isReady(String cloudState) {
         return true;
     }

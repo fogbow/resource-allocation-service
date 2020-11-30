@@ -10,6 +10,11 @@ public enum InstanceState {
     DELETING("deleting"),
     DELETED("deleted"),
     UNKNOWN("unknown"),
+    PAUSING("pausing"),
+    PAUSED("paused"),
+    HIBERNATING("hibernating"),
+    HIBERNATED("hibernated"),
+    RESUMING("resuming"),
     INCONSISTENT("inconsistent");
 
     private String value;

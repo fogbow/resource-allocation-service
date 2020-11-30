@@ -1244,6 +1244,9 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         OrderInstance instance = Mockito.mock(OrderInstance.class);
         Mockito.when(plugin.getInstance(Mockito.eq(order), Mockito.eq(cloudUser))).thenReturn(instance);
 
+        Mockito.doReturn(instance).when(this.localCloudConnector).checkInstanceSpecificStatus(Mockito.eq(instance),
+                Mockito.any(ResourceType.class));
+
         // exercise
         this.localCloudConnector.doGetInstance(order, cloudUser);
 
