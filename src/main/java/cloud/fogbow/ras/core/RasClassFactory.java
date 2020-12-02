@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core;
 
 import cloud.fogbow.common.exceptions.FatalErrorException;
+import cloud.fogbow.common.util.ClassFactory;
 import cloud.fogbow.ras.constants.Messages;
 
 import java.lang.reflect.Constructor;
@@ -8,8 +9,8 @@ import java.util.Arrays;
 
 // Each package has to have its own ClassFactory
 
-public class ClassFactory {
-
+public class RasClassFactory implements ClassFactory {
+	
     public Object createPluginInstance(String pluginClassName, String ... params)
             throws FatalErrorException {
 
