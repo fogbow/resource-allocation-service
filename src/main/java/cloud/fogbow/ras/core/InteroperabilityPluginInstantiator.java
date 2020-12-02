@@ -20,11 +20,11 @@ import cloud.fogbow.ras.core.plugins.interoperability.VolumePlugin;
 import cloud.fogbow.ras.core.plugins.mapper.SystemToCloudMapperPlugin;
 
 public class InteroperabilityPluginInstantiator {
-    private ClassFactory classFactory;
+    private RasClassFactory classFactory;
     private Map<String, Properties> cloudPropertiesCache;
 
     public InteroperabilityPluginInstantiator() {
-        this.classFactory = new ClassFactory();
+        this.classFactory = new RasClassFactory();
         this.cloudPropertiesCache = new HashMap<>();
     }
 
