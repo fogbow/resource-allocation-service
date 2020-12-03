@@ -7,6 +7,7 @@ public class Messages {
         public static final String CLOUD_NAMES_DO_NOT_MATCH = "The embedded resource has not been instantiated in the same cloud.";
         public static final String DEFAULT_CREDENTIALS_NOT_FOUND = "Default credentials not found.";
         public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found.";
+        public static final String DEFAULT_ROLE_NAME_IS_INVALID = "Default role name is invalid.";
         public static final String DELETE_OPERATION_ALREADY_ONGOING = "Delete operation is already on-going.";
         public static final String DEPENDENCY_DETECTED_S_S = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String EMPTY_PROPERTY_MAP = "Empty property getCloudUser.";
