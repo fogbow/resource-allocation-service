@@ -54,9 +54,9 @@ public class AllowOnlyPermissionTest {
         return String.join(SystemConstants.OPERATION_NAME_SEPARATOR, operationsNames);
     }
     
-    //
-    // TODO documentation
-    //
+    // test case: if the list of the allowed operations types contains 
+    // the type of the operation passed as argument, the method isAuthorized must
+    // return true. Otherwise, it must return false.
     @Test
     public void testIsAuthorized() {
         setUpTest(allowedOperations);
@@ -73,9 +73,8 @@ public class AllowOnlyPermissionTest {
         }
     }
     
-    //
-    // TODO documentation
-    //
+    // test case: if the list of the allowed operations is empty,
+    // the method isAuthorized must always return false.
     @Test
     public void testIsAuthorizedNoAuthorizedOperation() {
         setUpTest(noOperation);

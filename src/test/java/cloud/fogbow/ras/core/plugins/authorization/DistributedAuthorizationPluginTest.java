@@ -113,9 +113,7 @@ public class DistributedAuthorizationPluginTest {
         setUpResponse(authorized);
 
         this.plugin = new DistributedAuthorizationPlugin();
-        boolean isAuthorized = this.plugin.isAuthorized(this.localUser, operation);
-        
-        assertTrue(isAuthorized);
+        this.plugin.isAuthorized(this.localUser, operation);
     }
     
     // test case: when the user is remote, the isAuthorized method must make an isAuthorized request
@@ -145,9 +143,7 @@ public class DistributedAuthorizationPluginTest {
         setUpResponse(authorized);
         
         this.plugin = new DistributedAuthorizationPlugin();
-        boolean isAuthorized = this.plugin.isAuthorized(this.remoteUser, operation);
-        
-        assertTrue(isAuthorized);
+        this.plugin.isAuthorized(this.remoteUser, operation);
     }
     
     // test case: when the response status code of an authorization request is different from 200, 
