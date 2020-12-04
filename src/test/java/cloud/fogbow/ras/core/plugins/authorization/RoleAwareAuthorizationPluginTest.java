@@ -2,6 +2,9 @@ package cloud.fogbow.ras.core.plugins.authorization;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,16 +55,20 @@ public class RoleAwareAuthorizationPluginTest {
     private String userId1 = "userId1";
     private String userId2 = "userId2";
     private String userIdWithDefaultRoles = "userIdWithDefaultRole";
+    private String userIdRemoteProvider = "userIdRemoteProvider";
     
     private String userName1 = "user1";
     private String userName2 = "user2";
     private String userWithDefaultRole = "user3";
+    private String userRemoteProvider = "userRemote";
     private String userIds = String.format("%s,%s", userId1, userId2);
     
     private String rolesUser1 = roleName1;
     private String rolesUser2 = String.format("%s,%s", roleName1, roleName2);
+    // private Set<String> rolesRemoteUser = roleName1;
     
     private String identityProviderId = "provider";
+    private String remoteProviderId = "remoteProvider";
     
     private RoleAwareAuthorizationPlugin manager;
     private PropertiesHolder propertiesHolder;
@@ -170,6 +177,7 @@ public class RoleAwareAuthorizationPluginTest {
         assertIsAuthorizedThrowsException(user2, operationReload);
     }
 
+    // TODO documentation
     @Test
     public void testIsAuthorizedUserIsNotOnUsersList() throws UnauthorizedRequestException {
         SystemUser userWithDefaultRoles = new SystemUser(userIdWithDefaultRoles, userWithDefaultRole, identityProviderId);
@@ -179,6 +187,19 @@ public class RoleAwareAuthorizationPluginTest {
         assertTrue(this.manager.isAuthorized(userWithDefaultRoles, operationGet));
         assertIsAuthorizedThrowsException(userWithDefaultRoles, operationCreate);
         assertIsAuthorizedThrowsException(userWithDefaultRoles, operationReload);
+    }
+    
+    // TODO documentation
+    @Test
+    public void testIsAuthorizedUserIsRemote() throws UnauthorizedRequestException {
+        SystemUser remoteUser = new SystemUser(userIdRemoteProvider, userRemoteProvider, remoteProviderId);
+        Set<String> remoteUserRoles = new HashSet<String>();
+        remoteUserRoles.add(roleName1);
+        remoteUser.setUserRoles(remoteUserRoles);
+        
+        assertTrue(this.manager.isAuthorized(remoteUser, operationGet));
+        assertIsAuthorizedThrowsException(remoteUser, operationCreate);
+        assertIsAuthorizedThrowsException(remoteUser, operationReload);
     }
     
     private void assertIsAuthorizedThrowsException(SystemUser user, RasOperation operation) {

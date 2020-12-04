@@ -34,50 +34,6 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
         setUpDefaultRole();
     }
     
-    @Override
-    public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException {
-        if (PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY).equals(systemUser.getIdentityProviderId())) {
-            String userId = systemUser.getId();
-            Set<Role<RasOperation>> userRoles;
-            
-            if (usersRoles.containsKey(userId)) {
-                userRoles = usersRoles.get(userId);
-            } else {
-                userRoles = defaultRoles;
-            }
-            
-            Set<String> userRolesNames = new HashSet<String>();
-            
-            for (Role<RasOperation> role : userRoles) { 
-                userRolesNames.add(role.getName());
-            }
-                
-            systemUser.setUserRoles(userRolesNames);
-            
-            for (Role<RasOperation> role : userRoles) {
-                if (role.canPerformOperation(operation)) {
-                    return true;
-                }
-            }
-            
-            throw new UnauthorizedRequestException();
-        } else {
-            Set<String> userRolesNames = systemUser.getUserRoles();
-            
-            for (String roleName : userRolesNames) {
-                if (availableRoles.containsKey(roleName)) {
-                    Role<RasOperation> role = availableRoles.get(roleName);
-
-                    if (role.canPerformOperation(operation)) {
-                        return true;
-                    }
-                }
-            }
-            
-            throw new UnauthorizedRequestException();
-        }
-    }
-    
     private void setUpAvailableRoles(PermissionInstantiator permissionInstantiator) {
         this.availableRoles = new HashMap<String, Role<RasOperation>>();
         String rolesNamesString = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AUTHORIZATION_ROLES_KEY, 
@@ -118,5 +74,77 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
         } else {
             throw new ConfigurationErrorException(Messages.Exception.DEFAULT_ROLE_NAME_IS_INVALID);
         }
+    }
+    
+    @Override
+    public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException {
+        if (userIsLocal(systemUser)) {
+            return authorizeLocalUser(systemUser, operation);
+        } else {
+            return authorizeRemoteUser(systemUser, operation);
+        }
+    }
+
+    private boolean userIsLocal(SystemUser systemUser) {
+        String userProvider = systemUser.getIdentityProviderId();
+        return PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY).equals(userProvider);
+    }
+    
+    private boolean authorizeLocalUser(SystemUser systemUser, RasOperation operation)
+            throws UnauthorizedRequestException {
+        String userId = systemUser.getId();
+        Set<Role<RasOperation>> userRoles = getUserRoles(userId);
+        updateUserWithRoles(systemUser, userRoles);
+        return checkRolesPermissions(operation, userRoles);
+    }
+
+    private Set<Role<RasOperation>> getUserRoles(String userId) {
+        Set<Role<RasOperation>> userRoles;
+        
+        if (usersRoles.containsKey(userId)) {
+            userRoles = usersRoles.get(userId);
+        } else {
+            userRoles = defaultRoles;
+        }
+        
+        return userRoles;
+    }
+    
+    private void updateUserWithRoles(SystemUser systemUser, Set<Role<RasOperation>> userRoles) {
+        Set<String> userRolesNames = new HashSet<String>();
+        
+        for (Role<RasOperation> role : userRoles) { 
+            userRolesNames.add(role.getName());
+        }
+            
+        systemUser.setUserRoles(userRolesNames);
+    }
+    
+    private boolean checkRolesPermissions(RasOperation operation, Set<Role<RasOperation>> userRoles)
+            throws UnauthorizedRequestException {
+        for (Role<RasOperation> role : userRoles) {
+            if (role.canPerformOperation(operation)) {
+                return true;
+            }
+        }
+        
+        throw new UnauthorizedRequestException();
+    }
+
+    private boolean authorizeRemoteUser(SystemUser systemUser, RasOperation operation)
+            throws UnauthorizedRequestException {
+        Set<String> userRolesNames = systemUser.getUserRoles();
+        
+        for (String roleName : userRolesNames) {
+            if (availableRoles.containsKey(roleName)) {
+                Role<RasOperation> role = availableRoles.get(roleName);
+
+                if (role.canPerformOperation(operation)) {
+                    return true;
+                }
+            }
+        }
+        
+        throw new UnauthorizedRequestException();
     }
 }

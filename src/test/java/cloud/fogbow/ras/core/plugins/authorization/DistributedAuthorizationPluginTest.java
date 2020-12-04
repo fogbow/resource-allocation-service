@@ -103,6 +103,7 @@ public class DistributedAuthorizationPluginTest {
         assertTrue(isAuthorized);
     }
     
+    // TODO: documentation
     @Test
     public void testOperationIsAuthorizedUserIsLocalOperationIsRemote() throws FogbowException {
         setUpAuthorizedOperationRequest(this.remoteProviderId, this.remoteProviderId);
@@ -131,6 +132,7 @@ public class DistributedAuthorizationPluginTest {
         assertTrue(isAuthorized);
     }
     
+    // TODO: documentation
     @Test
     public void testIsAuthorizedOperationIsAuthorizedUserIsRemote() throws FogbowException {
         setUpAuthorizedOperationRequest(this.remoteProviderId, this.localProviderId);
