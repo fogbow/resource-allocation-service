@@ -72,30 +72,13 @@ public class DistributedAuthorizationPluginTest {
         BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
     }
     
-    // test case: when the "authorized" field of the response of an authorization request
-    // is true and the response status code is equal to 200, the isAuthorized method will 
-    // return true and update the user with the correct roles.
+    // test case: when both user and operation are local, the isAuthorized method must 
+    // not make an isAuthorized request to the MembershipService using HttpRequestClient 
+    // and must return true. 
     @Test
     public void testOperationIsAuthorizedUserIsLocalOperationIsLocal() throws FogbowException {
-        setUpAuthorizedOperationRequest(this.localProviderId, this.localProviderId);
+        setUpOperationAndRequestProviders(this.localProviderId, this.localProviderId);
 
-        // response
-        boolean authorized = true;
-        Map<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
-
-        // success code
-        Gson gson = new Gson();
-        String responseString = gson.toJson(responseContent);
-        Integer httpCode = HttpStatus.SC_OK;
-        
-        HttpResponse response = Mockito.mock(HttpResponse.class);
-        Mockito.doReturn(responseString).when(response).getContent();
-        Mockito.doReturn(httpCode).when(response).getHttpCode();
-        
-        PowerMockito.mockStatic(HttpRequestClient.class);
-        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, this.endpoint, this.headers, this.body)).willReturn(response);
-        
         this.plugin = new DistributedAuthorizationPlugin();
         
         boolean isAuthorized = this.plugin.isAuthorized(this.localUser, operation);
@@ -103,116 +86,79 @@ public class DistributedAuthorizationPluginTest {
         assertTrue(isAuthorized);
     }
     
-    // TODO: documentation
+    // test case: when the user is local and the operation is remote, the isAuthorized
+    // method must make an isAuthorized request to the MembershipService using HttpRequestClient.
+    // If the operation provider is authorized, it must return true.
     @Test
     public void testOperationIsAuthorizedUserIsLocalOperationIsRemote() throws FogbowException {
-        setUpAuthorizedOperationRequest(this.remoteProviderId, this.remoteProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId);
 
-        // response
         boolean authorized = true;
-        HashMap<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+        setUpResponse(authorized);
 
-        // success code
-        Gson gson = new Gson();
-        String responseString = gson.toJson(responseContent);
-        Integer httpCode = HttpStatus.SC_OK;
-        
-        HttpResponse response = Mockito.mock(HttpResponse.class);
-        Mockito.doReturn(responseString).when(response).getContent();
-        Mockito.doReturn(httpCode).when(response).getHttpCode();
-        
-        PowerMockito.mockStatic(HttpRequestClient.class);
-        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).willReturn(response);
-        
         this.plugin = new DistributedAuthorizationPlugin();
-        
         boolean isAuthorized = this.plugin.isAuthorized(this.localUser, operation);
         
         assertTrue(isAuthorized);
     }
     
-    // TODO: documentation
+    // test case: when the user is local and the operation is remote, the isAuthorized
+    // method must make an isAuthorized request to the MembershipService using HttpRequestClient.
+    // If the operation provider is not authorized, it must throw an UnauthorizedRequestException.
+    @Test(expected = UnauthorizedRequestException.class)
+    public void testOperationIsNotAuthorizedUserIsLocalOperationIsRemote() throws FogbowException {
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId);
+
+        boolean authorized = false;
+        setUpResponse(authorized);
+
+        this.plugin = new DistributedAuthorizationPlugin();
+        boolean isAuthorized = this.plugin.isAuthorized(this.localUser, operation);
+        
+        assertTrue(isAuthorized);
+    }
+    
+    // test case: when the user is remote, the isAuthorized method must make an isAuthorized request
+    // to the MembershipService using HttpRequestClient. If the user provider is authorized, 
+    // it must return true.
     @Test
     public void testIsAuthorizedOperationIsAuthorizedUserIsRemote() throws FogbowException {
-        setUpAuthorizedOperationRequest(this.remoteProviderId, this.localProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId);
 
-        // response
         boolean authorized = true;
-        Map<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
-        
-        // success code
-        Gson gson = new Gson();
-        String responseString = gson.toJson(responseContent);
-        Integer httpCode = HttpStatus.SC_OK;
-        
-        HttpResponse response = Mockito.mock(HttpResponse.class);
-        Mockito.doReturn(responseString).when(response).getContent();
-        Mockito.doReturn(httpCode).when(response).getHttpCode();
-        
-        PowerMockito.mockStatic(HttpRequestClient.class);
-        
-        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, this.endpoint, this.headers, this.body)).willReturn(response);
-        
+        setUpResponse(authorized);
+
         this.plugin = new DistributedAuthorizationPlugin();
-        
         boolean isAuthorized = this.plugin.isAuthorized(this.remoteUser, operation);
         
         assertTrue(isAuthorized);
     }
     
-    // test case: when the "authorized" field of the response of an authorization request
-    // is false and the response status code is equal to 200, the isAuthorized method will 
-    // throw an UnauthorizedRequestException.
+    // test case: when the user is remote, the isAuthorized method must make an isAuthorized request
+    // to the MembershipService using HttpRequestClient. If the user provider is not authorized, 
+    // it must throw an UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class)
-    public void testOperationIsNotAuthorized() throws FogbowException {
-        setUpAuthorizedOperationRequest(this.remoteProviderId, this.remoteProviderId);
+    public void testIsAuthorizedOperationIsNotAuthorizedUserIsRemote() throws FogbowException {
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId);
 
-        // response
         boolean authorized = false;
-        Map<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
-
-        // success code
-        Gson gson = new Gson();
-        String responseString = gson.toJson(responseContent);
-        Integer httpCode = HttpStatus.SC_OK;
-        
-        HttpResponse response = Mockito.mock(HttpResponse.class);
-        Mockito.doReturn(responseString).when(response).getContent();
-        Mockito.doReturn(httpCode).when(response).getHttpCode();
-        
-        PowerMockito.mockStatic(HttpRequestClient.class);
-        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).willReturn(response);
+        setUpResponse(authorized);
         
         this.plugin = new DistributedAuthorizationPlugin();
-        this.plugin.isAuthorized(this.localUser, operation);
+        boolean isAuthorized = this.plugin.isAuthorized(this.remoteUser, operation);
+        
+        assertTrue(isAuthorized);
     }
     
     // test case: when the response status code of an authorization request is different from 200, 
     // the isAuthorized method will throw an UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class)
     public void testIsAuthorizedOperationNotSuccessfulReturnCode() throws FogbowException {
-        setUpAuthorizedOperationRequest(this.remoteProviderId, this.remoteProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId);
 
-        // response
         boolean authorized = false;
-        Map<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+        setUpResponse(authorized);
 
-        // success code
-        Gson gson = new Gson();
-        String responseString = gson.toJson(responseContent);
-        Integer httpCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
-        
-        HttpResponse response = Mockito.mock(HttpResponse.class);
-        Mockito.doReturn(responseString).when(response).getContent();
-        Mockito.doReturn(httpCode).when(response).getHttpCode();
-        
-        PowerMockito.mockStatic(HttpRequestClient.class);
-        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).willReturn(response);
-        
         this.plugin = new DistributedAuthorizationPlugin();
         this.plugin.isAuthorized(this.localUser, operation);
     }
@@ -221,7 +167,7 @@ public class DistributedAuthorizationPluginTest {
     // throw an UnauthorizedRequestException
     @Test(expected = UnauthorizedRequestException.class)
     public void testIsAuthorizedOperationErrorOnRequest() throws FogbowException {
-        setUpAuthorizedOperationRequest(this.remoteProviderId, this.remoteProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId);
         
         PowerMockito.mockStatic(HttpRequestClient.class);
         BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).
@@ -231,7 +177,7 @@ public class DistributedAuthorizationPluginTest {
         this.plugin.isAuthorized(this.localUser, operation);
     }
     
-    private void setUpAuthorizedOperationRequest(String providerToAuthorize, String operationProvider) {
+    private void setUpOperationAndRequestProviders(String providerToAuthorize, String operationProvider) {
         // operation
         this.operation = new RasOperation(Operation.GET, ResourceType.ATTACHMENT);
         this.operation.setTargetProvider(operationProvider);
@@ -243,5 +189,23 @@ public class DistributedAuthorizationPluginTest {
         // body
         this.body = new HashMap<String, String>();
         this.body.put(Provider.PROVIDER_KEY, providerToAuthorize);
+    }
+    
+    private void setUpResponse(boolean authorized) throws FogbowException {
+        Map<String, Object> responseContent = new HashMap<String, Object>();
+        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+        
+        // success code
+        Gson gson = new Gson();
+        String responseString = gson.toJson(responseContent);
+        Integer httpCode = HttpStatus.SC_OK;
+        
+        HttpResponse response = Mockito.mock(HttpResponse.class);
+        Mockito.doReturn(responseString).when(response).getContent();
+        Mockito.doReturn(httpCode).when(response).getHttpCode();
+        
+        PowerMockito.mockStatic(HttpRequestClient.class);
+        
+        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, this.endpoint, this.headers, this.body)).willReturn(response);
     }
 }
