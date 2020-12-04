@@ -36,31 +36,52 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
     
     @Override
     public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException {
-        String userId = systemUser.getId();
-        Set<Role<RasOperation>> userRoles;
-        
-        if (usersRoles.containsKey(userId)) {
-            userRoles = usersRoles.get(userId);
-        } else {
-            userRoles = defaultRoles;
-        }
-        
-        for (Role<RasOperation> role : userRoles) {
-            if (role.canPerformOperation(operation)) {
-                return true;
+        if (PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY).equals(systemUser.getIdentityProviderId())) {
+            String userId = systemUser.getId();
+            Set<Role<RasOperation>> userRoles;
+            
+            if (usersRoles.containsKey(userId)) {
+                userRoles = usersRoles.get(userId);
+            } else {
+                userRoles = defaultRoles;
             }
-        }
-        
-        throw new UnauthorizedRequestException();
-    }
+            
+            Set<String> userRolesNames = new HashSet<String>();
+            
+            for (Role<RasOperation> role : userRoles) { 
+                userRolesNames.add(role.getName());
+            }
+                
+            systemUser.setUserRoles(userRolesNames);
+            
+            for (Role<RasOperation> role : userRoles) {
+                if (role.canPerformOperation(operation)) {
+                    return true;
+                }
+            }
+            
+            throw new UnauthorizedRequestException();
+        } else {
+            Set<String> userRolesNames = systemUser.getUserRoles();
+            
+            for (String roleName : userRolesNames) {
+                if (availableRoles.containsKey(roleName)) {
+                    Role<RasOperation> role = availableRoles.get(roleName);
 
+                    if (role.canPerformOperation(operation)) {
+                        return true;
+                    }
+                }
+            }
+            
+            throw new UnauthorizedRequestException();
+        }
+    }
     
     private void setUpAvailableRoles(PermissionInstantiator permissionInstantiator) {
         this.availableRoles = new HashMap<String, Role<RasOperation>>();
         String rolesNamesString = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AUTHORIZATION_ROLES_KEY, 
                                                                              ConfigurationPropertyDefaults.AUTHORIZATION_ROLES);
-        
-        System.out.println(rolesNamesString);
         for (String roleName : rolesNamesString.split(SystemConstants.ROLE_NAMES_SEPARATOR)) {
             String permissionName = PropertiesHolder.getInstance().getProperty(roleName);
             String permissionType = PropertiesHolder.getInstance().getProperty(permissionName);

@@ -1,14 +1,9 @@
 package cloud.fogbow.ras.core.plugins.authorization;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.http.HttpStatus;
 import org.junit.Before;
@@ -31,7 +26,7 @@ import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.HttpRequestClient;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
 import cloud.fogbow.ms.api.http.response.AuthorizationResponse;
-import cloud.fogbow.ms.core.models.operation.RasAuthorizableOperation;
+import cloud.fogbow.ms.api.parameters.Provider;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -49,83 +44,74 @@ public class DistributedAuthorizationPluginTest {
     private DistributedAuthorizationPlugin plugin;
     private String MS_URL = "http://localhost";
     private String MS_PORT = "8080";
-    private String token = "token";
-    private String targetProvider = "targetProvider";
-    private String returnedToken = "returned_token";
     private String userId = "userId";
+    private String remoteUserId = "remoteUserId";
     private String userName = "userName";
-    private String providerId = "providerId";
+    private String remoteUserName = "remoteUserName";
+    private String localProviderId = "providerId";
+    private String remoteProviderId = "remoteProviderId";
     private String endpoint = String.format("%s:%s/%s", this.MS_URL, this.MS_PORT, 
             cloud.fogbow.ms.api.http.request.Authorization.AUTHORIZED_ENDPOINT);
     private Map<String, String> headers;
     private Map<String, String> body;
     private RasOperation operation;
-    private RSAPublicKey msPublicKey;
-    private RSAPrivateKey rasPrivateKey;
-    private SystemUser user;
-    private SystemUser userWithRoles;
-    private String userRole = "role";
-    private Set<String> userRolesSet;
+    private SystemUser localUser;
+    private SystemUser remoteUser;
     
     @Before
     public void setUp() throws FogbowException {
-        this.user = new SystemUser(userId, userName, providerId);
-        this.userWithRoles = new SystemUser(userId, userName, providerId);
-        this.userRolesSet = new HashSet<String>();
-        this.userRolesSet.add(userRole);
-        this.userWithRoles.setUserRoles(userRolesSet);
-        
-        // keys
-        this.msPublicKey = Mockito.mock(RSAPublicKey.class);
-        this.rasPrivateKey = Mockito.mock(RSAPrivateKey.class);
-        PowerMockito.mockStatic(ServiceAsymmetricKeysHolder.class);
-        ServiceAsymmetricKeysHolder keysHolder = Mockito.mock(ServiceAsymmetricKeysHolder.class);
-        Mockito.doReturn(this.rasPrivateKey).when(keysHolder).getPrivateKey();
-        BDDMockito.given(ServiceAsymmetricKeysHolder.getInstance()).willReturn(keysHolder);
-        
-        PowerMockito.mockStatic(RasPublicKeysHolder.class);
-        RasPublicKeysHolder rasPublicKeysHolder = Mockito.mock(RasPublicKeysHolder.class);
-        Mockito.doReturn(this.msPublicKey).when(rasPublicKeysHolder).getMSPublicKey();
-        BDDMockito.given(RasPublicKeysHolder.getInstance()).willReturn(rasPublicKeysHolder);
-        
-        // token
-        PowerMockito.mockStatic(AuthenticationUtil.class);
-        BDDMockito.given(AuthenticationUtil.createFogbowToken(this.user, this.rasPrivateKey, this.msPublicKey)).willReturn(token);
-        BDDMockito.given(AuthenticationUtil.authenticate(this.msPublicKey, returnedToken)).willReturn(this.userWithRoles);
+        this.localUser = new SystemUser(userId, userName, localProviderId);
+        this.remoteUser = new SystemUser(remoteUserId, remoteUserName, remoteProviderId);
         
         // request properties
         PowerMockito.mockStatic(PropertiesHolder.class);
         PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
         Mockito.doReturn(this.MS_PORT).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.MS_PORT_KEY);
         Mockito.doReturn(this.MS_URL).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.MS_URL_KEY);
+        Mockito.doReturn(this.localProviderId).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
-
-        // operation
-        this.operation = new RasOperation(Operation.GET, ResourceType.ATTACHMENT);
-        this.operation.setTargetProvider(this.targetProvider);
-        
-        // headers
-        this.headers = new HashMap<String, String>();
-        this.headers.put(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, token);
-        this.headers.put(CommonKeys.CONTENT_TYPE_KEY, DistributedAuthorizationPlugin.AUTHORIZATION_REQUEST_CONTENT_TYPE);
-        
-        // body
-        this.body = new HashMap<String, String>();
-        this.body.put(RasAuthorizableOperation.TARGET_PROVIDER_REQUEST_KEY, targetProvider);
-        this.body.put(RasAuthorizableOperation.OPERATION_TYPE_REQUEST_KEY, operation.getOperationType().getValue());
     }
     
     // test case: when the "authorized" field of the response of an authorization request
     // is true and the response status code is equal to 200, the isAuthorized method will 
     // return true and update the user with the correct roles.
     @Test
-    public void testIsAuthorizedOperationIsAuthorized() throws FogbowException {
+    public void testOperationIsAuthorizedUserIsLocalOperationIsLocal() throws FogbowException {
+        setUpAuthorizedOperationRequest(this.localProviderId, this.localProviderId);
+
         // response
         boolean authorized = true;
         Map<String, Object> responseContent = new HashMap<String, Object>();
         responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
-        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_TOKEN_FIELD, returnedToken);
+
+        // success code
+        Gson gson = new Gson();
+        String responseString = gson.toJson(responseContent);
+        Integer httpCode = HttpStatus.SC_OK;
         
+        HttpResponse response = Mockito.mock(HttpResponse.class);
+        Mockito.doReturn(responseString).when(response).getContent();
+        Mockito.doReturn(httpCode).when(response).getHttpCode();
+        
+        PowerMockito.mockStatic(HttpRequestClient.class);
+        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, this.endpoint, this.headers, this.body)).willReturn(response);
+        
+        this.plugin = new DistributedAuthorizationPlugin();
+        
+        boolean isAuthorized = this.plugin.isAuthorized(this.localUser, operation);
+        
+        assertTrue(isAuthorized);
+    }
+    
+    @Test
+    public void testOperationIsAuthorizedUserIsLocalOperationIsRemote() throws FogbowException {
+        setUpAuthorizedOperationRequest(this.remoteProviderId, this.remoteProviderId);
+
+        // response
+        boolean authorized = true;
+        HashMap<String, Object> responseContent = new HashMap<String, Object>();
+        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+
         // success code
         Gson gson = new Gson();
         String responseString = gson.toJson(responseContent);
@@ -140,26 +126,52 @@ public class DistributedAuthorizationPluginTest {
         
         this.plugin = new DistributedAuthorizationPlugin();
         
-        assertNull(this.user.getUserRoles());
-
-        boolean isAuthorized = this.plugin.isAuthorized(this.user, operation);
+        boolean isAuthorized = this.plugin.isAuthorized(this.localUser, operation);
         
         assertTrue(isAuthorized);
-        assertTrue(this.user.getUserRoles().size() == 1);
-        assertTrue(this.user.getUserRoles().contains(this.userRole));
+    }
+    
+    @Test
+    public void testIsAuthorizedOperationIsAuthorizedUserIsRemote() throws FogbowException {
+        setUpAuthorizedOperationRequest(this.remoteProviderId, this.localProviderId);
+
+        // response
+        boolean authorized = true;
+        Map<String, Object> responseContent = new HashMap<String, Object>();
+        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+        
+        // success code
+        Gson gson = new Gson();
+        String responseString = gson.toJson(responseContent);
+        Integer httpCode = HttpStatus.SC_OK;
+        
+        HttpResponse response = Mockito.mock(HttpResponse.class);
+        Mockito.doReturn(responseString).when(response).getContent();
+        Mockito.doReturn(httpCode).when(response).getHttpCode();
+        
+        PowerMockito.mockStatic(HttpRequestClient.class);
+        
+        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, this.endpoint, this.headers, this.body)).willReturn(response);
+        
+        this.plugin = new DistributedAuthorizationPlugin();
+        
+        boolean isAuthorized = this.plugin.isAuthorized(this.remoteUser, operation);
+        
+        assertTrue(isAuthorized);
     }
     
     // test case: when the "authorized" field of the response of an authorization request
     // is false and the response status code is equal to 200, the isAuthorized method will 
     // throw an UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class)
-    public void testIsAuthorizedOperationIsNotAuthorized() throws FogbowException {
+    public void testOperationIsNotAuthorized() throws FogbowException {
+        setUpAuthorizedOperationRequest(this.remoteProviderId, this.remoteProviderId);
+
         // response
         boolean authorized = false;
         Map<String, Object> responseContent = new HashMap<String, Object>();
         responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
-        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_TOKEN_FIELD, returnedToken);
-        
+
         // success code
         Gson gson = new Gson();
         String responseString = gson.toJson(responseContent);
@@ -173,19 +185,20 @@ public class DistributedAuthorizationPluginTest {
         BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).willReturn(response);
         
         this.plugin = new DistributedAuthorizationPlugin();
-        this.plugin.isAuthorized(this.user, operation);
+        this.plugin.isAuthorized(this.localUser, operation);
     }
     
     // test case: when the response status code of an authorization request is different from 200, 
     // the isAuthorized method will throw an UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class)
     public void testIsAuthorizedOperationNotSuccessfulReturnCode() throws FogbowException {
+        setUpAuthorizedOperationRequest(this.remoteProviderId, this.remoteProviderId);
+
         // response
         boolean authorized = false;
         Map<String, Object> responseContent = new HashMap<String, Object>();
         responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
-        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_TOKEN_FIELD, returnedToken);
-        
+
         // success code
         Gson gson = new Gson();
         String responseString = gson.toJson(responseContent);
@@ -199,19 +212,34 @@ public class DistributedAuthorizationPluginTest {
         BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).willReturn(response);
         
         this.plugin = new DistributedAuthorizationPlugin();
-        this.plugin.isAuthorized(this.user, operation);
+        this.plugin.isAuthorized(this.localUser, operation);
     }
     
     // test case: when the authorization request fails, the isAuthorized method will
     // throw an UnauthorizedRequestException
     @Test(expected = UnauthorizedRequestException.class)
     public void testIsAuthorizedOperationErrorOnRequest() throws FogbowException {
+        setUpAuthorizedOperationRequest(this.remoteProviderId, this.remoteProviderId);
+        
         PowerMockito.mockStatic(HttpRequestClient.class);
         BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).
                                 willThrow(new FogbowException("error message"));
         
         this.plugin = new DistributedAuthorizationPlugin();
-        this.plugin.isAuthorized(this.user, operation);
+        this.plugin.isAuthorized(this.localUser, operation);
     }
-
+    
+    private void setUpAuthorizedOperationRequest(String providerToAuthorize, String operationProvider) {
+        // operation
+        this.operation = new RasOperation(Operation.GET, ResourceType.ATTACHMENT);
+        this.operation.setTargetProvider(operationProvider);
+        
+        // headers
+        this.headers = new HashMap<String, String>();
+        this.headers.put(CommonKeys.CONTENT_TYPE_KEY, DistributedAuthorizationPlugin.AUTHORIZATION_REQUEST_CONTENT_TYPE);
+        
+        // body
+        this.body = new HashMap<String, String>();
+        this.body.put(Provider.PROVIDER_KEY, providerToAuthorize);
+    }
 }

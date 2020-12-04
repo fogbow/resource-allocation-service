@@ -88,6 +88,7 @@ public class RoleAwareAuthorizationPluginTest {
         Mockito.doReturn(rolesUser1).when(propertiesHolder).getProperty(userId1);
         Mockito.doReturn(rolesUser2).when(propertiesHolder).getProperty(userId2);
         Mockito.doReturn(defaultRoleName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.DEFAULT_ROLE_KEY);
+        Mockito.doReturn(identityProviderId).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
         
         this.permission1 = Mockito.mock(AllowOnlyPermission.class);
