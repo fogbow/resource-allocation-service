@@ -25,7 +25,7 @@ import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.common.util.connectivity.HttpRequestClient;
 import cloud.fogbow.common.util.connectivity.HttpResponse;
-import cloud.fogbow.ms.api.http.response.AuthorizationResponse;
+import cloud.fogbow.ms.api.http.response.Authorized;
 import cloud.fogbow.ms.api.parameters.Provider;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
@@ -82,7 +82,7 @@ public class DistributedAuthorizationPluginTest {
         // response
         boolean authorized = true;
         Map<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
 
         // success code
         Gson gson = new Gson();
@@ -111,7 +111,7 @@ public class DistributedAuthorizationPluginTest {
         // response
         boolean authorized = true;
         HashMap<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
 
         // success code
         Gson gson = new Gson();
@@ -140,7 +140,7 @@ public class DistributedAuthorizationPluginTest {
         // response
         boolean authorized = true;
         Map<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
         
         // success code
         Gson gson = new Gson();
@@ -172,7 +172,7 @@ public class DistributedAuthorizationPluginTest {
         // response
         boolean authorized = false;
         Map<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
 
         // success code
         Gson gson = new Gson();
@@ -199,7 +199,7 @@ public class DistributedAuthorizationPluginTest {
         // response
         boolean authorized = false;
         Map<String, Object> responseContent = new HashMap<String, Object>();
-        responseContent.put(AuthorizationResponse.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
+        responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
 
         // success code
         Gson gson = new Gson();
