@@ -1,12 +1,6 @@
 package cloud.fogbow.ras.core.plugins.authorization;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -56,6 +50,9 @@ public class RoleAwareAuthorizationPluginTest {
     private String role1Permissions = permissionName1;
     private String role2Permissions = permissionName2;
     
+    private String identityProviderId = "provider";
+    private String remoteProviderId = "remoteProvider";
+    
     private String userId1 = "userId1";
     private String userId2 = "userId2";
     private String userIdWithDefaultRoles = "userIdWithDefaultRole";
@@ -65,13 +62,15 @@ public class RoleAwareAuthorizationPluginTest {
     private String userName2 = "user2";
     private String userWithDefaultRole = "user3";
     private String userRemoteProvider = "userRemote";
-    private String userIds = String.format("%s,%s", userId1, userId2);
+    
+    private String user1ConfigString = String.format(RoleAwareAuthorizationPlugin.USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT, 
+                                                    userId1, identityProviderId);
+    private String user2ConfigString = String.format(RoleAwareAuthorizationPlugin.USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT, 
+                                                    userId2, identityProviderId);
+    private String userIds = String.format("%s,%s", user1ConfigString, user2ConfigString);
     
     private String rolesUser1 = roleName1;
     private String rolesUser2 = String.format("%s,%s", roleName1, roleName2);
-    
-    private String identityProviderId = "provider";
-    private String remoteProviderId = "remoteProvider";
     
     private RoleAwareAuthorizationPlugin plugin;
     private PropertiesHolder propertiesHolder;
@@ -95,8 +94,8 @@ public class RoleAwareAuthorizationPluginTest {
         Mockito.doReturn(permissionType1).when(propertiesHolder).getProperty(permissionName1);
         Mockito.doReturn(permissionType2).when(propertiesHolder).getProperty(permissionName2);
         Mockito.doReturn(userIds).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.USER_NAMES_KEY);
-        Mockito.doReturn(rolesUser1).when(propertiesHolder).getProperty(userId1);
-        Mockito.doReturn(rolesUser2).when(propertiesHolder).getProperty(userId2);
+        Mockito.doReturn(rolesUser1).when(propertiesHolder).getProperty(user1ConfigString);
+        Mockito.doReturn(rolesUser2).when(propertiesHolder).getProperty(user2ConfigString);
         Mockito.doReturn(defaultRoleName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.DEFAULT_ROLE_KEY);
         Mockito.doReturn(identityProviderId).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
@@ -112,8 +111,11 @@ public class RoleAwareAuthorizationPluginTest {
         this.plugin = new RoleAwareAuthorizationPlugin(instantiator);
         
         this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT);
+        this.operationGet.setTargetProvider(identityProviderId);
         this.operationCreate = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT);
+        this.operationCreate.setTargetProvider(identityProviderId);
         this.operationReload = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
+        this.operationReload.setTargetProvider(identityProviderId);
         
         Mockito.when(this.permission1.isAuthorized(operationGet)).thenReturn(true);
         Mockito.when(this.permission2.isAuthorized(operationGet)).thenReturn(true);
@@ -139,8 +141,8 @@ public class RoleAwareAuthorizationPluginTest {
         // Reads correctly user names
         Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(ConfigurationPropertyKeys.USER_NAMES_KEY);
         // Reads correctly user roles
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(userId1);
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(userId2);
+        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(user1ConfigString);
+        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(user2ConfigString);
         Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(ConfigurationPropertyKeys.DEFAULT_ROLE_KEY);
         PowerMockito.verifyStatic(PropertiesHolder.class, Mockito.atLeastOnce());
     }
@@ -161,73 +163,68 @@ public class RoleAwareAuthorizationPluginTest {
 
     @Test
     public void testIsAuthorized() throws UnauthorizedRequestException {
-        SystemUser user1 = new SystemUser(userId1, userName1, identityProviderId);
-        SystemUser user2 = new SystemUser(userId2, userName2, identityProviderId);
-        
         // user1 has role1
         // role1 has permission1
         // permission1 allows only get operations
-        // isAuthorized method must set the correct roles in 
-        // the SystemUser object
-        assertNull(user1.getUserRoles());
+        SystemUser user1 = new SystemUser(userId1, userName1, identityProviderId);
         
         assertTrue(this.plugin.isAuthorized(user1, operationGet));
         assertIsAuthorizedThrowsException(user1, operationCreate);
         assertIsAuthorizedThrowsException(user1, operationReload);
-        
-        assertNotNull(user1.getUserRoles());
-        assertEquals(user1.getUserRoles().size(), 1);
-        assertTrue(user1.getUserRoles().contains(roleName1));
-        
+
         // user2 has role1 and role2
         // role2 has permission2
         // permission2 allows only get and create operations
-        // isAuthorized method must set the correct roles in 
-        // the SystemUser object
-        assertNull(user2.getUserRoles());
+        SystemUser user2 = new SystemUser(userId2, userName2, identityProviderId);
         
         assertTrue(this.plugin.isAuthorized(user2, operationGet));
         assertTrue(this.plugin.isAuthorized(user2, operationCreate));
         assertIsAuthorizedThrowsException(user2, operationReload);
-        
-        assertNotNull(user2.getUserRoles());
-        assertEquals(user2.getUserRoles().size(), 2);
-        assertTrue(user2.getUserRoles().contains(roleName1));
-        assertTrue(user2.getUserRoles().contains(roleName2));
     }
 
     @Test
     public void testIsAuthorizedUserIsNotOnUsersList() throws UnauthorizedRequestException {
-        SystemUser userWithDefaultRoles = new SystemUser(userIdWithDefaultRoles, userWithDefaultRole, identityProviderId);
-
         // user3 is not listed on users names list
         // therefore user3 will have the default role, role 1
-        // isAuthorized method must set the correct roles in 
-        // the SystemUser object
-        assertNull(userWithDefaultRoles.getUserRoles());
-        
+        SystemUser userWithDefaultRoles = new SystemUser(userIdWithDefaultRoles, userWithDefaultRole, identityProviderId);
+
         assertTrue(this.plugin.isAuthorized(userWithDefaultRoles, operationGet));
         assertIsAuthorizedThrowsException(userWithDefaultRoles, operationCreate);
         assertIsAuthorizedThrowsException(userWithDefaultRoles, operationReload);
-        
-        assertNotNull(userWithDefaultRoles.getUserRoles());
-        assertEquals(userWithDefaultRoles.getUserRoles().size(), 1);
-        assertTrue(userWithDefaultRoles.getUserRoles().contains(roleName1));
-    }
-    
-    // test case: remoteUser is from a different provider. In this case, its 
-    // userRoles field must not be null and must contain the correct roles for the user.
-    // The isAuthorized method must use the remoteUser roles to authorize.
-    @Test
-    public void testIsAuthorizedUserIsRemote() throws UnauthorizedRequestException {
+
+        // remoteuser is not listed on users names list
+        // therefore remoteuser will have the default role, role 1
         SystemUser remoteUser = new SystemUser(userIdRemoteProvider, userRemoteProvider, remoteProviderId);
-        Set<String> remoteUserRoles = new HashSet<String>();
-        remoteUserRoles.add(roleName1);
-        remoteUser.setUserRoles(remoteUserRoles);
         
         assertTrue(this.plugin.isAuthorized(remoteUser, operationGet));
         assertIsAuthorizedThrowsException(remoteUser, operationCreate);
         assertIsAuthorizedThrowsException(remoteUser, operationReload);
+    }
+    
+    @Test
+    public void testRemoteOperationsAreAlwaysAuthorized() throws UnauthorizedRequestException {
+        this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT);
+        this.operationGet.setTargetProvider(remoteProviderId);
+        this.operationCreate = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT);
+        this.operationCreate.setTargetProvider(remoteProviderId);
+        this.operationReload = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
+        this.operationReload.setTargetProvider(remoteProviderId);
+        
+        SystemUser user1 = new SystemUser(userId1, userName1, identityProviderId);
+        SystemUser user2 = new SystemUser(userId2, userName2, identityProviderId);
+        SystemUser remoteUser = new SystemUser(userIdRemoteProvider, userRemoteProvider, remoteProviderId);
+        
+        assertTrue(this.plugin.isAuthorized(user1, operationGet));
+        assertTrue(this.plugin.isAuthorized(user1, operationCreate));
+        assertTrue(this.plugin.isAuthorized(user1, operationReload));
+        
+        assertTrue(this.plugin.isAuthorized(user2, operationGet));
+        assertTrue(this.plugin.isAuthorized(user2, operationCreate));
+        assertTrue(this.plugin.isAuthorized(user2, operationReload));
+        
+        assertTrue(this.plugin.isAuthorized(remoteUser, operationGet));
+        assertTrue(this.plugin.isAuthorized(remoteUser, operationCreate));
+        assertTrue(this.plugin.isAuthorized(remoteUser, operationReload));
     }
     
     private void assertIsAuthorizedThrowsException(SystemUser user, RasOperation operation) {

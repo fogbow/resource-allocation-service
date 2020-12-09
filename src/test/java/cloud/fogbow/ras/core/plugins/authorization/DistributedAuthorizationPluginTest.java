@@ -77,7 +77,7 @@ public class DistributedAuthorizationPluginTest {
     // and must return true. 
     @Test
     public void testOperationIsAuthorizedUserIsLocalOperationIsLocal() throws FogbowException {
-        setUpOperationAndRequestProviders(this.localProviderId, this.localProviderId);
+        setUpOperationAndRequestProviders(this.localProviderId, this.localProviderId, this.localProviderId);
 
         this.plugin = new DistributedAuthorizationPlugin();
         
@@ -91,10 +91,10 @@ public class DistributedAuthorizationPluginTest {
     // If the operation provider is authorized, it must return true.
     @Test
     public void testOperationIsAuthorizedUserIsLocalOperationIsRemote() throws FogbowException {
-        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId, this.localProviderId);
 
         boolean authorized = true;
-        setUpResponse(authorized);
+        setUpResponseWithSuccessfulStatusCode(authorized);
 
         this.plugin = new DistributedAuthorizationPlugin();
         boolean isAuthorized = this.plugin.isAuthorized(this.localUser, operation);
@@ -107,10 +107,10 @@ public class DistributedAuthorizationPluginTest {
     // If the operation provider is not authorized, it must throw an UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class)
     public void testOperationIsNotAuthorizedUserIsLocalOperationIsRemote() throws FogbowException {
-        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId, this.localProviderId);
 
         boolean authorized = false;
-        setUpResponse(authorized);
+        setUpResponseWithSuccessfulStatusCode(authorized);
 
         this.plugin = new DistributedAuthorizationPlugin();
         this.plugin.isAuthorized(this.localUser, operation);
@@ -121,10 +121,10 @@ public class DistributedAuthorizationPluginTest {
     // it must return true.
     @Test
     public void testIsAuthorizedOperationIsAuthorizedUserIsRemote() throws FogbowException {
-        setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId, this.remoteProviderId);
 
         boolean authorized = true;
-        setUpResponse(authorized);
+        setUpResponseWithSuccessfulStatusCode(authorized);
 
         this.plugin = new DistributedAuthorizationPlugin();
         boolean isAuthorized = this.plugin.isAuthorized(this.remoteUser, operation);
@@ -137,10 +137,10 @@ public class DistributedAuthorizationPluginTest {
     // it must throw an UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class)
     public void testIsAuthorizedOperationIsNotAuthorizedUserIsRemote() throws FogbowException {
-        setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId, this.remoteProviderId);
 
         boolean authorized = false;
-        setUpResponse(authorized);
+        setUpResponseWithSuccessfulStatusCode(authorized);
         
         this.plugin = new DistributedAuthorizationPlugin();
         this.plugin.isAuthorized(this.remoteUser, operation);
@@ -150,20 +150,20 @@ public class DistributedAuthorizationPluginTest {
     // the isAuthorized method will throw an UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class)
     public void testIsAuthorizedOperationNotSuccessfulReturnCode() throws FogbowException {
-        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId, this.remoteProviderId);
 
         boolean authorized = false;
-        setUpResponse(authorized);
+        setUpResponseWithNonSuccessfulStatusCode(authorized);
 
         this.plugin = new DistributedAuthorizationPlugin();
         this.plugin.isAuthorized(this.localUser, operation);
     }
-    
+
     // test case: when the authorization request fails, the isAuthorized method will
     // throw an UnauthorizedRequestException
     @Test(expected = UnauthorizedRequestException.class)
     public void testIsAuthorizedOperationErrorOnRequest() throws FogbowException {
-        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId);
+        setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId, this.localProviderId);
         
         PowerMockito.mockStatic(HttpRequestClient.class);
         BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).
@@ -173,10 +173,11 @@ public class DistributedAuthorizationPluginTest {
         this.plugin.isAuthorized(this.localUser, operation);
     }
     
-    private void setUpOperationAndRequestProviders(String providerToAuthorize, String operationProvider) {
+    private void setUpOperationAndRequestProviders(String providerToAuthorize, String operationTargetProvider, String operationRequestingProvider) {
         // operation
         this.operation = new RasOperation(Operation.GET, ResourceType.ATTACHMENT);
-        this.operation.setTargetProvider(operationProvider);
+        this.operation.setTargetProvider(operationTargetProvider);
+        this.operation.setRequestingProvider(operationRequestingProvider);
         
         // headers
         this.headers = new HashMap<String, String>();
@@ -187,14 +188,21 @@ public class DistributedAuthorizationPluginTest {
         this.body.put(Provider.PROVIDER_KEY, providerToAuthorize);
     }
     
-    private void setUpResponse(boolean authorized) throws FogbowException {
+    private void setUpResponseWithNonSuccessfulStatusCode(boolean authorized) throws FogbowException {
+        setUpResponseWithStatusCode(authorized, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    }
+    
+    private void setUpResponseWithSuccessfulStatusCode(boolean authorized) throws FogbowException {
+        setUpResponseWithStatusCode(authorized, HttpStatus.SC_OK);
+    }
+    
+    private void setUpResponseWithStatusCode(boolean authorized, Integer httpCode) throws FogbowException {
         Map<String, Object> responseContent = new HashMap<String, Object>();
         responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
         
         // success code
         Gson gson = new Gson();
         String responseString = gson.toJson(responseContent);
-        Integer httpCode = HttpStatus.SC_OK;
         
         HttpResponse response = Mockito.mock(HttpResponse.class);
         Mockito.doReturn(responseString).when(response).getContent();

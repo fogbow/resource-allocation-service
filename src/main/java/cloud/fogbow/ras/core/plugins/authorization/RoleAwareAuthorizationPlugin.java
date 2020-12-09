@@ -20,6 +20,7 @@ import cloud.fogbow.ras.core.models.RasOperation;
 
 public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
 
+    public static final String USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT = "%s.%s";
     private HashMap<String, Role<RasOperation>> availableRoles;
     private HashMap<String, Set<Role<RasOperation>>> usersRoles;
     private HashSet<Role<RasOperation>> defaultRoles;
@@ -78,24 +79,21 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
     
     @Override
     public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException {
-        if (userIsLocal(systemUser)) {
-            return authorizeLocalUser(systemUser, operation);
-        } else {
-            return authorizeRemoteUser(systemUser, operation);
+        // check permissions only for local operations
+        if (operationIsLocal(operation)) {
+            Set<Role<RasOperation>> userRoles = getUserRoles(getUserConfigurationString(systemUser));
+            checkRolesPermissions(operation, userRoles);
         }
+        
+        return true;
     }
 
-    private boolean userIsLocal(SystemUser systemUser) {
-        String userProvider = systemUser.getIdentityProviderId();
-        return PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY).equals(userProvider);
+    private boolean operationIsLocal(RasOperation operation) {
+        return operation.getTargetProvider().equals(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
     }
-    
-    private boolean authorizeLocalUser(SystemUser systemUser, RasOperation operation)
-            throws UnauthorizedRequestException {
-        String userId = systemUser.getId();
-        Set<Role<RasOperation>> userRoles = getUserRoles(userId);
-        updateUserWithRoles(systemUser, userRoles);
-        return checkRolesPermissions(operation, userRoles);
+
+    private String getUserConfigurationString(SystemUser systemUser) {
+        return String.format(USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT, systemUser.getId(), systemUser.getIdentityProviderId());
     }
 
     private Set<Role<RasOperation>> getUserRoles(String userId) {
@@ -110,38 +108,11 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
         return userRoles;
     }
     
-    private void updateUserWithRoles(SystemUser systemUser, Set<Role<RasOperation>> userRoles) {
-        Set<String> userRolesNames = new HashSet<String>();
-        
-        for (Role<RasOperation> role : userRoles) { 
-            userRolesNames.add(role.getName());
-        }
-            
-        systemUser.setUserRoles(userRolesNames);
-    }
-    
     private boolean checkRolesPermissions(RasOperation operation, Set<Role<RasOperation>> userRoles)
             throws UnauthorizedRequestException {
         for (Role<RasOperation> role : userRoles) {
             if (role.canPerformOperation(operation)) {
                 return true;
-            }
-        }
-        
-        throw new UnauthorizedRequestException();
-    }
-
-    private boolean authorizeRemoteUser(SystemUser systemUser, RasOperation operation)
-            throws UnauthorizedRequestException {
-        Set<String> userRolesNames = systemUser.getUserRoles();
-        
-        for (String roleName : userRolesNames) {
-            if (availableRoles.containsKey(roleName)) {
-                Role<RasOperation> role = availableRoles.get(roleName);
-
-                if (role.canPerformOperation(operation)) {
-                    return true;
-                }
             }
         }
         

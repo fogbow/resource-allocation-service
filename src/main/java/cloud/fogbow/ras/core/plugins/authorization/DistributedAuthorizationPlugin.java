@@ -40,27 +40,26 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
    
     @Override
     public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException {
-        // if user.provider is local
-        //     if operation.provider is local
-        //         return true
-        //     if operation.provider is remote
-        //         send isauthorized(operation.provider) 
+        // if requesting == target
+        //      return true
+        // else if localprovider == requesting
+        //      return isTargetAuthorized(target)
         // else
-        //     if operation.provider is local
-        //         send isauthorized(user.provider)
-        //     else
-        //          error
+        //      return isRequesterAuthorized(requesting)
         
         boolean authorized = false;
         
-        String userProvider = systemUser.getIdentityProviderId();
-        String operationProvider = operation.getTargetProvider();
-        
         try {
-            if (providerIsLocal(userProvider)) {
-                authorized = authorizeLocalUser(operationProvider);
+            // if requesting provider == target provider then the operation is local
+            // therefore, authorized
+            if (operation.getRequestingProvider().equals(operation.getTargetProvider())) {
+                authorized = true;
+            } else if (isRequestingLocal(operation)) {
+                HttpResponse response = doTargetAuthorizedRequestAndCheckStatus(operation.getTargetProvider());
+                authorized = getAuthorized(response);
             } else {
-                authorized = authorizeRemoteUser(userProvider, operationProvider);
+                HttpResponse response = doRequesterAuthorizedRequestAndCheckStatus(operation.getRequestingProvider());
+                authorized = getAuthorized(response);
             }
         } catch (InternalServerErrorException e) {
             throw new UnauthorizedRequestException(e.getMessage());
@@ -72,41 +71,28 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         
         if (!authorized) {
             throw new UnauthorizedRequestException();
-        } 
-        
-        return authorized;
-    }
-
-    private boolean authorizeLocalUser(String operationProvider) throws URISyntaxException, FogbowException {
-        boolean authorized = true;
-        
-        if (!providerIsLocal(operationProvider)) {
-            HttpResponse response = doRequestAndCheckStatus(operationProvider);
-            authorized = getAuthorized(response);
         }
         
         return authorized;
     }
-    
-    private boolean authorizeRemoteUser(String userProvider, String operationProvider)
-            throws URISyntaxException, FogbowException, UnauthorizedRequestException {
-        boolean authorized;
-        
-        if (providerIsLocal(operationProvider)) {
-            HttpResponse response = doRequestAndCheckStatus(userProvider);
-            authorized = getAuthorized(response);
-        } else {
-            // Not expected to happen
-            throw new UnauthorizedRequestException();
-        }
-        return authorized;
+
+    private boolean isRequestingLocal(RasOperation operation) {
+        return PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY)
+                .equals(operation.getRequestingProvider());
     }
 
-    private boolean providerIsLocal(String provider) {
-        return PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY).equals(provider);
+    private HttpResponse doRequesterAuthorizedRequestAndCheckStatus(String requestingProvider) throws URISyntaxException, FogbowException {
+        HttpResponse response = doRequest(requestingProvider);
+
+        if (response.getHttpCode() > HttpStatus.SC_OK) {
+            Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());
+            throw new UnavailableProviderException(e.getMessage());
+        }
+        
+        return response;
     }
-    
-    private HttpResponse doRequestAndCheckStatus(String provider) throws URISyntaxException, FogbowException {
+
+    private HttpResponse doTargetAuthorizedRequestAndCheckStatus(String provider) throws URISyntaxException, FogbowException {
         HttpResponse response = doRequest(provider);
 
         if (response.getHttpCode() > HttpStatus.SC_OK) {
