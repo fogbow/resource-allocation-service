@@ -50,8 +50,10 @@ public class DistributedAuthorizationPluginTest {
     private String remoteUserName = "remoteUserName";
     private String localProviderId = "providerId";
     private String remoteProviderId = "remoteProviderId";
-    private String endpoint = String.format("%s:%s/%s", this.MS_URL, this.MS_PORT, 
-            cloud.fogbow.ms.api.http.request.Authorization.AUTHORIZED_ENDPOINT);
+    private String authorizeTargetEndpoint = String.format("%s:%s/%s", this.MS_URL, this.MS_PORT, 
+            cloud.fogbow.ms.api.http.request.Authorization.TARGET_AUTHORIZED_ENDPOINT);
+    private String authorizeRequesterEndpoint = String.format("%s:%s/%s", this.MS_URL, this.MS_PORT, 
+            cloud.fogbow.ms.api.http.request.Authorization.REQUESTER_AUTHORIZED_ENDPOINT);
     private Map<String, String> headers;
     private Map<String, String> body;
     private RasOperation operation;
@@ -94,7 +96,7 @@ public class DistributedAuthorizationPluginTest {
         setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId, this.localProviderId);
 
         boolean authorized = true;
-        setUpResponseWithSuccessfulStatusCode(authorized);
+        setUpResponseWithSuccessfulStatusCode(authorizeTargetEndpoint, authorized);
 
         this.plugin = new DistributedAuthorizationPlugin();
         boolean isAuthorized = this.plugin.isAuthorized(this.localUser, operation);
@@ -110,7 +112,7 @@ public class DistributedAuthorizationPluginTest {
         setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId, this.localProviderId);
 
         boolean authorized = false;
-        setUpResponseWithSuccessfulStatusCode(authorized);
+        setUpResponseWithSuccessfulStatusCode(authorizeTargetEndpoint, authorized);
 
         this.plugin = new DistributedAuthorizationPlugin();
         this.plugin.isAuthorized(this.localUser, operation);
@@ -124,7 +126,7 @@ public class DistributedAuthorizationPluginTest {
         setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId, this.remoteProviderId);
 
         boolean authorized = true;
-        setUpResponseWithSuccessfulStatusCode(authorized);
+        setUpResponseWithSuccessfulStatusCode(authorizeRequesterEndpoint, authorized);
 
         this.plugin = new DistributedAuthorizationPlugin();
         boolean isAuthorized = this.plugin.isAuthorized(this.remoteUser, operation);
@@ -140,7 +142,7 @@ public class DistributedAuthorizationPluginTest {
         setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId, this.remoteProviderId);
 
         boolean authorized = false;
-        setUpResponseWithSuccessfulStatusCode(authorized);
+        setUpResponseWithSuccessfulStatusCode(authorizeRequesterEndpoint, authorized);
         
         this.plugin = new DistributedAuthorizationPlugin();
         this.plugin.isAuthorized(this.remoteUser, operation);
@@ -153,7 +155,7 @@ public class DistributedAuthorizationPluginTest {
         setUpOperationAndRequestProviders(this.remoteProviderId, this.localProviderId, this.remoteProviderId);
 
         boolean authorized = false;
-        setUpResponseWithNonSuccessfulStatusCode(authorized);
+        setUpResponseWithNonSuccessfulStatusCode(authorizeRequesterEndpoint, authorized);
 
         this.plugin = new DistributedAuthorizationPlugin();
         this.plugin.isAuthorized(this.localUser, operation);
@@ -166,7 +168,7 @@ public class DistributedAuthorizationPluginTest {
         setUpOperationAndRequestProviders(this.remoteProviderId, this.remoteProviderId, this.localProviderId);
         
         PowerMockito.mockStatic(HttpRequestClient.class);
-        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body)).
+        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, authorizeTargetEndpoint, headers, body)).
                                 willThrow(new FogbowException("error message"));
         
         this.plugin = new DistributedAuthorizationPlugin();
@@ -188,15 +190,15 @@ public class DistributedAuthorizationPluginTest {
         this.body.put(Provider.PROVIDER_KEY, providerToAuthorize);
     }
     
-    private void setUpResponseWithNonSuccessfulStatusCode(boolean authorized) throws FogbowException {
-        setUpResponseWithStatusCode(authorized, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    private void setUpResponseWithNonSuccessfulStatusCode(String endpoint, boolean authorized) throws FogbowException {
+        setUpResponseWithStatusCode(endpoint, authorized, HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
     
-    private void setUpResponseWithSuccessfulStatusCode(boolean authorized) throws FogbowException {
-        setUpResponseWithStatusCode(authorized, HttpStatus.SC_OK);
+    private void setUpResponseWithSuccessfulStatusCode(String endpoint, boolean authorized) throws FogbowException {
+        setUpResponseWithStatusCode(endpoint, authorized, HttpStatus.SC_OK);
     }
     
-    private void setUpResponseWithStatusCode(boolean authorized, Integer httpCode) throws FogbowException {
+    private void setUpResponseWithStatusCode(String endpoint, boolean authorized, Integer httpCode) throws FogbowException {
         Map<String, Object> responseContent = new HashMap<String, Object>();
         responseContent.put(Authorized.AUTHORIZATION_RESPONSE_AUTHORIZED_FIELD, authorized);
         
@@ -210,6 +212,6 @@ public class DistributedAuthorizationPluginTest {
         
         PowerMockito.mockStatic(HttpRequestClient.class);
         
-        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, this.endpoint, this.headers, this.body)).willReturn(response);
+        BDDMockito.given(HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, this.headers, this.body)).willReturn(response);
     }
 }

@@ -116,6 +116,6 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
             }
         }
         
-        throw new UnauthorizedRequestException();
+        throw new UnauthorizedRequestException(Messages.Exception.USER_DOES_NOT_HAVE_ENOUGH_PERMISSION);
     }
 }

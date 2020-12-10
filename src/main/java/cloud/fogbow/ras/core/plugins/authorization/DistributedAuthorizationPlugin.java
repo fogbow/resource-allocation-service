@@ -24,6 +24,7 @@ import cloud.fogbow.ms.api.http.response.Authorized;
 import cloud.fogbow.ms.api.parameters.Provider;
 import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.RasOperation;
 
@@ -70,7 +71,7 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         }
         
         if (!authorized) {
-            throw new UnauthorizedRequestException();
+            throw new UnauthorizedRequestException(Messages.Exception.PROVIDER_IS_NOT_AUTHORIZED);
         }
         
         return authorized;
@@ -82,7 +83,8 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
     }
 
     private HttpResponse doRequesterAuthorizedRequestAndCheckStatus(String requestingProvider) throws URISyntaxException, FogbowException {
-        HttpResponse response = doRequest(requestingProvider);
+        String endpoint = getAuthorizationEndpoint(cloud.fogbow.ms.api.http.request.Authorization.REQUESTER_AUTHORIZED_ENDPOINT);
+        HttpResponse response = doRequest(endpoint, requestingProvider);
 
         if (response.getHttpCode() > HttpStatus.SC_OK) {
             Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());
@@ -93,7 +95,8 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
     }
 
     private HttpResponse doTargetAuthorizedRequestAndCheckStatus(String provider) throws URISyntaxException, FogbowException {
-        HttpResponse response = doRequest(provider);
+        String endpoint = getAuthorizationEndpoint(cloud.fogbow.ms.api.http.request.Authorization.TARGET_AUTHORIZED_ENDPOINT);
+        HttpResponse response = doRequest(endpoint, provider);
 
         if (response.getHttpCode() > HttpStatus.SC_OK) {
             Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());
@@ -102,15 +105,17 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         
         return response;
     }
-
-    private HttpResponse doRequest(String provider)
-            throws URISyntaxException, FogbowException {
+    
+    private String getAuthorizationEndpoint(String path) throws URISyntaxException {
         URI uri = new URI(membershipServiceAddress);
         uri = UriComponentsBuilder.fromUri(uri).port(membershipServicePort).
-                path(cloud.fogbow.ms.api.http.request.Authorization.AUTHORIZED_ENDPOINT).
+                path(path).
                 build(true).toUri();
-        String endpoint = uri.toString();
-        
+        return uri.toString();
+    }
+    
+    private HttpResponse doRequest(String endpoint, String provider)
+            throws URISyntaxException, FogbowException {
         // header
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put(CommonKeys.CONTENT_TYPE_KEY, AUTHORIZATION_REQUEST_CONTENT_TYPE);
