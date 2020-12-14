@@ -22,4 +22,13 @@ public enum Operation {
     public String getValue() {
         return this.value;
     }
+    
+    public static Operation fromString(String value) {
+        for (Operation operationValue : values()) {
+            if (operationValue.getValue().equals(value)) { 
+                return operationValue;
+            }
+        }
+        throw new IllegalArgumentException();
+    }
 }

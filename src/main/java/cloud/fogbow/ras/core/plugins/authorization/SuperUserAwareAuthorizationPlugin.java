@@ -26,12 +26,12 @@ public class SuperUserAwareAuthorizationPlugin  implements AuthorizationPlugin<R
     }
         
     @Override
-    public boolean isAuthorized(SystemUser requester, RasOperation operation) throws UnauthorizedRequestException {
-        if (isSuperUser(requester)) {
+    public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException {
+        if (isSuperUser(systemUser)) {
             return true;
         } else {
             checkIfIsSuperUserOperation(operation);
-            return defaultPlugin.isAuthorized(requester, operation);            
+            return defaultPlugin.isAuthorized(systemUser, operation);            
         }
     }
 
@@ -47,9 +47,9 @@ public class SuperUserAwareAuthorizationPlugin  implements AuthorizationPlugin<R
         }
     }
     
-    private boolean isSuperUser(SystemUser requester) {
+    private boolean isSuperUser(SystemUser systemUser) {
         String superUserRole = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.SUPERUSER_ROLE_KEY, 
                 ConfigurationPropertyDefaults.SUPERUSER_ROLE);
-        return requester.getUserRoles().contains(superUserRole);
+        return systemUser.getUserRoles().contains(superUserRole);
     }
 }

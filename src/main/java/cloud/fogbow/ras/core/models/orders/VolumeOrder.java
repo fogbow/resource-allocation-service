@@ -44,9 +44,9 @@ public class VolumeOrder extends Order<VolumeOrder> {
         this.type = ResourceType.VOLUME;
     }
 
-    public VolumeOrder(SystemUser systemUser, String requestingProvider, String providingProvider,
+    public VolumeOrder(SystemUser systemUser, String requester, String provider,
                        String cloudName, String name, int volumeSize) {
-        super(UUID.randomUUID().toString(), providingProvider, cloudName, systemUser, requestingProvider);
+        super(UUID.randomUUID().toString(), provider, cloudName, systemUser, requester);
         this.name = name;
         this.volumeSize = volumeSize;
         this.type = ResourceType.VOLUME;

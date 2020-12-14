@@ -91,7 +91,7 @@ public class SuperUserAwareAuthorizationPluginTest {
         
         for (Operation o : Operation.values()) {
             for (ResourceType r : ResourceType.values()) {
-                RasOperation operation = new RasOperation(o, r);
+                RasOperation operation = new RasOperation(o, r, identityProviderId1, identityProviderId1);
                 assertTrue(authPlugin.isAuthorized(superUser, operation));
             }
         }
@@ -114,7 +114,7 @@ public class SuperUserAwareAuthorizationPluginTest {
         for (Operation o : Operation.values()) {
             for (ResourceType r : ResourceType.values()) {
                 if (!adminOnly.contains(o)) {
-                    RasOperation operation = new RasOperation(o, r);
+                    RasOperation operation = new RasOperation(o, r, identityProviderId1, identityProviderId1);
                     assertTrue(authPlugin.isAuthorized(user, operation));
                     Mockito.verify(defaultPlugin).isAuthorized(user, operation);
                 }
@@ -138,7 +138,7 @@ public class SuperUserAwareAuthorizationPluginTest {
             for (ResourceType r : ResourceType.values()) {
                 if (adminOnly.contains(o)) {
                     try {
-                        RasOperation operation = new RasOperation(o, r);
+                        RasOperation operation = new RasOperation(o, r, identityProviderId1, identityProviderId1);
                         authPlugin.isAuthorized(user, operation);
                         fail("Expected UnauthorizedRequestException");
                     } catch (UnauthorizedRequestException e) {
@@ -162,7 +162,7 @@ public class SuperUserAwareAuthorizationPluginTest {
         
         authPlugin = new SuperUserAwareAuthorizationPlugin();
         
-        RasOperation operation = new RasOperation(Operation.RELOAD, ResourceType.COMPUTE);
+        RasOperation operation = new RasOperation(Operation.RELOAD, ResourceType.COMPUTE, identityProviderId1, identityProviderId1);
         authPlugin.isAuthorized(user, operation);
     }
 }

@@ -11,13 +11,13 @@ import cloud.fogbow.ras.core.models.orders.Order;
 public class DefaultAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
 
     @Override
-    public boolean isAuthorized(SystemUser requester, RasOperation operation) throws UnauthorizedRequestException {
+    public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException {
         Order order = operation.getOrder();
         ResourceType type = operation.getResourceType();
         if (order != null) {
             // Check whether requester owns order
             SystemUser orderOwner = order.getSystemUser();
-            if (!orderOwner.equals(requester)) {
+            if (!orderOwner.equals(systemUser)) {
                 throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
             }
             // Check if requested type matches order type
