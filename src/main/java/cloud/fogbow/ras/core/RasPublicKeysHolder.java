@@ -35,7 +35,7 @@ public class RasPublicKeysHolder {
         return this.asPublicKey;
     }
 
-    public RSAPublicKey getMSPublicKey() throws FogbowException {
+    public RSAPublicKey getMsPublicKey() throws FogbowException {
         if (this.msPublicKey == null) {
             String msAddress = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.MS_URL_KEY);
             String msPort = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.MS_PORT_KEY);
