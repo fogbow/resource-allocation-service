@@ -89,7 +89,7 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
     }
 
     private boolean operationIsLocal(RasOperation operation) {
-        return operation.getTargetProvider().equals(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
+        return operation.getProvider().equals(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY));
     }
 
     private String getUserConfigurationString(SystemUser systemUser) {

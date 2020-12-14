@@ -12,16 +12,16 @@ public class RasOperation extends FogbowOperation {
     private String cloudName;
     private String genericRequest;
     private Order order;
-    private String targetProvider;
-    private String requestingProvider;
+    private String provider;
+    private String requester;
     
     public RasOperation(Operation operationType, ResourceType resourceType, String cloudName, 
-                String requestingProvider, String targetProvider) {
+                String requester, String provider) {
         this.operationType = operationType;
         this.resourceType = resourceType;
         this.cloudName = cloudName;
-        this.requestingProvider = requestingProvider;
-        this.targetProvider = targetProvider;
+        this.requester = requester;
+        this.provider = provider;
     }
 
     public RasOperation(Operation operationType, ResourceType resourceType, String cloudName, Order order) {
@@ -29,32 +29,32 @@ public class RasOperation extends FogbowOperation {
         this.resourceType = resourceType;
         this.cloudName = cloudName;
         this.order = order;
-        this.targetProvider = order.getProvider();
-        this.requestingProvider = order.getRequester();
+        this.provider = order.getProvider();
+        this.requester = order.getRequester();
     }
 
     public RasOperation(Operation operationType, ResourceType resourceType, 
-            String requestingProvider, String targetProvider) {
+            String requester, String provider) {
         this.operationType = operationType;
         this.resourceType = resourceType;
-        this.requestingProvider = requestingProvider;
-        this.targetProvider = targetProvider;
+        this.requester = requester;
+        this.provider = provider;
     }
 
-    public String getTargetProvider() {
-        return targetProvider;
+    public String getProvider() {
+        return provider;
     }
     
-    public void setTargetProvider(String targetProvider) {
-        this.targetProvider = targetProvider;
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
     
-    public String getRequestingProvider() {
-        return requestingProvider;
+    public String getRequester() {
+        return requester;
     }
     
-    public void setRequestingProvider(String requestingProvider) {
-        this.requestingProvider = requestingProvider;
+    public void setRequester(String requester) {
+        this.requester = requester;
     }
     
     public Operation getOperationType() {

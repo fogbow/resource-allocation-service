@@ -53,13 +53,13 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         try {
             // if requesting provider == target provider then the operation is local
             // therefore, authorized
-            if (operation.getRequestingProvider().equals(operation.getTargetProvider())) {
+            if (operation.getRequester().equals(operation.getProvider())) {
                 authorized = true;
-            } else if (isRequestingLocal(operation)) {
-                HttpResponse response = doTargetAuthorizedRequestAndCheckStatus(operation.getTargetProvider());
+            } else if (isRequesterLocal(operation)) {
+                HttpResponse response = doTargetAuthorizedRequestAndCheckStatus(operation.getProvider());
                 authorized = getAuthorized(response);
             } else {
-                HttpResponse response = doRequesterAuthorizedRequestAndCheckStatus(operation.getRequestingProvider());
+                HttpResponse response = doRequesterAuthorizedRequestAndCheckStatus(operation.getRequester());
                 authorized = getAuthorized(response);
             }
         } catch (InternalServerErrorException e) {
@@ -77,14 +77,14 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         return authorized;
     }
 
-    private boolean isRequestingLocal(RasOperation operation) {
+    private boolean isRequesterLocal(RasOperation operation) {
         return PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY)
-                .equals(operation.getRequestingProvider());
+                .equals(operation.getRequester());
     }
 
-    private HttpResponse doRequesterAuthorizedRequestAndCheckStatus(String requestingProvider) throws URISyntaxException, FogbowException {
+    private HttpResponse doRequesterAuthorizedRequestAndCheckStatus(String requester) throws URISyntaxException, FogbowException {
         String endpoint = getAuthorizationEndpoint(cloud.fogbow.ms.api.http.request.Authorization.REQUESTER_AUTHORIZED_ENDPOINT);
-        HttpResponse response = doRequest(endpoint, requestingProvider);
+        HttpResponse response = doRequest(endpoint, requester);
 
         if (response.getHttpCode() > HttpStatus.SC_OK) {
             Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());

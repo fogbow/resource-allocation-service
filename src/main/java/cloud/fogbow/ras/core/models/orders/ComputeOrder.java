@@ -68,10 +68,10 @@ public class ComputeOrder extends Order<ComputeOrder> {
         this.type = ResourceType.COMPUTE;
     }
 
-    public ComputeOrder(String id, SystemUser systemUser, String requestingProvider, String providingProvider,
+    public ComputeOrder(String id, SystemUser systemUser, String requester, String provider,
                         String cloudName, String name, int vCPU, int ram, int disk, String imageId,
                         ArrayList<UserData> userData, String publicKey, List<String> networkOrderIds) {
-        super(id, providingProvider, cloudName, systemUser, requestingProvider);
+        super(id, provider, cloudName, systemUser, requester);
         this.name = name;
         this.vCPU = vCPU;
         this.ram = ram;
@@ -84,17 +84,17 @@ public class ComputeOrder extends Order<ComputeOrder> {
         this.type = ResourceType.COMPUTE;
     }
 
-    public ComputeOrder(String providingProvider, String cloudName, String name, int vCPU, int ram, int disk,
+    public ComputeOrder(String provider, String cloudName, String name, int vCPU, int ram, int disk,
                         String imageId, ArrayList<UserData> userData, String publicKey, List<String> networkOrderIds) {
-        this(null, null, providingProvider, cloudName, name, vCPU, ram, disk, imageId,
+        this(null, null, provider, cloudName, name, vCPU, ram, disk, imageId,
                 userData, publicKey, networkOrderIds);
         this.type = ResourceType.COMPUTE;
     }
 
-    public ComputeOrder(SystemUser systemUser, String requestingProvider, String providingProvider, String cloudName,
+    public ComputeOrder(SystemUser systemUser, String requester, String provider, String cloudName,
                         String name, int vCPU, int ram, int disk, String imageId, ArrayList<UserData> userData,
                         String publicKey, List<String> networkOrderIds) {
-        this(UUID.randomUUID().toString(), systemUser, requestingProvider, providingProvider, cloudName, name, vCPU, ram,
+        this(UUID.randomUUID().toString(), systemUser, requester, provider, cloudName, name, vCPU, ram,
                 disk, imageId, userData, publicKey, networkOrderIds);
         this.type = ResourceType.COMPUTE;
     }
