@@ -125,16 +125,16 @@ public class ApplicationFacade {
     public List<String> getCloudNames(String providerId, String userToken) throws FogbowException {
         startOperation();
         try {
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
             rasOperation.setTargetProvider(providerId);
             rasOperation.setRequestingProvider(this.providerId);
             
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             if (providerId.equals(this.providerId)) {
                 return this.cloudListController.getCloudNames();
             } else {
-                RemoteGetCloudNamesRequest remoteGetCloudNames = getCloudNamesFromRemoteRequest(providerId, requester);
+                RemoteGetCloudNamesRequest remoteGetCloudNames = getCloudNamesFromRemoteRequest(providerId, systemUser);
                 List<String> cloudNames = remoteGetCloudNames.send();
                 return cloudNames;
             }
@@ -250,13 +250,13 @@ public class ApplicationFacade {
             throws FogbowException {
         startOperation();
         try {
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             RasOperation rasOperation = new RasOperation(Operation.GET_ALL, resourceType);
             rasOperation.setTargetProvider(this.providerId);
             rasOperation.setRequestingProvider(this.providerId);
             
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
-            return this.orderController.getInstancesStatus(requester, resourceType);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+            return this.orderController.getInstancesStatus(systemUser, resourceType);
         } finally {
             finishOperation();
         }
@@ -266,7 +266,7 @@ public class ApplicationFacade {
             throws FogbowException {
         startOperation();
         try {
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             if (cloudName == null || cloudName.isEmpty()) {
                 cloudName = this.cloudListController.getDefaultCloudName();
             }
@@ -279,10 +279,10 @@ public class ApplicationFacade {
             rasOperation.setTargetProvider(providerId);
             rasOperation.setRequestingProvider(this.providerId);
             
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             
             CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
-            return cloudConnector.getAllImages(requester);
+            return cloudConnector.getAllImages(systemUser);
         } finally {
             finishOperation();
         }
@@ -292,7 +292,7 @@ public class ApplicationFacade {
             throws FogbowException {
         startOperation();
         try {
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             if (cloudName == null || cloudName.isEmpty()) {
                 cloudName = this.cloudListController.getDefaultCloudName();
             }
@@ -305,10 +305,10 @@ public class ApplicationFacade {
             rasOperation.setTargetProvider(providerId);
             rasOperation.setRequestingProvider(this.providerId);
             
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             
             CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
-            return cloudConnector.getImage(imageId, requester);
+            return cloudConnector.getImage(imageId, systemUser);
         } finally {
             finishOperation();
         }
@@ -323,16 +323,16 @@ public class ApplicationFacade {
                 throw new InstanceNotFoundException(
                         String.format(Messages.Exception.RESOURCE_TYPE_NOT_COMPATIBLE_S, resourceTypeFromEndpoint));
             }
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             String cloudName = order.getCloudName();
             
             RasOperation rasOperation = new RasOperation(Operation.CREATE, ResourceType.SECURITY_RULE, cloudName, order);
             rasOperation.setTargetProvider(order.getProvider());
             rasOperation.setRequestingProvider(this.providerId);
             
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             
-            return this.securityRuleController.createSecurityRule(order, securityRule, requester);
+            return this.securityRuleController.createSecurityRule(order, securityRule, systemUser);
         } finally {
             finishOperation();
         }
@@ -347,16 +347,16 @@ public class ApplicationFacade {
                 throw new InstanceNotFoundException(
                         String.format(Messages.Exception.RESOURCE_TYPE_NOT_COMPATIBLE_S, resourceTypeFromEndpoint));
             }
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             String cloudName = order.getCloudName();
             
             RasOperation rasOperation = new RasOperation(Operation.GET_ALL, ResourceType.SECURITY_RULE, cloudName, order);
             rasOperation.setTargetProvider(providerId);
             rasOperation.setRequestingProvider(this.providerId);
             
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             
-            return this.securityRuleController.getAllSecurityRules(order, requester);
+            return this.securityRuleController.getAllSecurityRules(order, systemUser);
         } finally {
             finishOperation();
         }
@@ -371,23 +371,23 @@ public class ApplicationFacade {
                 throw new InstanceNotFoundException(
                         String.format(Messages.Exception.RESOURCE_TYPE_NOT_COMPATIBLE_S, resourceTypeFromEndpoint));
             }
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             String cloudName = order.getCloudName();
             
             RasOperation rasOperation = new RasOperation(Operation.DELETE, ResourceType.SECURITY_RULE, cloudName, order);
             rasOperation.setTargetProvider(order.getProvider());
             rasOperation.setRequestingProvider(this.providerId);
             
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             
-            this.securityRuleController.deleteSecurityRule(order.getProvider(), cloudName, securityRuleId, requester);
+            this.securityRuleController.deleteSecurityRule(order.getProvider(), cloudName, securityRuleId, systemUser);
         } finally {
             finishOperation();
         }
     }
 
     public void pauseCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
-        SystemUser requester = authenticate(userToken);
+        SystemUser systemUser = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
 
         if (!order.getType().equals(ResourceType.COMPUTE)) {
@@ -400,12 +400,12 @@ public class ApplicationFacade {
         rasOperation.setTargetProvider(order.getProvider());
         rasOperation.setRequestingProvider(this.providerId);
         
-        this.authorizationPlugin.isAuthorized(requester,rasOperation);
+        this.authorizationPlugin.isAuthorized(systemUser,rasOperation);
         this.orderController.pauseOrder(computeOrder);
     }
 
     public void hibernateCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
-        SystemUser requester = authenticate(userToken);
+        SystemUser systemUser = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
 
         if (!order.getType().equals(ResourceType.COMPUTE)) {
@@ -418,12 +418,12 @@ public class ApplicationFacade {
         rasOperation.setTargetProvider(order.getProvider());
         rasOperation.setRequestingProvider(this.providerId);
         
-        this.authorizationPlugin.isAuthorized(requester,rasOperation);
+        this.authorizationPlugin.isAuthorized(systemUser,rasOperation);
         this.orderController.hibernateOrder(computeOrder);
     }
 
     public void resumeCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
-        SystemUser requester = authenticate(userToken);
+        SystemUser systemUser = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
 
         if (!order.getType().equals(ResourceType.COMPUTE)) {
@@ -436,12 +436,12 @@ public class ApplicationFacade {
         rasOperation.setTargetProvider(order.getProvider());
         rasOperation.setRequestingProvider(this.providerId);
         
-        this.authorizationPlugin.isAuthorized(requester, rasOperation);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         this.orderController.resumeOrder(computeOrder);
     }
 
     public void takeSnapshot(String orderId, String name, String userToken, ResourceType resourceType) throws FogbowException{
-        SystemUser requester = authenticate(userToken);
+        SystemUser systemUser = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
 
         if (!order.getType().equals(ResourceType.COMPUTE)) {
@@ -455,15 +455,15 @@ public class ApplicationFacade {
         rasOperation.setTargetProvider(order.getProvider());
         rasOperation.setRequestingProvider(this.providerId);
         
-        this.authorizationPlugin.isAuthorized(requester, rasOperation);
-        this.orderController.takeSnapshot(computeOrder, name, requester);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+        this.orderController.takeSnapshot(computeOrder, name, systemUser);
 
     }
 
     // These methods are protected to be used in testing
     
-    protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String providerId, SystemUser requester) {
-        RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(providerId, requester);
+    protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String providerId, SystemUser systemUser) {
+        RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(providerId, systemUser);
         return remoteGetCloudNames;
     }
     
@@ -476,9 +476,9 @@ public class ApplicationFacade {
         startOperation();
         try {
             // Check if the user is authentic
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             // Set requester field in the order
-            order.setSystemUser(requester);
+            order.setSystemUser(systemUser);
             // Check consistency of orders that have other orders embedded (eg. an AttachmentOrder embeds
             // both a ComputeOrder and a VolumeOrder).
             checkEmbeddedOrdersConsistency(order);
@@ -486,7 +486,7 @@ public class ApplicationFacade {
             RasOperation rasOperation = new RasOperation(Operation.CREATE, order.getType(), order.getCloudName(), order);
             rasOperation.setTargetProvider(order.getProvider());
             rasOperation.setRequestingProvider(this.providerId);
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             // Add order to the poll of active orders and to the OPEN linked list
             return this.orderController.activateOrder(order);
         } finally {
@@ -497,12 +497,12 @@ public class ApplicationFacade {
     protected Instance getResourceInstance(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         startOperation();
         try {
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             Order order = this.orderController.getOrder(orderId);
             RasOperation rasOperation = new RasOperation(Operation.GET, resourceType, order.getCloudName(), order);
             rasOperation.setTargetProvider(order.getProvider());
             rasOperation.setRequestingProvider(this.providerId);
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             return this.orderController.getResourceInstance(order);
         } finally {
             finishOperation();
@@ -512,12 +512,12 @@ public class ApplicationFacade {
     protected void deleteOrder(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         startOperation();
         try {
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             Order order = this.orderController.getOrder(orderId);
             RasOperation rasOperation = new RasOperation(Operation.DELETE, resourceType, order.getCloudName(), order);
             rasOperation.setTargetProvider(order.getProvider());
             rasOperation.setRequestingProvider(this.providerId);
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             this.orderController.deleteOrder(order);
         } finally {
             finishOperation();
@@ -528,14 +528,14 @@ public class ApplicationFacade {
             ResourceType resourceType) throws FogbowException {
         startOperation();
         try {
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             if (cloudName == null || cloudName.isEmpty())
                 cloudName = this.cloudListController.getDefaultCloudName();
             RasOperation rasOperation = new RasOperation(Operation.GET_USER_ALLOCATION, resourceType, cloudName);
             rasOperation.setTargetProvider(providerId);
             rasOperation.setRequestingProvider(this.providerId);
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
-            return this.orderController.getUserAllocation(providerId, cloudName, requester, resourceType);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+            return this.orderController.getUserAllocation(providerId, cloudName, systemUser, resourceType);
         } finally {
             finishOperation();
         }
@@ -545,15 +545,15 @@ public class ApplicationFacade {
             throws FogbowException {
         startOperation();
         try {
-            SystemUser requester = authenticate(userToken);
+            SystemUser systemUser = authenticate(userToken);
             if (cloudName == null || cloudName.isEmpty())
                 cloudName = this.cloudListController.getDefaultCloudName();
             RasOperation rasOperation = new RasOperation(Operation.GET, ResourceType.QUOTA, cloudName);
             rasOperation.setTargetProvider(providerId);
             rasOperation.setRequestingProvider(this.providerId);
-            this.authorizationPlugin.isAuthorized(requester, rasOperation);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
-            return cloudConnector.getUserQuota(requester);
+            return cloudConnector.getUserQuota(systemUser);
         } finally {
             finishOperation();
         }
@@ -642,11 +642,11 @@ public class ApplicationFacade {
     }
 
     public void reload(String userToken) throws FogbowException {
-        SystemUser requester = authenticate(userToken);
+        SystemUser systemUser = authenticate(userToken);
         RasOperation rasOperation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
         rasOperation.setTargetProvider(this.providerId);
         rasOperation.setRequestingProvider(this.providerId);
-        this.authorizationPlugin.isAuthorized(requester, rasOperation);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         
         SynchronizationManager.getInstance().setAsReloading();
         
