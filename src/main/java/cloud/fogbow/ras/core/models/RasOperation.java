@@ -15,10 +15,13 @@ public class RasOperation extends FogbowOperation {
     private String targetProvider;
     private String requestingProvider;
     
-    public RasOperation(Operation operationType, ResourceType resourceType, String cloudName) {
+    public RasOperation(Operation operationType, ResourceType resourceType, String cloudName, 
+                String requestingProvider, String targetProvider) {
         this.operationType = operationType;
         this.resourceType = resourceType;
         this.cloudName = cloudName;
+        this.requestingProvider = requestingProvider;
+        this.targetProvider = targetProvider;
     }
 
     public RasOperation(Operation operationType, ResourceType resourceType, String cloudName, Order order) {
@@ -26,11 +29,16 @@ public class RasOperation extends FogbowOperation {
         this.resourceType = resourceType;
         this.cloudName = cloudName;
         this.order = order;
+        this.targetProvider = order.getProvider();
+        this.requestingProvider = order.getRequester();
     }
 
-    public RasOperation(Operation operationType, ResourceType resourceType) {
+    public RasOperation(Operation operationType, ResourceType resourceType, 
+            String requestingProvider, String targetProvider) {
         this.operationType = operationType;
         this.resourceType = resourceType;
+        this.requestingProvider = requestingProvider;
+        this.targetProvider = targetProvider;
     }
 
     public String getTargetProvider() {

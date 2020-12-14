@@ -144,7 +144,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
-        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
+        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME,
+                localMember, localMember);
 
         // exercise
         this.facade.getCloudNames(localMember, userToken);
@@ -162,6 +163,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetCloudNamesWithRemoteMember() throws Exception {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String remoteMember = TestUtils.FAKE_REMOTE_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
@@ -171,7 +173,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(cloudNamesRequest).when(this.facade).getCloudNamesFromRemoteRequest(Mockito.eq(remoteMember),
                 Mockito.eq(systemUser));
         
-        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME);
+        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.CLOUD_NAME,
+                localMember, remoteMember);
 
         // exercise
         this.facade.getCloudNames(remoteMember, userToken);
@@ -627,12 +630,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetAllInstancesStatusForComputeResourceType() throws FogbowException {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.COMPUTE;
-        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType,
+                localMember, localMember);
 
         // exercise
         this.facade.getAllInstancesStatus(userToken, resourceType);
@@ -652,12 +657,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetAllInstancesStatusForVolumeResourceType() throws FogbowException {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.VOLUME;
-        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType,
+                localMember, localMember);
 
         // exercise
         this.facade.getAllInstancesStatus(userToken, resourceType);
@@ -677,12 +684,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetAllInstancesStatusForAttachmentResourceType() throws FogbowException {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.ATTACHMENT;
-        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType,
+                localMember, localMember);
 
         // exercise
         this.facade.getAllInstancesStatus(userToken, resourceType);
@@ -702,12 +711,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetAllInstancesStatusForNetworkResourceType() throws FogbowException {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.NETWORK;
-        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType,
+                localMember, localMember);
 
         // exercise
         this.facade.getAllInstancesStatus(userToken, resourceType);
@@ -727,13 +738,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetAllInstancesStatusForPublicIpResourceType() throws FogbowException {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
         
         ResourceType resourceType = ResourceType.PUBLIC_IP;
         
-        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType);
+        RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, resourceType,
+                localMember, localMember);
 
         // exercise
         this.facade.getAllInstancesStatus(userToken, resourceType);
@@ -752,6 +765,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetAllImagesWithNullProviderIdAndEmptyCloudName() throws FogbowException {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
@@ -760,7 +774,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String cloudName = EMPTY_STRING;
 
         RasOperation expectedOperation = new RasOperation(Operation.GET_ALL, ResourceType.IMAGE,
-                TestUtils.DEFAULT_CLOUD_NAME);
+                TestUtils.DEFAULT_CLOUD_NAME, localMember, null);
 
         // exercise
         this.facade.getAllImages(providerId, cloudName, userToken);
@@ -778,6 +792,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetImageWithNullProviderIdAndEmptyCloudName() throws FogbowException {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
@@ -787,7 +802,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String imageId = TestUtils.FAKE_IMAGE_ID;
         
         RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.IMAGE,
-                TestUtils.DEFAULT_CLOUD_NAME);
+                TestUtils.DEFAULT_CLOUD_NAME, localMember, null);
 
         // exercise
         this.facade.getImage(providerId, cloudName, imageId, userToken);
@@ -1416,6 +1431,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetUserAllocationWithNullCloudName() throws FogbowException {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
@@ -1424,7 +1440,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String providerId = TestUtils.LOCAL_MEMBER_ID;
         ResourceType resourceType = ResourceType.COMPUTE;
 
-        RasOperation expectedOperation = new RasOperation(Operation.GET_USER_ALLOCATION, resourceType, TestUtils.DEFAULT_CLOUD_NAME);
+        RasOperation expectedOperation = new RasOperation(Operation.GET_USER_ALLOCATION, resourceType, TestUtils.DEFAULT_CLOUD_NAME,
+                localMember, localMember);
 
         // exercise
         this.facade.getUserAllocation(providerId, cloudName, userToken, ResourceType.COMPUTE);
@@ -1445,6 +1462,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     @Test
     public void testGetUserQuotaWithEmptyCloudName() throws FogbowException {
         // set up
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         SystemUser systemUser = this.testUtils.createSystemUser();
         Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
@@ -1453,7 +1471,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         String providerId = TestUtils.LOCAL_MEMBER_ID;
         ResourceType resourceType = ResourceType.COMPUTE;
 
-        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.QUOTA, TestUtils.DEFAULT_CLOUD_NAME);
+        RasOperation expectedOperation = new RasOperation(Operation.GET, ResourceType.QUOTA, TestUtils.DEFAULT_CLOUD_NAME,
+                localMember, localMember);
 
         // exercise
         this.facade.getUserQuota(providerId, cloudName, userToken);
@@ -1739,6 +1758,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         //
         
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         String publicKey = PUBLIC_KEY;
         String privateKey = PRIVATE_KEY;
@@ -1802,7 +1822,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
                 .authenticate(Mockito.eq(userToken));
                 
         // authorizes
-        RasOperation expectedOperation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
+        RasOperation expectedOperation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION,
+                localMember, localMember);
+        
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
                 
@@ -1858,6 +1880,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         //
         
+        String localMember = TestUtils.LOCAL_MEMBER_ID;
         String userToken = SYSTEM_USER_TOKEN_VALUE;
         String publicKey = PUBLIC_KEY;
         String privateKey = PRIVATE_KEY;
@@ -1912,7 +1935,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
                 .authenticate(Mockito.eq(userToken));
                 
         // authorizes
-        RasOperation expectedOperation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
+        RasOperation expectedOperation = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION,
+                localMember, localMember);
+        
         Mockito.verify(this.authorizationPlugin, Mockito.times(TestUtils.RUN_ONCE)).isAuthorized(Mockito.eq(systemUser),
                 Mockito.eq(expectedOperation));
                 

@@ -62,8 +62,7 @@ public class AllowOnlyPermissionTest {
         setUpTest(allowedOperations);
 
         for (Operation type : Operation.values()) {
-            RasOperation operation = new RasOperation(type, ResourceType.ATTACHMENT);
-            operation.setTargetProvider(provider);
+            RasOperation operation = new RasOperation(type, ResourceType.ATTACHMENT, provider, provider);
             
             if (allowedOperations.contains(type)) {
                 assertTrue(permission.isAuthorized(operation));                
@@ -80,8 +79,7 @@ public class AllowOnlyPermissionTest {
         setUpTest(noOperation);
         
         for (Operation type : Operation.values()) {
-            RasOperation operation = new RasOperation(type, ResourceType.ATTACHMENT);
-            operation.setTargetProvider(provider);
+            RasOperation operation = new RasOperation(type, ResourceType.ATTACHMENT, provider, provider);
             
             assertFalse(permission.isAuthorized(operation));
         }

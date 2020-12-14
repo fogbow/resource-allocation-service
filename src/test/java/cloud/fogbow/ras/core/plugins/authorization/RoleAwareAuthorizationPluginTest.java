@@ -110,12 +110,12 @@ public class RoleAwareAuthorizationPluginTest {
         
         this.plugin = new RoleAwareAuthorizationPlugin(instantiator);
         
-        this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT);
-        this.operationGet.setTargetProvider(identityProviderId);
-        this.operationCreate = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT);
-        this.operationCreate.setTargetProvider(identityProviderId);
-        this.operationReload = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
-        this.operationReload.setTargetProvider(identityProviderId);
+        this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT, 
+                identityProviderId, identityProviderId);
+        this.operationCreate = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT, 
+                identityProviderId, identityProviderId);
+        this.operationReload = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION, 
+                identityProviderId, identityProviderId);
         
         Mockito.when(this.permission1.isAuthorized(operationGet)).thenReturn(true);
         Mockito.when(this.permission2.isAuthorized(operationGet)).thenReturn(true);
@@ -203,12 +203,12 @@ public class RoleAwareAuthorizationPluginTest {
     
     @Test
     public void testRemoteOperationsAreAlwaysAuthorized() throws UnauthorizedRequestException {
-        this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT);
-        this.operationGet.setTargetProvider(remoteProviderId);
-        this.operationCreate = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT);
-        this.operationCreate.setTargetProvider(remoteProviderId);
-        this.operationReload = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION);
-        this.operationReload.setTargetProvider(remoteProviderId);
+        this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT, 
+                this.identityProviderId, remoteProviderId);
+        this.operationCreate = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT, 
+                this.identityProviderId, remoteProviderId);
+        this.operationReload = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION, 
+                this.identityProviderId, remoteProviderId);
         
         SystemUser user1 = new SystemUser(userId1, userName1, identityProviderId);
         SystemUser user2 = new SystemUser(userId2, userName2, identityProviderId);

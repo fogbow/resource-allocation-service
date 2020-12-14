@@ -177,9 +177,7 @@ public class DistributedAuthorizationPluginTest {
     
     private void setUpOperationAndRequestProviders(String providerToAuthorize, String operationTargetProvider, String operationRequestingProvider) {
         // operation
-        this.operation = new RasOperation(Operation.GET, ResourceType.ATTACHMENT);
-        this.operation.setTargetProvider(operationTargetProvider);
-        this.operation.setRequestingProvider(operationRequestingProvider);
+        this.operation = new RasOperation(Operation.GET, ResourceType.ATTACHMENT, operationRequestingProvider, operationTargetProvider);
         
         // headers
         this.headers = new HashMap<String, String>();
