@@ -204,7 +204,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
         }
     }
 
-    //test case: checks if "handleError" is properly forwarding "Exception" from
+    //test case: checks if "handleError" is properly forwarding "FogbowException" from
     //"throwException" when the packet error condition is not equals to any switch case attribute.
     //In addition, it checks if its message error is correct
     @Test
@@ -219,9 +219,9 @@ public class XmppErrorConditionToExceptionTranslatorTest {
             XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
             //verify: if some exception occurred
             Assert.fail();
-        } catch (Exception e) {
+        } catch (FogbowException e) {
             //verify: if the message is correct
-            Assert.assertEquals(e.getClass(), Exception.class);
+            Assert.assertEquals(e.getClass(), FogbowException.class);
             Assert.assertEquals(this.messageError, e.getMessage());
         } catch (Throwable e) {
             //verify: if some exception different from the expected exception occurred

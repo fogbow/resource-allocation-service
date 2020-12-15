@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.cloudconnector;
 
+import cloud.fogbow.common.exceptions.CommunicationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.core.LoggerAssert;
 import cloud.fogbow.ras.core.TestUtils;
@@ -67,7 +68,7 @@ public class RemoteCloudConnectorTest extends TestUtils {
         Mockito.when(packetSender.syncSendPacket(Mockito.any(Packet.class))).thenReturn(IQResponse);
 
         String exceptionMessageExpected = TestUtils.ANY_VALUE;
-        Exception exception = new Exception(exceptionMessageExpected);
+        Exception exception = new CommunicationErrorException(exceptionMessageExpected);
         PowerMockito.mockStatic(XmppErrorConditionToExceptionTranslator.class);
         PowerMockito.doThrow(exception).when(XmppErrorConditionToExceptionTranslator.class);
         XmppErrorConditionToExceptionTranslator.handleError(Mockito.eq(IQResponse), Mockito.eq(order.getProvider()));

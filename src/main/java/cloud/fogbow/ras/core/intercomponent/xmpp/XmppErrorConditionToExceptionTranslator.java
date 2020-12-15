@@ -7,7 +7,7 @@ import org.xmpp.packet.PacketError;
 
 public class XmppErrorConditionToExceptionTranslator {
 
-    public static void handleError(IQ response, String providerId) throws Exception {
+    public static void handleError(IQ response, String providerId) throws FogbowException {
         if (response == null) {
             throw new UnavailableProviderException(String.format(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S, providerId));
         } else if (response.getError() != null) {
@@ -17,7 +17,7 @@ public class XmppErrorConditionToExceptionTranslator {
         }
     }
 
-    private static void throwException(PacketError.Condition condition, String message) throws Exception {
+    private static void throwException(PacketError.Condition condition, String message) throws FogbowException {
         switch (condition) {
             case forbidden:
                 throw new UnauthorizedRequestException(message);
@@ -35,8 +35,10 @@ public class XmppErrorConditionToExceptionTranslator {
                 throw new ConfigurationErrorException(message);
             case internal_server_error:
                 throw new InternalServerErrorException(message);
+            case undefined_condition:
+            	throw new FogbowException(message);
             default:
-                throw new Exception(message);
+                throw new CommunicationErrorException(message);
         }
     }
 }
