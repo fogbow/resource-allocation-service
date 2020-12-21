@@ -130,23 +130,32 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     }
 
     @Override
-    public void takeSnapshot(ComputeOrder order, String name, AwsV2User cloudUser) throws FogbowException {
+    public void takeSnapshot(ComputeOrder computeOrder, String name, AwsV2User cloudUser) throws FogbowException {
         // ToDo: implement
     }
 
     @Override
-    public void pauseInstance(ComputeOrder order, AwsV2User cloudUser) throws FogbowException {
-        // ToDo: implement
+    public void pauseInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.PAUSING_INSTANCE_S, instanceId));
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        doPauseInstance(instanceId, client);
     }
 
     @Override
-    public void hibernateInstance(ComputeOrder order, AwsV2User cloudUser) throws FogbowException {
-        // ToDo: implement
+    public void hibernateInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.HIBERNATING_INSTANCE_S, instanceId));
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        doHibernateInstance(instanceId, client);
     }
 
     @Override
-    public void resumeInstance(ComputeOrder order, AwsV2User cloudUser) throws FogbowException {
-        // ToDo: implement
+    public void resumeInstance(ComputeOrder computeOrder, AwsV2User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.RESUMING_INSTANCE_S, instanceId));
+        Ec2Client client = AwsV2ClientUtil.createEc2Client(cloudUser.getToken(), this.region);
+        doResumeInstance(instanceId, client);
     }
 
     @Override
@@ -181,7 +190,50 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
             throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_REMOVING_RESOURCE_S_S, RESOURCE_NAME, instanceId));
         }
     }
-	
+
+    @VisibleForTesting
+    void doPauseInstance(String instanceId, Ec2Client client) throws InternalServerErrorException {
+        StopInstancesRequest request = StopInstancesRequest.builder()
+                .instanceIds(instanceId)
+                .build();
+
+        try{
+            client.stopInstances(request);
+        } catch (SdkException e) {
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_PAUSING_S, RESOURCE_NAME, instanceId), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_PAUSING_S, RESOURCE_NAME, instanceId));
+        }
+    }
+
+    @VisibleForTesting
+    void doHibernateInstance(String instanceId, Ec2Client client) throws InternalServerErrorException {
+        StopInstancesRequest request = StopInstancesRequest.builder()
+                .hibernate(true)
+                .instanceIds(instanceId)
+                .build();
+
+        try{
+            client.stopInstances(request);
+        } catch (SdkException e) {
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_HIBERNATING_S, RESOURCE_NAME, instanceId), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_HIBERNATING_S, RESOURCE_NAME, instanceId));
+        }
+    }
+
+    @VisibleForTesting
+    void doResumeInstance(String instanceId, Ec2Client client) throws InternalServerErrorException {
+        StartInstancesRequest request = StartInstancesRequest.builder()
+                .instanceIds(instanceId)
+                .build();
+
+        try {
+            client.startInstances(request);
+        } catch (SdkException e) {
+            LOGGER.error(String.format(Messages.Log.ERROR_WHILE_RESUMING_S, RESOURCE_NAME, instanceId), e);
+            throw new InternalServerErrorException(String.format(Messages.Exception.ERROR_WHILE_RESUMING_S, RESOURCE_NAME, instanceId));
+        }
+    }
+
     @VisibleForTesting
     ComputeInstance doGetInstance(String instanceId, Ec2Client client) throws FogbowException {
         DescribeInstancesResponse response = AwsV2CloudUtil.doDescribeInstanceById(instanceId, client);
