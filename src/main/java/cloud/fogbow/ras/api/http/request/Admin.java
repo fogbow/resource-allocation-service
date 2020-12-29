@@ -38,4 +38,20 @@ public class Admin {
         ApplicationFacade.getInstance().reload(systemUserToken);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+    
+    @RequestMapping(value = "/policy", method = RequestMethod.POST)
+    public ResponseEntity<Boolean> setPolicy(
+    		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken, 
+    		String policy) throws FogbowException {
+    	ApplicationFacade.getInstance().setPolicy(systemUserToken, policy);
+    	return new ResponseEntity<>(HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/policy", method = RequestMethod.PUT)
+    public ResponseEntity<Boolean> udpatePolicy(
+    		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken,
+    		String policy) throws FogbowException {
+    	ApplicationFacade.getInstance().updatePolicy(systemUserToken, policy);
+    	return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

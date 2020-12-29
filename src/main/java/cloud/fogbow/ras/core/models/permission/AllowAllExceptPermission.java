@@ -11,14 +11,21 @@ import cloud.fogbow.ras.core.models.RasOperation;
 
 public class AllowAllExceptPermission implements Permission<RasOperation> {
 
+	private String name;
     private Set<Operation> notAllowedOperationTypes;
     
     public AllowAllExceptPermission(Set<Operation> notAllowedOperationTypes) {
         this.notAllowedOperationTypes = notAllowedOperationTypes;
     }
     
+    public AllowAllExceptPermission(String name, Set<Operation> notAllowedOperationTypes) {
+    	this.name = name;
+        this.notAllowedOperationTypes = notAllowedOperationTypes;
+    }
+    
     public AllowAllExceptPermission(String permissionName) {
         this.notAllowedOperationTypes = new HashSet<Operation>();
+        this.name = permissionName;
         
         String operationTypesString = PropertiesHolder.getInstance().getProperty(permissionName + 
                 SystemConstants.OPERATIONS_LIST_KEY_SUFFIX).trim();
@@ -33,5 +40,14 @@ public class AllowAllExceptPermission implements Permission<RasOperation> {
     @Override
     public boolean isAuthorized(RasOperation operation) {
         return !this.notAllowedOperationTypes.contains(operation.getOperationType());
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+    	if (o instanceof AllowAllExceptPermission) {
+    		return this.name.equals(((AllowAllExceptPermission) o).name);
+		}
+    	
+    	return false;
     }
 }

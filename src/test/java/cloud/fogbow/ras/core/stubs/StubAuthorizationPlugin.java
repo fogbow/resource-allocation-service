@@ -18,4 +18,14 @@ public class StubAuthorizationPlugin implements AuthorizationPlugin<RasOperation
     public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException {
         return true;
     }
+
+	@Override
+	public void setPolicy(String policy) {
+		// Ignore
+	}
+
+	@Override
+	public void updatePolicy(String policy) {
+		// Ignore
+	}
 }

@@ -135,4 +135,14 @@ public class DistributedAuthorizationPlugin implements AuthorizationPlugin<RasOp
         Authorized responseAuthorized = new Authorized(jsonResponse);
         return responseAuthorized.getAuthorized();
     }
+
+	@Override
+	public void setPolicy(String policy) {
+		// Ignore
+	}
+
+	@Override
+	public void updatePolicy(String policy) {
+		// Ignore
+	}
 }

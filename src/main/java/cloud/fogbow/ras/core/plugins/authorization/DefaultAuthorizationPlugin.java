@@ -39,4 +39,14 @@ public class DefaultAuthorizationPlugin implements AuthorizationPlugin<RasOperat
         }
         return true;
     }
+
+	@Override
+	public void setPolicy(String policy) {
+		// Ignore
+	}
+
+	@Override
+	public void updatePolicy(String policy) {
+		// Ignore
+	}
 }
