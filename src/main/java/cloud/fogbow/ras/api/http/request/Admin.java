@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -42,7 +43,7 @@ public class Admin {
     @RequestMapping(value = "/policy", method = RequestMethod.POST)
     public ResponseEntity<Boolean> setPolicy(
     		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken, 
-    		String policy) throws FogbowException {
+    		@RequestBody String policy) throws FogbowException {
     	ApplicationFacade.getInstance().setPolicy(systemUserToken, policy);
     	return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -50,7 +51,7 @@ public class Admin {
     @RequestMapping(value = "/policy", method = RequestMethod.PUT)
     public ResponseEntity<Boolean> udpatePolicy(
     		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken,
-    		String policy) throws FogbowException {
+    		@RequestBody String policy) throws FogbowException {
     	ApplicationFacade.getInstance().updatePolicy(systemUserToken, policy);
     	return new ResponseEntity<>(HttpStatus.OK);
     }

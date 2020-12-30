@@ -18,8 +18,8 @@ import cloud.fogbow.ras.core.PermissionInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
-import cloud.fogbow.ras.core.models.policy.DefaultRolePolicy;
 import cloud.fogbow.ras.core.models.policy.DefaultRolePolicy.WrongPolicyType;
+import cloud.fogbow.ras.core.models.policy.XMLRolePolicy;
 
 public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
 
@@ -129,7 +129,7 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
 	@Override
 	public void setPolicy(String policyString) throws ConfigurationErrorException {
 		try {
-			RolePolicy policy = new DefaultRolePolicy(policyString);
+			RolePolicy policy = new XMLRolePolicy(policyString);
 			validatePolicy(policy);
 			
 			this.setPermissions(policy.getPermissions());
@@ -163,6 +163,8 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
 	    HashMap<String, Set<String>> usersRoles = policy.getUsersRoles();
 	    HashSet<String> defaultRoles = policy.getDefaultRole();
 		
+	    // TODO there must be at least one admin
+	    
 	    // check if all the role permissions exist
 		for (Role<RasOperation> role : availableRoles.values()) {
 			if (!permissions.keySet().contains(role.getPermission())) {

@@ -53,7 +53,7 @@ public class DefaultRolePolicy implements RolePolicy {
     private HashSet<String> defaultRoles;
 	
 	public DefaultRolePolicy(String policyString) throws WrongPolicyType {
-		String[] policySections = policyString.split("");
+		String[] policySections = policyString.split(",");
 		
 		String policyType = policySections[0];
 		
