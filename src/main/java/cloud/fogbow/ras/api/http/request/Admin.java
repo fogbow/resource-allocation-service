@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.ras.api.parameters.Policy;
 import cloud.fogbow.ras.constants.ApiDocumentation;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -40,19 +41,21 @@ public class Admin {
         return new ResponseEntity<>(HttpStatus.OK);
     }
     
+    // TODO documentation
     @RequestMapping(value = "/policy", method = RequestMethod.POST)
     public ResponseEntity<Boolean> setPolicy(
     		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken, 
-    		@RequestBody String policy) throws FogbowException {
-    	ApplicationFacade.getInstance().setPolicy(systemUserToken, policy);
+    		@RequestBody Policy policy) throws FogbowException {
+    	ApplicationFacade.getInstance().setPolicy(systemUserToken, policy.getPolicy());
     	return new ResponseEntity<>(HttpStatus.OK);
     }
     
+    // TODO documentation
     @RequestMapping(value = "/policy", method = RequestMethod.PUT)
     public ResponseEntity<Boolean> udpatePolicy(
     		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken,
-    		@RequestBody String policy) throws FogbowException {
-    	ApplicationFacade.getInstance().updatePolicy(systemUserToken, policy);
+    		@RequestBody Policy policy) throws FogbowException {
+    	ApplicationFacade.getInstance().updatePolicy(systemUserToken, policy.getPolicy());
     	return new ResponseEntity<>(HttpStatus.OK);
     }
 }
