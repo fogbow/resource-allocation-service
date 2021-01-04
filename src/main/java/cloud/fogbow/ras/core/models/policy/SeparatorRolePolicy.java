@@ -13,7 +13,7 @@ import cloud.fogbow.ras.core.models.RolePolicy;
 import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
 import cloud.fogbow.ras.core.models.permission.AllowOnlyPermission;
 
-public class DefaultRolePolicy implements RolePolicy {
+public class SeparatorRolePolicy implements RolePolicy {
 
 	/*
 		 	Expected string format	
@@ -52,7 +52,7 @@ public class DefaultRolePolicy implements RolePolicy {
     private HashMap<String, Set<String>> usersRoles;
     private HashSet<String> defaultRoles;
 	
-	public DefaultRolePolicy(String policyString) throws WrongPolicyType {
+	public SeparatorRolePolicy(String policyString) throws WrongPolicyType {
 		String[] policySections = policyString.split(",");
 		
 		String policyType = policySections[0];
@@ -174,6 +174,7 @@ public class DefaultRolePolicy implements RolePolicy {
 		return defaultRoles;
 	}
 
+	// TODO move this exception to a separate file
 	public class WrongPolicyType extends Exception {
 
 		private static final long serialVersionUID = 1L;

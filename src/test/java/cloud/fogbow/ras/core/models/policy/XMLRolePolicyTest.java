@@ -27,7 +27,7 @@ import cloud.fogbow.ras.core.PermissionInstantiator;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
-import cloud.fogbow.ras.core.models.policy.DefaultRolePolicy.WrongPolicyType;
+import cloud.fogbow.ras.core.models.policy.SeparatorRolePolicy.WrongPolicyType;
 
 
 @RunWith(PowerMockRunner.class)

@@ -15,11 +15,11 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PermissionInstantiator;
+import cloud.fogbow.ras.core.PolicyInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
-import cloud.fogbow.ras.core.models.policy.DefaultRolePolicy.WrongPolicyType;
-import cloud.fogbow.ras.core.models.policy.XMLRolePolicy;
+import cloud.fogbow.ras.core.models.policy.SeparatorRolePolicy.WrongPolicyType;
 
 public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
 
@@ -29,12 +29,14 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
     private HashMap<String, Role<RasOperation>> availableRoles;
     private HashMap<String, Set<String>> usersRoles;
     private HashSet<String> defaultRoles;
+    private PolicyInstantiator policyInstantiator;
     
     public RoleAwareAuthorizationPlugin() throws ConfigurationErrorException {
-        this(new PermissionInstantiator());
+        this(new PermissionInstantiator(), new PolicyInstantiator());
     }
     
-    public RoleAwareAuthorizationPlugin(PermissionInstantiator permissionInstantiator) throws ConfigurationErrorException {
+    public RoleAwareAuthorizationPlugin(PermissionInstantiator permissionInstantiator, PolicyInstantiator policyInstantiator) throws ConfigurationErrorException {
+        this.policyInstantiator = policyInstantiator;
         setUpAvailableRoles(permissionInstantiator);
         setUpUsersRoles();
         setUpDefaultRole();
@@ -129,7 +131,7 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
 	@Override
 	public void setPolicy(String policyString) throws ConfigurationErrorException {
 		try {
-			RolePolicy policy = new XMLRolePolicy(policyString);
+		    RolePolicy policy = policyInstantiator.getRolePolicyInstance(policyString);
 			validatePolicy(policy);
 			
 			this.setPermissions(policy.getPermissions());

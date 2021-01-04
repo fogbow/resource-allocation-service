@@ -18,6 +18,7 @@ import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PermissionInstantiator;
+import cloud.fogbow.ras.core.PolicyInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
@@ -108,7 +109,7 @@ public class RoleAwareAuthorizationPluginTest {
         Mockito.when(instantiator.getPermissionInstance(permissionType1, permissionName1)).thenReturn(permission1);
         Mockito.when(instantiator.getPermissionInstance(permissionType2, permissionName2)).thenReturn(permission2);
         
-        this.plugin = new RoleAwareAuthorizationPlugin(instantiator);
+        this.plugin = new RoleAwareAuthorizationPlugin(instantiator, new PolicyInstantiator());
         
         this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT, 
                 identityProviderId, identityProviderId);
@@ -158,7 +159,7 @@ public class RoleAwareAuthorizationPluginTest {
         Mockito.when(instantiator.getPermissionInstance(permissionType1, permissionName1)).thenReturn(permission1);
         Mockito.when(instantiator.getPermissionInstance(permissionType2, permissionName2)).thenReturn(permission2);
         
-        new RoleAwareAuthorizationPlugin(instantiator);
+        new RoleAwareAuthorizationPlugin(instantiator, new PolicyInstantiator());
     }
 
     @Test

@@ -17,7 +17,7 @@ import cloud.fogbow.ras.core.PermissionInstantiator;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
-import cloud.fogbow.ras.core.models.policy.DefaultRolePolicy.WrongPolicyType;
+import cloud.fogbow.ras.core.models.policy.SeparatorRolePolicy.WrongPolicyType;
 
 public class XMLRolePolicy implements RolePolicy {
     
@@ -89,21 +89,14 @@ public class XMLRolePolicy implements RolePolicy {
     private PermissionInstantiator permissionInstantiator;
     
     public XMLRolePolicy(PermissionInstantiator permissionInstantiator, String policyString) throws ConfigurationErrorException, WrongPolicyType {
+        // TODO add role type validation
         this.permissionInstantiator = permissionInstantiator;
-        LOGGER.info(policyString);
-        LOGGER.info("start-xml");
         Element root = XMLUtils.getRootNodeFromXMLString(policyString);
         
-        LOGGER.info("read1-xml");
         setUpPermissionsPolicy(root);
-        LOGGER.info("read2-xml");
         setUpRolePolicy(root);
-        LOGGER.info("read3-xml");
-        
         setUpUsersPolicy(root);
-        LOGGER.info("read4-xml");
         setUpDefaultRole(root);
-        LOGGER.info("read5-xml");
     }
     
     public XMLRolePolicy(String policyString) throws ConfigurationErrorException, WrongPolicyType {

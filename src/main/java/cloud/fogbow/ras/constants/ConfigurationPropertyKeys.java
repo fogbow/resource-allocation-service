@@ -49,6 +49,7 @@ public class ConfigurationPropertyKeys {
     public static final String DEFAULT_ROLE_KEY = "default_role";
     public static final String MS_PORT_KEY = "ms_port";
     public static final String MS_URL_KEY = "ms_url";
+    public static final String POLICY_CLASS_KEY = "policy_class";
     public static final String SUPERUSER_ROLE_KEY = "superuser_role";
     public static final String USER_NAMES_KEY = "users";
 }
