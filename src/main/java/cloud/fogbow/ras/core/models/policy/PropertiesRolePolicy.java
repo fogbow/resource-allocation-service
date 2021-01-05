@@ -1,19 +1,26 @@
 package cloud.fogbow.ras.core.models.policy;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.models.Permission;
 import cloud.fogbow.common.models.Role;
+import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
+import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
+import cloud.fogbow.ras.core.PermissionInstantiator;
+import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
 import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
 import cloud.fogbow.ras.core.models.permission.AllowOnlyPermission;
 
-public class SeparatorRolePolicy implements RolePolicy {
+public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
 
 	/*
 		 	Expected string format	
@@ -52,7 +59,24 @@ public class SeparatorRolePolicy implements RolePolicy {
     private HashMap<String, Set<String>> usersRoles;
     private HashSet<String> defaultRoles;
 	
-	public SeparatorRolePolicy(String policyString) throws WrongPolicyType {
+    private PropertiesRolePolicy(HashMap<String, Permission<RasOperation>> permissions,
+            HashMap<String, Role<RasOperation>> availableRoles, HashMap<String, Set<String>> usersRoles,
+            HashSet<String> defaultRoles) {
+        this.permissions = permissions;
+        this.availableRoles = availableRoles;
+        this.usersRoles = usersRoles;
+        this.defaultRoles = defaultRoles;
+    }
+    
+    // TODO documentation
+    public PropertiesRolePolicy(File policyFile) throws ConfigurationErrorException {
+        setUpAvailableRoles(new PermissionInstantiator());
+        setUpUsersRoles();
+        setUpDefaultRole();
+    }
+    
+    // TODO documentation
+	public PropertiesRolePolicy(String policyString) throws WrongPolicyType {
 		String[] policySections = policyString.split(",");
 		
 		String policyType = policySections[0];
@@ -72,6 +96,51 @@ public class SeparatorRolePolicy implements RolePolicy {
 		setUpUsersPolicy(usersSection);
 		setUpDefaultRole(defaultRoleSection);
 	}
+	
+    private void setUpAvailableRoles(PermissionInstantiator permissionInstantiator) {
+        this.availableRoles = new HashMap<String, Role<RasOperation>>();
+        this.permissions = new HashMap<String, Permission<RasOperation>>();
+        String rolesNamesString = PropertiesHolder.getInstance().getProperty(
+                ConfigurationPropertyKeys.AUTHORIZATION_ROLES_KEY, ConfigurationPropertyDefaults.AUTHORIZATION_ROLES);
+        for (String roleName : rolesNamesString.split(SystemConstants.ROLE_NAMES_SEPARATOR)) {
+            String permissionName = PropertiesHolder.getInstance().getProperty(roleName);
+            String permissionType = PropertiesHolder.getInstance().getProperty(permissionName);
+
+            Permission<RasOperation> permission = permissionInstantiator.getPermissionInstance(permissionType,
+                    permissionName);
+            permissions.put(permissionName, permission);
+            Role<RasOperation> role = new Role<RasOperation>(roleName, permissionName);
+            this.availableRoles.put(roleName, role);
+        }
+    }
+
+    private void setUpUsersRoles() {
+        this.usersRoles = new HashMap<String, Set<String>>();
+        String userNamesString = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.USER_NAMES_KEY);
+
+        for (String userName : userNamesString.split(SystemConstants.USER_NAME_SEPARATOR)) {
+            String userRolesString = PropertiesHolder.getInstance().getProperty(userName);
+            Set<String> userRoles = new HashSet<String>();
+
+            for (String roleName : userRolesString.split(SystemConstants.USER_ROLES_SEPARATOR)) {
+                userRoles.add(roleName);
+            }
+
+            this.usersRoles.put(userName, userRoles);
+        }
+    }
+
+    private void setUpDefaultRole() throws ConfigurationErrorException {
+        String defaultRoleName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.DEFAULT_ROLE_KEY);
+
+        if (availableRoles.containsKey(defaultRoleName)) {
+            this.defaultRoles = new HashSet<String>();
+            this.defaultRoles.add(defaultRoleName);
+        } else {
+            throw new ConfigurationErrorException(Messages.Exception.DEFAULT_ROLE_NAME_IS_INVALID);
+        }
+    }
+	
 	
 	private void setUpPermissionsPolicy(String permissionsPolicy) {
 		// FIXME constant
@@ -154,30 +223,9 @@ public class SeparatorRolePolicy implements RolePolicy {
 		defaultRoles.add(availableRoles.get(defaultRolePolicy));
 	}
 
-	@Override
-	public HashMap<String, Permission<RasOperation>> getPermissions() {
-		return permissions;
-	}
-
-	@Override
-	public HashMap<String, Role<RasOperation>> getRoles() {
-		return availableRoles;
-	}
-
-	@Override
-	public HashMap<String, Set<String>> getUsersRoles() {
-		return usersRoles;
-	}
-
-	@Override
-	public HashSet<String> getDefaultRole() {
-		return defaultRoles;
-	}
-
-	// TODO move this exception to a separate file
-	public class WrongPolicyType extends Exception {
-
-		private static final long serialVersionUID = 1L;
-
-	}
+    @Override
+    public RolePolicy copy() {
+        return new PropertiesRolePolicy(permissions, availableRoles, 
+                usersRoles, defaultRoles);
+    }
 }

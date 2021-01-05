@@ -15,20 +15,19 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.SystemUser;
-import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.core.PermissionInstantiator;
 import cloud.fogbow.ras.core.PolicyInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.permission.AllowOnlyPermission;
+import cloud.fogbow.ras.core.models.policy.XMLRolePolicy;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PropertiesHolder.class)
 public class RoleAwareAuthorizationPluginTest {
     
+    // TODO update this role information
     /*
      * user1 has role1
      * role1 has permission1
@@ -36,21 +35,8 @@ public class RoleAwareAuthorizationPluginTest {
      * role2 has permission2
      * user3 has defaultrole (role1)
      */
-    private String permissionName1 = "permissionName1";
-    private String permissionType1 = "permissionType1";
-    
-    private String permissionName2 = "permissionName2";
-    private String permissionType2 = "permissionType2";
-    
-    private String roleName1 = "role1";
-    private String roleName2 = "role2";
-    private String defaultRoleName = roleName1;
-    private String invalidRoleName = "invalidrole";
-    private String rolesNames = String.format("%s,%s", roleName1, roleName2);
-    
-    private String role1Permissions = permissionName1;
-    private String role2Permissions = permissionName2;
-    
+    private String policyFileName = "policy.xml";
+
     private String identityProviderId = "provider";
     private String remoteProviderId = "remoteProvider";
     
@@ -63,54 +49,41 @@ public class RoleAwareAuthorizationPluginTest {
     private String userName2 = "user2";
     private String userWithDefaultRole = "user3";
     private String userRemoteProvider = "userRemote";
-    
-    private String user1ConfigString = String.format(RoleAwareAuthorizationPlugin.USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT, 
-                                                    userId1, identityProviderId);
-    private String user2ConfigString = String.format(RoleAwareAuthorizationPlugin.USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT, 
-                                                    userId2, identityProviderId);
-    private String userIds = String.format("%s,%s", user1ConfigString, user2ConfigString);
-    
-    private String rolesUser1 = roleName1;
-    private String rolesUser2 = String.format("%s,%s", roleName1, roleName2);
+        
+    private String userId1Pair = String.format(RoleAwareAuthorizationPlugin.USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT, 
+            userId1, identityProviderId);
+    private String userId2Pair = String.format(RoleAwareAuthorizationPlugin.USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT, 
+            userId2, identityProviderId);
+    private String userIdDefaultRolesPair = String.format(RoleAwareAuthorizationPlugin.USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT, 
+            userIdWithDefaultRoles, identityProviderId);
+    private String userIdRemoteProviderPair = String.format(RoleAwareAuthorizationPlugin.USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT, 
+            userIdRemoteProvider, remoteProviderId);
     
     private RoleAwareAuthorizationPlugin plugin;
     private PropertiesHolder propertiesHolder;
-    
-    private AllowOnlyPermission permission1;
-    private AllowOnlyPermission permission2;
 
     private RasOperation operationGet;
     private RasOperation operationCreate;
     private RasOperation operationReload;
+    
+    private PolicyInstantiator policyInstantiator;
+    private XMLRolePolicy rolePolicy;
     
     @Before
     public void setUp() throws ConfigurationErrorException {
         // set up PropertiesHolder 
         PowerMockito.mockStatic(PropertiesHolder.class);
         this.propertiesHolder = Mockito.mock(PropertiesHolder.class);
-        Mockito.doReturn(rolesNames).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.AUTHORIZATION_ROLES_KEY, 
-                                                                    ConfigurationPropertyDefaults.AUTHORIZATION_ROLES);
-        Mockito.doReturn(role1Permissions).when(propertiesHolder).getProperty(roleName1);
-        Mockito.doReturn(role2Permissions).when(propertiesHolder).getProperty(roleName2);
-        Mockito.doReturn(permissionType1).when(propertiesHolder).getProperty(permissionName1);
-        Mockito.doReturn(permissionType2).when(propertiesHolder).getProperty(permissionName2);
-        Mockito.doReturn(userIds).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.USER_NAMES_KEY);
-        Mockito.doReturn(rolesUser1).when(propertiesHolder).getProperty(user1ConfigString);
-        Mockito.doReturn(rolesUser2).when(propertiesHolder).getProperty(user2ConfigString);
-        Mockito.doReturn(defaultRoleName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.DEFAULT_ROLE_KEY);
+        Mockito.doReturn(policyFileName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.POLICY_FILE_KEY);
         Mockito.doReturn(identityProviderId).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
         BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
         
-        this.permission1 = Mockito.mock(AllowOnlyPermission.class);
-        this.permission2 = Mockito.mock(AllowOnlyPermission.class);
+        // set up PolicyInstantiator
+        this.policyInstantiator = Mockito.mock(PolicyInstantiator.class);
+        this.rolePolicy = Mockito.mock(XMLRolePolicy.class);
+        Mockito.when(this.policyInstantiator.getRolePolicyInstanceFromFile(policyFileName)).thenReturn(rolePolicy);
         
-        PermissionInstantiator instantiator = Mockito.mock(PermissionInstantiator.class);
-        
-        Mockito.when(instantiator.getPermissionInstance(permissionType1, permissionName1)).thenReturn(permission1);
-        Mockito.when(instantiator.getPermissionInstance(permissionType2, permissionName2)).thenReturn(permission2);
-        
-        this.plugin = new RoleAwareAuthorizationPlugin(instantiator, new PolicyInstantiator());
-        
+        // set up operations
         this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT, 
                 identityProviderId, identityProviderId);
         this.operationCreate = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT, 
@@ -118,48 +91,30 @@ public class RoleAwareAuthorizationPluginTest {
         this.operationReload = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION, 
                 identityProviderId, identityProviderId);
         
-        Mockito.when(this.permission1.isAuthorized(operationGet)).thenReturn(true);
-        Mockito.when(this.permission2.isAuthorized(operationGet)).thenReturn(true);
+        // set up RolePolicy
+        Mockito.when(this.rolePolicy.userIsAuthorized(userId1Pair, operationGet)).thenReturn(true);
+        Mockito.when(this.rolePolicy.userIsAuthorized(userId1Pair, operationCreate)).thenReturn(false);
+        Mockito.when(this.rolePolicy.userIsAuthorized(userId1Pair, operationReload)).thenReturn(false);
         
-        Mockito.when(this.permission1.isAuthorized(operationCreate)).thenReturn(false);
-        Mockito.when(this.permission2.isAuthorized(operationCreate)).thenReturn(true);
-
-        Mockito.when(this.permission1.isAuthorized(operationReload)).thenReturn(false);
-        Mockito.when(this.permission2.isAuthorized(operationReload)).thenReturn(false);
+        Mockito.when(this.rolePolicy.userIsAuthorized(userId2Pair, operationGet)).thenReturn(true);
+        Mockito.when(this.rolePolicy.userIsAuthorized(userId2Pair, operationCreate)).thenReturn(true);
+        Mockito.when(this.rolePolicy.userIsAuthorized(userId2Pair, operationReload)).thenReturn(false);
+        
+        Mockito.when(this.rolePolicy.userIsAuthorized(userIdDefaultRolesPair, operationGet)).thenReturn(true);
+        Mockito.when(this.rolePolicy.userIsAuthorized(userIdDefaultRolesPair, operationCreate)).thenReturn(false);
+        Mockito.when(this.rolePolicy.userIsAuthorized(userIdDefaultRolesPair, operationReload)).thenReturn(false);
+        
+        Mockito.when(this.rolePolicy.userIsAuthorized(userIdRemoteProviderPair, operationGet)).thenReturn(true);
+        Mockito.when(this.rolePolicy.userIsAuthorized(userIdRemoteProviderPair, operationCreate)).thenReturn(false);
+        Mockito.when(this.rolePolicy.userIsAuthorized(userIdRemoteProviderPair, operationReload)).thenReturn(false);
+        
+        this.plugin = new RoleAwareAuthorizationPlugin(this.policyInstantiator);
     }
 
     @Test
-    public void constructorReadsRolesInformationCorrectly() {
-        // Reads correctly roles names
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(ConfigurationPropertyKeys.AUTHORIZATION_ROLES_KEY,
-                                                                        ConfigurationPropertyDefaults.AUTHORIZATION_ROLES);
-        // Reads correctly roles permissions
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(roleName1);
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(roleName2);
-        // Reads correctly permission types
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(permissionName1);
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(permissionName2);
-        // Reads correctly user names
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(ConfigurationPropertyKeys.USER_NAMES_KEY);
-        // Reads correctly user roles
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(user1ConfigString);
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(user2ConfigString);
-        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(ConfigurationPropertyKeys.DEFAULT_ROLE_KEY);
+    public void constructorReadsConfigurationCorrectly() {
+        Mockito.verify(propertiesHolder, Mockito.times(1)).getProperty(ConfigurationPropertyKeys.POLICY_FILE_KEY);
         PowerMockito.verifyStatic(PropertiesHolder.class, Mockito.atLeastOnce());
-    }
-    
-    // test case: If the default role name read from the configuration file
-    // is not on the known roles list, the constructor must throw a ConfigurationErrorException
-    @Test(expected = ConfigurationErrorException.class)
-    public void constructorThrowsExceptionIfInvalidDefaultRoleIsPassed() throws ConfigurationErrorException {
-        Mockito.doReturn(invalidRoleName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.DEFAULT_ROLE_KEY);
-        
-        PermissionInstantiator instantiator = Mockito.mock(PermissionInstantiator.class);
-        
-        Mockito.when(instantiator.getPermissionInstance(permissionType1, permissionName1)).thenReturn(permission1);
-        Mockito.when(instantiator.getPermissionInstance(permissionType2, permissionName2)).thenReturn(permission2);
-        
-        new RoleAwareAuthorizationPlugin(instantiator, new PolicyInstantiator());
     }
 
     @Test

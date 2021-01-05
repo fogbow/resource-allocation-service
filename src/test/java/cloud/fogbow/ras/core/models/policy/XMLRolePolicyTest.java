@@ -27,7 +27,6 @@ import cloud.fogbow.ras.core.PermissionInstantiator;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
-import cloud.fogbow.ras.core.models.policy.SeparatorRolePolicy.WrongPolicyType;
 
 
 @RunWith(PowerMockRunner.class)
@@ -39,62 +38,46 @@ public class XMLRolePolicyTest {
     private Permission<RasOperation> permission1;
     private AllowAllExceptPermission permission2;
     private AllowAllExceptPermission permission3;
+    private AllowAllExceptPermission updatedPermission3;
     private String operationsPermission1 = "reload,create,getAll";
     private String operationsPermission2 = "reload";
     private String operationsPermission3 = "hibernate";
-    private String type1 = "permissiontype";
+    private String type1 = "permissiontype1";
+    private String type2 = "permissiontype2";
     private String permissionName1 = "permission1";
     private String permissionName2 = "permission2";
     private String permissionName3 = "permission3";
     private String roleName1 = "admin";
     private String roleName2 = "user";
     private String userId1 = "userid1";
+    private String userId2 = "userid2";
     
     private Set<Operation> operationsPermission1Set;
     private Set<Operation> operationsPermission2Set;
     private Set<Operation> operationsPermission3Set;
     
-    private Element root;
-    private Element typeRoot;
-    private Element permissionRoot;
-    private Element rolesRoot;
-    private Element usersRoot;
-    private Element defaultRoleRoot;
-    
     private Element permissionNode1;
-    private Element permissionNameNode1;
-    private Element permissionTypeNode1;
-    private Element permissionOperationsNode1;
-    
     private Element permissionNode2;
-    private Element permissionNameNode2;
-    private Element permissionTypeNode2;
-    private Element permissionOperationsNode2;
-    
     private Element permissionNode3;
-    private Element permissionNameNode3;
-    private Element permissionTypeNode3;
-    private Element permissionOperationsNode3;
+    private Element emptyPermissionNode3;
+    private Element updatedPermissionNode3;
     
     private Element roleNode1;
-    private Element roleNameNode1;
-    private Element rolePermissionNode1;
-    
     private Element roleNode2;
-    private Element roleNameNode2;
-    private Element rolePermissionNode2;
+    private Element emptyRoleNode2;
+    private Element updatedRoleNode2;
     
     private Element userNode1;
-    private Element userIdNode1;
-    private Element userRolesNode1;
+    private Element userNode2;
+    private Element emptyUserNode2;
+    private Element updatedUserNode2;
     
-    private List<Element> rootChildren;
-    private List<Element> permissionNodes;
-    private List<Element> rolesNodes;
-    private List<Element> userNodes;
-    
-    private String xmLString = "data";
+    private String xmlStringBeforeUpdate = "beforeUpdate";
+    private String xmlStringAfterUpdate = "afterUpdate";
 
+    private RootMockBuilder builder;
+
+    
     @Before
     public void setUp() {
         this.operationsPermission1Set = setUpOperations(Operation.RELOAD, Operation.CREATE, Operation.GET_ALL);
@@ -105,6 +88,10 @@ public class XMLRolePolicyTest {
         
         this.operationsPermission3Set = setUpOperations(Operation.HIBERNATE);
         this.permission3 = new AllowAllExceptPermission(permissionName3, operationsPermission3Set);
+        
+        this.updatedPermission3 = new AllowAllExceptPermission(permissionName2, operationsPermission2Set); 
+        
+        builder = new RootMockBuilder();
     }
     
     // TODO documentation
@@ -112,23 +99,29 @@ public class XMLRolePolicyTest {
     public void testXMLRolePolicyConstructorWithValidString() throws ConfigurationErrorException, WrongPolicyType {
         setUpMocks();
         
-        XMLRolePolicy policy = new XMLRolePolicy(permissionInstantiator, xmLString);
+        Element root1 = builder.usingPermissions(permissionNode1, permissionNode2).
+                                usingRoles(roleNode1).
+                                usingUsers(userNode1).
+                                usingDefaultRole(roleName2).
+                                build();
+        
+        PowerMockito.mockStatic(XMLUtils.class);
+        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(root1);
+        
+        XMLRolePolicy policy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
         
         HashMap<String, Permission<RasOperation>> permissions = policy.getPermissions();
         HashMap<String, Role<RasOperation>> availableRoles = policy.getRoles();
         HashMap<String, Set<String>> usersRoles = policy.getUsersRoles();
         HashSet<String> defaultRoles = policy.getDefaultRole();
         
-        assertEquals(3, permissions.size());
+        assertEquals(2, permissions.size());
         assertEquals(permission1, permissions.get(permissionName1));
         assertEquals(permission2, permissions.get(permissionName2));
-        assertEquals(permission3, permissions.get(permissionName3));
         
-        assertEquals(2, availableRoles.size());
+        assertEquals(1, availableRoles.size());
         assertEquals(roleName1 , availableRoles.get(roleName1).getName());
-        assertEquals(permissionName3 , availableRoles.get(roleName1).getPermission());
-        assertEquals(roleName2, availableRoles.get(roleName2).getName());
-        assertEquals(permissionName1 , availableRoles.get(roleName2).getPermission());
+        assertEquals(permissionName2 , availableRoles.get(roleName1).getPermission());
         
         assertEquals(1, usersRoles.size());
         assertEquals(1, usersRoles.get(userId1).size());
@@ -137,130 +130,315 @@ public class XMLRolePolicyTest {
         assertEquals(1, defaultRoles.size());
         assertTrue(defaultRoles.contains(roleName2));
     }
+    
+    // TODO documentation
+    @Test
+    public void testXMLRolePolicyUpdateAddsElementsToPolicy() throws ConfigurationErrorException, WrongPolicyType {
+        setUpMocks();
+        
+        Element rootWithMissingData = builder.usingPermissions(permissionNode1, permissionNode2).
+                usingRoles(roleNode1).
+                usingUsers(userNode1).
+                usingDefaultRole(roleName2).
+                build();
+
+        Element rootWithDataToAdd = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
+                usingRoles(roleNode1, roleNode2).
+                usingUsers(userNode1, userNode2).
+                usingDefaultRole(roleName2).
+                build();
+
+        PowerMockito.mockStatic(XMLUtils.class);
+        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithMissingData);
+        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToAdd);
+        
+        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
+        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        
+        // before updating
+        HashMap<String, Permission<RasOperation>> permissions = basePolicy.getPermissions();
+        HashMap<String, Role<RasOperation>> availableRoles = basePolicy.getRoles();
+        HashMap<String, Set<String>> usersRoles = basePolicy.getUsersRoles();
+        HashSet<String> defaultRoles = basePolicy.getDefaultRole();
+        
+        assertEquals(2, permissions.size());
+        assertEquals(permission1, permissions.get(permissionName1));
+        assertEquals(permission2, permissions.get(permissionName2));
+
+        assertEquals(1, availableRoles.size());
+        assertEquals(roleName1 , availableRoles.get(roleName1).getName());
+        assertEquals(permissionName2 , availableRoles.get(roleName1).getPermission());
+
+        assertEquals(1, usersRoles.size());
+        assertEquals(1, usersRoles.get(userId1).size());
+        assertTrue(usersRoles.get(userId1).contains(roleName1));
+        
+        assertEquals(1, defaultRoles.size());
+        assertTrue(defaultRoles.contains(roleName2));
+        
+        
+        basePolicy.update(updatePolicy);
+        
+        
+        // after updating
+        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        
+        assertEquals(3, permissionsAfter.size());
+        assertEquals(permission1, permissionsAfter.get(permissionName1));
+        assertEquals(permission2, permissionsAfter.get(permissionName2));
+        assertEquals(permission3, permissionsAfter.get(permissionName3));
+        
+        assertEquals(2, availableRolesAfter.size());
+        assertEquals(roleName1 , availableRolesAfter.get(roleName1).getName());
+        assertEquals(permissionName2 , availableRolesAfter.get(roleName1).getPermission());
+        assertEquals(roleName2, availableRolesAfter.get(roleName2).getName());
+        assertEquals(permissionName1 , availableRolesAfter.get(roleName2).getPermission());
+        
+        assertEquals(2, usersRolesAfter.size());
+        assertEquals(1, usersRolesAfter.get(userId1).size());
+        assertEquals(1, usersRolesAfter.get(userId2).size());
+        assertTrue(usersRolesAfter.get(userId1).contains(roleName1));
+        assertTrue(usersRolesAfter.get(userId2).contains(roleName2));
+        
+        assertEquals(1, defaultRolesAfter.size());
+        assertTrue(defaultRolesAfter.contains(roleName2));
+    }
+    
+    // TODO documentation
+    @Test
+    public void testXMLRolePolicyUpdateRemovesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyType {
+        setUpMocks();
+
+        Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
+                                          usingRoles(roleNode1, roleNode2).
+                                          usingUsers(userNode1, userNode2).
+                                          usingDefaultRole(roleName2).
+                                          build();
+        
+        Element rootWithDataToRemove = builder.usingPermissions(permissionNode1, permissionNode2, emptyPermissionNode3).
+                                               usingRoles(roleNode1, emptyRoleNode2).
+                                               usingUsers(userNode1, emptyUserNode2).
+                                               usingDefaultRole(roleName2).
+                                               build();
+        
+        PowerMockito.mockStatic(XMLUtils.class);
+        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
+        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToRemove);
+        
+        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
+        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        
+        // before updating
+        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        
+        assertEquals(3, permissionsAfter.size());
+        assertEquals(permission1, permissionsAfter.get(permissionName1));
+        assertEquals(permission2, permissionsAfter.get(permissionName2));
+        assertEquals(permission3, permissionsAfter.get(permissionName3));
+        
+        assertEquals(2, availableRolesAfter.size());
+        assertEquals(roleName1 , availableRolesAfter.get(roleName1).getName());
+        assertEquals(permissionName2 , availableRolesAfter.get(roleName1).getPermission());
+        assertEquals(roleName2, availableRolesAfter.get(roleName2).getName());
+        assertEquals(permissionName1 , availableRolesAfter.get(roleName2).getPermission());
+        
+        assertEquals(2, usersRolesAfter.size());
+        assertEquals(1, usersRolesAfter.get(userId1).size());
+        assertEquals(1, usersRolesAfter.get(userId2).size());
+        assertTrue(usersRolesAfter.get(userId1).contains(roleName1));
+        assertTrue(usersRolesAfter.get(userId2).contains(roleName2));
+        
+        assertEquals(1, defaultRolesAfter.size());
+        assertTrue(defaultRolesAfter.contains(roleName2));
+        
+        
+        basePolicy.update(updatePolicy);
+        
+        
+        // after updating
+        HashMap<String, Permission<RasOperation>> permissions = basePolicy.getPermissions();
+        HashMap<String, Role<RasOperation>> availableRoles = basePolicy.getRoles();
+        HashMap<String, Set<String>> usersRoles = basePolicy.getUsersRoles();
+        HashSet<String> defaultRoles = basePolicy.getDefaultRole();
+        
+        assertEquals(2, permissions.size());
+        assertEquals(permission1, permissions.get(permissionName1));
+        assertEquals(permission2, permissions.get(permissionName2));
+
+        assertEquals(1, availableRoles.size());
+        assertEquals(roleName1 , availableRoles.get(roleName1).getName());
+        assertEquals(permissionName2 , availableRoles.get(roleName1).getPermission());
+
+        assertEquals(1, usersRoles.size());
+        assertEquals(1, usersRoles.get(userId1).size());
+        assertTrue(usersRoles.get(userId1).contains(roleName1));
+        
+        assertEquals(1, defaultRoles.size());
+        assertTrue(defaultRoles.contains(roleName2));
+    }
+    
+    // TODO documentation
+    @Test
+    public void testXMLRolePolicyUpdateUpdatesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyType {
+        setUpMocks();
+
+        Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
+                                          usingRoles(roleNode1, roleNode2).
+                                          usingUsers(userNode1, userNode2).
+                                          usingDefaultRole(roleName2).
+                                          build();
+        
+        Element rootWithDataToUpdate = builder.usingPermissions(permissionNode1, permissionNode2, updatedPermissionNode3).
+                                               usingRoles(roleNode1, updatedRoleNode2).
+                                               usingUsers(userNode1, updatedUserNode2).
+                                               usingDefaultRole(roleName1).
+                                               build();
+        
+        PowerMockito.mockStatic(XMLUtils.class);
+        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
+        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
+        
+        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
+        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        
+        // before updating
+        HashMap<String, Permission<RasOperation>> permissionsBefore = basePolicy.getPermissions();
+        HashMap<String, Role<RasOperation>> availableRolesBefore = basePolicy.getRoles();
+        HashMap<String, Set<String>> usersRolesBefore = basePolicy.getUsersRoles();
+        HashSet<String> defaultRolesBefore = basePolicy.getDefaultRole();
+        
+        assertEquals(3, permissionsBefore.size());
+        assertEquals(permission1, permissionsBefore.get(permissionName1));
+        assertEquals(permission2, permissionsBefore.get(permissionName2));
+        assertEquals(permission3, permissionsBefore.get(permissionName3));
+        
+        assertEquals(2, availableRolesBefore.size());
+        assertEquals(roleName1 , availableRolesBefore.get(roleName1).getName());
+        assertEquals(permissionName2 , availableRolesBefore.get(roleName1).getPermission());
+        assertEquals(roleName2, availableRolesBefore.get(roleName2).getName());
+        assertEquals(permissionName1 , availableRolesBefore.get(roleName2).getPermission());
+        
+        assertEquals(2, usersRolesBefore.size());
+        assertEquals(1, usersRolesBefore.get(userId1).size());
+        assertEquals(1, usersRolesBefore.get(userId2).size());
+        assertTrue(usersRolesBefore.get(userId1).contains(roleName1));
+        assertTrue(usersRolesBefore.get(userId2).contains(roleName2));
+        
+        assertEquals(1, defaultRolesBefore.size());
+        assertTrue(defaultRolesBefore.contains(roleName2));
+        
+        
+        basePolicy.update(updatePolicy);
+        
+        
+        // after updating
+        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        
+        // TODO think on how to test this
+        assertEquals(3, permissionsAfter.size());
+        
+        assertEquals(2, availableRolesAfter.size());
+        assertEquals(roleName1 , availableRolesAfter.get(roleName1).getName());
+        assertEquals(permissionName2 , availableRolesAfter.get(roleName1).getPermission());
+        assertEquals(roleName2, availableRolesAfter.get(roleName2).getName());
+        assertEquals(permissionName2 , availableRolesAfter.get(roleName2).getPermission());
+        
+        assertEquals(2, usersRolesAfter.size());
+        assertEquals(1, usersRolesAfter.get(userId1).size());
+        assertEquals(1, usersRolesAfter.get(userId2).size());
+        assertTrue(usersRolesAfter.get(userId1).contains(roleName1));
+        assertTrue(usersRolesAfter.get(userId2).contains(roleName1));
+        
+        assertEquals(1, defaultRolesAfter.size());
+        assertTrue(defaultRolesAfter.contains(roleName1));
+    }
 
     private void setUpMocks() throws ConfigurationErrorException {
         this.permissionInstantiator = Mockito.mock(PermissionInstantiator.class);
         Mockito.doReturn(this.permission1).when(permissionInstantiator).getPermissionInstance(type1, permissionName1, operationsPermission1Set);
         Mockito.doReturn(this.permission2).when(permissionInstantiator).getPermissionInstance(type1, permissionName2, operationsPermission2Set);
         Mockito.doReturn(this.permission3).when(permissionInstantiator).getPermissionInstance(type1, permissionName3, operationsPermission3Set);
+        Mockito.doReturn(this.updatedPermission3).when(permissionInstantiator).getPermissionInstance(type2, permissionName3, operationsPermission2Set);
         
         setUpPermissionMocks();
         setUpRoleMocks();
         setUpUserMocks();
-        setUpRootMocks();
-        
-        PowerMockito.mockStatic(XMLUtils.class);
-        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmLString)).willReturn(root);
     }
     
     private void setUpPermissionMocks() {
-        /*
-         * Permission 1
-         */
-        permissionNode1 = Mockito.mock(Element.class);
-        
-        permissionNameNode1 = Mockito.mock(Element.class);
-        Mockito.doReturn(permissionName1).when(permissionNameNode1).getText();
-        permissionTypeNode1 = Mockito.mock(Element.class);
-        Mockito.doReturn(type1).when(permissionTypeNode1).getText();
-        permissionOperationsNode1 = Mockito.mock(Element.class);
-        
-        Mockito.doReturn(operationsPermission1).when(permissionOperationsNode1).getText();
-        Mockito.doReturn(permissionNameNode1).when(permissionNode1).getChild(XMLRolePolicy.PERMISSION_NAME_NODE);
-        Mockito.doReturn(permissionTypeNode1).when(permissionNode1).getChild(XMLRolePolicy.PERMISSION_TYPE_NODE);
-        Mockito.doReturn(permissionOperationsNode1).when(permissionNode1).getChild(XMLRolePolicy.PERMISSION_OPERATIONS_NODE);
-        
-        /*
-         * Permission 2
-         */
-        permissionNode2 = Mockito.mock(Element.class);
-        
-        permissionNameNode2 = Mockito.mock(Element.class);
-        Mockito.doReturn(permissionName2).when(permissionNameNode2).getText();
-        permissionTypeNode2 = Mockito.mock(Element.class);
-        Mockito.doReturn(type1).when(permissionTypeNode2).getText();
-        permissionOperationsNode2 = Mockito.mock(Element.class);
-        
-        Mockito.doReturn(operationsPermission2).when(permissionOperationsNode2).getText();
-        Mockito.doReturn(permissionNameNode2).when(permissionNode2).getChild(XMLRolePolicy.PERMISSION_NAME_NODE);
-        Mockito.doReturn(permissionTypeNode2).when(permissionNode2).getChild(XMLRolePolicy.PERMISSION_TYPE_NODE);
-        Mockito.doReturn(permissionOperationsNode2).when(permissionNode2).getChild(XMLRolePolicy.PERMISSION_OPERATIONS_NODE);
-        
-        /*
-         * Permission 3
-         */
-        permissionNode3 = Mockito.mock(Element.class);
-        
-        permissionNameNode3 = Mockito.mock(Element.class);
-        Mockito.doReturn(permissionName3).when(permissionNameNode3).getText();
-        permissionTypeNode3 = Mockito.mock(Element.class);
-        Mockito.doReturn(type1).when(permissionTypeNode3).getText();
-        permissionOperationsNode3 = Mockito.mock(Element.class);
-        
-        Mockito.doReturn(operationsPermission3).when(permissionOperationsNode3).getText();
-        Mockito.doReturn(permissionNameNode3).when(permissionNode3).getChild(XMLRolePolicy.PERMISSION_NAME_NODE);
-        Mockito.doReturn(permissionTypeNode3).when(permissionNode3).getChild(XMLRolePolicy.PERMISSION_TYPE_NODE);
-        Mockito.doReturn(permissionOperationsNode3).when(permissionNode3).getChild(XMLRolePolicy.PERMISSION_OPERATIONS_NODE);
-    }
-
-    private void setUpRoleMocks() {
-        /*
-         * Role 1
-         */
-        roleNode1 = Mockito.mock(Element.class);
-        
-        roleNameNode1 = Mockito.mock(Element.class);
-        Mockito.doReturn(roleName1).when(roleNameNode1).getText();
-        rolePermissionNode1 = Mockito.mock(Element.class);
-        Mockito.doReturn(permissionName3).when(rolePermissionNode1).getText();
-        
-        Mockito.doReturn(roleNameNode1).when(roleNode1).getChild(XMLRolePolicy.ROLE_NAME_NODE);
-        Mockito.doReturn(rolePermissionNode1).when(roleNode1).getChild(XMLRolePolicy.ROLE_PERMISSION_NODE);
-        
-        /*
-         * Role 2
-         */
-        roleNode2 = Mockito.mock(Element.class);
-        
-        roleNameNode2 = Mockito.mock(Element.class);
-        Mockito.doReturn(roleName2).when(roleNameNode2).getText();
-        rolePermissionNode2 = Mockito.mock(Element.class);
-        Mockito.doReturn(permissionName1).when(rolePermissionNode2).getText();
-        
-        Mockito.doReturn(roleNameNode2).when(roleNode2).getChild(XMLRolePolicy.ROLE_NAME_NODE);
-        Mockito.doReturn(rolePermissionNode2).when(roleNode2).getChild(XMLRolePolicy.ROLE_PERMISSION_NODE);
-    }
-
-    private void setUpUserMocks() {
-        userNode1 = Mockito.mock(Element.class);
-        
-        userIdNode1 = Mockito.mock(Element.class);
-        Mockito.doReturn(userId1).when(userIdNode1).getText();
-        userRolesNode1 = Mockito.mock(Element.class);
-        Mockito.doReturn(roleName1).when(userRolesNode1).getText();
-        
-        Mockito.doReturn(userIdNode1).when(userNode1).getChild(XMLRolePolicy.USER_ID_NODE);
-        Mockito.doReturn(userRolesNode1).when(userNode1).getChild(XMLRolePolicy.USER_ROLES_NODE);
+        permissionNode1 = setUpPermissionMock(permissionName1, type1, operationsPermission1);
+        permissionNode2 = setUpPermissionMock(permissionName2, type1, operationsPermission2);
+        permissionNode3 = setUpPermissionMock(permissionName3, type1, operationsPermission3);
+        emptyPermissionNode3 = setUpPermissionMock(permissionName3, "", "");
+        updatedPermissionNode3 = setUpPermissionMock(permissionName3, type2, operationsPermission2);
     }
     
-    private void setUpRootMocks() {
-        root = Mockito.mock(Element.class);
-        typeRoot = Mockito.mock(Element.class);
-        permissionRoot = Mockito.mock(Element.class);
-        rolesRoot = Mockito.mock(Element.class);
-        usersRoot = Mockito.mock(Element.class);
-        defaultRoleRoot = Mockito.mock(Element.class);
-        Mockito.doReturn(roleName2).when(defaultRoleRoot).getText();
+    private void setUpRoleMocks() {
+        roleNode1 = setUpRoleMock(roleName1, permissionName2);
+        roleNode2 = setUpRoleMock(roleName2, permissionName1);
+        emptyRoleNode2 = setUpRoleMock(roleName2, "");
+        updatedRoleNode2 = setUpRoleMock(roleName2, permissionName2);
+    }
+    
+    private void setUpUserMocks() {
+        userNode1 = setUpUserMock(userId1, roleName1);
+        userNode2 = setUpUserMock(userId2, roleName2);
+        emptyUserNode2 = setUpUserMock(userId2, "");
+        updatedUserNode2 = setUpUserMock(userId2, roleName1);
+    }
 
-        rootChildren = Arrays.asList(typeRoot, permissionRoot, rolesRoot, defaultRoleRoot, usersRoot);
-        permissionNodes = Arrays.asList(permissionNode1, permissionNode2, permissionNode3);
-        rolesNodes = Arrays.asList(roleNode1, roleNode2);
-        userNodes = Arrays.asList(userNode1); 
+    private Element setUpPermissionMock(String permissionName, String permissionType, String operationsPermission) {
+        Element permissionNode = Mockito.mock(Element.class);
         
-        Mockito.doReturn(rootChildren).when(root).getChildren();
-        Mockito.doReturn(permissionNodes).when(permissionRoot).getChildren();
-        Mockito.doReturn(rolesNodes).when(rolesRoot).getChildren();
-        Mockito.doReturn(userNodes).when(usersRoot).getChildren();
+        Element permissionNameNode = Mockito.mock(Element.class);
+        Mockito.doReturn(permissionName).when(permissionNameNode).getText();
+        Element permissionTypeNode = Mockito.mock(Element.class);
+        Mockito.doReturn(permissionType).when(permissionTypeNode).getText();
+        Element permissionOperationsNode = Mockito.mock(Element.class);
+        Mockito.doReturn(operationsPermission).when(permissionOperationsNode).getText();
+        
+        Mockito.doReturn(permissionNameNode).when(permissionNode).getChild(XMLRolePolicy.PERMISSION_NAME_NODE);
+        Mockito.doReturn(permissionTypeNode).when(permissionNode).getChild(XMLRolePolicy.PERMISSION_TYPE_NODE);
+        Mockito.doReturn(permissionOperationsNode).when(permissionNode).getChild(XMLRolePolicy.PERMISSION_OPERATIONS_NODE);
+        
+        return permissionNode;
+    }
+
+    private Element setUpRoleMock(String roleName, String permissionName) {
+        Element roleNode = Mockito.mock(Element.class);
+        
+        Element roleNameNode = Mockito.mock(Element.class);
+        Mockito.doReturn(roleName).when(roleNameNode).getText();
+        Element rolePermissionNode = Mockito.mock(Element.class);
+        Mockito.doReturn(permissionName).when(rolePermissionNode).getText();
+        
+        Mockito.doReturn(roleNameNode).when(roleNode).getChild(XMLRolePolicy.ROLE_NAME_NODE);
+        Mockito.doReturn(rolePermissionNode).when(roleNode).getChild(XMLRolePolicy.ROLE_PERMISSION_NODE);
+        
+        return roleNode;
+    }
+    
+    private Element setUpUserMock(String userId, String role) {
+        Element user = Mockito.mock(Element.class);
+        
+        Element userIdNode = Mockito.mock(Element.class);
+        Mockito.doReturn(userId).when(userIdNode).getText();
+        Element userRolesNode = Mockito.mock(Element.class);
+        Mockito.doReturn(role).when(userRolesNode).getText();
+        
+        Mockito.doReturn(userIdNode).when(user).getChild(XMLRolePolicy.USER_ID_NODE);
+        Mockito.doReturn(userRolesNode).when(user).getChild(XMLRolePolicy.USER_ROLES_NODE);
+        
+        return user;
     }
 
     private Set<Operation> setUpOperations(Operation ... operations) {
@@ -271,5 +449,51 @@ public class XMLRolePolicyTest {
         }
         
         return operationsSet;
+    }
+    
+    private class RootMockBuilder {
+        private List<Element> permissions;
+        private List<Element> roles;
+        private List<Element> users;
+        private String defaultRole;
+
+        public RootMockBuilder usingPermissions(Element ... permissions) {
+            this.permissions = Arrays.asList(permissions);
+            return this;
+        }
+        
+        public RootMockBuilder usingRoles(Element ... roles) {
+            this.roles = Arrays.asList(roles);
+            return this;
+        }
+        
+        public RootMockBuilder usingUsers(Element ... users) {
+            this.users = Arrays.asList(users);
+            return this;
+        }
+        
+        public RootMockBuilder usingDefaultRole(String defaultRole) {
+            this.defaultRole = defaultRole;
+            return this;
+        }
+        
+        public Element build() {
+            Element root = Mockito.mock(Element.class);
+            Element typeRoot1 = Mockito.mock(Element.class);
+            Element permissionRoot1 = Mockito.mock(Element.class);
+            Element rolesRoot1 = Mockito.mock(Element.class);
+            Element usersRoot1 = Mockito.mock(Element.class);
+            Element defaultRoleRoot1 = Mockito.mock(Element.class);
+
+            List<Element> rootChildren1 = Arrays.asList(typeRoot1, permissionRoot1, rolesRoot1, defaultRoleRoot1, usersRoot1);
+            
+            Mockito.doReturn(rootChildren1).when(root).getChildren();
+            Mockito.doReturn(permissions).when(permissionRoot1).getChildren();
+            Mockito.doReturn(roles).when(rolesRoot1).getChildren();
+            Mockito.doReturn(users).when(usersRoot1).getChildren();
+            Mockito.doReturn(defaultRole).when(defaultRoleRoot1).getText();
+
+            return root;
+        }
     }
 }

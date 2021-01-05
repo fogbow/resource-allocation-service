@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.models.policy;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,9 +18,8 @@ import cloud.fogbow.ras.core.PermissionInstantiator;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
-import cloud.fogbow.ras.core.models.policy.SeparatorRolePolicy.WrongPolicyType;
 
-public class XMLRolePolicy implements RolePolicy {
+public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
     
     private static final Logger LOGGER = Logger.getLogger(XMLRolePolicy.class);
     
@@ -82,11 +82,17 @@ public class XMLRolePolicy implements RolePolicy {
     // TODO documentation
     public static final String ROLE_SEPARATOR = ";";
     
-    private HashMap<String, Permission<RasOperation>> permissions;
-    private HashMap<String, Role<RasOperation>> availableRoles;
-    private HashMap<String, Set<String>> usersRoles;
-    private HashSet<String> defaultRoles;
     private PermissionInstantiator permissionInstantiator;
+    
+    private XMLRolePolicy(PermissionInstantiator permissionInstantiator, HashMap<String, Permission<RasOperation>> permissions,
+            HashMap<String, Role<RasOperation>> availableRoles, HashMap<String, Set<String>> usersRoles,
+            HashSet<String> defaultRoles) {
+        this.permissionInstantiator = permissionInstantiator;
+        this.permissions = permissions;
+        this.availableRoles = availableRoles;
+        this.usersRoles = usersRoles;
+        this.defaultRoles = defaultRoles;
+    }
     
     public XMLRolePolicy(PermissionInstantiator permissionInstantiator, String policyString) throws ConfigurationErrorException, WrongPolicyType {
         // TODO add role type validation
@@ -103,6 +109,20 @@ public class XMLRolePolicy implements RolePolicy {
         this(new PermissionInstantiator(), policyString);
     }
     
+    public XMLRolePolicy(File policyFile) throws ConfigurationErrorException {
+        this(new PermissionInstantiator(), policyFile);
+    }
+    
+    public XMLRolePolicy(PermissionInstantiator permissionInstantiator, File policyFile) throws ConfigurationErrorException {
+        this.permissionInstantiator = permissionInstantiator;
+        Element root = XMLUtils.getRootNodeFromXMLFile(policyFile);
+        
+        setUpPermissionsPolicy(root);
+        setUpRolePolicy(root);
+        setUpUsersPolicy(root);
+        setUpDefaultRole(root);
+    }
+
     private void setUpPermissionsPolicy(Element root) {
         List<Element> permissionsList = root.getChildren().get(PERMISSIONS_LIST_INDEX).getChildren();
         this.permissions = readPermissions(permissionsList); 
@@ -138,8 +158,13 @@ public class XMLRolePolicy implements RolePolicy {
                 }
             }
             
-            Permission<RasOperation> permission = permissionInstantiator.getPermissionInstance(type, name, operations);
-            permissions.put(name, permission);
+            // TODO documentation
+            if (type.isEmpty()) {
+                permissions.put(name, null);
+            } else {
+                Permission<RasOperation> permission = permissionInstantiator.getPermissionInstance(type, name, operations);
+                permissions.put(name, permission);
+            }
         }
         
         return permissions;
@@ -147,14 +172,19 @@ public class XMLRolePolicy implements RolePolicy {
     
     private HashMap<String, Role<RasOperation>> readRoles(List<Element> rolesList) {
         HashMap<String, Role<RasOperation>> availableRoles = new HashMap<String, Role<RasOperation>>();
-        
+
         for (Element e : rolesList) {
             String name = e.getChild(ROLE_NAME_NODE).getText();
             String permission = e.getChild(ROLE_PERMISSION_NODE).getText();
-            
-            Role<RasOperation> role = new Role<RasOperation>(name, permission);
-            availableRoles.put(name, role);
-        }
+
+            // TODO documentation
+            if (permission.isEmpty()) {
+                availableRoles.put(name, null);
+            } else {
+                Role<RasOperation> role = new Role<RasOperation>(name, permission);
+                availableRoles.put(name, role);
+            }
+        }            
         
         return availableRoles;
     }
@@ -172,7 +202,12 @@ public class XMLRolePolicy implements RolePolicy {
                 roles.add(roleName);
             }
             
-            usersRoles.put(name, roles);
+            // TODO documentation
+            if (rolesString.isEmpty()) {
+                usersRoles.put(name, null);
+            } else {
+                usersRoles.put(name, roles);                
+            }
         }
         
         return usersRoles;
@@ -183,24 +218,10 @@ public class XMLRolePolicy implements RolePolicy {
         defaultRoles.add(defaultRole.getText());
         return defaultRoles;
     }
-
+    
     @Override
-    public HashMap<String, Permission<RasOperation>> getPermissions() {
-        return this.permissions;
-    }
-
-    @Override
-    public HashMap<String, Role<RasOperation>> getRoles() {
-        return this.availableRoles;
-    }
-
-    @Override
-    public HashMap<String, Set<String>> getUsersRoles() {
-        return this.usersRoles;
-    }
-
-    @Override
-    public HashSet<String> getDefaultRole() {
-        return this.defaultRoles;
+    public RolePolicy copy() {
+        return new XMLRolePolicy(permissionInstantiator, permissions, availableRoles, 
+                usersRoles, defaultRoles);
     }
 }

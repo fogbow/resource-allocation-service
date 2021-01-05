@@ -1,9 +1,11 @@
 package cloud.fogbow.ras.core;
 
+import java.io.File;
+
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.models.RolePolicy;
-import cloud.fogbow.ras.core.models.policy.SeparatorRolePolicy.WrongPolicyType;
+import cloud.fogbow.ras.core.models.policy.WrongPolicyType;
 import cloud.fogbow.ras.core.models.policy.XMLRolePolicy;
 
 public class PolicyInstantiator {
@@ -16,5 +18,11 @@ public class PolicyInstantiator {
         } else {
             return new XMLRolePolicy(policyString);
         }
+    }
+    
+    public RolePolicy getRolePolicyInstanceFromFile(String policyFileName) throws ConfigurationErrorException {
+        // TODO should be able to create other types of policy
+        File policyFile = new File(policyFileName);
+        return new XMLRolePolicy(policyFile);
     }
 }
