@@ -16,6 +16,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
     protected HashMap<String, Role<RasOperation>> availableRoles;
     protected HashMap<String, Set<String>> usersRoles;
     protected HashSet<String> defaultRoles;
+    protected String adminRole;
     
     @Override
     public HashMap<String, Permission<RasOperation>> getPermissions() {
@@ -37,12 +38,8 @@ public abstract class BaseRolePolicy implements RolePolicy {
         return defaultRoles;
     }
 
-    // TODO test
     @Override
     public void validate() throws ConfigurationErrorException {
-      
-        // TODO there must be at least one admin
-        
         // check if all the role permissions exist
         for (Role<RasOperation> role : availableRoles.values()) {
             if (!permissions.keySet().contains(role.getPermission())) {
@@ -67,6 +64,11 @@ public abstract class BaseRolePolicy implements RolePolicy {
                 // TODO add message
                 throw new ConfigurationErrorException();
             }
+        }
+        
+        if (!availableRoles.keySet().contains(this.adminRole)) {
+            // TODO add message
+            throw new ConfigurationErrorException();
         }
     }
     

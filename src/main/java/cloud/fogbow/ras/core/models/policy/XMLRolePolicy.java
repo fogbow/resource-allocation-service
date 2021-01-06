@@ -13,8 +13,10 @@ import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.models.Permission;
 import cloud.fogbow.common.models.Role;
 import cloud.fogbow.common.util.XMLUtils;
+import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PermissionInstantiator;
+import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
@@ -84,7 +86,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
     
     private PermissionInstantiator permissionInstantiator;
     
-    private XMLRolePolicy(PermissionInstantiator permissionInstantiator, HashMap<String, Permission<RasOperation>> permissions,
+    private XMLRolePolicy(PermissionInstantiator permissionInstantiator, String adminRole, HashMap<String, Permission<RasOperation>> permissions,
             HashMap<String, Role<RasOperation>> availableRoles, HashMap<String, Set<String>> usersRoles,
             HashSet<String> defaultRoles) {
         this.permissionInstantiator = permissionInstantiator;
@@ -92,11 +94,13 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         this.availableRoles = availableRoles;
         this.usersRoles = usersRoles;
         this.defaultRoles = defaultRoles;
+        this.adminRole = adminRole;
     }
     
     public XMLRolePolicy(PermissionInstantiator permissionInstantiator, String policyString) throws ConfigurationErrorException, WrongPolicyType {
         // TODO add role type validation
         this.permissionInstantiator = permissionInstantiator;
+        this.adminRole = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.ADMIN_ROLE);
         Element root = XMLUtils.getRootNodeFromXMLString(policyString);
         
         setUpPermissionsPolicy(root);
@@ -221,7 +225,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
     
     @Override
     public RolePolicy copy() {
-        return new XMLRolePolicy(permissionInstantiator, permissions, availableRoles, 
+        return new XMLRolePolicy(permissionInstantiator, adminRole, permissions, availableRoles, 
                 usersRoles, defaultRoles);
     }
 }
