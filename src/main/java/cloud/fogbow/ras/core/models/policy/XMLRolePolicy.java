@@ -97,7 +97,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         this.adminRole = adminRole;
     }
     
-    public XMLRolePolicy(PermissionInstantiator permissionInstantiator, String policyString) throws ConfigurationErrorException, WrongPolicyType {
+    public XMLRolePolicy(PermissionInstantiator permissionInstantiator, String policyString) throws ConfigurationErrorException, WrongPolicyTypeException {
         // TODO add role type validation
         this.permissionInstantiator = permissionInstantiator;
         this.adminRole = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.ADMIN_ROLE);
@@ -109,7 +109,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         setUpDefaultRole(root);
     }
     
-    public XMLRolePolicy(String policyString) throws ConfigurationErrorException, WrongPolicyType {
+    public XMLRolePolicy(String policyString) throws ConfigurationErrorException, WrongPolicyTypeException {
         this(new PermissionInstantiator(), policyString);
     }
     

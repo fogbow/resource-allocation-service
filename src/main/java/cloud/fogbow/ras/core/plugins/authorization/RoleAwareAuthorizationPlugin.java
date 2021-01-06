@@ -10,7 +10,7 @@ import cloud.fogbow.ras.core.PolicyInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
-import cloud.fogbow.ras.core.models.policy.WrongPolicyType;
+import cloud.fogbow.ras.core.models.policy.WrongPolicyTypeException;
 
 public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
 
@@ -57,7 +57,7 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
 			policy.validate();
 
 			this.rolePolicy = policy;
-		} catch (WrongPolicyType e) {
+		} catch (WrongPolicyTypeException e) {
 			e.printStackTrace();
 		}
 	}
@@ -72,7 +72,7 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
             base.validate();
 
             this.rolePolicy = base;
-        } catch (WrongPolicyType e) {
+        } catch (WrongPolicyTypeException e) {
             e.printStackTrace();
         }
     }

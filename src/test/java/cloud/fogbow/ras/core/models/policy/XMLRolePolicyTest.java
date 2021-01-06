@@ -101,7 +101,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testXMLRolePolicyConstructorWithValidString() throws ConfigurationErrorException, WrongPolicyType {
+    public void testXMLRolePolicyConstructorWithValidString() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
         
         Element root1 = builder.usingPermissions(permissionNode1, permissionNode2).
@@ -138,7 +138,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testXMLRolePolicyUpdateAddsElementsToPolicy() throws ConfigurationErrorException, WrongPolicyType {
+    public void testXMLRolePolicyUpdateAddsElementsToPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
         
         Element rootWithMissingData = builder.usingPermissions(permissionNode1, permissionNode2).
@@ -196,7 +196,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testXMLRolePolicyUpdateRemovesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyType {
+    public void testXMLRolePolicyUpdateRemovesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -248,7 +248,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testXMLRolePolicyUpdateUpdatesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyType {
+    public void testXMLRolePolicyUpdateUpdatesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -304,7 +304,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateOnlyPermissions() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateOnlyPermissions() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -361,7 +361,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateOnlyRoles() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateOnlyRoles() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -418,7 +418,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateOnlyUsers() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateOnlyUsers() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -475,7 +475,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateOnlyDefaultRole() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateOnlyDefaultRole() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -533,7 +533,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateAddOnlyPermission() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateAddOnlyPermission() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithMissingData = builder.usingPermissions(permissionNode1, permissionNode2).
@@ -586,7 +586,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateAddOnlyRole() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateAddOnlyRole() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithMissingData = builder.usingPermissions(permissionNode1, permissionNode2).
@@ -640,7 +640,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateAddOnlyUser() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateAddOnlyUser() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithMissingData = builder.usingPermissions(permissionNode1, permissionNode2).
@@ -694,7 +694,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateRemoveOnlyPermission() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateRemoveOnlyPermission() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -751,7 +751,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateRemoveOnlyRole() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateRemoveOnlyRole() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -807,7 +807,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testUpdateRemoveOnlyUser() throws ConfigurationErrorException, WrongPolicyType {
+    public void testUpdateRemoveOnlyUser() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -863,7 +863,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testValidateValidPolicy() throws ConfigurationErrorException, WrongPolicyType {
+    public void testValidateValidPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootMinimal = builder.usingPermissions(permissionNode2).
@@ -900,7 +900,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test(expected = ConfigurationErrorException.class)
-    public void testValidatePolicyMustHaveDefaultRole() throws ConfigurationErrorException, WrongPolicyType {
+    public void testValidatePolicyMustHaveDefaultRole() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootNoDefaultRole = builder.usingPermissions(permissionNode1).
@@ -920,7 +920,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test(expected = ConfigurationErrorException.class)
-    public void testValidateAllUsersMustHaveExistingRoles() throws ConfigurationErrorException, WrongPolicyType {
+    public void testValidateAllUsersMustHaveExistingRoles() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootRoleDoesNotExist = builder.usingPermissions(permissionNode1).
@@ -941,7 +941,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test(expected = ConfigurationErrorException.class)
-    public void testValidateAllRolesMustHaveExistingPermissions() throws ConfigurationErrorException, WrongPolicyType {
+    public void testValidateAllRolesMustHaveExistingPermissions() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootPermissionDoesNotExist = builder.usingPermissions(permissionNode1).
@@ -962,7 +962,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test(expected = ConfigurationErrorException.class)
-    public void testValidateDefaultRoleMustExist() throws ConfigurationErrorException, WrongPolicyType {
+    public void testValidateDefaultRoleMustExist() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootDefaultRoleDoesNotExist = builder.usingPermissions(permissionNode1).
@@ -983,7 +983,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test(expected = ConfigurationErrorException.class)
-    public void testValidateAdminRoleMustExist() throws ConfigurationErrorException, WrongPolicyType {
+    public void testValidateAdminRoleMustExist() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootAdminRoleDoesNotExist = builder.usingPermissions(permissionNode1).

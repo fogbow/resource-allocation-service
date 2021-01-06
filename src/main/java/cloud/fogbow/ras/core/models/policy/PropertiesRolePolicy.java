@@ -76,14 +76,14 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
     }
     
     // TODO documentation
-	public PropertiesRolePolicy(String policyString) throws WrongPolicyType {
+	public PropertiesRolePolicy(String policyString) throws WrongPolicyTypeException {
 		String[] policySections = policyString.split(",");
 		
 		String policyType = policySections[0];
 		
 		// FIXME constant
 		if (!policyType.equals("role")) {
-			throw new WrongPolicyType();
+			throw new WrongPolicyTypeException();
 		}
 
 		String permissionSection = policySections[1];
