@@ -18,6 +18,8 @@ public abstract class BaseRolePolicy implements RolePolicy {
     protected HashSet<String> defaultRoles;
     protected String adminRole;
     
+    public static final String POLICY_TYPE = "role";
+    
     @Override
     public HashMap<String, Permission<RasOperation>> getPermissions() {
         return permissions;

@@ -21,6 +21,7 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.policy.WrongPolicyTypeException;
 import cloud.fogbow.ras.core.models.policy.XMLRolePolicy;
 
 @RunWith(PowerMockRunner.class)
@@ -70,7 +71,7 @@ public class RoleAwareAuthorizationPluginTest {
     private XMLRolePolicy rolePolicy;
     
     @Before
-    public void setUp() throws ConfigurationErrorException {
+    public void setUp() throws ConfigurationErrorException, WrongPolicyTypeException {
         // set up PropertiesHolder 
         PowerMockito.mockStatic(PropertiesHolder.class);
         this.propertiesHolder = Mockito.mock(PropertiesHolder.class);

@@ -20,7 +20,7 @@ public class PolicyInstantiator {
         }
     }
     
-    public RolePolicy getRolePolicyInstanceFromFile(String policyFileName) throws ConfigurationErrorException {
+    public RolePolicy getRolePolicyInstanceFromFile(String policyFileName) throws ConfigurationErrorException, WrongPolicyTypeException {
         // TODO should be able to create other types of policy
         File policyFile = new File(policyFileName);
         return new XMLRolePolicy(policyFile);

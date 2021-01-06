@@ -47,9 +47,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
                 <permission></permission>
             </role>
         </roles>
-        <defaultrole>
-            <name></name>
-        </defaultrole>
+        <defaultrole></defaultrole>
         <users>
             <user>
                 <userId></userId>
@@ -59,6 +57,8 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
     </policy>
     */
     
+    // TODO documentation
+    private static final int POLICY_TYPE_INDEX = 0;
     // TODO documentation
     public static final int PERMISSIONS_LIST_INDEX = 1;
     // TODO documentation
@@ -98,33 +98,34 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
     }
     
     public XMLRolePolicy(PermissionInstantiator permissionInstantiator, String policyString) throws ConfigurationErrorException, WrongPolicyTypeException {
-        // TODO add role type validation
         this.permissionInstantiator = permissionInstantiator;
         this.adminRole = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.ADMIN_ROLE);
         Element root = XMLUtils.getRootNodeFromXMLString(policyString);
         
+        checkPolicyType(root);
         setUpPermissionsPolicy(root);
         setUpRolePolicy(root);
         setUpUsersPolicy(root);
         setUpDefaultRole(root);
     }
-    
+
     public XMLRolePolicy(String policyString) throws ConfigurationErrorException, WrongPolicyTypeException {
         this(new PermissionInstantiator(), policyString);
     }
     
-    public XMLRolePolicy(File policyFile) throws ConfigurationErrorException {
-        this(new PermissionInstantiator(), policyFile);
-    }
-    
-    public XMLRolePolicy(PermissionInstantiator permissionInstantiator, File policyFile) throws ConfigurationErrorException {
+    public XMLRolePolicy(PermissionInstantiator permissionInstantiator, File policyFile) throws ConfigurationErrorException, WrongPolicyTypeException {
         this.permissionInstantiator = permissionInstantiator;
         Element root = XMLUtils.getRootNodeFromXMLFile(policyFile);
         
+        checkPolicyType(root);
         setUpPermissionsPolicy(root);
         setUpRolePolicy(root);
         setUpUsersPolicy(root);
         setUpDefaultRole(root);
+    }
+    
+    public XMLRolePolicy(File policyFile) throws ConfigurationErrorException, WrongPolicyTypeException {
+        this(new PermissionInstantiator(), policyFile);
     }
 
     private void setUpPermissionsPolicy(Element root) {
@@ -221,6 +222,14 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         HashSet<String> defaultRoles = new HashSet<String>();
         defaultRoles.add(defaultRole.getText());
         return defaultRoles;
+    }
+    
+    private void checkPolicyType(Element root) throws WrongPolicyTypeException {
+        String policyType = root.getChildren().get(POLICY_TYPE_INDEX).getText();
+
+        if (!policyType.equals(BaseRolePolicy.POLICY_TYPE)) {
+            throw new WrongPolicyTypeException();
+        }
     }
     
     @Override

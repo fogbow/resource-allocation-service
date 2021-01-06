@@ -101,7 +101,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testXMLRolePolicyConstructorWithValidString() throws ConfigurationErrorException, WrongPolicyTypeException {
+    public void testConstructorWithValidString() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
         
         Element root1 = builder.usingPermissions(permissionNode1, permissionNode2).
@@ -137,8 +137,26 @@ public class XMLRolePolicyTest {
     }
     
     // TODO documentation
+    @Test(expected = WrongPolicyTypeException.class)
+    public void testConstructorWithInvalidPolicyType() throws ConfigurationErrorException, WrongPolicyTypeException {
+        setUpMocks();
+        
+        Element root1 = builder.usingPermissions(permissionNode1, permissionNode2).
+                                usingRoles(roleNode1).
+                                usingUsers(userNode1).
+                                usingDefaultRole(roleName2).
+                                usingPolicyType("invalidPolicyType").
+                                build();
+        
+        PowerMockito.mockStatic(XMLUtils.class);
+        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(root1);
+        
+        new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
+    }
+    
+    // TODO documentation
     @Test
-    public void testXMLRolePolicyUpdateAddsElementsToPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
+    public void testUpdateAddsElementsToPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
         
         Element rootWithMissingData = builder.usingPermissions(permissionNode1, permissionNode2).
@@ -196,7 +214,7 @@ public class XMLRolePolicyTest {
     
     // TODO documentation
     @Test
-    public void testXMLRolePolicyUpdateRemovesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
+    public void testUpdateRemovesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -1067,7 +1085,7 @@ public class XMLRolePolicyTest {
         setUpRoleMocks();
         setUpUserMocks();
     }
-    
+
     private void setUpPermissionMocks() {
         permissionNode1 = setUpPermissionMock(permissionName1, type1, operationsPermission1);
         permissionNode2 = setUpPermissionMock(permissionName2, type1, operationsPermission2);
@@ -1151,6 +1169,7 @@ public class XMLRolePolicyTest {
         private List<Element> roles;
         private List<Element> users;
         private String defaultRole;
+        private String policyType = BaseRolePolicy.POLICY_TYPE;
 
         public RootMockBuilder usingPermissions(Element ... permissions) {
             this.permissions = Arrays.asList(permissions);
@@ -1172,6 +1191,11 @@ public class XMLRolePolicyTest {
             return this;
         }
         
+        public RootMockBuilder usingPolicyType(String policyType) {
+            this.policyType = policyType;
+            return this;
+        }
+        
         public Element build() {
             Element root = Mockito.mock(Element.class);
             Element typeRoot1 = Mockito.mock(Element.class);
@@ -1187,7 +1211,8 @@ public class XMLRolePolicyTest {
             Mockito.doReturn(roles).when(rolesRoot1).getChildren();
             Mockito.doReturn(users).when(usersRoot1).getChildren();
             Mockito.doReturn(defaultRole).when(defaultRoleRoot1).getText();
-
+            Mockito.doReturn(policyType).when(typeRoot1).getText();
+            
             return root;
         }
     }

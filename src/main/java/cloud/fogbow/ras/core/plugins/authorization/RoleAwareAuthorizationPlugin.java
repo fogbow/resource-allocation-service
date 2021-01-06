@@ -26,7 +26,12 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
     public RoleAwareAuthorizationPlugin(PolicyInstantiator policyInstantiator) throws ConfigurationErrorException {
         this.policyInstantiator = policyInstantiator;
         String policyFileName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.POLICY_FILE_KEY);
-        this.rolePolicy = policyInstantiator.getRolePolicyInstanceFromFile(policyFileName);
+        try {
+            this.rolePolicy = policyInstantiator.getRolePolicyInstanceFromFile(policyFileName);
+        } catch (WrongPolicyTypeException e) {
+            // TODO add message
+            throw new ConfigurationErrorException();
+        }
         this.rolePolicy.validate();
     }
     
