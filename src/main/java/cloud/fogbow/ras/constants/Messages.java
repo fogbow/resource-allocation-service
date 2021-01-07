@@ -4,10 +4,12 @@ public class Messages {
 
     public static class Exception {
         public static final String ACTIVE_SOURCE_COMPUTE = "The source compute needs to be paused or hibernated before taking the snapshot.";
+        public static final String ADMIN_ROLE_DOES_NOT_EXIST = "Admin role '%s' does not exist.";
         public static final String CLOUD_NAMES_DO_NOT_MATCH = "The embedded resource has not been instantiated in the same cloud.";
         public static final String DEFAULT_CREDENTIALS_NOT_FOUND = "Default credentials not found.";
         public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found.";
         public static final String DEFAULT_ROLE_NAME_IS_INVALID = "Default role name is invalid.";
+        public static final String DEFAULT_USER_ROLE_DOES_NOT_EXIST = "Default user role '%s' does not exist.";
         public static final String DELETE_OPERATION_ALREADY_ONGOING = "Delete operation is already on-going.";
         public static final String DEPENDENCY_DETECTED_S_S = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String EMPTY_PROPERTY_MAP = "Empty property getCloudUser.";
@@ -60,6 +62,7 @@ public class Messages {
         public static final String RESOURCE_TYPE_NOT_COMPATIBLE_S = "Resource type not compatible with %s request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resource type not yet implemented.";
         public static final String RESUME_OPERATION_ONGOING = "The virtual Machine is already being resumed.";
+        public static final String ROLE_PERMISSION_DOES_NOT_EXIST = "Permission '%s', referenced by Role '%s', does not exist.";
         public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
         public static final String SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND_S = "There is no security group with name: %s.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER_S_S = "Signalling provider %s is not the provider %s.";
@@ -87,6 +90,7 @@ public class Messages {
         public static final String UNSUPPORTED_REQUEST_TYPE_S = "Request type %s not supported.";
         public static final String USER_DOES_NOT_HAVE_ENOUGH_PERMISSION = "User does not have permission to perform operation";
         public static final String USER_DOES_NOT_HAVE_REQUIRED_ROLE = "User does not have a role required by operation.";
+        public static final String USER_ROLE_DOES_NOT_EXIST = "Role '%s', referenced by User '%s', does not exist.";
         public static final String VIRTUAL_MACHINE_ALREADY_HIBERNATED = "The Virtual Machine has already been hibernated.";
         public static final String VIRTUAL_MACHINE_ALREADY_PAUSED = "The Virtual Machine has already been paused.";
         public static final String VIRTUAL_MACHINE_IS_NOT_RUNNING = "The Virtual Machine is not running.";

@@ -20,6 +20,7 @@ import cloud.fogbow.ras.core.models.RolePolicy;
 import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
 import cloud.fogbow.ras.core.models.permission.AllowOnlyPermission;
 
+// TODO test this class
 public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
 
 	/*
