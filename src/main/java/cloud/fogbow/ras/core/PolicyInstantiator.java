@@ -21,8 +21,13 @@ public class PolicyInstantiator {
     }
     
     public RolePolicy getRolePolicyInstanceFromFile(String policyFileName) throws ConfigurationErrorException, WrongPolicyTypeException {
-        // TODO should be able to create other types of policy
         File policyFile = new File(policyFileName);
-        return new XMLRolePolicy(policyFile);
+        
+        if (PropertiesHolder.getInstance().getProperties().containsKey(ConfigurationPropertyKeys.POLICY_CLASS_KEY)) {
+            String policyType = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.POLICY_CLASS_KEY);
+            return (RolePolicy) this.classFactory.createPluginInstance(policyType, policyFile);            
+        } else {
+            return new XMLRolePolicy(policyFile);
+        }
     }
 }
