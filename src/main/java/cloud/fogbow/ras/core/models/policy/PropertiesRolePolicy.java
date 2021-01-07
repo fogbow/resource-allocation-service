@@ -55,7 +55,19 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
 				user_separator
 		 */
 
-	private HashMap<String, Permission<RasOperation>> permissions;
+    // TODO documentation
+	public static final String VALUES_SEPARATOR = ";";
+
+	// TODO documentation
+	public static final String FIELDS_SEPARATOR = ".";
+
+	// TODO documentation
+    public static final String ITEMS_SEPARATOR = "|";
+
+    // TODO documentation
+    public static final String SECTIONS_SEPARATOR = ",";
+	
+    private HashMap<String, Permission<RasOperation>> permissions;
     private HashMap<String, Role<RasOperation>> availableRoles;
     private HashMap<String, Set<String>> usersRoles;
     private HashSet<String> defaultRoles;
@@ -78,12 +90,11 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
     
     // TODO documentation
 	public PropertiesRolePolicy(String policyString) throws WrongPolicyTypeException {
-		String[] policySections = policyString.split(",");
+		String[] policySections = policyString.split(SECTIONS_SEPARATOR);
 		
 		String policyType = policySections[0];
 		
-		// FIXME constant
-		if (!policyType.equals("role")) {
+		if (!policyType.equals(BaseRolePolicy.POLICY_TYPE)) {
 			throw new WrongPolicyTypeException();
 		}
 
@@ -142,16 +153,13 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
         }
     }
 	
-	
 	private void setUpPermissionsPolicy(String permissionsPolicy) {
-		// FIXME constant
-		String[] permissionsString = permissionsPolicy.split("|");
+		String[] permissionsString = permissionsPolicy.split(ITEMS_SEPARATOR);
 		this.permissions = new HashMap<String, Permission<RasOperation>>();
 		
 		
 		for (String permissionString : permissionsString) {
-			// FIXME constant
-			String[] permissionFields = permissionString.split(".");
+			String[] permissionFields = permissionString.split(FIELDS_SEPARATOR);
 			String name = permissionFields[0];
 			String type = permissionFields[1];
 			String operationsString = permissionFields[2];
@@ -180,13 +188,11 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
 	}
 	
 	private void setUpRolePolicy(String rolesPolicy) {
-		// FIXME constant
-		String[] rolesString = rolesPolicy.split("|");
+		String[] rolesString = rolesPolicy.split(ITEMS_SEPARATOR);
 		this.availableRoles = new HashMap<String, Role<RasOperation>>();
 		
 		for (String roleString : rolesString) {
-			// FIXME constant
-			String[] roleFields = roleString.split(".");
+			String[] roleFields = roleString.split(FIELDS_SEPARATOR);
 			String name = roleFields[0];
 			String permission = roleFields[1];
 			
@@ -197,20 +203,17 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
 	}
 
 	private void setUpUsersPolicy(String usersPolicy) {
-		// FIXME constant
-		String[] usersString = usersPolicy.split("|");
+		String[] usersString = usersPolicy.split(ITEMS_SEPARATOR);
 		this.usersRoles = new HashMap<String, Set<String>>();
 		
 		for (String userString : usersString) {
-			// FIXME constant
-			String[] userFields = userString.split(".");
+			String[] userFields = userString.split(FIELDS_SEPARATOR);
 			String name = userFields[0];
 			String rolesString = userFields[1];
 			
 			HashSet<String> roles = new HashSet<String>();
 			
-			// FIXME constant
-			for (String roleName : rolesString.split(";")) {
+			for (String roleName : rolesString.split(VALUES_SEPARATOR)) {
 				roles.add(roleName);
 			}
 			
