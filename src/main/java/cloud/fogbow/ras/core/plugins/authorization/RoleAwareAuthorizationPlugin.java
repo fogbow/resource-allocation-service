@@ -15,7 +15,10 @@ import cloud.fogbow.ras.core.models.policy.WrongPolicyTypeException;
 
 public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
 
-	// TODO documentation
+    /*
+     * The user IDs used in the policy rules must follow this format, a string
+     * containing the regular user ID and the provider ID, separated by dot.
+     */
     public static final String USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT = "%s.%s";
     private PolicyInstantiator policyInstantiator;
     private RolePolicy rolePolicy;

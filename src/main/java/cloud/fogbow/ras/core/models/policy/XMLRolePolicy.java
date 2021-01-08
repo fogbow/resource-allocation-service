@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.jdom2.Element;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
@@ -25,68 +24,95 @@ import cloud.fogbow.ras.core.models.RolePolicy;
 
 public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
 
-    private static final Logger LOGGER = Logger.getLogger(XMLRolePolicy.class);
-    
     /*
-     TODO improve this documentation
+         This policy implementation uses the following XML structure as the format
+         to express policy rules. The type value must be equal to BaseRolePolicy.POLICY_TYPE.
+         The structure contains one root node for each rule type (permissions, roles and users). 
+         Each rule is stored in a node of its kind.
       
-     XML model reference
-      
-    <?xml version="1.0"?>
-    <policy>
-        <type>role</type>
-        <permissions>
-            <permission>
-                <name></name>
-                <type></type>
-                <operations></operations>
-            </permission>
-        </permissions>
-
-        <roles>
-            <role>
-                <name></name>
-                <permission></permission>
-            </role>
-        </roles>
-        <defaultrole></defaultrole>
-        <users>
-            <user>
-                <userId></userId>
-                <roles></roles>
-            </user>
-        </users>
-    </policy>
+        <?xml version="1.0"?>
+        <policy>
+            <type>BaseRolePolicy.POLICY_TYPE</type>
+            <permissions>
+                <permission>
+                    <name></name>
+                    <type></type>
+                    <operations></operations>
+                </permission>
+            </permissions>
+    
+            <roles>
+                <role>
+                    <name></name>
+                    <permission></permission>
+                </role>
+            </roles>
+            <defaultrole></defaultrole>
+            <users>
+                <user>
+                    <userId></userId>
+                    <roles></roles>
+                </user>
+            </users>
+        </policy>
     */
     
-    // TODO documentation
-    public static final String DEFAULT_ROLE_LABEL = "defaultrole";
-    // TODO documentation
-    public static final String POLICY_TYPE_LABEL = "type";
-    // TODO documentation
-    public static final String USERS_LABEL = "users";
-    // TODO documentation
-    public static final String ROLES_LABEL = "roles";
-    // TODO documentation
-    public static final String PERMISSIONS_LABEL = "permissions";
-    // TODO documentation
+    /*
+     * The name of the root node of the policy
+     */
     public static final String POLICY_LABEL = "policy";
+    /*
+     * The name of the policy type node 
+     */
+    public static final String POLICY_TYPE_LABEL = "type";
+    /*
+     * The name of the permissions root node
+     */
+    public static final String PERMISSIONS_LABEL = "permissions";
+    /*
+     * The name of the roles root node
+     */
+    public static final String ROLES_LABEL = "roles";
+    /*
+     * The name of the default role node
+     */
+    public static final String DEFAULT_ROLE_LABEL = "defaultrole";
+    /*
+     * The name of the users root node
+     */
+    public static final String USERS_LABEL = "users";
 
-    // TODO documentation
+    /*
+     * The name of the permission name node
+     */
     public static final String PERMISSION_NAME_NODE = "name";
-    // TODO documentation
+    /*
+     * The name of the permission type node
+     */
     public static final String PERMISSION_TYPE_NODE = "type";
-    // TODO documentation
+    /*
+     * The name of the permission operations node
+     */
     public static final String PERMISSION_OPERATIONS_NODE = "operations";
-    // TODO documentation
+    /*
+     * The name of the role name node
+     */
     public static final String ROLE_NAME_NODE = "name";
-    // TODO documentation
+    /*
+     * The name of the role permission node
+     */
     public static final String ROLE_PERMISSION_NODE = "permission";
-    // TODO documentation
+    /*
+     * The name of the user ID node
+     */
     public static final String USER_ID_NODE = "userId";
-    // TODO documentation
+    /*
+     * The name of the user roles node
+     */
     public static final String USER_ROLES_NODE = "roles";
-    // TODO documentation
+    /*
+     * String used to separate roles names
+     */
     public static final String ROLE_SEPARATOR = ";";
     
     private PermissionInstantiator permissionInstantiator;
@@ -193,6 +219,19 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         this.defaultRoles = readDefaultRoles(root.getChild(DEFAULT_ROLE_LABEL));
     }
 
+    private void checkPolicyType(Element root) throws WrongPolicyTypeException {
+        String policyType = root.getChild(POLICY_TYPE_LABEL).getText();
+
+        if (!policyType.equals(BaseRolePolicy.POLICY_TYPE)) {
+            throw new WrongPolicyTypeException(BaseRolePolicy.POLICY_TYPE, policyType);
+        }
+    }
+    
+    /*
+     * 
+     * Permission methods
+     * 
+     */
     private HashMap<String, Permission<RasOperation>> readPermissions(List<Element> permissionList) {
         HashMap<String, Permission<RasOperation>> permissions = new HashMap<String, Permission<RasOperation>>();
         
@@ -209,7 +248,8 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
                 }
             }
             
-            // TODO documentation
+            // This mapping permissionName -> null is used to indicate
+            // this permission is to be deleted in an update operation
             if (type.isEmpty()) {
                 permissions.put(name, null);
             } else {
@@ -259,6 +299,11 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         return permissionsXML;
     }
     
+    /*
+     * 
+     * Roles methods
+     * 
+     */
     private HashMap<String, Role<RasOperation>> readRoles(List<Element> rolesList) {
         HashMap<String, Role<RasOperation>> availableRoles = new HashMap<String, Role<RasOperation>>();
 
@@ -266,7 +311,8 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
             String name = e.getChild(ROLE_NAME_NODE).getText();
             String permission = e.getChild(ROLE_PERMISSION_NODE).getText();
 
-            // TODO documentation
+            // This mapping roleName -> null is used to indicate
+            // this role is to be deleted in an update operation
             if (permission.isEmpty()) {
                 availableRoles.put(name, null);
             } else {
@@ -303,11 +349,16 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         return rolesXML;
     }
     
+    /*
+     * 
+     * Users methods
+     * 
+     */
     private HashMap<String, Set<String>> readUsers(List<Element> usersList) {
         HashMap<String, Set<String>> usersRoles = new HashMap<String, Set<String>>();
         
         for (Element e : usersList) {
-            String name = e.getChild(USER_ID_NODE).getText();
+            String userId = e.getChild(USER_ID_NODE).getText();
             String rolesString = e.getChild(USER_ROLES_NODE).getText();
             
             HashSet<String> roles = new HashSet<String>();
@@ -316,11 +367,12 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
                 roles.add(roleName);
             }
             
-            // TODO documentation
+            // This mapping userId -> null is used to indicate
+            // this user is to be deleted in an update operation
             if (rolesString.isEmpty()) {
-                usersRoles.put(name, null);
+                usersRoles.put(userId, null);
             } else {
-                usersRoles.put(name, roles);                
+                usersRoles.put(userId, roles);                
             }
         }
         
@@ -355,6 +407,11 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         return usersXML;
     }
 
+    /*
+     * 
+     * Default roles methods
+     * 
+     */
     private HashSet<String> readDefaultRoles(Element defaultRole) {
         HashSet<String> defaultRoles = new HashSet<String>();
         defaultRoles.add(defaultRole.getText());
@@ -365,14 +422,6 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         Element element = new Element(DEFAULT_ROLE_LABEL);
         element.setText(defaultRole.iterator().next());
         return element;
-    }
-    
-    private void checkPolicyType(Element root) throws WrongPolicyTypeException {
-        String policyType = root.getChild(POLICY_TYPE_LABEL).getText();
-
-        if (!policyType.equals(BaseRolePolicy.POLICY_TYPE)) {
-            throw new WrongPolicyTypeException(BaseRolePolicy.POLICY_TYPE, policyType);
-        }
     }
     
     @Override
