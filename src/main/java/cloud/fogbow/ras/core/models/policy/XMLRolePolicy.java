@@ -58,6 +58,11 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
     */
     
     /*
+     * 
+     * ROOT
+     * 
+     */
+    /*
      * The name of the root node of the policy
      */
     public static final String POLICY_LABEL = "policy";
@@ -82,6 +87,29 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
      */
     public static final String USERS_LABEL = "users";
 
+    /*
+     * 
+     * NODES
+     * 
+     */
+    /*
+     * The name used by the permission nodes
+     */
+    private static final String PERMISSION_NODE = "permission";
+    /*
+     * The name used by the role nodes
+     */
+    private static final String ROLE_NODE = "role";
+    /*
+     * The name used by the user nodes
+     */
+    private static final String USER_NODE = "user";
+    
+    /*
+     * 
+     * ATTRIBUTES
+     * 
+     */
     /*
      * The name of the permission name node
      */
@@ -288,7 +316,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
             Element permissionTypeElement = new Element(PERMISSION_TYPE_NODE);
             permissionTypeElement.setText(permissionType);
             
-            Element permissionElement = new Element("permission");
+            Element permissionElement = new Element(PERMISSION_NODE);
             permissionElement.addContent(nameElement);
             permissionElement.addContent(permissionTypeElement);
             permissionElement.addContent(permissionOperationsElement);
@@ -328,14 +356,13 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         List<Element> rolesXML = new ArrayList<Element>();
         
         for (String roleName : roles.keySet()) {
-            Element roleElement = new Element("role");
+            Element roleElement = new Element(ROLE_NODE);
             Element nameElement = new Element(ROLE_NAME_NODE);
             Element permissionElement = new Element(ROLE_PERMISSION_NODE);
             
             Role<RasOperation> role = roles.get(roleName);
             
-            // TODO documentation
-            String permission = role.getPermission() == null ? "": role.getPermission();
+            String permission = role.getPermission();
             
             nameElement.setText(role.getName());
             permissionElement.setText(permission);
@@ -383,17 +410,12 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         List<Element> usersXML = new ArrayList<Element>();
         
         for (String userName : users.keySet()) {
-            Element userElement = new Element("user");
+            Element userElement = new Element(USER_NODE);
             Element nameElement = new Element(USER_ID_NODE);
             Element rolesElement = new Element(USER_ROLES_NODE);
             
             Set<String> userRoles = users.get(userName);
-            
-            String rolesString = "";
-            // TODO documentation
-            if (userRoles != null) {
-                rolesString = String.join(ROLE_SEPARATOR, userRoles);
-            }
+            String rolesString = String.join(ROLE_SEPARATOR, userRoles);
             
             nameElement.setText(userName);
             rolesElement.setText(rolesString);
