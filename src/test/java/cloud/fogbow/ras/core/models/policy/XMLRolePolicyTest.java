@@ -34,6 +34,7 @@ import cloud.fogbow.ras.core.PermissionInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
+import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
 
 
@@ -91,6 +92,12 @@ public class XMLRolePolicyTest {
     private String policyFileName = "policy.xml";
     private String policyFilePath = HomeDir.getPath() + policyFileName;
 
+    private RasOperation operationGet;
+    private RasOperation operationCreate;
+    private RasOperation operationReload;
+
+    private String identityProviderId = "providerId";
+
     @Before
     public void setUp() {
         this.operationsPermission1Set = setUpOperations(Operation.RELOAD, Operation.CREATE, Operation.GET_ALL);
@@ -110,6 +117,39 @@ public class XMLRolePolicyTest {
     @After
     public void tearDown() throws IOException {
         deleteTestFiles();
+    }
+    
+    // TODO documentation
+    @Test
+    public void testUserIsAuthorized() throws ConfigurationErrorException, WrongPolicyTypeException {
+        setUpMocks();
+
+        // set up operations
+        this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT, 
+                identityProviderId , identityProviderId);
+        this.operationCreate = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT, 
+                identityProviderId, identityProviderId);
+        this.operationReload = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION, 
+                identityProviderId, identityProviderId);
+        
+        Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
+                                          usingRoles(roleNode1, roleNode2).
+                                          usingUsers(userNode1, userNode2).
+                                          usingDefaultRole(roleName2).
+                                          build();
+        
+        PowerMockito.mockStatic(XMLUtils.class);
+        BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
+        
+        XMLRolePolicy policy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
+        
+        assertTrue(policy.userIsAuthorized(userId1, this.operationGet));
+        assertTrue(policy.userIsAuthorized(userId1, this.operationCreate));
+        assertFalse(policy.userIsAuthorized(userId1, this.operationReload));
+        
+        assertTrue(policy.userIsAuthorized(userId2, this.operationGet));
+        assertFalse(policy.userIsAuthorized(userId2, this.operationCreate));
+        assertFalse(policy.userIsAuthorized(userId2, this.operationReload));
     }
     
     // TODO documentation

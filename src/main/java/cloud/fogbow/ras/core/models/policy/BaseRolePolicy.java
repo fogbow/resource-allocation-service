@@ -97,7 +97,6 @@ public abstract class BaseRolePolicy implements RolePolicy {
         throw new ConfigurationErrorException();
     }
 
-    // TODO test
     @Override
     public boolean userIsAuthorized(String user, RasOperation operation) {
         Set<String> userRoles = getUserRoles(user);
