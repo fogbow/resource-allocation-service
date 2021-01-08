@@ -1,16 +1,16 @@
 package cloud.fogbow.ras.core.models.policy;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jdom2.Element;
@@ -170,10 +170,10 @@ public class XMLRolePolicyTest {
         
         XMLRolePolicy policy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
         
-        HashMap<String, Permission<RasOperation>> permissions = policy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRoles = policy.getRoles();
-        HashMap<String, Set<String>> usersRoles = policy.getUsersRoles();
-        HashSet<String> defaultRoles = policy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissions = policy.getPermissions();
+        Map<String, Role<RasOperation>> availableRoles = policy.getRoles();
+        Map<String, Set<String>> usersRoles = policy.getUsersRoles();
+        Set<String> defaultRoles = policy.getDefaultRole();
         
         assertEquals(2, permissions.size());
         assertEquals(permission1, permissions.get(permissionName1));
@@ -250,10 +250,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -314,10 +314,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(2, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -374,10 +374,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsAfter.size());
         
@@ -429,10 +429,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -486,10 +486,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -544,10 +544,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -603,10 +603,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -661,10 +661,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -715,10 +715,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(2, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -770,10 +770,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(2, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -826,10 +826,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(2, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -884,10 +884,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -941,10 +941,10 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        HashMap<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
+        Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
@@ -1164,10 +1164,10 @@ public class XMLRolePolicyTest {
         File policyFile = new File(policyFilePath);
         XMLRolePolicy loadedPolicy = new XMLRolePolicy(new PermissionInstantiator(), policyFile);
         
-        HashMap<String, Permission<RasOperation>> permissionsBefore = loadedPolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesBefore = loadedPolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesBefore = loadedPolicy.getUsersRoles();
-        HashSet<String> defaultRolesBefore = loadedPolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsBefore = loadedPolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesBefore = loadedPolicy.getRoles();
+        Map<String, Set<String>> usersRolesBefore = loadedPolicy.getUsersRoles();
+        Set<String> defaultRolesBefore = loadedPolicy.getDefaultRole();
         
         assertEquals(1, permissionsBefore.size());
         assertEquals(permission2, permissionsBefore.get(permissionName2));
@@ -1195,10 +1195,10 @@ public class XMLRolePolicyTest {
     }
     
     private void checkPolicyAllData(XMLRolePolicy basePolicy) {
-        HashMap<String, Permission<RasOperation>> permissionsBefore = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesBefore = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesBefore = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesBefore = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsBefore = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesBefore = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesBefore = basePolicy.getUsersRoles();
+        Set<String> defaultRolesBefore = basePolicy.getDefaultRole();
         
         assertEquals(3, permissionsBefore.size());
         assertEquals(permission1, permissionsBefore.get(permissionName1));
@@ -1222,10 +1222,10 @@ public class XMLRolePolicyTest {
     }
     
     private void checkPolicyMissingData(XMLRolePolicy basePolicy) {
-        HashMap<String, Permission<RasOperation>> permissionsBefore = basePolicy.getPermissions();
-        HashMap<String, Role<RasOperation>> availableRolesBefore = basePolicy.getRoles();
-        HashMap<String, Set<String>> usersRolesBefore = basePolicy.getUsersRoles();
-        HashSet<String> defaultRolesBefore = basePolicy.getDefaultRole();
+        Map<String, Permission<RasOperation>> permissionsBefore = basePolicy.getPermissions();
+        Map<String, Role<RasOperation>> availableRolesBefore = basePolicy.getRoles();
+        Map<String, Set<String>> usersRolesBefore = basePolicy.getUsersRoles();
+        Set<String> defaultRolesBefore = basePolicy.getDefaultRole();
         
         assertEquals(2, permissionsBefore.size());
         assertEquals(permission1, permissionsBefore.get(permissionName1));

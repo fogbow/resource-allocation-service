@@ -19,7 +19,12 @@ public class PermissionInstantiator {
     
     public Permission<RasOperation> getPermissionInstance(String type, String name, Set<Operation> operations) {
         Permission<RasOperation> instance = (Permission<RasOperation>) this.classFactory.createPluginInstance(type);
-        // TODO explain this code
+        
+        // Permission constructors require a Set as argument.
+        // Since it is difficult to implement a ClassFactory able 
+        // to use constructors that have interfaces in their
+        // signatures, here we create Permissions using
+        // the default constructor and then set the parameters.
         instance.setOperationTypes((Set) operations);
         instance.setName(name);
         return instance;

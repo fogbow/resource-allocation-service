@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jdom2.Element;
@@ -147,9 +148,8 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
     
     private String policyFilePath;
     
-    private XMLRolePolicy(PermissionInstantiator permissionInstantiator, String adminRole, HashMap<String, Permission<RasOperation>> permissions,
-            HashMap<String, Role<RasOperation>> availableRoles, HashMap<String, Set<String>> usersRoles,
-            HashSet<String> defaultRoles) {
+    private XMLRolePolicy(PermissionInstantiator permissionInstantiator, String adminRole, Map<String, Permission<RasOperation>> permissions,
+            Map<String, Role<RasOperation>> availableRoles, Map<String, Set<String>> usersRoles, Set<String> defaultRoles) {
         this.policyFilePath = getPolicyFilePath();
         this.permissionInstantiator = permissionInstantiator;
         this.permissions = permissions;
@@ -291,7 +291,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         return permissions;
     }
     
-    private List<Element> writePermissions(HashMap<String, Permission<RasOperation>> permissions) {
+    private List<Element> writePermissions(Map<String, Permission<RasOperation>> permissions) {
         List<Element> permissionsXML = new ArrayList<Element>();
         
         for (String permissionName : permissions.keySet()) {
@@ -352,7 +352,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         return availableRoles;
     }
     
-    private List<Element> writeRoles(HashMap<String, Role<RasOperation>> roles) {
+    private List<Element> writeRoles(Map<String, Role<RasOperation>> roles) {
         List<Element> rolesXML = new ArrayList<Element>();
         
         for (String roleName : roles.keySet()) {
@@ -406,7 +406,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         return usersRoles;
     }
     
-    private List<Element> writeUsers(HashMap<String, Set<String>> users) {
+    private List<Element> writeUsers(Map<String, Set<String>> users) {
         List<Element> usersXML = new ArrayList<Element>();
         
         for (String userName : users.keySet()) {
@@ -440,7 +440,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         return defaultRoles;
     }
     
-    private Element writeDefaultRole(HashSet<String> defaultRole) {
+    private Element writeDefaultRole(Set<String> defaultRole) {
         Element element = new Element(DEFAULT_ROLE_LABEL);
         element.setText(defaultRole.iterator().next());
         return element;

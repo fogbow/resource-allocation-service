@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.models.policy;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -17,31 +16,31 @@ public abstract class BaseRolePolicy implements RolePolicy {
     
     private static final Logger LOGGER = Logger.getLogger(BaseRolePolicy.class);
     
-    protected HashMap<String, Permission<RasOperation>> permissions;
-    protected HashMap<String, Role<RasOperation>> availableRoles;
-    protected HashMap<String, Set<String>> usersRoles;
-    protected HashSet<String> defaultRoles;
+    protected Map<String, Permission<RasOperation>> permissions;
+    protected Map<String, Role<RasOperation>> availableRoles;
+    protected Map<String, Set<String>> usersRoles;
+    protected Set<String> defaultRoles;
     protected String adminRole;
     
     public static final String POLICY_TYPE = "role";
     
     @Override
-    public HashMap<String, Permission<RasOperation>> getPermissions() {
+    public Map<String, Permission<RasOperation>> getPermissions() {
         return permissions;
     }
 
     @Override
-    public HashMap<String, Role<RasOperation>> getRoles() {
+    public Map<String, Role<RasOperation>> getRoles() {
         return availableRoles;
     }
 
     @Override
-    public HashMap<String, Set<String>> getUsersRoles() {
+    public Map<String, Set<String>> getUsersRoles() {
         return usersRoles;
     }
 
     @Override
-    public HashSet<String> getDefaultRole() {
+    public Set<String> getDefaultRole() {
         return defaultRoles;
     }
 
@@ -137,7 +136,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
     }
     
     private void updatePermissions(RolePolicy policy) {
-        HashMap<String, Permission<RasOperation>> permissions = policy.getPermissions();
+        Map<String, Permission<RasOperation>> permissions = policy.getPermissions();
         
         for (String permissionName : permissions.keySet()) {
             // Currently, if the permission value is null, we treat
@@ -152,7 +151,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
     }
     
     private void updateRoles(RolePolicy policy) {
-        HashMap<String, Role<RasOperation>> availableRoles = policy.getRoles();
+        Map<String, Role<RasOperation>> availableRoles = policy.getRoles();
         
         for (String roleName : availableRoles.keySet()) {
             // Currently, if the role value is null, we treat
@@ -167,7 +166,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
     }
     
     private void updateUsers(RolePolicy policy) {
-        HashMap<String, Set<String>> usersRoles = policy.getUsersRoles();
+        Map<String, Set<String>> usersRoles = policy.getUsersRoles();
         
         for (String userId : usersRoles.keySet()) {
             // Currently, if the user value is null, we treat
@@ -182,7 +181,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
     }
 
     private void updateDefaultRole(RolePolicy policy) {
-        HashSet<String> defaultRoles = policy.getDefaultRole();
+        Set<String> defaultRoles = policy.getDefaultRole();
         
         this.defaultRoles = defaultRoles;
     }
