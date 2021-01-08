@@ -119,7 +119,8 @@ public class XMLRolePolicyTest {
         deleteTestFiles();
     }
     
-    // TODO documentation
+    // test case: when calling the isAuthorized method, it must verify whether or not
+    // the user has enough permission to perform the given operation
     @Test
     public void testUserIsAuthorized() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -152,7 +153,8 @@ public class XMLRolePolicyTest {
         assertFalse(policy.userIsAuthorized(userId2, this.operationReload));
     }
     
-    // TODO documentation
+    // test case: when creating a new policy instance from a XML string, the constructor
+    // must read correctly the policy rules and set up the policy maps.
     @Test
     public void testConstructorWithValidString() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -189,7 +191,9 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRoles.contains(roleName2));
     }
     
-    // TODO documentation
+    // test case: when creating a new policy instance from a XML string and the 
+    // policy type is not the expected, the constructor must throw a
+    // WrongPolicyTypeException.
     @Test(expected = WrongPolicyTypeException.class)
     public void testConstructorWithInvalidPolicyType() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -207,7 +211,9 @@ public class XMLRolePolicyTest {
         new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a version of the policy
+    // with additional rules, the method must add the rules that are not present
+    // and ignore the others.
     @Test
     public void testUpdateAddsElementsToPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -218,6 +224,11 @@ public class XMLRolePolicyTest {
                 usingDefaultRole(roleName1).
                 build();
 
+        // rules present in rootWithDataToAdd and not in rootWithMissingData
+        // permissionNode3
+        // roleNode2
+        // userNode2
+        // These rules must be present in rootWithMissingData after the update
         Element rootWithDataToAdd = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
                 usingRoles(roleNode1, roleNode2).
                 usingUsers(userNode1, userNode2).
@@ -265,7 +276,9 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName1));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a version of the policy
+    // with fewer rules, the method must remove the rules that are not present
+    // and ignore the others.
     @Test
     public void testUpdateRemovesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -276,6 +289,11 @@ public class XMLRolePolicyTest {
                                           usingDefaultRole(roleName2).
                                           build();
         
+        // rules present in rootWithAllData and not in rootWithDataToRemove
+        // permissionNode3
+        // roleNode2
+        // userNode2
+        // These rules must not be present in rootWithAllData after the update
         Element rootWithDataToRemove = builder.usingPermissions(permissionNode1, permissionNode2, emptyPermissionNode3).
                                                usingRoles(roleNode1, emptyRoleNode2).
                                                usingUsers(userNode1, emptyUserNode2).
@@ -317,9 +335,11 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName2));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a version of the policy
+    // with the same rules names, but different parameters, the method must 
+    // update all rules that are different.
     @Test
-    public void testXMLRolePolicyUpdateUpdatesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
+    public void testUpdateUpdatesElementsFromPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
 
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
@@ -328,6 +348,11 @@ public class XMLRolePolicyTest {
                                           usingDefaultRole(roleName2).
                                           build();
         
+        // rules differences
+        // permissionNode3
+        // roleNode2
+        // userNode2
+        // rootWithAllData must contain the updated version of these rules after the update
         Element rootWithDataToUpdate = builder.usingPermissions(permissionNode1, permissionNode2, updatedPermissionNode3).
                                                usingRoles(roleNode1, updatedRoleNode2).
                                                usingUsers(userNode1, updatedUserNode2).
@@ -354,7 +379,6 @@ public class XMLRolePolicyTest {
         HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
-        // TODO think on how to test this
         assertEquals(3, permissionsAfter.size());
         
         assertEquals(2, availableRolesAfter.size());
@@ -373,7 +397,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName1));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only a permission already present in the policy, it must update the permission.
     @Test
     public void testUpdateOnlyPermissions() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -409,7 +434,6 @@ public class XMLRolePolicyTest {
         HashMap<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         HashSet<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
-        // TODO think on how to test the change on permission
         assertEquals(3, permissionsAfter.size());
         assertEquals(permission1, permissionsAfter.get(permissionName1));
         assertEquals(permission2, permissionsAfter.get(permissionName2));
@@ -430,7 +454,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName2));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only a role already present in the policy, it must update the role.
     @Test
     public void testUpdateOnlyRoles() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -487,7 +512,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName2));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only a user already present in the policy, it must update the user.
     @Test
     public void testUpdateOnlyUsers() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -544,7 +570,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName2));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only a new defaultRole, it must update the defaultRole.
     @Test
     public void testUpdateOnlyDefaultRole() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -602,7 +629,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName1));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only a permission not present in the policy, it must add the permission.
     @Test
     public void testUpdateAddOnlyPermission() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -655,7 +683,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName1));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only a role not present in the policy, it must add the role.
     @Test
     public void testUpdateAddOnlyRole() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -709,7 +738,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName1));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only a user not present in the policy, it must add the user.
     @Test
     public void testUpdateAddOnlyUser() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -763,7 +793,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName1));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only an empty permission present in the policy, it must remove the permission.
     @Test
     public void testUpdateRemoveOnlyPermission() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -820,7 +851,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName1));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only an empty role present in the policy, it must remove the role.
     @Test
     public void testUpdateRemoveOnlyRole() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -876,7 +908,8 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName1));
     }
     
-    // TODO documentation
+    // test case: when calling the method update using a new policy containing 
+    // only an empty user present in the policy, it must remove the user.
     @Test
     public void testUpdateRemoveOnlyUser() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -932,7 +965,10 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesAfter.contains(roleName1));
     }
     
-    // TODO documentation
+    // test case: when calling the validate method, it must verify
+    // that all permissions referenced by roles exist, that all
+    // roles referenced by users exist, that the admin and default 
+    // role exist and that at least one user is admin.
     @Test
     public void testValidateValidPolicy() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -969,7 +1005,8 @@ public class XMLRolePolicyTest {
         allData.validate();
     }
     
-    // TODO documentation
+    // test case: when calling the validate method in a policy instance
+    // with no default role specified, it must throw a ConfigurationErrorException.
     @Test(expected = ConfigurationErrorException.class)
     public void testValidatePolicyMustHaveDefaultRole() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -989,7 +1026,8 @@ public class XMLRolePolicyTest {
         noDefaultRole.validate();
     }
     
-    // TODO documentation
+    // test case: when calling the validate method in a policy instance
+    // with users referencing non-existing roles, it must throw a ConfigurationErrorException.
     @Test(expected = ConfigurationErrorException.class)
     public void testValidateAllUsersMustHaveExistingRoles() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -1010,7 +1048,8 @@ public class XMLRolePolicyTest {
         roleDoesNotExist.validate();
     }
     
-    // TODO documentation
+    // test case: when calling the validate method in a policy instance
+    // with roles referencing non-existing permissions, it must throw a ConfigurationErrorException.
     @Test(expected = ConfigurationErrorException.class)
     public void testValidateAllRolesMustHaveExistingPermissions() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -1031,7 +1070,8 @@ public class XMLRolePolicyTest {
         permissionDoesNotExist.validate();
     }
     
-    // TODO documentation
+    // test case: when calling the validate method in a policy instance
+    // with non-existing default role, it must throw a ConfigurationErrorException.
     @Test(expected = ConfigurationErrorException.class)
     public void testValidateDefaultRoleMustExist() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -1052,7 +1092,8 @@ public class XMLRolePolicyTest {
         defaultRoleDoesNotExist.validate();
     }
     
-    // TODO documentation
+    // test case: when calling the validate method in a policy instance
+    // that does not contain the admin role, it must throw a ConfigurationErrorException.
     @Test(expected = ConfigurationErrorException.class)
     public void testValidateAdminRoleMustExist() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
@@ -1073,13 +1114,15 @@ public class XMLRolePolicyTest {
         adminRoleDoesNotExist.validate();
     }
     
-    // TODO documentation
+    // test case: when calling the save method, it must write the policy rules
+    // in XML format in the file specified by the property 'policy_file'.
     @Test
     public void testSave() throws ConfigurationErrorException, WrongPolicyTypeException {
         setUpMocks();
         
         String permissionName = permissionName2;
-        // FIXME
+        // This test does not mock PermissionInstantiator, therefore, there is this
+        // dependency.
         String type = "cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission";
         String operations = operationsPermission3;
         String roleName = roleName1;
