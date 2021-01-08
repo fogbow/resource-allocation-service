@@ -50,4 +50,19 @@ public class AllowOnlyPermission implements Permission<RasOperation> {
     	
     	return false;
     }
+    
+    @Override
+    public Set<Operation> getOperationsTypes() {
+        return allowedOperationTypes;
+    }
+
+    @Override
+    public void setOperationTypes(Set operations) {
+        this.allowedOperationTypes = (Set<Operation>) operations;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
 }

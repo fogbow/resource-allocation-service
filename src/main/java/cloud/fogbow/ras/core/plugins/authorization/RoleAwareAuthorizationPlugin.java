@@ -4,6 +4,7 @@ import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.PolicyInstantiator;
@@ -26,12 +27,16 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
     public RoleAwareAuthorizationPlugin(PolicyInstantiator policyInstantiator) throws ConfigurationErrorException {
         this.policyInstantiator = policyInstantiator;
         String policyFileName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.POLICY_FILE_KEY);
+        String path = HomeDir.getPath();
+        String policyFilePath = path + policyFileName;
+        
         try {
-            this.rolePolicy = policyInstantiator.getRolePolicyInstanceFromFile(policyFileName);
+            this.rolePolicy = policyInstantiator.getRolePolicyInstanceFromFile(policyFilePath);
         } catch (WrongPolicyTypeException e) {
             // TODO add message
             throw new ConfigurationErrorException();
         }
+        
         this.rolePolicy.validate();
     }
     
@@ -62,6 +67,7 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
 			policy.validate();
 
 			this.rolePolicy = policy;
+			this.rolePolicy.save();
 		} catch (WrongPolicyTypeException e) {
 			e.printStackTrace();
 		}
@@ -77,6 +83,7 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
             base.validate();
 
             this.rolePolicy = base;
+            this.rolePolicy.save();
         } catch (WrongPolicyTypeException e) {
             e.printStackTrace();
         }

@@ -11,6 +11,10 @@ import cloud.fogbow.ras.core.models.policy.XMLRolePolicy;
 public class PolicyInstantiator {
     private RasClassFactory classFactory;
 
+    public PolicyInstantiator() {
+        this.classFactory = new RasClassFactory();
+    }
+    
     public RolePolicy getRolePolicyInstance(String policyString) throws ConfigurationErrorException, WrongPolicyTypeException {
         if (PropertiesHolder.getInstance().getProperties().containsKey(ConfigurationPropertyKeys.POLICY_CLASS_KEY)) {
             String policyType = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.POLICY_CLASS_KEY);

@@ -33,4 +33,7 @@ public interface RolePolicy {
 
     // TODO documentation
     RolePolicy copy();
+    
+    // TODO documentation
+    void save() throws ConfigurationErrorException;
 }

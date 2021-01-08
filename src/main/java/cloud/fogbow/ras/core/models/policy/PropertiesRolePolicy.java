@@ -21,6 +21,7 @@ import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
 import cloud.fogbow.ras.core.models.permission.AllowOnlyPermission;
 
 // TODO test this class
+// This implementation is not complete
 public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
 
 	/*
@@ -231,5 +232,10 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
     public RolePolicy copy() {
         return new PropertiesRolePolicy(permissions, availableRoles, 
                 usersRoles, defaultRoles);
+    }
+
+    @Override
+    public void save() throws ConfigurationErrorException {
+        // TODO Auto-generated method stub
     }
 }

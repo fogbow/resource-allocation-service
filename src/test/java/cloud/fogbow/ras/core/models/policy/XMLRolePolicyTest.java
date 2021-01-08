@@ -2,7 +2,11 @@ package cloud.fogbow.ras.core.models.policy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.jdom2.Element;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +27,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.models.Permission;
 import cloud.fogbow.common.models.Role;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.XMLUtils;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PermissionInstantiator;
@@ -82,6 +88,8 @@ public class XMLRolePolicyTest {
 
     private RootMockBuilder builder;
 
+    private String policyFileName = "policy.xml";
+    private String policyFilePath = HomeDir.getPath() + policyFileName;
 
     @Before
     public void setUp() {
@@ -97,6 +105,11 @@ public class XMLRolePolicyTest {
         this.updatedPermission3 = new AllowAllExceptPermission(permissionName2, operationsPermission2Set); 
         
         builder = new RootMockBuilder();
+    }
+    
+    @After
+    public void tearDown() throws IOException {
+        deleteTestFiles();
     }
     
     // TODO documentation
@@ -1020,6 +1033,84 @@ public class XMLRolePolicyTest {
         adminRoleDoesNotExist.validate();
     }
     
+    // TODO documentation
+    @Test
+    public void testSave() throws ConfigurationErrorException, WrongPolicyTypeException {
+        setUpMocks();
+        
+        String permissionName = permissionName2;
+        // FIXME
+        String type = "cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission";
+        String operations = operationsPermission3;
+        String roleName = roleName1;
+        String userId = userId1;
+        
+        String xmlString = "<?xml version=\"1.0\"?> " +
+                           "                <policy>" +
+                           "        <type>role</type>" +
+                           "       <permissions>    "   +
+                           "            <permission>" +
+                           "                <name>" + permissionName + "</name>" +
+                           "                <type>" + type + "</type>" +
+                           "                <operations>" + operations + "</operations>" +
+                           "            </permission>" +
+                           "        </permissions>" +
+                           ""  +
+                           "        <roles>" +
+                           "            <role>" +
+                           "                <name>" + roleName + "</name>" +
+                           "                <permission>" + permissionName + "</permission>" +
+                           "            </role>" +
+                           "        </roles>" +
+                           "    <defaultrole>" + roleName + "</defaultrole>" +
+                           "    <users>" +
+                           "        <user>" +
+                           "            <userId>" + userId + "</userId>" +
+                           "            <roles>" + roleName + "</roles>" +
+                           "        </user>" +
+                           "    </users>" +
+                           "</policy>";
+
+        assertFalse(fileExists(policyFilePath));
+        
+        XMLRolePolicy basePolicy = new XMLRolePolicy(new PermissionInstantiator(), xmlString);
+        basePolicy.save();
+        
+        assertTrue(fileExists(policyFilePath));
+        
+        File policyFile = new File(policyFilePath);
+        XMLRolePolicy loadedPolicy = new XMLRolePolicy(new PermissionInstantiator(), policyFile);
+        
+        HashMap<String, Permission<RasOperation>> permissionsBefore = loadedPolicy.getPermissions();
+        HashMap<String, Role<RasOperation>> availableRolesBefore = loadedPolicy.getRoles();
+        HashMap<String, Set<String>> usersRolesBefore = loadedPolicy.getUsersRoles();
+        HashSet<String> defaultRolesBefore = loadedPolicy.getDefaultRole();
+        
+        assertEquals(1, permissionsBefore.size());
+        assertEquals(permission2, permissionsBefore.get(permissionName2));
+        
+        assertEquals(1, availableRolesBefore.size());
+        assertEquals(roleName1 , availableRolesBefore.get(roleName1).getName());
+        assertEquals(permissionName2 , availableRolesBefore.get(roleName1).getPermission());
+        
+        assertEquals(1, usersRolesBefore.size());
+        assertEquals(1, usersRolesBefore.get(userId1).size());
+        assertTrue(usersRolesBefore.get(userId1).contains(roleName1));
+        
+        assertEquals(1, defaultRolesBefore.size());
+        assertTrue(defaultRolesBefore.contains(roleName1));
+    }
+    
+    private void deleteTestFiles() throws IOException {
+        File file = new File(policyFilePath);
+        Files.deleteIfExists(file.toPath());
+    }
+    
+    private boolean fileExists(String fileName) {
+        File file = new File(fileName);
+        return Files.exists(file.toPath());
+    }
+    
     private void checkPolicyAllData(XMLRolePolicy basePolicy) {
         HashMap<String, Permission<RasOperation>> permissionsBefore = basePolicy.getPermissions();
         HashMap<String, Role<RasOperation>> availableRolesBefore = basePolicy.getRoles();
@@ -1073,6 +1164,7 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(PropertiesHolder.class);
         PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
         Mockito.doReturn(adminRole).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.ADMIN_ROLE);
+        Mockito.doReturn(policyFileName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.POLICY_FILE_KEY);
         BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
         
         this.permissionInstantiator = Mockito.mock(PermissionInstantiator.class);
@@ -1207,10 +1299,20 @@ public class XMLRolePolicyTest {
             List<Element> rootChildren1 = Arrays.asList(typeRoot1, permissionRoot1, rolesRoot1, defaultRoleRoot1, usersRoot1);
             
             Mockito.doReturn(rootChildren1).when(root).getChildren();
+            
+            Mockito.doReturn(permissionRoot1).when(root).getChild(XMLRolePolicy.PERMISSIONS_LABEL);
             Mockito.doReturn(permissions).when(permissionRoot1).getChildren();
+            
+            Mockito.doReturn(rolesRoot1).when(root).getChild(XMLRolePolicy.ROLES_LABEL);
             Mockito.doReturn(roles).when(rolesRoot1).getChildren();
+            
+            Mockito.doReturn(usersRoot1).when(root).getChild(XMLRolePolicy.USERS_LABEL);
             Mockito.doReturn(users).when(usersRoot1).getChildren();
+            
+            Mockito.doReturn(defaultRoleRoot1).when(root).getChild(XMLRolePolicy.DEFAULT_ROLE_LABEL);
             Mockito.doReturn(defaultRole).when(defaultRoleRoot1).getText();
+            
+            Mockito.doReturn(typeRoot1).when(root).getChild(XMLRolePolicy.POLICY_TYPE_LABEL);
             Mockito.doReturn(policyType).when(typeRoot1).getText();
             
             return root;

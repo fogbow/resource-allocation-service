@@ -15,6 +15,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PolicyInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
@@ -37,6 +38,8 @@ public class RoleAwareAuthorizationPluginTest {
      * user3 has defaultrole (role1)
      */
     private String policyFileName = "policy.xml";
+    private String policyFilePath = HomeDir.getPath() + policyFileName;
+    
     private String newPolicyString = "policy";
 
     private String identityProviderId = "provider";
@@ -85,7 +88,7 @@ public class RoleAwareAuthorizationPluginTest {
         // set up PolicyInstantiator
         this.policyInstantiator = Mockito.mock(PolicyInstantiator.class);
         this.rolePolicy = Mockito.mock(XMLRolePolicy.class);
-        Mockito.when(this.policyInstantiator.getRolePolicyInstanceFromFile(policyFileName)).thenReturn(rolePolicy);
+        Mockito.when(this.policyInstantiator.getRolePolicyInstanceFromFile(policyFilePath)).thenReturn(rolePolicy);
         
         // set up operations
         this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT, 
@@ -204,6 +207,7 @@ public class RoleAwareAuthorizationPluginTest {
         
         assertIsAuthorizedThrowsException(user1, operationGet);
         Mockito.verify(this.newRolePolicy, Mockito.atLeastOnce()).validate();
+        Mockito.verify(this.newRolePolicy, Mockito.atLeastOnce()).save();
     }
     
     // TODO documentation
@@ -259,6 +263,7 @@ public class RoleAwareAuthorizationPluginTest {
 
         Mockito.verify(this.updatedRolePolicy, Mockito.atLeastOnce()).update(this.newRolePolicy);
         Mockito.verify(this.updatedRolePolicy, Mockito.atLeastOnce()).validate();
+        Mockito.verify(this.updatedRolePolicy, Mockito.atLeastOnce()).save();
     }
     
     // TODO documentation

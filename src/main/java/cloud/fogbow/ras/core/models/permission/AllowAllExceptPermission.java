@@ -14,6 +14,10 @@ public class AllowAllExceptPermission implements Permission<RasOperation> {
 	private String name;
     private Set<Operation> notAllowedOperationTypes;
     
+    public AllowAllExceptPermission() {
+        
+    }
+    
     public AllowAllExceptPermission(Set<Operation> notAllowedOperationTypes) {
         this.notAllowedOperationTypes = notAllowedOperationTypes;
     }
@@ -49,5 +53,20 @@ public class AllowAllExceptPermission implements Permission<RasOperation> {
 		}
     	
     	return false;
+    }
+    
+    @Override
+    public Set<Operation> getOperationsTypes() {
+        return notAllowedOperationTypes;
+    }
+
+    @Override
+    public void setOperationTypes(Set operations) {
+        this.notAllowedOperationTypes = (Set<Operation>) operations;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
     }
 }

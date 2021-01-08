@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.models.Permission;
 import cloud.fogbow.common.models.Role;
@@ -12,7 +14,9 @@ import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
 
 public abstract class BaseRolePolicy implements RolePolicy {
-
+    
+    private static final Logger LOGGER = Logger.getLogger(BaseRolePolicy.class);
+    
     protected HashMap<String, Permission<RasOperation>> permissions;
     protected HashMap<String, Role<RasOperation>> availableRoles;
     protected HashMap<String, Set<String>> usersRoles;
@@ -47,6 +51,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
         checkAllUserRolesExist();
         checkDefaultUserRoleExists();
         checkAdminRoleExists();
+        checkAtLeastOneUserIsAdmin();
     }
     
     private void checkAllRolePermissionsExist() throws ConfigurationErrorException {
@@ -79,6 +84,17 @@ public abstract class BaseRolePolicy implements RolePolicy {
         if (!availableRoles.keySet().contains(this.adminRole)) {
             throw new ConfigurationErrorException(String.format(Messages.Exception.ADMIN_ROLE_DOES_NOT_EXIST, this.adminRole));
         }
+    }
+    
+    private void checkAtLeastOneUserIsAdmin() throws ConfigurationErrorException {
+        for (String user : usersRoles.keySet()) {
+            if (usersRoles.get(user).contains(this.adminRole)) {
+                return;
+            }
+        }
+        
+        // TODO add message
+        throw new ConfigurationErrorException();
     }
 
     // TODO test
@@ -172,4 +188,6 @@ public abstract class BaseRolePolicy implements RolePolicy {
         
         this.defaultRoles = defaultRoles;
     }
+    
+    public abstract void save() throws ConfigurationErrorException;
 }

@@ -45,8 +45,12 @@ public class RasClassFactory implements ClassFactory {
         try {
             Class<?> classpath = Class.forName(pluginClassName);
             if (params.length > 0) {
-                Class<String>[] constructorArgTypes = new Class[params.length];
-                Arrays.fill(constructorArgTypes, String.class);
+                Class<?>[] constructorArgTypes = new Class[params.length];
+
+                for (int i = 0; i < params.length; i++) {
+                    constructorArgTypes[i] = params[i].getClass();
+                }
+                
                 constructor = classpath.getConstructor(constructorArgTypes);
             } else {
                 constructor = classpath.getConstructor();
