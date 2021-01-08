@@ -41,19 +41,21 @@ public class Admin {
         return new ResponseEntity<>(HttpStatus.OK);
     }
     
-    // TODO documentation
+    @ApiOperation(value = ApiDocumentation.Admin.SET_POLICY_OPERATION)
     @RequestMapping(value = "/policy", method = RequestMethod.POST)
     public ResponseEntity<Boolean> setPolicy(
     		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken, 
+    		@ApiParam(value = ApiDocumentation.Admin.SET_POLICY_REQUEST_BODY)
     		@RequestBody Policy policy) throws FogbowException {
     	ApplicationFacade.getInstance().setPolicy(systemUserToken, policy.getPolicy());
     	return new ResponseEntity<>(HttpStatus.OK);
     }
     
-    // TODO documentation
+    @ApiOperation(value = ApiDocumentation.Admin.UPDATE_POLICY_OPERATION)
     @RequestMapping(value = "/policy", method = RequestMethod.PUT)
     public ResponseEntity<Boolean> udpatePolicy(
     		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken,
+            @ApiParam(value = ApiDocumentation.Admin.UPDATE_POLICY_REQUEST_BODY)
     		@RequestBody Policy policy) throws FogbowException {
     	ApplicationFacade.getInstance().updatePolicy(systemUserToken, policy.getPolicy());
     	return new ResponseEntity<>(HttpStatus.OK);
