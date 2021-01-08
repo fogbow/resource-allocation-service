@@ -29,13 +29,10 @@ import cloud.fogbow.ras.core.models.policy.XMLRolePolicy;
 @PrepareForTest(PropertiesHolder.class)
 public class RoleAwareAuthorizationPluginTest {
     
-    // TODO update this role information
     /*
-     * user1 has role1
-     * role1 has permission1
-     * user2 has role1 and role2
-     * role2 has permission2
-     * user3 has defaultrole (role1)
+     * user 1 can perform get, but not create or reload operations
+     * user 2 can perform get and create, but not reload operations
+     * userWithDefaultRole can perform get, but not create or reload operations
      */
     private String policyFileName = "policy.xml";
     private String policyFilePath = HomeDir.getPath() + policyFileName;
@@ -131,42 +128,23 @@ public class RoleAwareAuthorizationPluginTest {
 
     @Test
     public void testIsAuthorized() throws UnauthorizedRequestException {
-        // user1 has role1
-        // role1 has permission1
-        // permission1 allows only get operations
         SystemUser user1 = new SystemUser(userId1, userName1, identityProviderId);
         
         assertTrue(this.plugin.isAuthorized(user1, operationGet));
         assertIsAuthorizedThrowsException(user1, operationCreate);
         assertIsAuthorizedThrowsException(user1, operationReload);
 
-        // user2 has role1 and role2
-        // role2 has permission2
-        // permission2 allows only get and create operations
         SystemUser user2 = new SystemUser(userId2, userName2, identityProviderId);
         
         assertTrue(this.plugin.isAuthorized(user2, operationGet));
         assertTrue(this.plugin.isAuthorized(user2, operationCreate));
         assertIsAuthorizedThrowsException(user2, operationReload);
-    }
-
-    @Test
-    public void testIsAuthorizedUserIsNotOnUsersList() throws UnauthorizedRequestException {
-        // user3 is not listed on users names list
-        // therefore user3 will have the default role, role 1
+        
         SystemUser userWithDefaultRoles = new SystemUser(userIdWithDefaultRoles, userWithDefaultRole, identityProviderId);
 
         assertTrue(this.plugin.isAuthorized(userWithDefaultRoles, operationGet));
         assertIsAuthorizedThrowsException(userWithDefaultRoles, operationCreate);
         assertIsAuthorizedThrowsException(userWithDefaultRoles, operationReload);
-
-        // remoteuser is not listed on users names list
-        // therefore remoteuser will have the default role, role 1
-        SystemUser remoteUser = new SystemUser(userIdRemoteProvider, userRemoteProvider, remoteProviderId);
-        
-        assertTrue(this.plugin.isAuthorized(remoteUser, operationGet));
-        assertIsAuthorizedThrowsException(remoteUser, operationCreate);
-        assertIsAuthorizedThrowsException(remoteUser, operationReload);
     }
     
     @Test
@@ -195,7 +173,9 @@ public class RoleAwareAuthorizationPluginTest {
         assertTrue(this.plugin.isAuthorized(remoteUser, operationReload));
     }
     
-    // TODO documentation
+    // test case: when calling the setPolicy method with a valid policy string, 
+    // it must call PolicyInstantiator to create a new policy instance, validate
+    // and persist the new instance and use this new instance to authorize operations.
     @Test
     public void testSetPolicy() throws ConfigurationErrorException, WrongPolicyTypeException, UnauthorizedRequestException {
         this.newRolePolicy = Mockito.mock(XMLRolePolicy.class);
@@ -213,7 +193,9 @@ public class RoleAwareAuthorizationPluginTest {
         Mockito.verify(this.newRolePolicy, Mockito.atLeastOnce()).save();
     }
     
-    // TODO documentation
+    // test case: when calling the setPolicy method with a wrong policy type string,
+    // it must handle the WrongPolicyTypeException and not change the policy it uses
+    // to authorize operations.
     @Test
     public void testSetPolicyWrongPolicyType() throws ConfigurationErrorException, WrongPolicyTypeException, UnauthorizedRequestException {
         this.newRolePolicy = Mockito.mock(XMLRolePolicy.class);
@@ -230,7 +212,8 @@ public class RoleAwareAuthorizationPluginTest {
         Mockito.verify(this.newRolePolicy, Mockito.never()).validate();
     }
     
-    // TODO documentation
+    // test case: when calling the setPolicy method and the validation
+    // fails, it must throw a ConfigurationErrorException. 
     @Test(expected = ConfigurationErrorException.class)
     public void testSetInvalidPolicy() throws ConfigurationErrorException, WrongPolicyTypeException, UnauthorizedRequestException {
         this.newRolePolicy = Mockito.mock(XMLRolePolicy.class);
@@ -246,7 +229,10 @@ public class RoleAwareAuthorizationPluginTest {
         this.plugin.setPolicy(newPolicyString);
     }
     
-    // TODO documentation
+    // test case: when calling the updatePolicy method with a valid policy string, 
+    // it must call PolicyInstantiator to create a new policy instance from the policy string, 
+    // create a copy of the policy it uses, update, validate and save this copy. Then, use this
+    // new instance to authorize operations.
     @Test
     public void testUpdatePolicy() throws ConfigurationErrorException, WrongPolicyTypeException, UnauthorizedRequestException {
         this.newRolePolicy = Mockito.mock(XMLRolePolicy.class);
@@ -269,7 +255,9 @@ public class RoleAwareAuthorizationPluginTest {
         Mockito.verify(this.updatedRolePolicy, Mockito.atLeastOnce()).save();
     }
     
-    // TODO documentation
+    // test case: when calling the updatePolicy method with a wrong policy type string,
+    // it must handle the WrongPolicyTypeException and not change the policy it uses
+    // to authorize operations.
     @Test
     public void testUpdatePolicyWrongPolicyType() throws ConfigurationErrorException, WrongPolicyTypeException, UnauthorizedRequestException {
         this.newRolePolicy = Mockito.mock(XMLRolePolicy.class);
@@ -285,7 +273,8 @@ public class RoleAwareAuthorizationPluginTest {
         assertTrue(this.plugin.isAuthorized(user1, operationGet));
     }
     
-    // TODO documentation
+    // test case: when calling the updatePolicy method and the validation
+    // fails, it must throw a ConfigurationErrorException. 
     @Test(expected = ConfigurationErrorException.class)
     public void testUpdateInvalidPolicy() throws ConfigurationErrorException, WrongPolicyTypeException, UnauthorizedRequestException {
         this.newRolePolicy = Mockito.mock(XMLRolePolicy.class);
