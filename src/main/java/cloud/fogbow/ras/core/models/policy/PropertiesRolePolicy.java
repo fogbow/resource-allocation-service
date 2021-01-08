@@ -96,7 +96,7 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
 		String policyType = policySections[0];
 		
 		if (!policyType.equals(BaseRolePolicy.POLICY_TYPE)) {
-			throw new WrongPolicyTypeException();
+			throw new WrongPolicyTypeException(BaseRolePolicy.POLICY_TYPE, policyType);
 		}
 
 		String permissionSection = policySections[1];

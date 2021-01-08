@@ -49,6 +49,7 @@ public class Messages {
         public static final String NO_MATCHING_FLAVOR = "No matching flavor.";
         public static final String NO_PROJECT_ID = "No projectId in local token.";
         public static final String NO_SECURITY_GROUP_FOUND_S = "There is no security group with the id %s";
+        public static final String NO_ADMIN_USER = "Policy does not specify any user as admin.";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
         public static final String PAUSE_OPERATION_ONGOING = "The virtual Machine is already being paused.";
         public static final String PORT_NOT_FOUND_S = "No port found connecting virtual machine %s to default network %s.";
@@ -94,6 +95,7 @@ public class Messages {
         public static final String VIRTUAL_MACHINE_ALREADY_HIBERNATED = "The Virtual Machine has already been hibernated.";
         public static final String VIRTUAL_MACHINE_ALREADY_PAUSED = "The Virtual Machine has already been paused.";
         public static final String VIRTUAL_MACHINE_IS_NOT_RUNNING = "The Virtual Machine is not running.";
+        public static final String WRONG_POLICY_TYPE = "Wrong policy type. Type should be '%s' but is '%s'.";
         public static final String WRONG_URI_SYNTAX_S = "Wrong syntax for endpoint %s.";
         public static final String VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED = "The virtual machine is not paused or hibernated.";
     }

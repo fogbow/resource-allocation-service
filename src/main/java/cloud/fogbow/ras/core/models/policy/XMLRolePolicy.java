@@ -371,7 +371,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         String policyType = root.getChild(POLICY_TYPE_LABEL).getText();
 
         if (!policyType.equals(BaseRolePolicy.POLICY_TYPE)) {
-            throw new WrongPolicyTypeException();
+            throw new WrongPolicyTypeException(BaseRolePolicy.POLICY_TYPE, policyType);
         }
     }
     

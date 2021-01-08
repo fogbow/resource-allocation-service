@@ -42,6 +42,9 @@ public class RoleAwareAuthorizationPluginTest {
     
     private String newPolicyString = "policy";
 
+    private String expectedPolicyType = "role";
+    private String wrongPolicyType = "provider";
+    
     private String identityProviderId = "provider";
     private String remoteProviderId = "remoteProvider";
     
@@ -75,7 +78,7 @@ public class RoleAwareAuthorizationPluginTest {
     private XMLRolePolicy rolePolicy;
     private XMLRolePolicy newRolePolicy;
     private XMLRolePolicy updatedRolePolicy;
-
+    
     @Before
     public void setUp() throws ConfigurationErrorException, WrongPolicyTypeException {
         // set up PropertiesHolder 
@@ -214,7 +217,7 @@ public class RoleAwareAuthorizationPluginTest {
     @Test
     public void testSetPolicyWrongPolicyType() throws ConfigurationErrorException, WrongPolicyTypeException, UnauthorizedRequestException {
         this.newRolePolicy = Mockito.mock(XMLRolePolicy.class);
-        WrongPolicyTypeException exception = new WrongPolicyTypeException();
+        WrongPolicyTypeException exception = new WrongPolicyTypeException(expectedPolicyType, wrongPolicyType);
         Mockito.when(this.policyInstantiator.getRolePolicyInstance(newPolicyString)).thenThrow(exception);
         
         SystemUser user1 = new SystemUser(userId1, userName1, identityProviderId);
@@ -270,7 +273,7 @@ public class RoleAwareAuthorizationPluginTest {
     @Test
     public void testUpdatePolicyWrongPolicyType() throws ConfigurationErrorException, WrongPolicyTypeException, UnauthorizedRequestException {
         this.newRolePolicy = Mockito.mock(XMLRolePolicy.class);
-        WrongPolicyTypeException exception = new WrongPolicyTypeException();
+        WrongPolicyTypeException exception = new WrongPolicyTypeException(expectedPolicyType, wrongPolicyType);
         Mockito.when(this.policyInstantiator.getRolePolicyInstance(newPolicyString)).thenThrow(exception);
         
         SystemUser user1 = new SystemUser(userId1, userName1, identityProviderId);

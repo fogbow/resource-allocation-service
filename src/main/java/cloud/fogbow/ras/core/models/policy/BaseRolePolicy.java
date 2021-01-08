@@ -93,8 +93,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
             }
         }
         
-        // TODO add message
-        throw new ConfigurationErrorException();
+        throw new ConfigurationErrorException(Messages.Exception.NO_ADMIN_USER);
     }
 
     @Override
