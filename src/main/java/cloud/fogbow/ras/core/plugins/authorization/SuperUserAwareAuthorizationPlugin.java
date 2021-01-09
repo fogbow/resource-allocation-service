@@ -52,4 +52,14 @@ public class SuperUserAwareAuthorizationPlugin  implements AuthorizationPlugin<R
                 ConfigurationPropertyDefaults.SUPERUSER_ROLE);
         return systemUser.getUserRoles().contains(superUserRole);
     }
+
+	@Override
+	public void setPolicy(String policy) {
+		// Ignore
+	}
+
+	@Override
+	public void updatePolicy(String policy) {
+		// Ignore
+	}
 }

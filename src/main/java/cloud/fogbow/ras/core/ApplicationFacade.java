@@ -688,4 +688,46 @@ public class ApplicationFacade {
         this.buildNumber = properties.getProperty(ConfigurationPropertyKeys.BUILD_NUMBER_KEY,
                 ConfigurationPropertyDefaults.BUILD_NUMBER);
     }
+
+	public void setPolicy(String userToken, String policy) throws FogbowException {
+        SystemUser systemUser = authenticate(userToken);
+        RasOperation rasOperation = new RasOperation(Operation.CREATE, ResourceType.POLICY, 
+                this.providerId, this.providerId);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+        
+        SynchronizationManager.getInstance().setAsReloading();
+        
+        while (this.onGoingRequests != 0) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        this.authorizationPlugin.setPolicy(policy);
+        
+        SynchronizationManager.getInstance().setAsNotReloading();
+	}
+
+	public void updatePolicy(String userToken, String policy) throws FogbowException {
+        SystemUser systemUser = authenticate(userToken);
+        RasOperation rasOperation = new RasOperation(Operation.CREATE, ResourceType.POLICY, 
+                this.providerId, this.providerId);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+        
+        SynchronizationManager.getInstance().setAsReloading();
+        
+        while (this.onGoingRequests != 0) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        this.authorizationPlugin.updatePolicy(policy);
+        
+        SynchronizationManager.getInstance().setAsNotReloading();
+	}
 }
