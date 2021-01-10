@@ -5,6 +5,7 @@ import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.GoogleCloudUser;
+import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkSummary;
@@ -21,6 +22,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleClo
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -30,16 +32,22 @@ import java.util.Properties;
 public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudComputePlugin.class);
 
-    private static int RAM_MULTIPLE_NUMBER = 256;
-    private static double LOWER_BOUND_RAM_PER_VCPU_GB = 0.9;
-    private static double UPPER_BOUND_RAM_PER_VCPU_GB = 6.4;
-    private static int LOWER_BOUND_DISK_GB = 10;
-    private static int ONE_GB_IN_MB = 1024;
+    @VisibleForTesting
+    static int RAM_MULTIPLE_NUMBER = 256;
+    @VisibleForTesting
+    static double LOWER_BOUND_RAM_PER_VCPU_GB = 0.9;
+    @VisibleForTesting
+    static double UPPER_BOUND_RAM_PER_VCPU_GB = 6.4;
+    @VisibleForTesting
+    static int LOWER_BOUND_DISK_GB = 10;
 
-    private static String DEFAULT_USER_DATA_ENCODING = "base64";
+    @VisibleForTesting
+    static String DEFAULT_USER_DATA_ENCODING = "base64";
 
-    private static String SSH_PARTS_SEPARATOR = " ";
-    private static String COLON_SEPARATOR = ":";
+    @VisibleForTesting
+    static String SSH_PARTS_SEPARATOR = " ";
+    @VisibleForTesting
+    static String COLON_SEPARATOR = ":";
 
     private Properties properties;
     private GoogleCloudHttpClient client;
@@ -141,7 +149,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return GoogleCloudStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.FAILED);
     }
 
-    private void setAllocationToOrder(ComputeOrder computeOrder, HardwareRequirements hardwareRequirements) {
+    @VisibleForTesting
+    void setAllocationToOrder(ComputeOrder computeOrder, HardwareRequirements hardwareRequirements) {
         synchronized (computeOrder) {
             ComputeAllocation actualAllocation = new ComputeAllocation(
                     1, hardwareRequirements.getCpu(),
@@ -154,7 +163,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         }
     }
 
-    private String doRequestInstance(String endpoint, String body, GoogleCloudUser cloudUser)
+    @VisibleForTesting
+    String doRequestInstance(String endpoint, String body, GoogleCloudUser cloudUser)
             throws FogbowException {
         String instanceId = null;
 
@@ -169,7 +179,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return instanceId;
     }
 
-    private ComputeInstance doGetInstance(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    ComputeInstance doGetInstance(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
         String responseJson = this.client.doGetRequest(endpoint, cloudUser);
 
         ComputeInstance computeInstance = getInstanceFromJson(responseJson);
@@ -177,7 +188,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return computeInstance;
     }
 
-    private String doGetNetworkInstanceName(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    String doGetNetworkInstanceName(String endpoint, GoogleCloudUser cloudUser) throws FogbowException {
         String responseJson = this.client.doGetRequest(endpoint, cloudUser);
 
         GetNetworkResponse networkResponse = GetNetworkResponse.fromJson(responseJson);
@@ -185,14 +197,16 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return networkResponse.getName();
     }
 
-    private List<NetworkSummary> getComputeNetworks(String projectId) {
+    @VisibleForTesting
+    List<NetworkSummary> getComputeNetworks(String projectId) {
         String defaultNetworkId = getNetworkId(projectId, GoogleCloudConstants.Network.DEFAULT_NETWORK_NAME);
         List<NetworkSummary> computeNetworks = new ArrayList<>();
         computeNetworks.add(new NetworkSummary(defaultNetworkId, GoogleCloudConstants.Network.DEFAULT_NETWORK_NAME));
         return computeNetworks;
     }
 
-    private CreateComputeRequest getComputeRequestBody(String name, String flavorId, CreateComputeRequest.MetaData metaData,
+    @VisibleForTesting
+    CreateComputeRequest getComputeRequestBody(String name, String flavorId, CreateComputeRequest.MetaData metaData,
                                                        List<CreateComputeRequest.Network> networks, List<CreateComputeRequest.Disk> disks) {
 
         CreateComputeRequest createComputeRequest = new CreateComputeRequest.Builder()
@@ -206,7 +220,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return createComputeRequest;
     }
 
-    private ComputeInstance getInstanceFromJson(String responseJson) {
+    @VisibleForTesting
+    ComputeInstance getInstanceFromJson(String responseJson) {
         GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(responseJson);
 
         String instanceId = getComputeResponse.getId();
@@ -223,7 +238,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return new ComputeInstance(instanceId, status, name, ipAddresses, faultMessage);
     }
 
-    private void deletePrePopulatedDefaultNetworkSecurityRules(String projectId, GoogleCloudUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    void deletePrePopulatedDefaultNetworkSecurityRules(String projectId, GoogleCloudUser cloudUser) throws FogbowException {
         List<GetFirewallRulesResponse.FirewallRule> securityRules = getDefaultNetworkSecurityRules(projectId, cloudUser);
         if (securityRules != null) {
             for (GetFirewallRulesResponse.FirewallRule securityRule : securityRules) {
@@ -234,7 +250,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         }
     }
 
-    private List<GetFirewallRulesResponse.FirewallRule> getDefaultNetworkSecurityRules(String projectId, GoogleCloudUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    List<GetFirewallRulesResponse.FirewallRule> getDefaultNetworkSecurityRules(String projectId, GoogleCloudUser cloudUser) throws FogbowException {
         String endpoint = getFirewallsEndpoint(projectId);
         String responseJson = this.client.doGetRequest(endpoint, cloudUser);
         GetFirewallRulesResponse firewallRuleResponse = GetFirewallRulesResponse.fromJson(responseJson);
@@ -242,12 +259,14 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return firewallRuleResponse.getSecurityGroupRules();
     }
 
-    private void deleteSecurityRule(String securityRuleId, String projectId, GoogleCloudUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    void deleteSecurityRule(String securityRuleId, String projectId, GoogleCloudUser cloudUser) throws FogbowException {
         String endpoint = getFirewallsEndpoint(projectId) + GoogleCloudConstants.ENDPOINT_SEPARATOR + securityRuleId;
         this.client.doDeleteRequest(endpoint, cloudUser);
     }
 
-    private boolean isAPrePopulatedSecurityRule(GetFirewallRulesResponse.FirewallRule securityRule) {
+    @VisibleForTesting
+    boolean isAPrePopulatedSecurityRule(GetFirewallRulesResponse.FirewallRule securityRule) {
         String securityRuleName = securityRule.getName();
         boolean isDefaultAllowICMP =
                 securityRuleName.equals(GoogleCloudConstants.Network.Firewall.DEFAULT_ALLOW_ICMP_NAME);
@@ -260,7 +279,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return isDefaultAllowICMP || isDefaultAllowInternal || isDefaultAllowRDP || isDefaultAllowSSH;
     }
 
-    private List<CreateComputeRequest.Network> getNetworkIds(String projectId, ComputeOrder computeOrder, GoogleCloudUser cloudUser) throws FogbowException {
+    @VisibleForTesting
+    List<CreateComputeRequest.Network> getNetworkIds(String projectId, ComputeOrder computeOrder, GoogleCloudUser cloudUser) throws FogbowException {
         List<CreateComputeRequest.Network> networks = new ArrayList<CreateComputeRequest.Network>();
         // Add default network
         addToNetworksByName(networks, GoogleCloudConstants.Network.DEFAULT_NETWORK_NAME);
@@ -272,24 +292,28 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return networks;
     }
 
-    private String getNetworkEndpoint(String projectId, String networkId) {
+    @VisibleForTesting
+    String getNetworkEndpoint(String projectId, String networkId) {
         return getBaseUrl() + GoogleCloudPluginUtils.getProjectEndpoint(projectId)
                 + getPathWithId(GoogleCloudConstants.GLOBAL_NETWORKS_ENDPOINT, networkId);
     }
 
-    private void addToNetworksByName(List<CreateComputeRequest.Network> networks, String networkName) {
+    @VisibleForTesting
+    void addToNetworksByName(List<CreateComputeRequest.Network> networks, String networkName) {
         String subnetwork = getSubnetworkId(networkName);
         networks.add(new CreateComputeRequest.Network(subnetwork));
     }
 
-    private List<CreateComputeRequest.Disk> getDisks(String projectId, String imageId, int diskSizeGb) {
+    @VisibleForTesting
+    List<CreateComputeRequest.Disk> getDisks(String projectId, String imageId, int diskSizeGb) {
         List<CreateComputeRequest.Disk> disks = new ArrayList<CreateComputeRequest.Disk>();
         CreateComputeRequest.Disk disk = getDisk(projectId, imageId, diskSizeGb);
         disks.add(disk);
         return disks;
     }
 
-    private CreateComputeRequest.Disk getDisk(String projectId, String imageId, int diskSizeGb) {
+    @VisibleForTesting
+    CreateComputeRequest.Disk getDisk(String projectId, String imageId, int diskSizeGb) {
         String imageSourceId = getImageId(imageId, projectId);
         CreateComputeRequest.InicialeParams initializeParams =
                 new CreateComputeRequest.InicialeParams(imageSourceId, diskSizeGb);
@@ -298,7 +322,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
                 initializeParams);
     }
 
-    private CreateComputeRequest.MetaData getMetaData(ComputeOrder computeOrder) throws InternalServerErrorException {
+    @VisibleForTesting
+    CreateComputeRequest.MetaData getMetaData(ComputeOrder computeOrder) throws InternalServerErrorException {
         List<CreateComputeRequest.Item> items = new ArrayList<CreateComputeRequest.Item>();
         String publicKey = computeOrder.getPublicKey();
 
@@ -317,12 +342,14 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return new CreateComputeRequest.MetaData(items);
     }
 
-    private CreateComputeRequest.Item getUserDataEncoding() {
+    @VisibleForTesting
+    CreateComputeRequest.Item getUserDataEncoding() {
         return new CreateComputeRequest.Item(GoogleCloudConstants.Compute.USER_DATA_ENCODING_KEY_JSON,
                 DEFAULT_USER_DATA_ENCODING);
     }
 
-    private CreateComputeRequest.Item getPublicSSHKey(String publicKey) {
+    @VisibleForTesting
+    CreateComputeRequest.Item getPublicSSHKey(String publicKey) {
         String[] publicKeySplit = publicKey.split(SSH_PARTS_SEPARATOR);
         int sshUserNameIndex = publicKeySplit.length - 1;
         String userName = publicKeySplit[sshUserNameIndex];
@@ -330,66 +357,71 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return new CreateComputeRequest.Item(GoogleCloudConstants.Compute.PUBLIC_SSH_KEY_JSON, publicKey);
     }
 
-    private CreateComputeRequest.Item getUserData(ComputeOrder computeOrder) throws InternalServerErrorException {
+    @VisibleForTesting
+    CreateComputeRequest.Item getUserData(ComputeOrder computeOrder) throws InternalServerErrorException {
 
         String userDataValue = this.launchCommandGenerator.createLaunchCommand(computeOrder);
         return new CreateComputeRequest.Item(GoogleCloudConstants.Compute.USER_DATA_KEY_JSON, userDataValue);
     }
 
-    private String getImageId(String imageId, String projectId) {
+    @VisibleForTesting
+    String getImageId(String imageId, String projectId) {
         return GoogleCloudPluginUtils.getProjectEndpoint(projectId)
                 + getPathWithId(GoogleCloudConstants.GLOBAL_IMAGES_ENDPOINT, imageId);
     }
 
-    private String getFlavorId(String flavorId) {
+    @VisibleForTesting
+    String getFlavorId(String flavorId) {
         return getZoneEndpoint() + getPathWithId(GoogleCloudConstants.FLAVOR_ENDPOINT, flavorId);
     }
 
-    private String getNetworkId(String projectId, String networkId) {
+    @VisibleForTesting
+    String getNetworkId(String projectId, String networkId) {
         return GoogleCloudPluginUtils.getProjectEndpoint(projectId)
                 + getPathWithId(GoogleCloudConstants.GLOBAL_NETWORKS_ENDPOINT, networkId);
     }
 
-    private String getSubnetworkId(String networkName) {
-        String region = getRegionByZone();
+    @VisibleForTesting
+    String getSubnetworkId(String networkName) {
+        String region = GoogleCloudPluginUtils.getRegionByZone(this.zone);
         return getPathWithId(GoogleCloudConstants.REGIONS_ENDPOINT, region)
                 + getPathWithId(GoogleCloudConstants.SUBNETS_ENDPOINT, networkName);
     }
 
-    private String getRegionByZone() {
-        String[] zoneSplit = this.zone.split(GoogleCloudConstants.ELEMENT_SEPARATOR);
-        // A zone id have this format: [GLOBAL]-[REGION]-[ZONE NUMBER]
-        String zoneNumber = GoogleCloudConstants.ELEMENT_SEPARATOR.concat(zoneSplit[zoneSplit.length - 1]);
-        return this.zone.replaceFirst(zoneNumber, GoogleCloudConstants.EMPTY_STRING);
-    }
-
-    private String getPathWithId(String path, String id) {
+    @VisibleForTesting
+    String getPathWithId(String path, String id) {
         return path + GoogleCloudConstants.ENDPOINT_SEPARATOR + id;
     }
 
-    private String getInstanceEndpoint(String projectId, String instanceId) {
+    @VisibleForTesting
+    String getInstanceEndpoint(String projectId, String instanceId) {
         String computePath = getComputeEndpoint(projectId);
         return getPathWithId(computePath, instanceId);
     }
 
-    private String getZoneEndpoint() {
+    @VisibleForTesting
+    String getZoneEndpoint() {
         return getPathWithId(GoogleCloudConstants.ZONES_ENDPOINT, this.zone);
     }
 
-    private String getComputeEndpoint(String projectId) {
+    @VisibleForTesting
+    String getComputeEndpoint(String projectId) {
         return getBaseUrl() + GoogleCloudPluginUtils.getProjectEndpoint(projectId) + getZoneEndpoint() +
                 GoogleCloudConstants.INSTANCES_ENDPOINT;
     }
 
-    private String getBaseUrl() {
+    @VisibleForTesting
+    String getBaseUrl() {
         return GoogleCloudConstants.BASE_COMPUTE_API_URL + GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT;
     }
 
-    private String getFirewallsEndpoint(String projectId) {
+    @VisibleForTesting
+    String getFirewallsEndpoint(String projectId) {
         return getBaseUrl() + GoogleCloudPluginUtils.getProjectEndpoint(projectId) + GoogleCloudConstants.GLOBAL_FIREWALL_ENDPOINT;
     }
 
-    private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder) {
+    @VisibleForTesting
+    HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder) {
         int vCPU = getSmallestvCPU(computeOrder.getvCPU());
         int ramSize = getSmallestRamSize(computeOrder.getRam(), computeOrder.getvCPU());
         int diskSize = getSmallestDiskSize(computeOrder.getDisk());
@@ -397,38 +429,44 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return new HardwareRequirements(computeOrder.getName(), flavorId, vCPU, ramSize, diskSize);
     }
 
-    private String getFlavorId(int vCPU, int ramSize) {
+    @VisibleForTesting
+    String getFlavorId(int vCPU, int ramSize) {
         return GoogleCloudConstants.Compute.CUSTOM_FLAVOR + GoogleCloudConstants.ELEMENT_SEPARATOR
                 + vCPU + GoogleCloudConstants.ELEMENT_SEPARATOR + ramSize;
     }
 
-    private int getSmallestvCPU(int vCPU) {
+    @VisibleForTesting
+    int getSmallestvCPU(int vCPU) {
         // The number of vCPUs must be 1 or an even number
         if (vCPU > 1 && vCPU % 2 != 0)
             vCPU--;
         return vCPU;
     }
 
-    private int getSmallestRamSize(int ram, int vCPU) {
+    @VisibleForTesting
+    int getSmallestRamSize(int ram, int vCPU) {
         ram = getSmallestMultipleRamSize(ram);
         ram = getSmallestRamSizePervCpu(ram, vCPU);
         return ram;
     }
 
-    private int getSmallestMultipleRamSize(int ram) {
+    @VisibleForTesting
+    int getSmallestMultipleRamSize(int ram) {
         // The size of RAM must be in MB and multiple of 256
         return (ram / RAM_MULTIPLE_NUMBER) * RAM_MULTIPLE_NUMBER;
     }
 
-    private int getSmallestRamSizePervCpu(int ram, int vCPU) {
+    @VisibleForTesting
+    int getSmallestRamSizePervCpu(int ram, int vCPU) {
         // Memory per vCPU must be between 0.9 GB and 6.5 GB
         int betweenBoundsRamSizeInMb = 0;
-        double memoryPervCPU = mbToGb(ram) / vCPU;
+        double memoryPervCPU = BinaryUnit.megabytes(ram).asGigabytes() / vCPU;
         if (memoryPervCPU <= LOWER_BOUND_RAM_PER_VCPU_GB)  {
-            betweenBoundsRamSizeInMb = gbToMb(LOWER_BOUND_RAM_PER_VCPU_GB + 0.1) * vCPU;
+            betweenBoundsRamSizeInMb = (int) BinaryUnit.gigabytes(LOWER_BOUND_RAM_PER_VCPU_GB + 0.1).asMegabytes() * vCPU;
         } else if (memoryPervCPU >= UPPER_BOUND_RAM_PER_VCPU_GB) {
-            betweenBoundsRamSizeInMb = gbToMb(UPPER_BOUND_RAM_PER_VCPU_GB - 0.1) * vCPU;
+            betweenBoundsRamSizeInMb = (int) (BinaryUnit.gigabytes(UPPER_BOUND_RAM_PER_VCPU_GB - 0.1).asMegabytes() * vCPU);
         }
+
         if (betweenBoundsRamSizeInMb > 0) {
             ram = getSmallestMultipleRamSize(betweenBoundsRamSizeInMb);
         }
@@ -436,18 +474,11 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         return ram;
     }
 
-    private int getSmallestDiskSize(int disk) {
+    @VisibleForTesting
+    int getSmallestDiskSize(int disk) {
         // The size must be at least 10 GB
         if (disk < LOWER_BOUND_DISK_GB)
             disk = LOWER_BOUND_DISK_GB;
         return disk;
-    }
-
-    private int gbToMb(double Gb) {
-        return (int) (Gb * ONE_GB_IN_MB);
-    }
-
-    private double mbToGb(int Mb) {
-        return ((double) Mb / ONE_GB_IN_MB);
     }
 }
