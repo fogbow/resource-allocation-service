@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 
 public class GoogleCloudPluginUtils {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudPluginUtils.class);
-    public static final String VOLUME_COMPUTE_URL_KEY = "googlecloud_compute_url";
 
     public static String getRegionByZone(String zone) {
         String[] zoneSplit = zone.split(GoogleCloudConstants.ELEMENT_SEPARATOR);
