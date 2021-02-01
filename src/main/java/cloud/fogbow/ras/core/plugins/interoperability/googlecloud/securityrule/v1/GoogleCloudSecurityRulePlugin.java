@@ -61,7 +61,9 @@ public class GoogleCloudSecurityRulePlugin implements SecurityRulePlugin<GoogleC
     }
 
     @VisibleForTesting
-    CreateFirewallRuleRequest buildCreateSecurityRuleRequest(SecurityRule securityRule, Order majorOrder, String securityRuleName) {
+    // FIXME The only reason this method is public is to not 
+    // break GoogleCloudNetworkPlugin, which needs refactoring.
+    public CreateFirewallRuleRequest buildCreateSecurityRuleRequest(SecurityRule securityRule, Order majorOrder, String securityRuleName) {
         return buildCreateSecurityRuleRequest(securityRule, majorOrder, GoogleCloudConstants.Network.Firewall.DEFAULT_RULE_PRIORITY, securityRuleName);
     }
 
