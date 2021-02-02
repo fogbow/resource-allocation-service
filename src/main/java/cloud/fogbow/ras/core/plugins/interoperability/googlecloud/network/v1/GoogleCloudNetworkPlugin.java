@@ -228,7 +228,9 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
         SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
 
         GoogleCloudSecurityRulePlugin googleCloudSecurityRulePluginTemp = new GoogleCloudSecurityRulePlugin(confFilePath);
-
+        
+        // FIXME this code should not call this method. It should use SecurityRule creation
+        // API instead.
         return googleCloudSecurityRulePluginTemp.buildCreateSecurityRuleRequest(
                 securityRule,
                 majorOrder,
