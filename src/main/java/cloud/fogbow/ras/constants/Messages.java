@@ -91,6 +91,7 @@ public class Messages {
         public static final String UNSUPPORTED_REQUEST_TYPE_S = "Request type %s not supported.";
         public static final String USER_DOES_NOT_HAVE_ENOUGH_PERMISSION = "User does not have permission to perform operation";
         public static final String USER_DOES_NOT_HAVE_REQUIRED_ROLE = "User does not have a role required by operation.";
+        public static final String USER_IS_NOT_FINANCIALLY_AUTHORIZED = "User is not financially authorized.";
         public static final String USER_ROLE_DOES_NOT_EXIST = "Role '%s', referenced by User '%s', does not exist.";
         public static final String VIRTUAL_MACHINE_ALREADY_HIBERNATED = "The Virtual Machine has already been hibernated.";
         public static final String VIRTUAL_MACHINE_ALREADY_PAUSED = "The Virtual Machine has already been paused.";
