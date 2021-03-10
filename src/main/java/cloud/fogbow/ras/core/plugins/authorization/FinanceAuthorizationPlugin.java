@@ -1,53 +1,46 @@
 package cloud.fogbow.ras.core.plugins.authorization;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.http.client.HttpResponseException;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import com.google.gson.Gson;
 
-import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
-import cloud.fogbow.common.exceptions.UnavailableProviderException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
-import cloud.fogbow.common.util.connectivity.HttpRequestClient;
-import cloud.fogbow.common.util.connectivity.HttpResponse;
-import cloud.fogbow.fs.api.http.response.Authorized;
-import cloud.fogbow.fs.api.parameters.AuthorizableUser;
-import cloud.fogbow.ras.api.http.CommonKeys;
+import cloud.fogbow.common.plugins.authorization.RemoteAuthorizationClient;
+import cloud.fogbow.common.plugins.authorization.RemoteAuthorizationParameters;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.RasOperation;
 
 public class FinanceAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
-
-	public static final String AUTHORIZATION_REQUEST_CONTENT_TYPE = "application/json";
-	private String financeServiceAddress;
-	private String financeServicePort;
+	private RemoteAuthorizationClient authorizationClient;
 	
-	public FinanceAuthorizationPlugin() {
-		this.financeServiceAddress = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.FS_URL_KEY);
-		this.financeServicePort = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.FS_PORT_KEY);
+	public FinanceAuthorizationPlugin() throws URISyntaxException {
+		String financeServiceAddress = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.FS_URL_KEY);
+		String financeServicePort = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.FS_PORT_KEY);
+		String authorizedEndpoint = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.FS_AUTHORIZED_ENDPOINT);
+		authorizationClient = new RemoteAuthorizationClient(financeServiceAddress, financeServicePort, authorizedEndpoint);
 	}
-
+	
+	public FinanceAuthorizationPlugin(RemoteAuthorizationClient authorizationClient) {
+		this.authorizationClient = authorizationClient;
+	}
+	
 	@Override
 	public boolean isAuthorized(SystemUser systemUser, RasOperation operation) throws UnauthorizedRequestException {
 		boolean authorized = false;
 
 		try {
-			HttpResponse response = doIsAuthorizedRequestAndCheckStatus(systemUser.getId(), 
-					getOperationParameters(operation));
-			authorized = getAuthorized(response);
+			FinanceAuthorizationParameters params = FinanceAuthorizationParameters.
+					getRemoteAuthorizationParameters(systemUser.getId(), getOperationParameters(operation));
+			authorized = this.authorizationClient.doAuthorizationRequest(params);
 		} catch (InternalServerErrorException e) {
 			throw new UnauthorizedRequestException(e.getMessage());
 		} catch (URISyntaxException e) {
@@ -72,51 +65,6 @@ public class FinanceAuthorizationPlugin implements AuthorizationPlugin<RasOperat
 		return operationParameters;
 	}
 
-	// TODO part of this code is duplicated in DistributedAuthorizationPlugin.
-	// We should refactor both classes, removing this duplication.
-	private HttpResponse doIsAuthorizedRequestAndCheckStatus(String userId, 
-				Map<String, String> operationParameters) throws URISyntaxException, FogbowException {
-        String endpoint = getAuthorizationEndpoint(cloud.fogbow.fs.api.http.request.Authorization.AUTHORIZED_ENDPOINT);
-        HttpResponse response = doRequest(endpoint, userId, operationParameters);
-
-        if (response.getHttpCode() > HttpStatus.SC_OK) {
-            Throwable e = new HttpResponseException(response.getHttpCode(), response.getContent());
-            throw new UnavailableProviderException(e.getMessage());
-        }
-        
-        return response;
-    }
-	
-    private String getAuthorizationEndpoint(String path) throws URISyntaxException {
-        URI uri = new URI(financeServiceAddress);
-        uri = UriComponentsBuilder.fromUri(uri).port(financeServicePort).
-                path(path).
-                build(true).toUri();
-        return uri.toString();
-    }
-    
-    private HttpResponse doRequest(String endpoint, String userId, Map<String, String> operationParameters)
-            throws URISyntaxException, FogbowException {
-        // header
-        HashMap<String, String> headers = new HashMap<String, String>();
-        headers.put(CommonKeys.CONTENT_TYPE_KEY, AUTHORIZATION_REQUEST_CONTENT_TYPE);
-        
-        // body
-        AuthorizableUser authorizableUser = new AuthorizableUser(userId, operationParameters);
-        Map<String, String> body = authorizableUser.asRequestBody();
-        
-        return HttpRequestClient.doGenericRequest(HttpMethod.POST, endpoint, headers, body);
-    }
-    
-    private boolean getAuthorized(HttpResponse response) {
-        Gson gson = new Gson();
-        
-        // extract response
-        Map<String, Object> jsonResponse = gson.fromJson(response.getContent(), HashMap.class);
-        Authorized responseAuthorized = new Authorized(jsonResponse);
-        return responseAuthorized.getAuthorized();
-    }
-
 	@Override
 	public void setPolicy(String policy) throws ConfigurationErrorException {
 		// Ignore
@@ -125,5 +73,31 @@ public class FinanceAuthorizationPlugin implements AuthorizationPlugin<RasOperat
 	@Override
 	public void updatePolicy(String policy) throws ConfigurationErrorException {
 		// Ignore
+	}
+	
+	static class FinanceAuthorizationParameters implements RemoteAuthorizationParameters {
+		private static final String USER_ID_KEY = "userId";
+		private static final String OPERATION_PARAMETERS_KEY = "operationParameters";
+		private String userId;
+		private String operationParameters;
+		
+		// Maybe refactor this into a factory in the future
+		static FinanceAuthorizationParameters getRemoteAuthorizationParameters(String userId, 
+				Map<String, String> operationParameters) {
+			return new FinanceAuthorizationParameters(userId, operationParameters);
+		}
+		
+		public FinanceAuthorizationParameters(String userId, Map<String, String> operationParameters) {
+			Gson gson = new Gson();
+			this.userId = userId;
+			this.operationParameters = gson.toJson(operationParameters);
+		}
+
+	    public Map<String, String> asRequestBody() {
+	        HashMap<String, String> body = new HashMap<String, String>();
+	        body.put(USER_ID_KEY, this.userId);
+	        body.put(OPERATION_PARAMETERS_KEY, this.operationParameters);
+	        return body;
+	    }
 	}
 }
