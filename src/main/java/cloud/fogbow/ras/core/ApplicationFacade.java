@@ -730,4 +730,14 @@ public class ApplicationFacade {
         
         SynchronizationManager.getInstance().setAsNotReloading();
 	}
+
+	public void pauseUserComputes(String userId, String userToken, ResourceType compute) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void resumeUserComputes(String userId, String userToken, ResourceType compute) {
+		// TODO Auto-generated method stub
+		
+	}
 }

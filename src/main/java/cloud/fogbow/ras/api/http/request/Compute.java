@@ -32,7 +32,9 @@ public class Compute {
     public static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
     public static final String COMPUTE_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + COMPUTE_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "compute";
-
+    public static final String PAUSE_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/pause";
+    public static final String RESUME_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/resume";
+    
     private final Logger LOGGER = Logger.getLogger(Compute.class);
 
     @RequestMapping(value = "/{computeId}/snapshot", method = RequestMethod.POST)
@@ -155,8 +157,27 @@ public class Compute {
             throws FogbowException {
 
         try {
+        	// TODO refactor this message
             LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, computeId));
             ApplicationFacade.getInstance().pauseCompute(computeId, systemUserToken, ResourceType.COMPUTE);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
+
+    // TODO documentation
+    @RequestMapping(value = "/pause/{userId}", method = RequestMethod.POST)
+    public void pauseUserComputes(
+            @ApiParam(value = ApiDocumentation.Compute.ID)
+            @PathVariable String userId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_PAUSE_REQUEST_S, userId));
+            ApplicationFacade.getInstance().pauseUserComputes(userId, systemUserToken, ResourceType.COMPUTE);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
@@ -191,8 +212,27 @@ public class Compute {
             throws FogbowException {
 
         try {
+        	// TODO refactor this message
             LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, computeId));
             ApplicationFacade.getInstance().resumeCompute(computeId, systemUserToken, ResourceType.COMPUTE);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
+
+    // TODO documentation
+    @RequestMapping(value = "/resume/{userId}", method = RequestMethod.POST)
+    public void resumeUserComputes(
+            @ApiParam(value = ApiDocumentation.Compute.ID)
+            @PathVariable String userId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_RESUME_REQUEST_S, userId));
+            ApplicationFacade.getInstance().resumeUserComputes(userId, systemUserToken, ResourceType.COMPUTE);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
