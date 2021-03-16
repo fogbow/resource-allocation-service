@@ -18,6 +18,7 @@ import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.CryptoUtil;
@@ -416,6 +417,44 @@ public class ApplicationFacade {
         this.orderController.resumeOrder(computeOrder);
     }
 
+	public void pauseUserComputes(String userId, String userToken) throws FogbowException {
+		startOperation();
+		try {
+			SystemUser systemUser = authenticate(userToken);
+	        RasOperation rasOperation = new RasOperation(Operation.PAUSE_ALL, ResourceType.COMPUTE, this.providerId, 
+	                this.providerId);
+	        
+	        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+	        List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(userId, ResourceType.COMPUTE);
+			
+	        for (InstanceStatus status : statuses) {
+	        	String orderId = status.getInstanceId();
+	        	this.orderController.pauseOrder(this.orderController.getOrder(orderId));
+	        }	
+		} finally {
+			finishOperation();
+		}	
+	}
+
+	public void resumeUserComputes(String userId, String userToken) throws FogbowException {
+		startOperation();
+		try {
+			SystemUser systemUser = authenticate(userToken);
+	        RasOperation rasOperation = new RasOperation(Operation.RESUME_ALL, ResourceType.COMPUTE, this.providerId, 
+	                this.providerId);
+	        
+	        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+	        List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(userId, ResourceType.COMPUTE);
+			
+	        for (InstanceStatus status : statuses) {
+	        	String orderId = status.getInstanceId();
+	        	this.orderController.resumeOrder(this.orderController.getOrder(orderId));
+	        }	
+		} finally {
+			finishOperation();
+		}
+	}
+    
     public void takeSnapshot(String orderId, String name, String userToken, ResourceType resourceType) throws FogbowException{
         SystemUser systemUser = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
@@ -731,13 +770,5 @@ public class ApplicationFacade {
         SynchronizationManager.getInstance().setAsNotReloading();
 	}
 
-	public void pauseUserComputes(String userId, String userToken, ResourceType compute) {
-		// TODO Auto-generated method stub
-		
-	}
 
-	public void resumeUserComputes(String userId, String userToken, ResourceType compute) {
-		// TODO Auto-generated method stub
-		
-	}
 }

@@ -166,7 +166,7 @@ public class Compute {
         }
     }
 
-    // TODO documentation
+    @ApiOperation(value = ApiDocumentation.Compute.PAUSE_USER_OPERATION)
     @RequestMapping(value = "/pause/{userId}", method = RequestMethod.POST)
     public void pauseUserComputes(
             @ApiParam(value = ApiDocumentation.Compute.ID)
@@ -177,7 +177,7 @@ public class Compute {
 
         try {
             LOGGER.info(String.format(Messages.Log.RECEIVING_PAUSE_REQUEST_S, userId));
-            ApplicationFacade.getInstance().pauseUserComputes(userId, systemUserToken, ResourceType.COMPUTE);
+            ApplicationFacade.getInstance().pauseUserComputes(userId, systemUserToken);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
@@ -221,7 +221,7 @@ public class Compute {
         }
     }
 
-    // TODO documentation
+    @ApiOperation(value = ApiDocumentation.Compute.RESUME_USER_OPERATION)
     @RequestMapping(value = "/resume/{userId}", method = RequestMethod.POST)
     public void resumeUserComputes(
             @ApiParam(value = ApiDocumentation.Compute.ID)
@@ -232,7 +232,7 @@ public class Compute {
 
         try {
             LOGGER.info(String.format(Messages.Log.RECEIVING_RESUME_REQUEST_S, userId));
-            ApplicationFacade.getInstance().resumeUserComputes(userId, systemUserToken, ResourceType.COMPUTE);
+            ApplicationFacade.getInstance().resumeUserComputes(userId, systemUserToken);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;

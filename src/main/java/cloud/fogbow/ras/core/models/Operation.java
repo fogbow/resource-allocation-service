@@ -10,7 +10,9 @@ public enum Operation {
     RELOAD("reload"),
     PAUSE("pause"),
     HIBERNATE("hibernate"),
-    RESUME("resume");
+    RESUME("resume"), 
+    PAUSE_ALL("pauseAll"), 
+    RESUME_ALL("resumeAll");
 
 
     private String value;

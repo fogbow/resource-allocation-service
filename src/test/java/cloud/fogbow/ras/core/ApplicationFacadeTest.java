@@ -22,6 +22,7 @@ import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
 import cloud.fogbow.ras.api.http.response.AttachmentInstance;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
+import cloud.fogbow.ras.api.http.response.InstanceStatus;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
 import cloud.fogbow.ras.api.http.response.PublicIpInstance;
 import cloud.fogbow.ras.api.http.response.VolumeInstance;
@@ -284,6 +285,92 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.facade).deleteOrder(Mockito.eq(orderId), Mockito.eq(userToken),
                 Mockito.eq(ResourceType.COMPUTE));
+    }
+    
+    // test case: When calling the pauseUserComputes method, it must call
+    // the pauseOrder method of the OrderController to pause the 
+    // correct computes.
+    @Test
+    public void testPauseUserComputes() throws FogbowException {
+    	// set up
+    	String userToken = SYSTEM_USER_TOKEN_VALUE;
+    	String orderId1 = "orderId1";
+    	String orderId2 = "orderId2";
+    	
+    	SystemUser systemUser = this.testUtils.createSystemUser();
+    	Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
+    	
+    	InstanceStatus instance1 = Mockito.mock(InstanceStatus.class);
+    	InstanceStatus instance2 = Mockito.mock(InstanceStatus.class);
+    	
+    	Mockito.when(instance1.getInstanceId()).thenReturn(orderId1);
+    	Mockito.when(instance2.getInstanceId()).thenReturn(orderId2);
+    	
+    	List<InstanceStatus> instanceStatusList = new ArrayList<InstanceStatus>();
+    	instanceStatusList.add(instance1);
+    	instanceStatusList.add(instance2);
+    	
+    	Order order1 = Mockito.mock(Order.class);
+    	Order order2 = Mockito.mock(Order.class);
+    	
+    	Mockito.doReturn(instanceStatusList).when(orderController).
+    	getUserInstancesStatus(TestUtils.FAKE_USER_ID, ResourceType.COMPUTE);
+    	
+    	Mockito.doReturn(order1).when(orderController).getOrder(orderId1);
+    	Mockito.doReturn(order2).when(orderController).getOrder(orderId2);
+    	
+    	Mockito.doNothing().when(orderController).pauseOrder(order1);
+    	Mockito.doNothing().when(orderController).pauseOrder(order2);
+    	
+    	// exercise
+    	this.facade.pauseUserComputes(TestUtils.FAKE_USER_ID, userToken);
+    	
+    	// verify
+    	Mockito.verify(orderController).pauseOrder(order1);
+    	Mockito.verify(orderController).pauseOrder(order2);
+    }
+    
+    // test case: When calling the resumeUserComputes method, it must call
+    // the resumeOrder method of the OrderController to resume the 
+    // correct computes.
+    @Test
+    public void testResumeUserComputes() throws FogbowException {
+    	// set up
+    	String userToken = SYSTEM_USER_TOKEN_VALUE;
+    	String orderId1 = "orderId1";
+    	String orderId2 = "orderId2";
+    	
+    	SystemUser systemUser = this.testUtils.createSystemUser();
+    	Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
+    	
+    	InstanceStatus instance1 = Mockito.mock(InstanceStatus.class);
+    	InstanceStatus instance2 = Mockito.mock(InstanceStatus.class);
+    	
+    	Mockito.when(instance1.getInstanceId()).thenReturn(orderId1);
+    	Mockito.when(instance2.getInstanceId()).thenReturn(orderId2);
+    	
+    	List<InstanceStatus> instanceStatusList = new ArrayList<InstanceStatus>();
+    	instanceStatusList.add(instance1);
+    	instanceStatusList.add(instance2);
+    	
+    	Order order1 = Mockito.mock(Order.class);
+    	Order order2 = Mockito.mock(Order.class);
+    	
+    	Mockito.doReturn(instanceStatusList).when(orderController).
+    	getUserInstancesStatus(TestUtils.FAKE_USER_ID, ResourceType.COMPUTE);
+    	
+    	Mockito.doReturn(order1).when(orderController).getOrder(orderId1);
+    	Mockito.doReturn(order2).when(orderController).getOrder(orderId2);
+    	
+    	Mockito.doNothing().when(orderController).resumeOrder(order1);
+    	Mockito.doNothing().when(orderController).resumeOrder(order2);
+    	
+    	// exercise
+    	this.facade.resumeUserComputes(TestUtils.FAKE_USER_ID, userToken);
+    	
+    	// verify
+    	Mockito.verify(orderController).resumeOrder(order1);
+    	Mockito.verify(orderController).resumeOrder(order2);
     }
     
     // test case: When calling the getComputeAllocation method it must check that

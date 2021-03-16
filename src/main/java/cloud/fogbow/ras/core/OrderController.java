@@ -338,10 +338,19 @@ public class OrderController {
     ;
 
     public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws InternalServerErrorException {
-        List<InstanceStatus> instanceStatusList = new ArrayList<>();
         List<Order> allOrders = getAllOrders(systemUser, resourceType);
+        return getStatusFromOrders(allOrders, resourceType);
+    }
+    
+    public List<InstanceStatus> getUserInstancesStatus(String userId, ResourceType resourceType) throws InternalServerErrorException {
+        List<Order> allOrders = getOrdersByUserId(userId, resourceType);
+        return getStatusFromOrders(allOrders, resourceType);
+    }
+    
+    private List<InstanceStatus> getStatusFromOrders(List<Order> orders, ResourceType resourceType) throws InternalServerErrorException {
+        List<InstanceStatus> instanceStatusList = new ArrayList<>();
 
-        for (Order order : allOrders) {
+        for (Order order : orders) {
             synchronized (order) {
                 String name = null;
 
@@ -407,6 +416,19 @@ public class OrderController {
         List<Order> requestedOrders = orders.stream()
                 .filter(order -> order.getType().equals(resourceType))
                 .filter(order -> order.getSystemUser().equals(systemUser)).collect(Collectors.toList());
+
+        return requestedOrders;
+    }
+    
+    private List<Order> getOrdersByUserId(String userId, ResourceType resourceType) {
+        Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
+
+        Collection<Order> orders = activeOrdersMap.values();
+
+        // Filter all orders of resourceType from the user systemUser.
+        List<Order> requestedOrders = orders.stream()
+                .filter(order -> order.getType().equals(resourceType))
+                .filter(order -> order.getSystemUser().getId().equals(userId)).collect(Collectors.toList());
 
         return requestedOrders;
     }
