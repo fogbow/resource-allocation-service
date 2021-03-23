@@ -3,8 +3,6 @@ package cloud.fogbow.ras.core.plugins.authorization;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,9 +32,10 @@ public class FinanceAuthorizationPluginTest {
 	private String userId = "userId";
 	private String userName = "userName";
 	private String providerId = "provider";
-	private Map<String, String> operationParameters;
 	private FinanceAuthorizationParameters financeAuthorizationParameters;
-
+	private String financeServiceAddress;
+	private String financeServicePort;
+	
 	// test case: When calling the method isAuthorized, it must create the parameters
 	// correctly and call the RemoteAuthorizationClient to perform the request
 	// to the remote service. Also, if the returned value by the RemoteAuthorizationClient
@@ -91,35 +90,32 @@ public class FinanceAuthorizationPluginTest {
 	}
 	
 	private void setUpUserIsAuthorized() throws URISyntaxException, FogbowException {
-		setUpRequestParameters();
-		setUpResponse(true);
 		user = new SystemUser(userId, userName, providerId);
 		operation = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT, providerId, userId);
+		setUpRequestParameters();
+		setUpResponse(true);
 	}
 	
 	private void setUpUserIsNotAuthorized() throws URISyntaxException, FogbowException {
-		setUpRequestParameters();
-		setUpResponse(false);
 		user = new SystemUser(userId, userName, providerId);
 		operation = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT, providerId, userId);
+		setUpRequestParameters();
+		setUpResponse(false);
 	}
 	
 	private void setUpAuthorizationError(Exception exception) throws URISyntaxException, FogbowException {
-		setUpRequestParameters();
-		setUpErrorResponse(exception);
 		user = new SystemUser(userId, userName, providerId);
 		operation = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT, providerId, userId);
+		setUpRequestParameters();
+		setUpErrorResponse(exception);
 	}
 
 	private void setUpRequestParameters() throws URISyntaxException, FogbowException {
-		operationParameters = new HashMap<String, String>();
-		operationParameters.put("operationType", Operation.CREATE.getValue());
-		operationParameters.put("resourceType", ResourceType.ATTACHMENT.getValue());
-		
 		financeAuthorizationParameters = Mockito.mock(FinanceAuthorizationParameters.class);
 		
 		PowerMockito.mockStatic(FinanceAuthorizationParameters.class);
-		BDDMockito.given(FinanceAuthorizationParameters.getRemoteAuthorizationParameters(userId, operationParameters)).
+		BDDMockito.given(FinanceAuthorizationParameters.getRemoteAuthorizationParameters(user, operation, 
+				financeServiceAddress, financeServicePort)).
 		willReturn(financeAuthorizationParameters);
 	}
 	

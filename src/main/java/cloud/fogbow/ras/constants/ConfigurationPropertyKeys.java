@@ -50,6 +50,7 @@ public class ConfigurationPropertyKeys {
     public static final String DEFAULT_ROLE_KEY = "default_role";
     public static final String FS_AUTHORIZED_ENDPOINT = "fs_authorized_endpoint";
     public static final String FS_PORT_KEY = "fs_port";
+    public static final String FS_PUBLIC_KEY_ENDPOINT_KEY = "fs_public_key_endpoint";
     public static final String FS_URL_KEY = "fs_url";
     public static final String MS_PORT_KEY = "ms_port";
     public static final String MS_URL_KEY = "ms_url";
