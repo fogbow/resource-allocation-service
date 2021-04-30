@@ -3,7 +3,8 @@ package cloud.fogbow.ras.core;
 import java.util.HashSet;
 import java.util.Set;
 
-import cloud.fogbow.common.models.Permission;
+import cloud.fogbow.common.models.policy.Permission;
+import cloud.fogbow.common.models.policy.PermissionInstantiator;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 

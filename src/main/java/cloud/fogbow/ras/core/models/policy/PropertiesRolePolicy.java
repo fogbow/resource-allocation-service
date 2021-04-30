@@ -6,8 +6,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
-import cloud.fogbow.common.models.Permission;
-import cloud.fogbow.common.models.Role;
+import cloud.fogbow.common.exceptions.WrongPolicyTypeException;
+import cloud.fogbow.common.models.policy.BaseRolePolicy;
+import cloud.fogbow.common.models.policy.Permission;
+import cloud.fogbow.common.models.policy.Role;
+import cloud.fogbow.common.models.policy.RolePolicy;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
@@ -16,7 +19,6 @@ import cloud.fogbow.ras.core.RasPermissionInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
-import cloud.fogbow.ras.core.models.RolePolicy;
 import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
 import cloud.fogbow.ras.core.models.permission.AllowOnlyPermission;
 

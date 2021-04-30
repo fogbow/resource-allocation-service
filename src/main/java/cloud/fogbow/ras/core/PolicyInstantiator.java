@@ -3,12 +3,12 @@ package cloud.fogbow.ras.core;
 import java.io.File;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
+import cloud.fogbow.common.exceptions.WrongPolicyTypeException;
+import cloud.fogbow.common.models.policy.RolePolicy;
+import cloud.fogbow.common.models.policy.XMLRolePolicy;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.models.RasOperation;
-import cloud.fogbow.ras.core.models.RolePolicy;
-import cloud.fogbow.ras.core.models.policy.WrongPolicyTypeException;
-import cloud.fogbow.ras.core.models.policy.XMLRolePolicy;
 
 public class PolicyInstantiator {
     private RasClassFactory classFactory;
