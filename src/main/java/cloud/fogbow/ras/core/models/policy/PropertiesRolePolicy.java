@@ -12,7 +12,7 @@ import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.PermissionInstantiator;
+import cloud.fogbow.ras.core.RasPermissionInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
@@ -84,7 +84,7 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
     
     // TODO documentation
     public PropertiesRolePolicy(File policyFile) throws ConfigurationErrorException {
-        setUpAvailableRoles(new PermissionInstantiator());
+        setUpAvailableRoles(new RasPermissionInstantiator());
         setUpUsersRoles();
         setUpDefaultRole();
     }
@@ -110,7 +110,7 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
 		setUpDefaultRole(defaultRoleSection);
 	}
 	
-    private void setUpAvailableRoles(PermissionInstantiator permissionInstantiator) {
+    private void setUpAvailableRoles(RasPermissionInstantiator permissionInstantiator) {
         this.availableRoles = new HashMap<String, Role<RasOperation>>();
         this.permissions = new HashMap<String, Permission<RasOperation>>();
         String rolesNamesString = PropertiesHolder.getInstance().getProperty(

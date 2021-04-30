@@ -11,19 +11,14 @@ import java.util.Set;
 import org.jdom2.Element;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
+import cloud.fogbow.common.models.FogbowOperation;
 import cloud.fogbow.common.models.Permission;
 import cloud.fogbow.common.models.Role;
-import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.XMLUtils;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
-import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PermissionInstantiator;
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.models.Operation;
-import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
 
-public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
+public class XMLRolePolicy<T extends FogbowOperation> extends BaseRolePolicy<T> implements RolePolicy<T> {
 
     /*
          This policy implementation uses the following XML structure as the format
@@ -144,13 +139,15 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
      */
     public static final String ROLE_SEPARATOR = ";";
     
-    private PermissionInstantiator permissionInstantiator;
+    public static final String OPERATION_NAME_SEPARATOR = ",";
+    
+    private PermissionInstantiator<T> permissionInstantiator;
     
     private String policyFilePath;
     
-    private XMLRolePolicy(PermissionInstantiator permissionInstantiator, String adminRole, Map<String, Permission<RasOperation>> permissions,
-            Map<String, Role<RasOperation>> availableRoles, Map<String, Set<String>> usersRoles, Set<String> defaultRoles) {
-        this.policyFilePath = getPolicyFilePath();
+    private XMLRolePolicy(PermissionInstantiator<T> permissionInstantiator, String adminRole, Map<String, Permission<T>> permissions,
+            Map<String, Role<T>> availableRoles, Map<String, Set<String>> usersRoles, Set<String> defaultRoles, String policyFilePath) {
+        this.policyFilePath = policyFilePath;
         this.permissionInstantiator = permissionInstantiator;
         this.permissions = permissions;
         this.availableRoles = availableRoles;
@@ -159,10 +156,11 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         this.adminRole = adminRole;
     }
     
-    public XMLRolePolicy(PermissionInstantiator permissionInstantiator, String policyString) throws ConfigurationErrorException, WrongPolicyTypeException {
+    public XMLRolePolicy(PermissionInstantiator<T> permissionInstantiator, String policyString, String adminRole, 
+            String policyFilePath) throws ConfigurationErrorException, WrongPolicyTypeException {
         this.permissionInstantiator = permissionInstantiator;
-        this.policyFilePath = getPolicyFilePath();
-        this.adminRole = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.ADMIN_ROLE);
+        this.policyFilePath = policyFilePath;
+        this.adminRole = adminRole;
         Element root = XMLUtils.getRootNodeFromXMLString(policyString);
         
         checkPolicyType(root);
@@ -172,14 +170,11 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         setUpDefaultRole(root);
     }
 
-    public XMLRolePolicy(String policyString) throws ConfigurationErrorException, WrongPolicyTypeException {
-        this(new PermissionInstantiator(), policyString);
-    }
-    
-    public XMLRolePolicy(PermissionInstantiator permissionInstantiator, File policyFile) throws ConfigurationErrorException, WrongPolicyTypeException {
+    public XMLRolePolicy(PermissionInstantiator<T> permissionInstantiator, File policyFile, String adminRole, 
+            String policyFilePath) throws ConfigurationErrorException, WrongPolicyTypeException {
         this.permissionInstantiator = permissionInstantiator;
-        this.policyFilePath = getPolicyFilePath();
-        this.adminRole = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.ADMIN_ROLE);
+        this.policyFilePath = policyFilePath;
+        this.adminRole = adminRole;
         Element root = XMLUtils.getRootNodeFromXMLFile(policyFile);
         
         checkPolicyType(root);
@@ -189,16 +184,6 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         setUpDefaultRole(root);
     }
     
-    public XMLRolePolicy(File policyFile) throws ConfigurationErrorException, WrongPolicyTypeException {
-        this(new PermissionInstantiator(), policyFile);
-    }
-    
-    private String getPolicyFilePath() {
-        String policyFileName = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.POLICY_FILE_KEY);
-        String path = HomeDir.getPath();
-        return path + policyFileName;
-    }
-
     @Override
     public void save() throws ConfigurationErrorException {
         List<Element> permissionsXML = writePermissions(permissions);
@@ -260,19 +245,19 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
      * Permission methods
      * 
      */
-    private HashMap<String, Permission<RasOperation>> readPermissions(List<Element> permissionList) {
-        HashMap<String, Permission<RasOperation>> permissions = new HashMap<String, Permission<RasOperation>>();
+    private Map<String, Permission<T>> readPermissions(List<Element> permissionList) {
+        HashMap<String, Permission<T>> permissions = new HashMap<String, Permission<T>>();
         
         for (Element e : permissionList) {
             String name = e.getChild(PERMISSION_NAME_NODE).getText();
             String type = e.getChild(PERMISSION_TYPE_NODE).getText();
             String operationsString = e.getChild(PERMISSION_OPERATIONS_NODE).getText();
             
-            Set<Operation> operations = new HashSet<Operation>();
+            Set<String> operationsNames = new HashSet<String>();
             
             if (!operationsString.isEmpty()) {
-                for (String operationString : operationsString.split(SystemConstants.OPERATION_NAME_SEPARATOR)) {
-                    operations.add(Operation.fromString(operationString.trim()));
+                for (String operationString : operationsString.split(OPERATION_NAME_SEPARATOR)) {
+                    operationsNames.add(operationString);
                 }
             }
             
@@ -281,9 +266,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
             if (type.isEmpty()) {
                 permissions.put(name, null);
             } else {
-                Permission<RasOperation> permission = permissionInstantiator.getPermissionInstance(type, name, operations);
-                
-                permission.getClass().toString();
+                Permission<T> permission = permissionInstantiator.getPermissionInstance(type, name, operationsNames);
                 permissions.put(name, permission);
             }
         }
@@ -291,20 +274,15 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         return permissions;
     }
     
-    private List<Element> writePermissions(Map<String, Permission<RasOperation>> permissions) {
+    private List<Element> writePermissions(Map<String, Permission<T>> permissions) {
         List<Element> permissionsXML = new ArrayList<Element>();
         
         for (String permissionName : permissions.keySet()) {
-            Permission<RasOperation> permission = permissions.get(permissionName);
+            Permission<T> permission = permissions.get(permissionName);
             
-            Set<Operation> operations = (Set<Operation>) permission.getOperationsTypes();
-            Set<String> operationsStringsSet = new HashSet<String>(); 
-            
-            for (Operation operation : operations) {
-                operationsStringsSet.add(operation.getValue());
-            }
-            
-            String operationsCombinedStrings = String.join(SystemConstants.OPERATION_NAME_SEPARATOR, operationsStringsSet);
+            Set<String> operations = permission.getOperationsTypes();
+
+            String operationsCombinedStrings = String.join(OPERATION_NAME_SEPARATOR, operations);
             String permissionType = permission.getClass().getTypeName();
             
             Element nameElement = new Element(PERMISSION_NAME_NODE);
@@ -332,8 +310,8 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
      * Roles methods
      * 
      */
-    private HashMap<String, Role<RasOperation>> readRoles(List<Element> rolesList) {
-        HashMap<String, Role<RasOperation>> availableRoles = new HashMap<String, Role<RasOperation>>();
+    private HashMap<String, Role<T>> readRoles(List<Element> rolesList) {
+        HashMap<String, Role<T>> availableRoles = new HashMap<String, Role<T>>();
 
         for (Element e : rolesList) {
             String name = e.getChild(ROLE_NAME_NODE).getText();
@@ -344,7 +322,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
             if (permission.isEmpty()) {
                 availableRoles.put(name, null);
             } else {
-                Role<RasOperation> role = new Role<RasOperation>(name, permission);
+                Role<T> role = new Role<T>(name, permission);
                 availableRoles.put(name, role);
             }
         }            
@@ -352,7 +330,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
         return availableRoles;
     }
     
-    private List<Element> writeRoles(Map<String, Role<RasOperation>> roles) {
+    private List<Element> writeRoles(Map<String, Role<T>> roles) {
         List<Element> rolesXML = new ArrayList<Element>();
         
         for (String roleName : roles.keySet()) {
@@ -360,7 +338,7 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
             Element nameElement = new Element(ROLE_NAME_NODE);
             Element permissionElement = new Element(ROLE_PERMISSION_NODE);
             
-            Role<RasOperation> role = roles.get(roleName);
+            Role<T> role = roles.get(roleName);
             
             String permission = role.getPermission();
             
@@ -447,8 +425,8 @@ public class XMLRolePolicy extends BaseRolePolicy implements RolePolicy {
     }
     
     @Override
-    public RolePolicy copy() {
-        return new XMLRolePolicy(permissionInstantiator, adminRole, permissions, availableRoles, 
-                usersRoles, defaultRoles);
+    public RolePolicy<T> copy() {
+        return new XMLRolePolicy<T>(permissionInstantiator, adminRole, permissions, availableRoles, 
+                usersRoles, defaultRoles, policyFilePath);
     }
 }

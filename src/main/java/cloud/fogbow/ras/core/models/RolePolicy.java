@@ -4,24 +4,25 @@ import java.util.Map;
 import java.util.Set;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
+import cloud.fogbow.common.models.FogbowOperation;
 import cloud.fogbow.common.models.Permission;
 import cloud.fogbow.common.models.Role;
 
-public interface RolePolicy {
+public interface RolePolicy<T extends FogbowOperation> {
 
 	/**
 	 * Returns the permission rules contained in this policy.
 	 * 
 	 * @return a Map containing the rules
 	 */
-    Map<String, Permission<RasOperation>> getPermissions();
+    Map<String, Permission<T>> getPermissions();
 
     /**
      * Returns the roles rules contained in this policy.
      * 
      * @return a Map containing the rules
      */
-    Map<String, Role<RasOperation>> getRoles();
+    Map<String, Role<T>> getRoles();
 
     /**
      * Returns the users rules contained in this policy.
@@ -45,7 +46,7 @@ public interface RolePolicy {
      * @param operation the Operation object describing the operation the user is requesting to perform.
      * @return a boolean stating whether the user is authorized or not.
      */
-    boolean userIsAuthorized(String user, RasOperation operation);
+    boolean userIsAuthorized(String user, T operation);
 
     /**
      * Verifies if the policy instance is valid. The meaning of 'valid' depends on the
@@ -62,14 +63,14 @@ public interface RolePolicy {
      * 
      * @param policy The policy object used to update.
      */
-    void update(RolePolicy policy);
+    void update(RolePolicy<T> policy);
 
     /**
      * Creates a new policy object, containing the same rules.
      * 
      * @return the new policy object.
      */
-    RolePolicy copy();
+    RolePolicy<T> copy();
     
     /**
      * Persists the policy instance.

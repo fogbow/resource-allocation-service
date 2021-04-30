@@ -52,8 +52,14 @@ public class AllowOnlyPermission implements Permission<RasOperation> {
     }
     
     @Override
-    public Set<Operation> getOperationsTypes() {
-        return allowedOperationTypes;
+    public Set<String> getOperationsTypes() {
+        HashSet<String> operationsStrings = new HashSet<String>(); 
+        
+        for (Operation operation : allowedOperationTypes) {
+            operationsStrings.add(operation.getValue());
+        }
+        
+        return operationsStrings;
     }
 
     @Override

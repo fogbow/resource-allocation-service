@@ -5,19 +5,19 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import cloud.fogbow.common.constants.Messages;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
+import cloud.fogbow.common.models.FogbowOperation;
 import cloud.fogbow.common.models.Permission;
 import cloud.fogbow.common.models.Role;
-import cloud.fogbow.ras.constants.Messages;
-import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.RolePolicy;
 
-public abstract class BaseRolePolicy implements RolePolicy {
+public abstract class BaseRolePolicy<T extends FogbowOperation> implements RolePolicy<T> {
     
     private static final Logger LOGGER = Logger.getLogger(BaseRolePolicy.class);
     
-    protected Map<String, Permission<RasOperation>> permissions;
-    protected Map<String, Role<RasOperation>> availableRoles;
+    protected Map<String, Permission<T>> permissions;
+    protected Map<String, Role<T>> availableRoles;
     protected Map<String, Set<String>> usersRoles;
     protected Set<String> defaultRoles;
     protected String adminRole;
@@ -25,12 +25,12 @@ public abstract class BaseRolePolicy implements RolePolicy {
     public static final String POLICY_TYPE = "role";
     
     @Override
-    public Map<String, Permission<RasOperation>> getPermissions() {
+    public Map<String, Permission<T>> getPermissions() {
         return permissions;
     }
 
     @Override
-    public Map<String, Role<RasOperation>> getRoles() {
+    public Map<String, Role<T>> getRoles() {
         return availableRoles;
     }
 
@@ -54,7 +54,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
     }
     
     private void checkAllRolePermissionsExist() throws ConfigurationErrorException {
-        for (Role<RasOperation> role : availableRoles.values()) {
+        for (Role<T> role : availableRoles.values()) {
             if (!permissions.keySet().contains(role.getPermission())) {
                 throw new ConfigurationErrorException(String.format(Messages.Exception.ROLE_PERMISSION_DOES_NOT_EXIST, role.getPermission(), role.getName()));
             }
@@ -96,7 +96,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
     }
 
     @Override
-    public boolean userIsAuthorized(String user, RasOperation operation) {
+    public boolean userIsAuthorized(String user, T operation) {
         Set<String> userRoles = getUserRoles(user);
         return checkRolesPermissions(operation, userRoles);
     }
@@ -113,9 +113,9 @@ public abstract class BaseRolePolicy implements RolePolicy {
         return userRoles;
     }
     
-    private boolean checkRolesPermissions(RasOperation operation, Set<String> userRoles) {
+    private boolean checkRolesPermissions(T operation, Set<String> userRoles) {
         for (String roleName : userRoles) {
-            Role<RasOperation> role = availableRoles.get(roleName);
+            Role<T> role = availableRoles.get(roleName);
             if (this.permissions.get(role.getPermission()).isAuthorized(operation)) {
                 return true;
             }
@@ -125,7 +125,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
     }
     
     @Override
-    public void update(RolePolicy policy) {
+    public void update(RolePolicy<T> policy) {
         // updatePolicy operation adds new fields if they do not exist, updates existing ones and 
         // removes if the field is empty
         
@@ -135,8 +135,8 @@ public abstract class BaseRolePolicy implements RolePolicy {
         updateDefaultRole(policy);
     }
     
-    private void updatePermissions(RolePolicy policy) {
-        Map<String, Permission<RasOperation>> permissions = policy.getPermissions();
+    private void updatePermissions(RolePolicy<T> policy) {
+        Map<String, Permission<T>> permissions = policy.getPermissions();
         
         for (String permissionName : permissions.keySet()) {
             // Currently, if the permission value is null, we treat
@@ -150,8 +150,8 @@ public abstract class BaseRolePolicy implements RolePolicy {
         }
     }
     
-    private void updateRoles(RolePolicy policy) {
-        Map<String, Role<RasOperation>> availableRoles = policy.getRoles();
+    private void updateRoles(RolePolicy<T> policy) {
+        Map<String, Role<T>> availableRoles = policy.getRoles();
         
         for (String roleName : availableRoles.keySet()) {
             // Currently, if the role value is null, we treat
@@ -165,7 +165,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
         }
     }
     
-    private void updateUsers(RolePolicy policy) {
+    private void updateUsers(RolePolicy<T> policy) {
         Map<String, Set<String>> usersRoles = policy.getUsersRoles();
         
         for (String userId : usersRoles.keySet()) {
@@ -180,7 +180,7 @@ public abstract class BaseRolePolicy implements RolePolicy {
         }
     }
 
-    private void updateDefaultRole(RolePolicy policy) {
+    private void updateDefaultRole(RolePolicy<T> policy) {
         Set<String> defaultRoles = policy.getDefaultRole();
         
         this.defaultRoles = defaultRoles;

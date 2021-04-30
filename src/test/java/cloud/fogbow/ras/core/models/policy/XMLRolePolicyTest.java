@@ -25,30 +25,25 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
+import cloud.fogbow.common.models.FogbowOperation;
 import cloud.fogbow.common.models.Permission;
 import cloud.fogbow.common.models.Role;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.common.util.XMLUtils;
-import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PermissionInstantiator;
-import cloud.fogbow.ras.core.PropertiesHolder;
-import cloud.fogbow.ras.core.models.Operation;
-import cloud.fogbow.ras.core.models.RasOperation;
-import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({XMLUtils.class, PropertiesHolder.class})
+@PrepareForTest({XMLUtils.class})
 public class XMLRolePolicyTest {
 
-    private PermissionInstantiator permissionInstantiator;
+    private PermissionInstantiator<FogbowOperation> permissionInstantiator;
     
     private String adminRole = "admin";
-    private Permission<RasOperation> permission1;
-    private AllowAllExceptPermission permission2;
-    private AllowAllExceptPermission permission3;
-    private AllowAllExceptPermission updatedPermission3;
+    private StubPermission permission1;
+    private StubPermission permission2;
+    private StubPermission permission3;
+    private StubPermission updatedPermission3;
     private String operationsPermission1 = "reload,create,getAll";
     private String operationsPermission2 = "reload";
     private String operationsPermission3 = "hibernate";
@@ -63,9 +58,10 @@ public class XMLRolePolicyTest {
     private String userId2 = "userid2";
     private String userId3 = "userid3";
     
-    private Set<Operation> operationsPermission1Set;
-    private Set<Operation> operationsPermission2Set;
-    private Set<Operation> operationsPermission3Set;
+    private Set<String> operationsPermission1StringSet;
+    private Set<String> operationsPermission2StringSet;
+    private Set<String> operationsPermission3StringSet;
+    private Set<String> operationsUpdatedPermission3StringSet;
     
     private Element permissionNode1;
     private Element permissionNode2;
@@ -92,24 +88,26 @@ public class XMLRolePolicyTest {
     private String policyFileName = "policy.xml";
     private String policyFilePath = HomeDir.getPath() + policyFileName;
 
-    private RasOperation operationGet;
-    private RasOperation operationCreate;
-    private RasOperation operationReload;
-
-    private String identityProviderId = "providerId";
-
     @Before
     public void setUp() {
-        this.operationsPermission1Set = setUpOperations(Operation.RELOAD, Operation.CREATE, Operation.GET_ALL);
-        this.permission1 = new AllowAllExceptPermission(permissionName1, operationsPermission1Set);
+        this.operationsPermission1StringSet = new HashSet<String>();
+        this.operationsPermission1StringSet.add("reload");
+        this.operationsPermission1StringSet.add("create");
+        this.operationsPermission1StringSet.add("getAll");
+        this.permission1 = new StubPermission(operationsPermission1StringSet, permissionName1);
         
-        this.operationsPermission2Set = setUpOperations(Operation.RELOAD);
-        this.permission2 = new AllowAllExceptPermission(permissionName2, operationsPermission2Set);
+        this.operationsPermission2StringSet = new HashSet<String>();
+        this.operationsPermission2StringSet.add("reload");
+        this.permission2 = new StubPermission(operationsPermission2StringSet, permissionName2);
         
-        this.operationsPermission3Set = setUpOperations(Operation.HIBERNATE);
-        this.permission3 = new AllowAllExceptPermission(permissionName3, operationsPermission3Set);
+        this.operationsPermission3StringSet = new HashSet<String>();
+        this.operationsPermission3StringSet.add("hibernate");
         
-        this.updatedPermission3 = new AllowAllExceptPermission(permissionName2, operationsPermission2Set); 
+        this.permission3 = new StubPermission(operationsPermission3StringSet, permissionName3);
+        this.operationsUpdatedPermission3StringSet = new HashSet<String>();
+        this.operationsUpdatedPermission3StringSet.add("reload");
+        
+        this.updatedPermission3 = new StubPermission(operationsPermission2StringSet, permissionName2);
         
         builder = new RootMockBuilder();
     }
@@ -123,16 +121,18 @@ public class XMLRolePolicyTest {
     // the user has enough permission to perform the given operation
     @Test
     public void testUserIsAuthorized() throws ConfigurationErrorException, WrongPolicyTypeException {
+        // set up operations
+        FogbowOperation operation1 = new FogbowOperation();
+        FogbowOperation operation2 = new FogbowOperation();
+
+        this.permission1 = Mockito.mock(StubPermission.class);
+        Mockito.when(this.permission1.isAuthorized(Mockito.any())).thenReturn(true);
+        
+        this.permission2 = Mockito.mock(StubPermission.class);
+        Mockito.when(this.permission2.isAuthorized(Mockito.any())).thenReturn(false);
+        
         setUpMocks();
 
-        // set up operations
-        this.operationGet = new RasOperation(Operation.GET, ResourceType.ATTACHMENT, 
-                identityProviderId , identityProviderId);
-        this.operationCreate = new RasOperation(Operation.CREATE, ResourceType.ATTACHMENT, 
-                identityProviderId, identityProviderId);
-        this.operationReload = new RasOperation(Operation.RELOAD, ResourceType.CONFIGURATION, 
-                identityProviderId, identityProviderId);
-        
         Element rootWithAllData = builder.usingPermissions(permissionNode1, permissionNode2, permissionNode3).
                                           usingRoles(roleNode1, roleNode2).
                                           usingUsers(userNode1, userNode2).
@@ -142,15 +142,13 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         
-        XMLRolePolicy policy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
+        XMLRolePolicy<FogbowOperation> policy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, adminRole, policyFilePath);
         
-        assertTrue(policy.userIsAuthorized(userId1, this.operationGet));
-        assertTrue(policy.userIsAuthorized(userId1, this.operationCreate));
-        assertFalse(policy.userIsAuthorized(userId1, this.operationReload));
+        assertFalse(policy.userIsAuthorized(userId1, operation1));
+        assertTrue(policy.userIsAuthorized(userId2, operation2));
         
-        assertTrue(policy.userIsAuthorized(userId2, this.operationGet));
-        assertFalse(policy.userIsAuthorized(userId2, this.operationCreate));
-        assertFalse(policy.userIsAuthorized(userId2, this.operationReload));
+        Mockito.verify(this.permission1).isAuthorized(operation2);
+        Mockito.verify(this.permission2).isAuthorized(operation1);
     }
     
     // test case: when creating a new policy instance from a XML string, the constructor
@@ -168,10 +166,10 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(root1);
         
-        XMLRolePolicy policy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
+        XMLRolePolicy<FogbowOperation> policy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, adminRole, policyFilePath);
         
-        Map<String, Permission<RasOperation>> permissions = policy.getPermissions();
-        Map<String, Role<RasOperation>> availableRoles = policy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissions = policy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRoles = policy.getRoles();
         Map<String, Set<String>> usersRoles = policy.getUsersRoles();
         Set<String> defaultRoles = policy.getDefaultRole();
         
@@ -208,7 +206,7 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(root1);
         
-        new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
+        new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, adminRole, policyFilePath);
     }
     
     // test case: when calling the method update using a version of the policy
@@ -239,8 +237,8 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithMissingData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToAdd);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, adminRole, policyFilePath);
         
         // before updating
         checkPolicyMissingData(basePolicy);
@@ -250,8 +248,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -304,8 +302,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToRemove);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyAllData(basePolicy);        
@@ -314,8 +314,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -363,8 +363,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyAllData(basePolicy);
@@ -374,8 +376,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -418,8 +420,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyAllData(basePolicy);
@@ -429,8 +433,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -475,8 +479,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyAllData(basePolicy);
@@ -486,8 +492,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -533,8 +539,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyAllData(basePolicy);
@@ -544,8 +552,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -592,8 +600,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyAllData(basePolicy);
@@ -603,8 +613,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -650,8 +660,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithMissingData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyMissingData(basePolicy);
@@ -661,8 +673,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -704,8 +716,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithMissingData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyMissingData(basePolicy);
@@ -715,8 +729,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -759,8 +773,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithMissingData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyMissingData(basePolicy);
@@ -770,8 +786,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -815,8 +831,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyAllData(basePolicy);
@@ -826,8 +844,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -873,8 +891,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyAllData(basePolicy);
@@ -884,8 +904,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -930,8 +950,10 @@ public class XMLRolePolicyTest {
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringBeforeUpdate)).willReturn(rootWithAllData);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAfterUpdate)).willReturn(rootWithDataToUpdate);
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringBeforeUpdate);
-        XMLRolePolicy updatePolicy = new XMLRolePolicy(permissionInstantiator, xmlStringAfterUpdate);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringBeforeUpdate, 
+                adminRole, policyFilePath);
+        XMLRolePolicy<FogbowOperation> updatePolicy = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAfterUpdate, 
+                adminRole, policyFilePath);
         
         // before updating
         checkPolicyAllData(basePolicy);
@@ -941,8 +963,8 @@ public class XMLRolePolicyTest {
         
         
         // after updating
-        Map<String, Permission<RasOperation>> permissionsAfter = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesAfter = basePolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsAfter = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesAfter = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesAfter = basePolicy.getUsersRoles();
         Set<String> defaultRolesAfter = basePolicy.getDefaultRole();
         
@@ -984,7 +1006,8 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringMinimal)).willReturn(rootMinimal);
         
-        XMLRolePolicy minimal = new XMLRolePolicy(permissionInstantiator, xmlStringMinimal);
+        XMLRolePolicy<FogbowOperation> minimal = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringMinimal, 
+                adminRole, policyFilePath);
         
         minimal.validate();
         
@@ -1000,7 +1023,8 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAllData)).willReturn(rootWithAllData);
         
-        XMLRolePolicy allData = new XMLRolePolicy(permissionInstantiator, xmlStringAllData);
+        XMLRolePolicy<FogbowOperation> allData = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAllData, 
+                adminRole, policyFilePath);
         
         allData.validate();
     }
@@ -1021,7 +1045,8 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringNoDefaultRole)).willReturn(rootNoDefaultRole);
         
-        XMLRolePolicy noDefaultRole = new XMLRolePolicy(permissionInstantiator, xmlStringNoDefaultRole);
+        XMLRolePolicy<FogbowOperation> noDefaultRole = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringNoDefaultRole, 
+                adminRole, policyFilePath);
         
         noDefaultRole.validate();
     }
@@ -1043,7 +1068,8 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringRoleDoesNotExist)).willReturn(rootRoleDoesNotExist);
         
-        XMLRolePolicy roleDoesNotExist = new XMLRolePolicy(permissionInstantiator, xmlStringRoleDoesNotExist);
+        XMLRolePolicy<FogbowOperation> roleDoesNotExist = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringRoleDoesNotExist, 
+                adminRole, policyFilePath);
         
         roleDoesNotExist.validate();
     }
@@ -1065,7 +1091,8 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringPermissionDoesNotExist)).willReturn(rootPermissionDoesNotExist);
         
-        XMLRolePolicy permissionDoesNotExist = new XMLRolePolicy(permissionInstantiator, xmlStringPermissionDoesNotExist);
+        XMLRolePolicy<FogbowOperation> permissionDoesNotExist = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringPermissionDoesNotExist, 
+                adminRole, policyFilePath);
         
         permissionDoesNotExist.validate();
     }
@@ -1087,7 +1114,8 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringDefaultRoleDoesNotExist)).willReturn(rootDefaultRoleDoesNotExist);
         
-        XMLRolePolicy defaultRoleDoesNotExist = new XMLRolePolicy(permissionInstantiator, xmlStringDefaultRoleDoesNotExist);
+        XMLRolePolicy<FogbowOperation> defaultRoleDoesNotExist = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringDefaultRoleDoesNotExist, 
+                adminRole, policyFilePath);
         
         defaultRoleDoesNotExist.validate();
     }
@@ -1109,7 +1137,8 @@ public class XMLRolePolicyTest {
         PowerMockito.mockStatic(XMLUtils.class);
         BDDMockito.given(XMLUtils.getRootNodeFromXMLString(xmlStringAdminRoleDoesNotExist)).willReturn(rootAdminRoleDoesNotExist);
         
-        XMLRolePolicy adminRoleDoesNotExist = new XMLRolePolicy(permissionInstantiator, xmlStringAdminRoleDoesNotExist);
+        XMLRolePolicy<FogbowOperation> adminRoleDoesNotExist = new XMLRolePolicy<FogbowOperation>(permissionInstantiator, xmlStringAdminRoleDoesNotExist, 
+                adminRole, policyFilePath);
         
         adminRoleDoesNotExist.validate();
     }
@@ -1156,16 +1185,18 @@ public class XMLRolePolicyTest {
 
         assertFalse(fileExists(policyFilePath));
         
-        XMLRolePolicy basePolicy = new XMLRolePolicy(new PermissionInstantiator(), xmlString);
+        XMLRolePolicy<FogbowOperation> basePolicy = new XMLRolePolicy<FogbowOperation>(new StubPermissionInstantiator(), xmlString, 
+                adminRole, policyFilePath);
         basePolicy.save();
         
         assertTrue(fileExists(policyFilePath));
         
         File policyFile = new File(policyFilePath);
-        XMLRolePolicy loadedPolicy = new XMLRolePolicy(new PermissionInstantiator(), policyFile);
+        XMLRolePolicy<FogbowOperation> loadedPolicy = new XMLRolePolicy<FogbowOperation>(new StubPermissionInstantiator(), policyFile, 
+                adminRole, policyFilePath);
         
-        Map<String, Permission<RasOperation>> permissionsBefore = loadedPolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesBefore = loadedPolicy.getRoles();
+        Map<String, Permission<FogbowOperation>> permissionsBefore = loadedPolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesBefore = loadedPolicy.getRoles();
         Map<String, Set<String>> usersRolesBefore = loadedPolicy.getUsersRoles();
         Set<String> defaultRolesBefore = loadedPolicy.getDefaultRole();
         
@@ -1194,9 +1225,9 @@ public class XMLRolePolicyTest {
         return Files.exists(file.toPath());
     }
     
-    private void checkPolicyAllData(XMLRolePolicy basePolicy) {
-        Map<String, Permission<RasOperation>> permissionsBefore = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesBefore = basePolicy.getRoles();
+    private void checkPolicyAllData(XMLRolePolicy<FogbowOperation> basePolicy) {
+        Map<String, Permission<FogbowOperation>> permissionsBefore = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesBefore = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesBefore = basePolicy.getUsersRoles();
         Set<String> defaultRolesBefore = basePolicy.getDefaultRole();
         
@@ -1221,9 +1252,9 @@ public class XMLRolePolicyTest {
         assertTrue(defaultRolesBefore.contains(roleName2));
     }
     
-    private void checkPolicyMissingData(XMLRolePolicy basePolicy) {
-        Map<String, Permission<RasOperation>> permissionsBefore = basePolicy.getPermissions();
-        Map<String, Role<RasOperation>> availableRolesBefore = basePolicy.getRoles();
+    private void checkPolicyMissingData(XMLRolePolicy<FogbowOperation> basePolicy) {
+        Map<String, Permission<FogbowOperation>> permissionsBefore = basePolicy.getPermissions();
+        Map<String, Role<FogbowOperation>> availableRolesBefore = basePolicy.getRoles();
         Map<String, Set<String>> usersRolesBefore = basePolicy.getUsersRoles();
         Set<String> defaultRolesBefore = basePolicy.getDefaultRole();
         
@@ -1244,17 +1275,11 @@ public class XMLRolePolicyTest {
     }
     
     private void setUpMocks() throws ConfigurationErrorException {
-        PowerMockito.mockStatic(PropertiesHolder.class);
-        PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
-        Mockito.doReturn(adminRole).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.ADMIN_ROLE);
-        Mockito.doReturn(policyFileName).when(propertiesHolder).getProperty(ConfigurationPropertyKeys.POLICY_FILE_KEY);
-        BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
-        
         this.permissionInstantiator = Mockito.mock(PermissionInstantiator.class);
-        Mockito.doReturn(this.permission1).when(permissionInstantiator).getPermissionInstance(type1, permissionName1, operationsPermission1Set);
-        Mockito.doReturn(this.permission2).when(permissionInstantiator).getPermissionInstance(type1, permissionName2, operationsPermission2Set);
-        Mockito.doReturn(this.permission3).when(permissionInstantiator).getPermissionInstance(type1, permissionName3, operationsPermission3Set);
-        Mockito.doReturn(this.updatedPermission3).when(permissionInstantiator).getPermissionInstance(type2, permissionName3, operationsPermission2Set);
+        Mockito.doReturn(this.permission1).when(permissionInstantiator).getPermissionInstance(type1, permissionName1, operationsPermission1StringSet);
+        Mockito.doReturn(this.permission2).when(permissionInstantiator).getPermissionInstance(type1, permissionName2, operationsPermission2StringSet);
+        Mockito.doReturn(this.permission3).when(permissionInstantiator).getPermissionInstance(type1, permissionName3, operationsPermission3StringSet);
+        Mockito.doReturn(this.updatedPermission3).when(permissionInstantiator).getPermissionInstance(type2, permissionName3, operationsUpdatedPermission3StringSet);
         
         setUpPermissionMocks();
         setUpRoleMocks();
@@ -1329,16 +1354,6 @@ public class XMLRolePolicyTest {
         return user;
     }
 
-    private Set<Operation> setUpOperations(Operation ... operations) {
-        Set<Operation> operationsSet = new HashSet<Operation>();
-        
-        for (Operation operation : operations) {
-            operationsSet.add(operation);
-        }
-        
-        return operationsSet;
-    }
-    
     private class RootMockBuilder {
         private List<Element> permissions;
         private List<Element> roles;
@@ -1399,6 +1414,63 @@ public class XMLRolePolicyTest {
             Mockito.doReturn(policyType).when(typeRoot1).getText();
             
             return root;
+        }
+    }
+    
+    public class StubPermissionInstantiator implements PermissionInstantiator<FogbowOperation> {
+
+        @Override
+        public Permission<FogbowOperation> getPermissionInstance(String type, String... params) {
+            return new StubPermission();
+        }
+
+        @Override
+        public Permission<FogbowOperation> getPermissionInstance(String type, String name, Set<String> operations) {
+            return new StubPermission(operations, name);
+        }
+    }
+
+    public class StubPermission implements Permission<FogbowOperation> {
+
+        private Set<String> operations;
+        private String name;
+
+        public StubPermission() {
+            this.operations = new HashSet<String>();
+        }
+
+        public StubPermission(Set<String> operations, String name) {
+            this.operations = operations;
+            this.name = name;
+        }
+
+        @Override
+        public boolean isAuthorized(FogbowOperation operation) {
+            return true;
+        }
+
+        @Override
+        public Set<String> getOperationsTypes() {
+            return this.operations;
+        }
+
+        @Override
+        public void setOperationTypes(Set operations) {
+            this.operations = (Set<String>) operations;
+        }
+
+        @Override
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof StubPermission) {
+                return this.name.equals(((StubPermission) o).name);
+            }
+
+            return false;
         }
     }
 }
