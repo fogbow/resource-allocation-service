@@ -65,10 +65,17 @@ public class AllowAllExceptPermission implements Permission<RasOperation> {
         
         return operationsStrings;
     }
-
+    
+    // TODO test 
     @Override
-    public void setOperationTypes(Set operations) {
-        this.notAllowedOperationTypes = (Set<Operation>) operations;
+    public void setOperationTypes(Set<String> operations) {
+        Set<Operation> rasOperations = new HashSet<Operation>();
+        
+        for (String operationName : operations) {
+            rasOperations.add(Operation.fromString(operationName));
+        }
+
+        this.notAllowedOperationTypes = rasOperations;
     }
 
     @Override
