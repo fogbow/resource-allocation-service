@@ -4,6 +4,7 @@ public class Messages {
 
     public static class Exception {
         public static final String ACTIVE_SOURCE_COMPUTE = "The source compute needs to be paused or hibernated before taking the snapshot.";
+        public static final String ADMIN_ROLE_NOT_SPECIFIED = "Admin role is not specified in the configuration file.";
         public static final String CLOUD_NAMES_DO_NOT_MATCH = "The embedded resource has not been instantiated in the same cloud.";
         public static final String DEFAULT_CREDENTIALS_NOT_FOUND = "Default credentials not found.";
         public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found.";
@@ -49,6 +50,8 @@ public class Messages {
         public static final String NO_SECURITY_GROUP_FOUND_S = "There is no security group with the id %s";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
         public static final String PAUSE_OPERATION_ONGOING = "The virtual Machine is already being paused.";
+        public static final String POLICY_CLASS_NOT_SPECIFIED = "Policy class is not specified in the configuration file.";
+        public static final String POLICY_FILE_NAME_NOT_SPECIFIED = "Policy file name is not specified in the configuration file.";
         public static final String PORT_NOT_FOUND_S = "No port found connecting virtual machine %s to default network %s.";
         public static final String PROVIDERS_DONT_MATCH = "The attachment provider does not match with the compute and/or volume providers.";
         public static final String PROVIDER_IS_NOT_AUTHORIZED = "Provider is not authorized.";
