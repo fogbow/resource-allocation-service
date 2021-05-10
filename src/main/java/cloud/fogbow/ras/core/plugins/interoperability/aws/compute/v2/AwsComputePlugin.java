@@ -160,12 +160,15 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
 
     @Override
     public boolean isPaused(String cloudState) throws FogbowException {
-        return false;
+        return AwsV2StateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.PAUSED);
     }
 
     @Override
     public boolean isHibernated(String cloudState) throws FogbowException {
-        return false;
+        // AWS API uses the state "stopped" to represent both stopped and hibernated instances.
+        // Therefore, it is not possible to map correctly the hibernated state and, thus,
+        // here we use the PAUSED state.
+        return AwsV2StateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.PAUSED);
     }
 
     @Override

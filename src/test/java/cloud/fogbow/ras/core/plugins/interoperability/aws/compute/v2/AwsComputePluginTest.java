@@ -21,7 +21,6 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -275,6 +274,63 @@ public class AwsComputePluginTest extends BaseUnitTests {
         // exercise
         boolean status = this.plugin.hasFailed(cloudState);
 
+        // verify
+        Assert.assertFalse(status);
+    }
+    
+    // test case: When calling the isPaused method with a cloud state equal to
+    // STOPPED_STATE, it must return true.
+    @Test
+    public void testIsPaused() throws FogbowException {
+        // set up
+        String cloudState = AwsV2StateMapper.STOPPED_STATE;
+        
+        // exercise
+        boolean status = this.plugin.isPaused(cloudState);
+        
+        // verify
+        Assert.assertTrue(status);
+        
+    }
+    
+    // test case: When calling the isPaused method with a cloud state different
+    // from STOPPED_STATE, it must return false.
+    @Test
+    public void testIsNotPaused() throws FogbowException {
+        // set up
+        String cloudState = AwsV2StateMapper.RUNNING_STATE;        
+        
+        // exercise
+        boolean status = this.plugin.isPaused(cloudState);
+        
+        // verify
+        Assert.assertFalse(status);
+    }
+    
+    // test case: When calling the isHibernated method with a cloud state equal to
+    // STOPPED_STATE, it must return true.
+    @Test
+    public void testIsHibernated() throws FogbowException {
+        // set up
+        String cloudState = AwsV2StateMapper.STOPPED_STATE;        
+        
+        // exercise
+        boolean status = this.plugin.isHibernated(cloudState);
+        
+        // verify
+        Assert.assertTrue(status);
+    }
+    
+    // test case: When calling the isHibernated method with a cloud state different
+    // from STOPPED_STATE, it must return false.
+    @Test
+    public void testIsNotHibernated() throws FogbowException {
+        // set up
+        String cloudState = AwsV2StateMapper.RUNNING_STATE;        
+        
+        // exercise
+        boolean status = this.plugin.isHibernated(cloudState);
+        
         // verify
         Assert.assertFalse(status);
     }
