@@ -35,9 +35,9 @@ public class PublicIpOrder extends Order<PublicIpOrder> {
 
     }
 
-    public PublicIpOrder(SystemUser systemUser, String requestingProvider, String providingProvider, String cloudName,
+    public PublicIpOrder(SystemUser systemUser, String requester, String provider, String cloudName,
                          String computeOrderId) {
-        super(UUID.randomUUID().toString(), providingProvider, cloudName, systemUser, requestingProvider);
+        super(UUID.randomUUID().toString(), provider, cloudName, systemUser, requester);
         this.computeOrderId = computeOrderId;
         this.type = ResourceType.PUBLIC_IP;
     }

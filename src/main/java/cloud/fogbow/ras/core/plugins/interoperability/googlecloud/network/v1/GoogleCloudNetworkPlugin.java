@@ -11,7 +11,6 @@ import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.googlecloud.GoogleCloudHttpClient;
 import cloud.fogbow.ras.api.http.response.InstanceState;
 import cloud.fogbow.ras.api.http.response.NetworkInstance;
-import cloud.fogbow.ras.api.parameters.Network;
 import cloud.fogbow.ras.api.parameters.SecurityRule;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
@@ -50,10 +49,7 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
     @VisibleForTesting
     static final String SIMULATED_RUNNING_RESOURCE_KEY = "running";
     @VisibleForTesting
-    static final String SIMULATED_ERROR_RESOURCE_KEY = "error";
-
-    
-    private static final String SUBNET_PREFIX = "-subnet";
+    static final String SUBNET_PREFIX = "-subnet";
 
     private String networkV1ApiEndpoint;
     private GoogleCloudHttpClient client;
@@ -64,8 +60,8 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
         this.confFilePath = confFilePath;
         Properties properties = PropertiesUtil.readProperties(confFilePath);
         //getProperties for the region field
-        this.networkV1ApiEndpoint = GoogleCloudConstants.BASE_COMPUTE_API_URL +
-        GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT + GoogleCloudConstants.PROJECT_ENDPOINT;
+        this.networkV1ApiEndpoint = GoogleCloudConstants.BASE_COMPUTE_API_URL
+                + GoogleCloudConstants.COMPUTE_ENGINE_V1_ENDPOINT + GoogleCloudConstants.PROJECT_ENDPOINT;
         this.region = DEFAULT_SUBNETWORK_REGION;
         initClient();
     }
@@ -92,7 +88,8 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
         return insertedNetworkId;
     }
 
-    private void doCreateDefaultIngressSecurityRule(NetworkOrder networkOrder, GoogleCloudUser cloudUser, String insertedNetworkUrl) throws FogbowException {
+    @VisibleForTesting
+    void doCreateDefaultIngressSecurityRule(NetworkOrder networkOrder, GoogleCloudUser cloudUser, String insertedNetworkUrl) throws FogbowException {
         CreateFirewallRuleRequest request = createDefaultIngressSecurityRule(networkOrder, this.confFilePath);
         try{
             String endpoint = this.networkV1ApiEndpoint
@@ -125,7 +122,7 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
     }
 
     @VisibleForTesting
-    public NetworkInstance buildNetworkInstance(String json, GoogleCloudUser cloudUser, NetworkOrder order) throws FogbowException{
+    NetworkInstance buildNetworkInstance(String json, GoogleCloudUser cloudUser, NetworkOrder order) throws FogbowException{
         GetNetworkResponse getNetworkResponse = GetNetworkResponse.fromJson(json);
 
         String networkId = getNetworkResponse.getId();
@@ -145,33 +142,35 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
             gateway = subnetworkInfo.getGatewayAddress();
 
             allocationMode = order.getAllocationMode() == null ? NetworkAllocationMode.DYNAMIC : order.getAllocationMode();
-        }catch (JSONException je){
+        } catch (JSONException je) {
             LOGGER.error(String.format(Messages.Log.UNABLE_TO_GET_NETWORK_S, json), je);
             throw new InternalServerErrorException(String.format(Messages.Exception.UNABLE_TO_GET_NETWORK_S, json));
         }
 
         NetworkInstance instance = null;
 
-        if(networkId != null){
+        if(networkId != null) {
             instance = new NetworkInstance(networkId, SIMULATED_RUNNING_RESOURCE_KEY, name, cidr, gateway,
                     null, allocationMode, null, null, null);
         }
         return instance;
     }
+
     @VisibleForTesting
-    public GetSubnetworkResponse getSubnetworkInfo(GoogleCloudUser cloudUser, String subnetLink) throws FogbowException{
+    GetSubnetworkResponse getSubnetworkInfo(GoogleCloudUser cloudUser, String subnetLink) throws FogbowException{
         String response = this.client.doGetRequest(subnetLink, cloudUser);
         GetSubnetworkResponse getSubnetworkResponse = GetSubnetworkResponse.fromJson(response);
         return  getSubnetworkResponse;
     }
 
     @VisibleForTesting
-    public String doGetInstance(String endPoint, GoogleCloudUser cloudUser) throws FogbowException{
+    String doGetInstance(String endPoint, GoogleCloudUser cloudUser) throws FogbowException{
         String responseStr = doGetRequest(cloudUser, endPoint);
         return responseStr;
     }
+
     @VisibleForTesting
-    public String doGetRequest(GoogleCloudUser cloudUser, String endPoint) throws FogbowException{
+    String doGetRequest(GoogleCloudUser cloudUser, String endPoint) throws FogbowException{
         String responseStr = this.client.doGetRequest(endPoint, cloudUser);
         return responseStr;
     }
@@ -193,9 +192,10 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
         LOGGER.info(String.format(Messages.Log.DELETING_INSTANCE_S, instanceName));
         doDeleteInstance(instanceName, cloudUser, instanceId);
     }
+
     @VisibleForTesting
-    public void doDeleteInstance(String instanceName, GoogleCloudUser cloudUser, String instanceId) throws InternalServerErrorException, FogbowException{
-        try{
+    void doDeleteInstance(String instanceName, GoogleCloudUser cloudUser, String instanceId) throws InternalServerErrorException, FogbowException{
+        try {
             String endPoint = this.networkV1ApiEndpoint
                     + GoogleCloudConstants.ENDPOINT_SEPARATOR
                     + GoogleCloudPluginUtils.getProjectIdFrom(cloudUser)
@@ -203,15 +203,16 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
                     + GoogleCloudConstants.ENDPOINT_SEPARATOR
                     + instanceName;
             this.client.doDeleteRequest(endPoint, cloudUser);
-        }catch (InstanceNotFoundException infe){
+        } catch (InstanceNotFoundException infe) {
             LOGGER.warn(String.format(Messages.Log.NETWORK_NOT_FOUND_S, instanceId), infe);
-        }catch (FogbowException fe){
+        } catch (FogbowException fe) {
             LOGGER.error(String.format(Messages.Log.UNABLE_TO_DELETE_NETWORK_WITH_ID_S, instanceId), fe);
             throw fe;
         }
     }
 
-    public static CreateFirewallRuleRequest createDefaultIngressSecurityRule(Order majorOrder, String confFilePath){
+    @VisibleForTesting
+    CreateFirewallRuleRequest createDefaultIngressSecurityRule(Order majorOrder, String confFilePath){
         SecurityRule.Protocol protocol = SecurityRule.Protocol.ANY;
         SecurityRule.EtherType etherType = SecurityRule.EtherType.IPv4;
         SecurityRule.Direction direction = SecurityRule.Direction.IN;
@@ -227,14 +228,17 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
         SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
 
         GoogleCloudSecurityRulePlugin googleCloudSecurityRulePluginTemp = new GoogleCloudSecurityRulePlugin(confFilePath);
-
+        
+        // FIXME this code should not call this method. It should use SecurityRule creation
+        // API instead.
         return googleCloudSecurityRulePluginTemp.buildCreateSecurityRuleRequest(
                 securityRule,
                 majorOrder,
                 securityRuleName);
     }
+
     @VisibleForTesting
-    public InsertNetworkResponse insertNetwork(String networkName, GoogleCloudUser cloudUser, String projectId) throws FogbowException{
+    InsertNetworkResponse insertNetwork(String networkName, GoogleCloudUser cloudUser, String projectId) throws FogbowException{
         InsertNetworkResponse insertNetworkResponse = null;
         InsertNetworkRequest insertNetworkRequest = new InsertNetworkRequest.Builder()
                 .name(networkName)
@@ -245,37 +249,38 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
         String endPoint = this.networkV1ApiEndpoint + GoogleCloudConstants.ENDPOINT_SEPARATOR +
                 projectId + GoogleCloudConstants.GLOBAL_NETWORKS_ENDPOINT;
 
-
         try {
             String response = this.client.doPostRequest(endPoint, insertNetworkRequest.toJson(), cloudUser);
             insertNetworkResponse = InsertNetworkResponse.fromJson(response);
-        }catch (JsonSyntaxException e){
-            LOGGER.error(Messages.Log.UNABLE_TO_GENERATE_JSON, e);
+        } catch (JsonSyntaxException jse) {
+            LOGGER.error(Messages.Log.UNABLE_TO_GENERATE_JSON, jse);
             throw new InternalServerErrorException(Messages.Exception.UNABLE_TO_GENERATE_JSON);
         }
-        return  insertNetworkResponse;
 
+        return insertNetworkResponse;
     }
+
     @VisibleForTesting
     public void insertSubnetwork(GoogleCloudUser cloudUser, NetworkOrder networkOrder, String insertedNetworkUrl, String projectId) throws FogbowException{
-
         try {
-            String jsonRequest = generateJsonEntityToCreateSubnetwork(insertedNetworkUrl, projectId, networkOrder);
+            String jsonRequest = generateJsonEntityToCreateSubnetwork(insertedNetworkUrl, networkOrder);
             String endPoint = this.networkV1ApiEndpoint + GoogleCloudConstants.ENDPOINT_SEPARATOR
                     + projectId + GoogleCloudConstants.REGIONS_ENDPOINT
                     + GoogleCloudConstants.ENDPOINT_SEPARATOR + this.region + GoogleCloudConstants.SUBNETS_ENDPOINT;
             this.client.doPostRequest(endPoint, jsonRequest, cloudUser);
-        }catch (FogbowException fe){
+        } catch (FogbowException fe) {
             removeNetwork(insertedNetworkUrl, cloudUser);
             throw fe;
         }
     }
+
     @VisibleForTesting
-    public void removeNetwork(String networkUrl, GoogleCloudUser cloudUser) throws FogbowException{
+    void removeNetwork(String networkUrl, GoogleCloudUser cloudUser) throws FogbowException{
         this.client.doDeleteRequest(networkUrl, cloudUser);
     }
 
-    private String generateJsonEntityToCreateSubnetwork(String insertedNetworkUrl, String projectId, NetworkOrder networkOrder) {
+    @VisibleForTesting
+    String generateJsonEntityToCreateSubnetwork(String insertedNetworkUrl, NetworkOrder networkOrder) {
         String subnetName = networkOrder.getName() + SUBNET_PREFIX;
 
         String subNetworkCidr = networkOrder.getCidr();
@@ -286,6 +291,7 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
                 .network(insertedNetworkUrl)
                 .ipCidrRange(subNetworkCidr)
                 .build();
+
         return insertSubnetworkRequest.toJson();
     }
 
@@ -297,5 +303,4 @@ public class GoogleCloudNetworkPlugin implements NetworkPlugin<GoogleCloudUser> 
     public void setClient(GoogleCloudHttpClient client){
         this.client = client;
     }
-
 }

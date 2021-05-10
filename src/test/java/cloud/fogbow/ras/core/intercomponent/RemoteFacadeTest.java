@@ -205,7 +205,8 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		SystemUser systemUser = createFederationUser();
 
 		AuthorizationPlugin<RasOperation> authorization = Mockito.mock(DefaultAuthorizationPlugin.class);
-		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(new RasOperation(Operation.GET, ResourceType.COMPUTE)))).thenReturn(true);
+		Mockito.when(authorization.isAuthorized(Mockito.eq(systemUser), Mockito.eq(new RasOperation(Operation.GET, ResourceType.COMPUTE, 
+		        FAKE_REQUESTER_ID, FAKE_LOCALIDENTITY_PROVIDER)))).thenReturn(true);
 
 		this.facade.setAuthorizationPlugin(authorization);
 
@@ -266,7 +267,9 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		RasOperation operation = new RasOperation(
 				Operation.GET,
 				ResourceType.QUOTA,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				FAKE_REQUESTER_ID, 
+				FAKE_LOCALIDENTITY_PROVIDER
 		);
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
 
@@ -302,7 +305,9 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		RasOperation operation = new RasOperation(
 				Operation.GET,
 				ResourceType.IMAGE,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				FAKE_REQUESTER_ID, 
+				FAKE_LOCALIDENTITY_PROVIDER
 		);
 
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
@@ -335,7 +340,9 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		RasOperation operation = new RasOperation(
 				Operation.GET_ALL,
 				ResourceType.IMAGE,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME,
+				FAKE_REQUESTER_ID,
+				FAKE_LOCALIDENTITY_PROVIDER
 		);
 
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
@@ -363,10 +370,13 @@ public class RemoteFacadeTest extends BaseUnitTests {
 	public void testGetCloudNamesSuccessfully() throws Exception {
 		// set up
 		SystemUser systemUser = createFederationUser();
-
+		String requester = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
+		
 		RasOperation operation = new RasOperation(
 				Operation.GET,
-				ResourceType.CLOUD_NAME
+				ResourceType.CLOUD_NAME, 
+				FAKE_REQUESTER_ID,
+				requester
 		);
 
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
@@ -480,7 +490,9 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		RasOperation operation = new RasOperation(
 				Operation.DELETE,
 				ResourceType.SECURITY_RULE,
-				DEFAULT_CLOUD_NAME
+				DEFAULT_CLOUD_NAME, 
+				FAKE_REQUESTER_ID,
+				FAKE_LOCALIDENTITY_PROVIDER
 		);
 
 		AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);

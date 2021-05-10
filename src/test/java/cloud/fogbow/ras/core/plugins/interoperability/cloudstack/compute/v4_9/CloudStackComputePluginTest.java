@@ -1200,14 +1200,14 @@ public class CloudStackComputePluginTest extends BaseUnitTests {
     }
 
     private ComputeOrder createComputeOrder(ArrayList<UserData> fakeUserData, String fakeImageId) {
-        SystemUser requester = this.testUtils.createSystemUser();
+        SystemUser systemUser = this.testUtils.createSystemUser();
 
         NetworkOrder networkOrder = this.testUtils.createLocalNetworkOrder();
         networkOrder.setId(TestUtils.FAKE_NETWORK_ID);
         List<String> networkOrderIds = Mockito.spy(new ArrayList<>());
         networkOrderIds.add(networkOrder.getId());
 
-        ComputeOrder computeOrder = new ComputeOrder(requester, TestUtils.FAKE_REMOTE_MEMBER_ID,
+        ComputeOrder computeOrder = new ComputeOrder(systemUser, TestUtils.FAKE_REMOTE_MEMBER_ID,
                 TestUtils.FAKE_REMOTE_MEMBER_ID, TestUtils.DEFAULT_CLOUD_NAME,
                 "", TestUtils.CPU_VALUE, TestUtils.MEMORY_VALUE,
                 TestUtils.DISK_VALUE, fakeImageId, fakeUserData, "", networkOrderIds);

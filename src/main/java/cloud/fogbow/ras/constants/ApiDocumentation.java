@@ -11,7 +11,14 @@ public class ApiDocumentation {
     public static class Admin {
         public static final String API = "Manages admin-only operations";
         public static final String RELOAD_OPERATION = "Reloads configuration parameters.";
-        
+        public static final String SET_POLICY_OPERATION = "Overrides current authorization policy using given policy string.";
+        public static final String UPDATE_POLICY_OPERATION = "Updates current authorization policy using given policy string.";
+        public static final String SET_POLICY_REQUEST_BODY = 
+                "The body of the request must contain the new authorization policy, " +
+                "in string format.";
+        public static final String UPDATE_POLICY_REQUEST_BODY = 
+                "The body of the request must contain the policy values to update, " +
+                "in string format.";
     }
     
     public static class Attachment {
@@ -174,5 +181,7 @@ public class ApiDocumentation {
         public static final String COMPUTE_ID_NOTE = "(the ID of the compute to which the IP has been assigned)";
         public static final String SNAPSHOT_NAME = "my snapshot";
         public static final String SNAPSHOT_NAME_NOTE = "(the snapshot name)";
+        public static final String POLICY = "policy-string";
+        public static final String POLICY_NOTE = "(an authorization policy)";
     }
 }

@@ -23,12 +23,17 @@ import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleClo
 
 public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
 
+	@VisibleForTesting
+	static final Integer NO_VALUE_FLAG = -1;
+	@VisibleForTesting
+	static final String URL = "https://compute.googleapis.com/compute/v1";
+	@VisibleForTesting
+	static final String MAX_RESULT_KEY = "maxResults";
+	@VisibleForTesting
+	static final int IMAGES_BY_PAGE = 500;
+
 	private Properties properties;
 	private GoogleCloudHttpClient client;
-	private static final Integer NO_VALUE_FLAG = -1;
-	private static final String URL = "https://compute.googleapis.com/compute/v1";
-	private static final String MAX_RESULT_KEY = "maxResults";
-	private static final int IMAGES_BY_PAGE = 500;
 
 	public GoogleCloudImagePlugin(String confFilePath) {
 		this.properties = PropertiesUtil.readProperties(confFilePath);
@@ -82,7 +87,8 @@ public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
 				GoogleCloudConstants.Image.EQUAL_QUERY + token;
 		return endPoint;
 	}
-	
+
+	@VisibleForTesting
 	String getPrefixEndPoint(GoogleCloudUser cloudUser) throws InvalidParameterException {
 		return URL + GoogleCloudConstants.PROJECT_ENDPOINT 
 				+ GoogleCloudConstants.ENDPOINT_SEPARATOR

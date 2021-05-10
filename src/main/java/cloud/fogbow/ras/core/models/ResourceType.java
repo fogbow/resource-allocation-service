@@ -11,6 +11,7 @@ public enum ResourceType {
     CLOUD_NAME("cloudName"),
     QUOTA("quota"),
     CONFIGURATION("configuration"),
+    POLICY("policy"),
     INVALID_RESOURCE("invalidResource");
 
     private String value;

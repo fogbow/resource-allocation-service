@@ -34,6 +34,9 @@ public class RemoteCloudConnector implements CloudConnector {
             RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(localOrder);
             Order remoteOrder = remoteGetOrderRequest.send();
             return remoteOrder;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -48,6 +51,9 @@ public class RemoteCloudConnector implements CloudConnector {
             // At the requesting provider, the instance Id should be null, since the instance
             // was not created at the requesting provider's cloud.
             return null;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -62,6 +68,9 @@ public class RemoteCloudConnector implements CloudConnector {
         } catch (InstanceNotFoundException e) {
             LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
             throw e;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             String exceptionMessage = e.getMessage();
             LOGGER.error(exceptionMessage, e);
@@ -75,9 +84,9 @@ public class RemoteCloudConnector implements CloudConnector {
             RemoteGetInstanceRequest remoteGetInstanceRequest = new RemoteGetInstanceRequest(order);
             OrderInstance instance = remoteGetInstanceRequest.send();
             return instance;
-        } catch (InstanceNotFoundException e) {
-            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
-            throw e;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -91,6 +100,9 @@ public class RemoteCloudConnector implements CloudConnector {
                     this.cloudName, systemUser);
             Quota quota = remoteGetUserQuotaRequest.send();
             return quota;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -104,6 +116,9 @@ public class RemoteCloudConnector implements CloudConnector {
                     this.cloudName, systemUser);
             List<ImageSummary> imagesSummaryList = remoteGetAllImagesRequest.send();
             return imagesSummaryList;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -117,6 +132,9 @@ public class RemoteCloudConnector implements CloudConnector {
                     this.cloudName, imageId, systemUser);
             ImageInstance imageInstance = remoteGetImageRequest.send();
             return imageInstance;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -129,6 +147,9 @@ public class RemoteCloudConnector implements CloudConnector {
             RemoteTakeSnapshotRequest remoteTakeSnapshotRequest = new RemoteTakeSnapshotRequest(computeOrder, name,
                     systemUser);
             remoteTakeSnapshotRequest.send();
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -142,6 +163,9 @@ public class RemoteCloudConnector implements CloudConnector {
             RemoteGetAllSecurityRuleRequest remoteGetAllSecurityRuleRequest =
                     new RemoteGetAllSecurityRuleRequest(this.destinationProvider, order.getId(), systemUser);
             return remoteGetAllSecurityRuleRequest.send();
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -156,6 +180,9 @@ public class RemoteCloudConnector implements CloudConnector {
                     securityRule, systemUser, this.destinationProvider, order);
             remoteCreateSecurityRuleRequest.send();
             return null;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -168,6 +195,9 @@ public class RemoteCloudConnector implements CloudConnector {
             RemoteDeleteSecurityRuleRequest remoteDeleteSecurityRuleRequest = new RemoteDeleteSecurityRuleRequest(
                     this.destinationProvider, this.cloudName, securityRuleId, systemUser);
             remoteDeleteSecurityRuleRequest.send();
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             LOGGER.error(e.toString(), e);
             throw new FogbowException(e.getMessage());
@@ -179,9 +209,9 @@ public class RemoteCloudConnector implements CloudConnector {
         try {
             RemotePauseOrderRequest remotePauseOrderRequest = new RemotePauseOrderRequest(order);
             remotePauseOrderRequest.send();
-        } catch (InstanceNotFoundException e) {
-            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
-            throw e;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             String exceptionMessage = e.getMessage();
             LOGGER.error(exceptionMessage, e);
@@ -194,9 +224,9 @@ public class RemoteCloudConnector implements CloudConnector {
         try {
             RemoteHibernateOrderRequest remoteHibernateOrderRequest = new RemoteHibernateOrderRequest(order);
             remoteHibernateOrderRequest.send();
-        } catch (InstanceNotFoundException e) {
-            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
-            throw e;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             String exceptionMessage = e.getMessage();
             LOGGER.error(exceptionMessage, e);
@@ -209,9 +239,9 @@ public class RemoteCloudConnector implements CloudConnector {
         try {
             RemoteResumeOrderRequest remoteResumeOrderRequest = new RemoteResumeOrderRequest(order);
             remoteResumeOrderRequest.send();
-        } catch (InstanceNotFoundException e) {
-            LOGGER.info(Messages.Exception.INSTANCE_NOT_FOUND);
-            throw e;
+        } catch (FogbowException e) {
+        	LOGGER.error(e.toString(), e);
+        	throw e;
         } catch (Exception e) {
             String exceptionMessage = e.getMessage();
             LOGGER.error(exceptionMessage, e);

@@ -55,9 +55,9 @@ public class AttachmentOrder extends Order<AttachmentOrder> {
         setCloudName(volumeOrder == null ? null : volumeOrder.getCloudName());
     }
 
-    public AttachmentOrder(SystemUser systemUser, String requestingProvider, String providingProvider, String cloudName,
+    public AttachmentOrder(SystemUser systemUser, String requester, String providingProvider, String cloudName,
                            String computeOrderId, String volumeOrderId, String device) {
-        super(UUID.randomUUID().toString(), providingProvider, cloudName, systemUser, requestingProvider);
+        super(UUID.randomUUID().toString(), providingProvider, cloudName, systemUser, requester);
         this.computeOrderId = computeOrderId;
         this.volumeOrderId = volumeOrderId;
         this.device = device;

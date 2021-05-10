@@ -40,6 +40,10 @@ public class SynchronizationManager {
         this.processorsThreadController.startRasThreads();
         this.reloading = false;
     }
+    
+    public void setAsNotReloading() {
+    	this.reloading = false;
+    }
 
     private void doReload() {
         LOGGER.info(Messages.Log.RESETTING_PROCESSORS_CONFIGURATION);

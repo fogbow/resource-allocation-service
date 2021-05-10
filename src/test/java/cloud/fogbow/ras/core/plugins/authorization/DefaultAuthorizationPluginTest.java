@@ -34,13 +34,13 @@ public class DefaultAuthorizationPluginTest extends BaseUnitTests {
     public void testAuthorizeOrderWithDifferentResourceType() {
         // set up
         Order order = this.testUtils.createLocalComputeOrder();
-        SystemUser requester = order.getSystemUser();
+        SystemUser systemUser = order.getSystemUser();
 
         String expected = Messages.Exception.MISMATCHING_RESOURCE_TYPE;
 
         try {
             // exercise
-            this.authorizationPlugin.isAuthorized(requester, new RasOperation(null,
+            this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(null,
                     ResourceType.INVALID_RESOURCE, null, order));
             Assert.fail();
         } catch (UnauthorizedRequestException e) {
@@ -54,14 +54,14 @@ public class DefaultAuthorizationPluginTest extends BaseUnitTests {
     @Test
     public void testAuthorizeOrderWithDifferentRequester() {
         // set up
-        SystemUser requester = Mockito.mock(SystemUser.class);
+        SystemUser systemUser = Mockito.mock(SystemUser.class);
         Order order = this.testUtils.createLocalComputeOrder();
 
         String expected = Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST;
 
         try {
             // exercise
-            this.authorizationPlugin.isAuthorized(requester, new RasOperation(null,
+            this.authorizationPlugin.isAuthorized(systemUser, new RasOperation(null,
                     ResourceType.COMPUTE, null, order));
             Assert.fail();
         } catch (UnauthorizedRequestException e) {
