@@ -21,7 +21,6 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
@@ -167,6 +166,71 @@ public class AwsComputePluginTest extends BaseUnitTests {
         Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
                 .doDeleteInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
     }
+
+    // test case: When calling the pauseInstance method, with a compute order and
+    // cloud user valid, the instance in the cloud must be paused (stopped).
+    @Test
+    public void testPauseInstance() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        Mockito.doNothing().when(this.plugin).doPauseInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.pauseInstance(order, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doPauseInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+    }
+
+
+    // test case: When calling the hibernateInstance method, with a compute order and
+    // cloud user valid, the instance in the cloud must be hibernated.
+    @Test
+    public void testHibernateInstance() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        Mockito.doNothing().when(this.plugin).doHibernateInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.hibernateInstance(order, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doHibernateInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+    }
+
+
+    // test case: When calling the resumeInstance method, with a compute order and
+    // cloud user valid, the instance in the cloud must be resumed (started).
+    @Test
+    public void testResumeInstance() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        AwsV2User cloudUser = Mockito.mock(AwsV2User.class);
+
+        Mockito.doNothing().when(this.plugin).doResumeInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+
+        // exercise
+        this.plugin.resumeInstance(order, cloudUser);
+
+        // verify
+        PowerMockito.verifyStatic(AwsV2ClientUtil.class, VerificationModeFactory.times(TestUtils.RUN_ONCE));
+        AwsV2ClientUtil.createEc2Client(Mockito.eq(cloudUser.getToken()), Mockito.anyString());
+
+        Mockito.verify(this.plugin, Mockito.times(TestUtils.RUN_ONCE))
+                .doResumeInstance(Mockito.eq(order.getInstanceId()), Mockito.eq(this.client));
+    }
 	
     // test case: When calling the isReady method with the cloud state RUNNING,
     // this means that the state of compute is READY and it must return true.
@@ -210,6 +274,63 @@ public class AwsComputePluginTest extends BaseUnitTests {
         // exercise
         boolean status = this.plugin.hasFailed(cloudState);
 
+        // verify
+        Assert.assertFalse(status);
+    }
+    
+    // test case: When calling the isPaused method with a cloud state equal to
+    // STOPPED_STATE, it must return true.
+    @Test
+    public void testIsPaused() throws FogbowException {
+        // set up
+        String cloudState = AwsV2StateMapper.STOPPED_STATE;
+        
+        // exercise
+        boolean status = this.plugin.isPaused(cloudState);
+        
+        // verify
+        Assert.assertTrue(status);
+        
+    }
+    
+    // test case: When calling the isPaused method with a cloud state different
+    // from STOPPED_STATE, it must return false.
+    @Test
+    public void testIsNotPaused() throws FogbowException {
+        // set up
+        String cloudState = AwsV2StateMapper.RUNNING_STATE;        
+        
+        // exercise
+        boolean status = this.plugin.isPaused(cloudState);
+        
+        // verify
+        Assert.assertFalse(status);
+    }
+    
+    // test case: When calling the isHibernated method with a cloud state equal to
+    // STOPPED_STATE, it must return true.
+    @Test
+    public void testIsHibernated() throws FogbowException {
+        // set up
+        String cloudState = AwsV2StateMapper.STOPPED_STATE;        
+        
+        // exercise
+        boolean status = this.plugin.isHibernated(cloudState);
+        
+        // verify
+        Assert.assertTrue(status);
+    }
+    
+    // test case: When calling the isHibernated method with a cloud state different
+    // from STOPPED_STATE, it must return false.
+    @Test
+    public void testIsNotHibernated() throws FogbowException {
+        // set up
+        String cloudState = AwsV2StateMapper.RUNNING_STATE;        
+        
+        // exercise
+        boolean status = this.plugin.isHibernated(cloudState);
+        
         // verify
         Assert.assertFalse(status);
     }
@@ -273,7 +394,141 @@ public class AwsComputePluginTest extends BaseUnitTests {
             Assert.assertEquals(expected, e.getMessage());
         }
     }
-    
+
+    // test case: When calling the doPauseInstance method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoPauseInstance() throws FogbowException {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        StopInstancesRequest request = StopInstancesRequest.builder()
+                .instanceIds(instanceId)
+                .build();
+
+        Mockito.when(this.client.stopInstances(Mockito.eq(request)))
+                .thenReturn(StopInstancesResponse.builder().build());
+
+        // exercise
+        this.plugin.doPauseInstance(instanceId, client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).stopInstances(Mockito.eq(request));
+    }
+
+    // test case: When calling the doPauseInstance method, and an unexpected error
+    // occurs, it must verify if an InternalServerErrorException has been thrown.
+    @Test
+    public void testDoPauseInstanceFail() {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        Mockito.when(this.client.stopInstances(Mockito.any(StopInstancesRequest.class)))
+                .thenThrow(SdkClientException.builder().build());
+
+        String expected = String.format(Messages.Log.ERROR_WHILE_PAUSING_S, AwsComputePlugin.RESOURCE_NAME,
+                instanceId);
+
+        try {
+            // exercise
+            this.plugin.doPauseInstance(instanceId, this.client);
+            Assert.fail();
+        } catch (InternalServerErrorException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+
+    // test case: When calling the doHibernateInstance method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoHibernateInstance() throws FogbowException {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        StopInstancesRequest request = StopInstancesRequest.builder()
+                .hibernate(true)
+                .instanceIds(instanceId)
+                .build();
+
+        Mockito.when(this.client.stopInstances(Mockito.eq(request)))
+                .thenReturn(StopInstancesResponse.builder().build());
+
+        // exercise
+        this.plugin.doHibernateInstance(instanceId, client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).stopInstances(Mockito.eq(request));
+    }
+
+    // test case: When calling the doHibernateInstance method, and an unexpected error
+    // occurs, it must verify if an InternalServerErrorException has been thrown.
+    @Test
+    public void testDoHibernateInstanceFail() {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        Mockito.when(this.client.stopInstances(Mockito.any(StopInstancesRequest.class)))
+                .thenThrow(SdkClientException.builder().build());
+
+        String expected = String.format(Messages.Log.ERROR_WHILE_HIBERNATING_S, AwsComputePlugin.RESOURCE_NAME,
+                instanceId);
+
+        try {
+            // exercise
+            this.plugin.doHibernateInstance(instanceId, this.client);
+            Assert.fail();
+        } catch (InternalServerErrorException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
+    // test case: When calling the doResumeInstance method, it must verify
+    // that is call was successful.
+    @Test
+    public void testDoResumeInstance() throws FogbowException {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        StartInstancesRequest request = StartInstancesRequest.builder()
+                .instanceIds(instanceId)
+                .build();
+
+        Mockito.when(this.client.startInstances(Mockito.eq(request)))
+                .thenReturn(StartInstancesResponse.builder().build());
+
+        // exercise
+        this.plugin.doResumeInstance(instanceId, client);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(TestUtils.RUN_ONCE)).startInstances(Mockito.eq(request));
+    }
+
+    // test case: When calling the doResumeInstance method, and an unexpected error
+    // occurs, it must verify if an InternalServerErrorException has been thrown.
+    @Test
+    public void testDoResumeInstanceFail() {
+        // set up
+        String instanceId = TestUtils.FAKE_INSTANCE_ID;
+
+        Mockito.when(this.client.startInstances(Mockito.any(StartInstancesRequest.class)))
+                .thenThrow(SdkClientException.builder().build());
+
+        String expected = String.format(Messages.Log.ERROR_WHILE_RESUMING_S, AwsComputePlugin.RESOURCE_NAME,
+                instanceId);
+
+        try {
+            // exercise
+            this.plugin.doResumeInstance(instanceId, this.client);
+            Assert.fail();
+        } catch (InternalServerErrorException e) {
+            // verify
+            Assert.assertEquals(expected, e.getMessage());
+        }
+    }
+
     // test case: When calling the doGetInstance method, it must verify
     // that is call was successful.
     @Test
