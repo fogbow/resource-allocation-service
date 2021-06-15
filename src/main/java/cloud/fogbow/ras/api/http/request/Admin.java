@@ -29,6 +29,7 @@ import io.swagger.annotations.ApiParam;
 public class Admin {
     public static final String ADMIN_SUFFIX_ENDPOINT = "admin";
     public static final String ADMIN_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + ADMIN_SUFFIX_ENDPOINT;
+    public static final String PURGE_USER_ENDPOINT = ADMIN_ENDPOINT + "/purge";
     
     private final Logger LOGGER = Logger.getLogger(Admin.class);
     
