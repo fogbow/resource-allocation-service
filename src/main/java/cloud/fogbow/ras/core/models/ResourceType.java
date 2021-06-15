@@ -12,6 +12,7 @@ public enum ResourceType {
     QUOTA("quota"),
     CONFIGURATION("configuration"),
     POLICY("policy"),
+    USER("user"),
     INVALID_RESOURCE("invalidResource");
 
     private String value;

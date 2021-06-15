@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,5 +60,16 @@ public class Admin {
     		@RequestBody Policy policy) throws FogbowException {
     	ApplicationFacade.getInstance().updatePolicy(systemUserToken, policy.getPolicy());
     	return new ResponseEntity<>(HttpStatus.OK);
+    }
+    
+    // TODO documentation
+    @RequestMapping(value = "/purge/{userId}/{provider}", method = RequestMethod.DELETE)
+    public ResponseEntity<Boolean> purgeUser(
+            @PathVariable String userId, 
+            @PathVariable String provider,
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) 
+                    throws FogbowException {
+        ApplicationFacade.getInstance().purgeUser(systemUserToken, userId, provider);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

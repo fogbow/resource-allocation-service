@@ -472,6 +472,21 @@ public class ApplicationFacade {
 
     }
 
+    public void purgeUser(String userToken, String userId, String provider) throws FogbowException {
+        startOperation();
+        try {
+            SystemUser systemUser = authenticate(userToken);
+            RasOperation rasOperation = new RasOperation(Operation.DELETE, ResourceType.USER,
+                    this.providerId, this.providerId);
+            
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+            
+            // TODO implement
+        } finally {
+            finishOperation();
+        }
+    }
+
     // These methods are protected to be used in testing
     
     protected RemoteGetCloudNamesRequest getCloudNamesFromRemoteRequest(String providerId, SystemUser systemUser) {
@@ -562,7 +577,7 @@ public class ApplicationFacade {
             finishOperation();
         }
     }
-
+    
     protected RSAPublicKey getAsPublicKey() throws FogbowException {
         if (this.asPublicKey == null) {
             this.asPublicKey = RasPublicKeysHolder.getInstance().getAsPublicKey();
@@ -769,6 +784,4 @@ public class ApplicationFacade {
         
         SynchronizationManager.getInstance().setAsNotReloading();
 	}
-
-
 }
