@@ -1,6 +1,7 @@
 package cloud.fogbow.ras.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
@@ -371,6 +372,110 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     	// verify
     	Mockito.verify(orderController).resumeOrder(order1);
     	Mockito.verify(orderController).resumeOrder(order2);
+    }
+    
+    // test case: When calling the purgeUser method, it must call the deleteOrder 
+    // method of OrderController to delete all the given users' orders.
+    @Test
+    public void testPurgeUser() throws FogbowException {
+        // set up instance status
+        InstanceStatus instancePublicIp1 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instancePublicIp2 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instanceAttachment1 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instanceAttachment2 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instanceVolume1 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instanceVolume2 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instanceCompute1 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instanceCompute2 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instanceNetwork1 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instanceNetwork2 = Mockito.mock(InstanceStatus.class);
+   
+        String orderIdPublicIp1 = "orderIdPublicIp1";
+        String orderIdPublicIp2 = "orderIdPublicIp2";
+        String orderIdAttachment1 = "orderIdAttachment1";
+        String orderIdAttachment2 = "orderIdAttachment2";
+        String orderIdVolume1 = "orderIdVolume1";
+        String orderIdVolume2 = "orderIdVolume2";
+        String orderIdCompute1 = "orderIdCompute1";
+        String orderIdCompute2 = "orderIdCompute2";
+        String orderIdNetwork1 = "orderIdNetwork1";
+        String orderIdNetwork2 = "orderIdNetwork2";
+        
+        Mockito.when(instancePublicIp1.getInstanceId()).thenReturn(orderIdPublicIp1);
+        Mockito.when(instancePublicIp2.getInstanceId()).thenReturn(orderIdPublicIp2);
+        Mockito.when(instanceAttachment1.getInstanceId()).thenReturn(orderIdAttachment1);
+        Mockito.when(instanceAttachment2.getInstanceId()).thenReturn(orderIdAttachment2);
+        Mockito.when(instanceVolume1.getInstanceId()).thenReturn(orderIdVolume1);
+        Mockito.when(instanceVolume2.getInstanceId()).thenReturn(orderIdVolume2);
+        Mockito.when(instanceCompute1.getInstanceId()).thenReturn(orderIdCompute1);
+        Mockito.when(instanceCompute2.getInstanceId()).thenReturn(orderIdCompute2);
+        Mockito.when(instanceNetwork1.getInstanceId()).thenReturn(orderIdNetwork1);
+        Mockito.when(instanceNetwork2.getInstanceId()).thenReturn(orderIdNetwork2);
+        
+        Mockito.doReturn(Arrays.asList(instancePublicIp1, instancePublicIp2)).
+        when(orderController).getUserInstancesStatus(TestUtils.FAKE_USER_ID, ResourceType.PUBLIC_IP);
+        Mockito.doReturn(Arrays.asList(instanceAttachment1, instanceAttachment2)).
+        when(orderController).getUserInstancesStatus(TestUtils.FAKE_USER_ID, ResourceType.ATTACHMENT);
+        Mockito.doReturn(Arrays.asList(instanceVolume1, instanceVolume2)).
+        when(orderController).getUserInstancesStatus(TestUtils.FAKE_USER_ID, ResourceType.VOLUME);
+        Mockito.doReturn(Arrays.asList(instanceCompute1, instanceCompute2)).
+        when(orderController).getUserInstancesStatus(TestUtils.FAKE_USER_ID, ResourceType.COMPUTE);
+        Mockito.doReturn(Arrays.asList(instanceNetwork1, instanceNetwork2)).
+        when(orderController).getUserInstancesStatus(TestUtils.FAKE_USER_ID, ResourceType.NETWORK);
+        
+        // set up orders
+        Order orderPublicIp1 = Mockito.mock(Order.class);
+        Order orderPublicIp2 = Mockito.mock(Order.class);
+        Order orderAttachment1 = Mockito.mock(Order.class);
+        Order orderAttachment2 = Mockito.mock(Order.class);
+        Order orderVolume1 = Mockito.mock(Order.class);
+        Order orderVolume2 = Mockito.mock(Order.class);
+        Order orderCompute1 = Mockito.mock(Order.class);
+        Order orderCompute2 = Mockito.mock(Order.class);
+        Order orderNetwork1 = Mockito.mock(Order.class);
+        Order orderNetwork2 = Mockito.mock(Order.class);
+        
+        Mockito.doReturn(orderPublicIp1).when(orderController).getOrder(orderIdPublicIp1);
+        Mockito.doReturn(orderPublicIp2).when(orderController).getOrder(orderIdPublicIp2);
+        Mockito.doReturn(orderAttachment1).when(orderController).getOrder(orderIdAttachment1);
+        Mockito.doReturn(orderAttachment2).when(orderController).getOrder(orderIdAttachment2);
+        Mockito.doReturn(orderVolume1).when(orderController).getOrder(orderIdVolume1);
+        Mockito.doReturn(orderVolume2).when(orderController).getOrder(orderIdVolume2);
+        Mockito.doReturn(orderCompute1).when(orderController).getOrder(orderIdCompute1);
+        Mockito.doReturn(orderCompute2).when(orderController).getOrder(orderIdCompute2);
+        Mockito.doReturn(orderNetwork1).when(orderController).getOrder(orderIdNetwork1);
+        Mockito.doReturn(orderNetwork2).when(orderController).getOrder(orderIdNetwork2);
+        
+        Mockito.doNothing().when(orderController).deleteOrder(orderPublicIp1);
+        Mockito.doNothing().when(orderController).deleteOrder(orderPublicIp2);
+        Mockito.doNothing().when(orderController).deleteOrder(orderAttachment1);
+        Mockito.doNothing().when(orderController).deleteOrder(orderAttachment2);
+        Mockito.doNothing().when(orderController).deleteOrder(orderVolume1);
+        Mockito.doNothing().when(orderController).deleteOrder(orderVolume2);
+        Mockito.doNothing().when(orderController).deleteOrder(orderCompute1);
+        Mockito.doNothing().when(orderController).deleteOrder(orderCompute2);
+        Mockito.doNothing().when(orderController).deleteOrder(orderNetwork1);
+        Mockito.doNothing().when(orderController).deleteOrder(orderNetwork2);
+        
+        // set up authentication
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
+
+        // exercise
+        this.facade.purgeUser(userToken, TestUtils.FAKE_USER_ID, TestUtils.LOCAL_MEMBER_ID);
+        
+        // verify
+        Mockito.verify(orderController).deleteOrder(orderPublicIp1);
+        Mockito.verify(orderController).deleteOrder(orderPublicIp2);
+        Mockito.verify(orderController).deleteOrder(orderAttachment1);
+        Mockito.verify(orderController).deleteOrder(orderAttachment2);
+        Mockito.verify(orderController).deleteOrder(orderVolume1);
+        Mockito.verify(orderController).deleteOrder(orderVolume2);
+        Mockito.verify(orderController).deleteOrder(orderCompute1);
+        Mockito.verify(orderController).deleteOrder(orderCompute2);
+        Mockito.verify(orderController).deleteOrder(orderNetwork1);
+        Mockito.verify(orderController).deleteOrder(orderNetwork2);
     }
     
     // test case: When calling the getComputeAllocation method it must check that

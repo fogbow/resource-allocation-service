@@ -420,6 +420,7 @@ public class OrderController {
         return requestedOrders;
     }
     
+    // FIXME should also receive provider id
     private List<Order> getOrdersByUserId(String userId, ResourceType resourceType) {
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 

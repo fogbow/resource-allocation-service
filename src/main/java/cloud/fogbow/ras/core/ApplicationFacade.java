@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -70,6 +71,9 @@ public class ApplicationFacade {
     private String providerId;
     private RSAPublicKey asPublicKey;
     private String buildNumber;
+    private static final List<ResourceType> RESOURCE_TYPE_DELETION_ORDER_ON_PURGE_USER = 
+            Arrays.asList(ResourceType.PUBLIC_IP, ResourceType.ATTACHMENT, 
+            ResourceType.VOLUME, ResourceType.COMPUTE, ResourceType.NETWORK);
 
     private ApplicationFacade() {
         this.onGoingRequests = 0;
@@ -481,7 +485,19 @@ public class ApplicationFacade {
             
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
             
-            // TODO implement
+            for (ResourceType resourceType : RESOURCE_TYPE_DELETION_ORDER_ON_PURGE_USER) {
+                List<InstanceStatus> instances = this.orderController.getUserInstancesStatus(userId, resourceType);
+                
+                LOGGER.info(resourceType.getValue());
+                
+                for (InstanceStatus instance : instances) {
+                    LOGGER.info(instance.getInstanceId());
+                    
+                    String orderId = instance.getInstanceId();
+                    Order order = this.orderController.getOrder(orderId);
+                    this.orderController.deleteOrder(order);
+                }
+            }
         } finally {
             finishOperation();
         }
