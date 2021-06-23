@@ -246,6 +246,26 @@ public class OrderController {
             cloudConnector.takeSnapshot(computeOrder, name, systemUser);
         }
     }
+    
+    public boolean dependenciesAreClosed(Order order) throws InstanceNotFoundException {
+        if (orderDependencies.containsKey(order.getId())) {
+            List<String> dependencies = orderDependencies.get(order.getId());
+            boolean allClosed = true;
+            
+            for (String dependencyId : dependencies) {
+                try {
+                    getOrder(dependencyId);
+                    allClosed = false;
+                } catch (InstanceNotFoundException e) {
+                    
+                }
+            }           
+            
+            return allClosed;
+        } else {
+            return true;
+        }
+    }
 
     public Instance getResourceInstance(Order order) throws FogbowException {
         synchronized (order) {
@@ -407,7 +427,7 @@ public class OrderController {
         return new ComputeAllocation(instances, vCPU, ram, disk);
     }
 
-    private List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
+    public List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
         Collection<Order> orders = activeOrdersMap.values();

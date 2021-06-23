@@ -54,6 +54,7 @@ import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 
@@ -484,23 +485,66 @@ public class ApplicationFacade {
                     this.providerId, this.providerId);
             
             this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
-            
-            for (ResourceType resourceType : RESOURCE_TYPE_DELETION_ORDER_ON_PURGE_USER) {
-                List<InstanceStatus> instances = this.orderController.getUserInstancesStatus(userId, resourceType);
-                
-                LOGGER.info(resourceType.getValue());
-                
-                for (InstanceStatus instance : instances) {
-                    LOGGER.info(instance.getInstanceId());
-                    
-                    String orderId = instance.getInstanceId();
-                    Order order = this.orderController.getOrder(orderId);
-                    this.orderController.deleteOrder(order);
-                }
-            }
+
+            doPurgeUser(systemUser);
         } finally {
             finishOperation();
         }
+    }
+    
+    private void doPurgeUser(SystemUser user) 
+            throws FogbowException {
+        List<Order> userOrders = new ArrayList<>();
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.PUBLIC_IP));
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.ATTACHMENT));
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.VOLUME));
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.COMPUTE));
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.NETWORK));
+
+        boolean removedAll;
+        
+        do {
+            removedAll = true;
+            
+            for (Order order : userOrders) {
+                if (!safeRemove(order)) {
+                    removedAll = false;
+                }
+            }
+            
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+        } while (!removedAll);
+    }
+
+    private boolean safeRemove(Order order) throws FogbowException {
+        OrderState state = order.getOrderState();
+        
+        if (orderIsClosed(state)) {
+            return true;
+        }
+        
+        if (deletingOrder(state)) {
+            return false;
+        }
+        
+        if (this.orderController.dependenciesAreClosed(order)) {
+            this.orderController.deleteOrder(order);
+            return false;
+        } else {
+            return false;
+        }
+    }
+    
+    private boolean deletingOrder(OrderState orderState) {
+        return orderState.equals(OrderState.CHECKING_DELETION) || 
+                orderState.equals(OrderState.ASSIGNED_FOR_DELETION);
+    }
+
+    private boolean orderIsClosed(OrderState orderState) {
+        return orderState.equals(OrderState.CLOSED);
     }
 
     // These methods are protected to be used in testing

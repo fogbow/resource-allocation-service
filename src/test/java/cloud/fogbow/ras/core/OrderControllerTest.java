@@ -430,6 +430,59 @@ public class OrderControllerTest extends BaseUnitTests {
         }
     }
 
+    // test case: When invoking the dependenciesAreClosed method passing an Order
+    // with dependencies which are not closed, it must return false.
+    @Test
+    public void testDependenciesAreNotClosed() throws FogbowException {
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        this.ordersController.activateOrder(computeOrder);
+        computeOrder.setOrderState(OrderState.FULFILLED);
+        
+        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+        this.ordersController.activateOrder(volumeOrder);
+        volumeOrder.setOrderState(OrderState.FULFILLED);
+        
+        AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
+        this.ordersController.activateOrder(attachmentOrder);
+        attachmentOrder.setOrderState(OrderState.FULFILLED);
+        
+        Assert.assertFalse(this.ordersController.dependenciesAreClosed(computeOrder));
+        Assert.assertFalse(this.ordersController.dependenciesAreClosed(volumeOrder));
+    }
+    
+    // test case: When invoking the dependenciesAreClosed method passing an Order
+    // with closed dependencies, it must return true.
+    @Test
+    public void testDependenciesAreClosed() throws FogbowException {
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        this.ordersController.activateOrder(computeOrder);
+        computeOrder.setOrderState(OrderState.FULFILLED);
+        
+        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+        this.ordersController.activateOrder(volumeOrder);
+        volumeOrder.setOrderState(OrderState.FULFILLED);
+        
+        AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
+        this.ordersController.activateOrder(attachmentOrder);
+        attachmentOrder.setOrderState(OrderState.FULFILLED);
+        
+        this.ordersController.closeOrder(attachmentOrder);
+        
+        Assert.assertTrue(this.ordersController.dependenciesAreClosed(computeOrder));
+        Assert.assertTrue(this.ordersController.dependenciesAreClosed(volumeOrder));
+    }
+    
+    // test case: When invoking the dependenciesAreClosed method passing an Order
+    // with no dependencies, it must return true.
+    @Test
+    public void testDependenciesAreClosedNoDependency() throws FogbowException {
+        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+        this.ordersController.activateOrder(volumeOrder);
+        volumeOrder.setOrderState(OrderState.FULFILLED);
+        
+        Assert.assertTrue(this.ordersController.dependenciesAreClosed(volumeOrder));
+    }
+    
     // test case: Checks if given an order provided locally in the getResourceInstance method returns its instance.
     @Test
     public void testGetResourceInstanceSuccessfullyWhenIsProviderLocally() throws Exception {
