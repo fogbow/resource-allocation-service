@@ -210,11 +210,11 @@ public class Messages {
         public static final String RECEIVING_GET_CLOUDS_REQUEST = "Get request for cloud names received.";
         public static final String RECEIVING_GET_IMAGE_REQUEST_S = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST_S = "Get request for %s %s received.";
-        public static final String RECEIVING_PAUSE_REQUEST_S = "Pause request for %s received.";
+        public static final String RECEIVING_PAUSE_REQUEST_S = "Pause request for user %s, provider %s, received.";
         public static final String RECEIVING_RELOAD_CONFIGURATION_REQUEST = "Received reload configuration request.";
         public static final String RECEIVING_REMOTE_REQUEST_S = "Received remote request for request: %s.";
         public static final String RECEIVING_RESOURCE_S_REQUEST_S = "Get %s request for provider %s received.";
-        public static final String RECEIVING_RESUME_REQUEST_S = "Resume request for %s received.";
+        public static final String RECEIVING_RESUME_REQUEST_S = "Resume request for user %s, provider %s, received.";
         public static final String RECOVERING_LIST_OF_ORDERS_S_D = "Recovering requests in %s list: %d requests recovered so far.";
         public static final String REMOVING_ORDER_IN_SELECT_STATE_S = "Order %s might have left garbage in cloud.";
         public static final String RESUMING_INSTANCE_S = "Resuming instance %s.";

@@ -55,6 +55,8 @@ public class ApiDocumentation {
         public static final String RESUME_USER_OPERATION = "Resume the execution of all the compute instances owned by the given user.";
         public static final String ID = "The ID of the specific compute instance.";
         public static final String CREATE_REQUEST_BODY = "The body of the request is quite complex; please, have a look at the model description.";
+        public static final String USER_ID = "The ID of the specific user.";
+        public static final String USER_PROVIDER_ID = "The ID of the specific identity provider.";
     }
 
     public static class Image {

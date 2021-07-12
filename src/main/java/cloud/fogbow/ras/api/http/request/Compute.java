@@ -167,17 +167,19 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.PAUSE_USER_OPERATION)
-    @RequestMapping(value = "/pause/{userId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/pause/{userId}/{providerId:.+}", method = RequestMethod.POST)
     public void pauseUserComputes(
-            @ApiParam(value = ApiDocumentation.Compute.ID)
+            @ApiParam(value = ApiDocumentation.Compute.USER_ID)
             @PathVariable String userId,
+            @ApiParam(value = ApiDocumentation.Compute.USER_PROVIDER_ID)
+            @PathVariable String providerId,
             @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Log.RECEIVING_PAUSE_REQUEST_S, userId));
-            ApplicationFacade.getInstance().pauseUserComputes(userId, systemUserToken);
+            LOGGER.info(String.format(Messages.Log.RECEIVING_PAUSE_REQUEST_S, userId, providerId));
+            ApplicationFacade.getInstance().pauseUserComputes(userId, providerId, systemUserToken);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
@@ -222,17 +224,19 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.RESUME_USER_OPERATION)
-    @RequestMapping(value = "/resume/{userId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/resume/{userId}/{providerId:.+}", method = RequestMethod.POST)
     public void resumeUserComputes(
-            @ApiParam(value = ApiDocumentation.Compute.ID)
+            @ApiParam(value = ApiDocumentation.Compute.USER_ID)
             @PathVariable String userId,
+            @ApiParam(value = ApiDocumentation.Compute.USER_PROVIDER_ID)
+            @PathVariable String providerId,
             @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Log.RECEIVING_RESUME_REQUEST_S, userId));
-            ApplicationFacade.getInstance().resumeUserComputes(userId, systemUserToken);
+            LOGGER.info(String.format(Messages.Log.RECEIVING_RESUME_REQUEST_S, userId, providerId));
+            ApplicationFacade.getInstance().resumeUserComputes(userId, providerId, systemUserToken);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;

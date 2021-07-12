@@ -362,8 +362,8 @@ public class OrderController {
         return getStatusFromOrders(allOrders, resourceType);
     }
     
-    public List<InstanceStatus> getUserInstancesStatus(String userId, ResourceType resourceType) throws InternalServerErrorException {
-        List<Order> allOrders = getOrdersByUserId(userId, resourceType);
+    public List<InstanceStatus> getUserInstancesStatus(String userId, String providerId, ResourceType resourceType) throws InternalServerErrorException {
+        List<Order> allOrders = getOrdersByUserId(userId, providerId, resourceType);
         return getStatusFromOrders(allOrders, resourceType);
     }
     
@@ -441,7 +441,7 @@ public class OrderController {
     }
     
     // FIXME should also receive provider id
-    private List<Order> getOrdersByUserId(String userId, ResourceType resourceType) {
+    private List<Order> getOrdersByUserId(String userId, String providerId, ResourceType resourceType) {
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
         Collection<Order> orders = activeOrdersMap.values();
@@ -449,7 +449,9 @@ public class OrderController {
         // Filter all orders of resourceType from the user systemUser.
         List<Order> requestedOrders = orders.stream()
                 .filter(order -> order.getType().equals(resourceType))
-                .filter(order -> order.getSystemUser().getId().equals(userId)).collect(Collectors.toList());
+                .filter(order -> order.getSystemUser().getId().equals(userId))
+                .filter(order -> order.getSystemUser().getIdentityProviderId().equals(providerId))
+                .collect(Collectors.toList());
 
         return requestedOrders;
     }

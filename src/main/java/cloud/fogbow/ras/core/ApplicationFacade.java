@@ -422,7 +422,7 @@ public class ApplicationFacade {
         this.orderController.resumeOrder(computeOrder);
     }
 
-	public void pauseUserComputes(String userId, String userToken) throws FogbowException {
+	public void pauseUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
 		startOperation();
 		try {
 			SystemUser systemUser = authenticate(userToken);
@@ -430,7 +430,8 @@ public class ApplicationFacade {
 	                this.providerId);
 	        
 	        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
-	        List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(userId, ResourceType.COMPUTE);
+	        List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(
+	                userId, userProviderId, ResourceType.COMPUTE);
 			
 	        for (InstanceStatus status : statuses) {
 	        	String orderId = status.getInstanceId();
@@ -441,7 +442,7 @@ public class ApplicationFacade {
 		}	
 	}
 
-	public void resumeUserComputes(String userId, String userToken) throws FogbowException {
+	public void resumeUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
 		startOperation();
 		try {
 			SystemUser systemUser = authenticate(userToken);
@@ -449,7 +450,8 @@ public class ApplicationFacade {
 	                this.providerId);
 	        
 	        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
-	        List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(userId, ResourceType.COMPUTE);
+	        List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(
+	                userId, userProviderId, ResourceType.COMPUTE);
 			
 	        for (InstanceStatus status : statuses) {
 	        	String orderId = status.getInstanceId();

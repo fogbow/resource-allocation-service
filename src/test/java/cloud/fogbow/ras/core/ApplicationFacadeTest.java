@@ -316,7 +316,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     	Order order2 = Mockito.mock(Order.class);
     	
     	Mockito.doReturn(instanceStatusList).when(orderController).
-    	getUserInstancesStatus(TestUtils.FAKE_USER_ID, ResourceType.COMPUTE);
+    	getUserInstancesStatus(TestUtils.FAKE_USER_ID, TestUtils.LOCAL_MEMBER_ID, ResourceType.COMPUTE);
     	
     	Mockito.doReturn(order1).when(orderController).getOrder(orderId1);
     	Mockito.doReturn(order2).when(orderController).getOrder(orderId2);
@@ -325,7 +325,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     	Mockito.doNothing().when(orderController).pauseOrder(order2);
     	
     	// exercise
-    	this.facade.pauseUserComputes(TestUtils.FAKE_USER_ID, userToken);
+    	this.facade.pauseUserComputes(TestUtils.FAKE_USER_ID, TestUtils.LOCAL_MEMBER_ID, userToken);
     	
     	// verify
     	Mockito.verify(orderController).pauseOrder(order1);
@@ -359,7 +359,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     	Order order2 = Mockito.mock(Order.class);
     	
     	Mockito.doReturn(instanceStatusList).when(orderController).
-    	getUserInstancesStatus(TestUtils.FAKE_USER_ID, ResourceType.COMPUTE);
+    	getUserInstancesStatus(TestUtils.FAKE_USER_ID, TestUtils.LOCAL_MEMBER_ID, ResourceType.COMPUTE);
     	
     	Mockito.doReturn(order1).when(orderController).getOrder(orderId1);
     	Mockito.doReturn(order2).when(orderController).getOrder(orderId2);
@@ -368,7 +368,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     	Mockito.doNothing().when(orderController).resumeOrder(order2);
     	
     	// exercise
-    	this.facade.resumeUserComputes(TestUtils.FAKE_USER_ID, userToken);
+    	this.facade.resumeUserComputes(TestUtils.FAKE_USER_ID, TestUtils.LOCAL_MEMBER_ID, userToken);
     	
     	// verify
     	Mockito.verify(orderController).resumeOrder(order1);
