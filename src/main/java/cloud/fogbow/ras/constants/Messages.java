@@ -219,6 +219,7 @@ public class Messages {
         public static final String RECEIVING_RESOURCE_S_REQUEST_S = "Get %s request for provider %s received.";
         public static final String RECEIVING_RESUME_REQUEST_S = "Resume request for user %s, provider %s, received.";
         public static final String RECEIVING_STOP_REQUEST_S = "Stop request for %s received.";
+        public static final String RECEIVING_STOP_USER_REQUEST_S = "Stop request for user %s, provider %s, received.";
         public static final String RECOVERING_LIST_OF_ORDERS_S_D = "Recovering requests in %s list: %d requests recovered so far.";
         public static final String REMOVING_ORDER_IN_SELECT_STATE_S = "Order %s might have left garbage in cloud.";
         public static final String RESUMING_INSTANCE_S = "Resuming instance %s.";

@@ -463,6 +463,26 @@ public class ApplicationFacade {
 		}	
 	}
 
+    public void stopUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
+        startOperation();
+        try {
+            SystemUser systemUser = authenticate(userToken);
+            RasOperation rasOperation = new RasOperation(Operation.STOP_ALL, ResourceType.COMPUTE, this.providerId, 
+                    this.providerId);
+            
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+            List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(
+                    userId, userProviderId, ResourceType.COMPUTE);
+            
+            for (InstanceStatus status : statuses) {
+                String orderId = status.getInstanceId();
+                this.orderController.stopOrder(this.orderController.getOrder(orderId));
+            }   
+        } finally {
+            finishOperation();
+        }   
+    }
+	
 	public void resumeUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
 		startOperation();
 		try {

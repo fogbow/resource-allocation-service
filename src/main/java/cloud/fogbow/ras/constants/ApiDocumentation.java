@@ -52,6 +52,7 @@ public class ApiDocumentation {
         public static final String PAUSE_USER_OPERATION = "Pause the execution of all the compute instances owned by the given user.";
         public static final String HIBERNATE_OPERATION = "Pause the execution of a specific compute instance storing the state of the VM on disk.";
         public static final String STOP_OPERATION = "Stops the execution of a specific compute instance. VM state is lost.";
+        public static final String STOP_USER_OPERATION = "Stops the execution of all the compute instances owned by the given user.";
         public static final String RESUME_OPERATION = "Resume the execution of a specific compute instance.";
         public static final String RESUME_USER_OPERATION = "Resume the execution of all the compute instances owned by the given user.";
         public static final String ID = "The ID of the specific compute instance.";

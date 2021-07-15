@@ -13,7 +13,8 @@ public enum Operation {
     RESUME("resume"), 
     PAUSE_ALL("pauseAll"),
     RESUME_ALL("resumeAll"),
-    STOP("stop");
+    STOP("stop"),
+    STOP_ALL("stopAll");
 
     private String value;
 
