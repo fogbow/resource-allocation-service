@@ -19,6 +19,7 @@ public class ConfigurationPropertyKeys {
     public static final String REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME_KEY = "remote_order_state_synchronization_sleep_period";
     public static final String PAUSING_ORDERS_SLEEP_TIME_KEY = "pausing_order_sleep_period";
     public static final String HIBERNATING_ORDERS_SLEEP_TIME_KEY = "hibernating_order_sleep_period";
+    public static final String STOPPING_ORDERS_SLEEP_TIME_KEY = "stopping_orders_sleep_period";
     public static final String RESUMING_ORDERS_SLEEP_TIME_KEY = "resuming_order_sleep_period";
     public static final String CLOUD_NAMES_KEY = "cloud_names";
     public static final String BUILD_NUMBER_KEY = "build_number";

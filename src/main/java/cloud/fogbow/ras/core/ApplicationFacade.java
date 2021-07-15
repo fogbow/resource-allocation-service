@@ -407,6 +407,27 @@ public class ApplicationFacade {
         this.orderController.hibernateOrder(computeOrder);
     }
 
+    public void stopCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
+        startOperation();
+        try {
+            SystemUser systemUser = authenticate(userToken);
+            Order order = this.orderController.getOrder(orderId);
+
+            if (!order.getType().equals(ResourceType.COMPUTE)) {
+                throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+            }
+
+            ComputeOrder computeOrder = (ComputeOrder) order;
+
+            RasOperation rasOperation = new RasOperation(Operation.STOP, resourceType, computeOrder.getCloudName(),
+                    computeOrder);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+            this.orderController.stopOrder(computeOrder);
+        } finally {
+            finishOperation();
+        }
+    }
+    
     public void resumeCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser systemUser = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);

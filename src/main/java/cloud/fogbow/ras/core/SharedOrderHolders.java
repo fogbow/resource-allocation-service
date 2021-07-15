@@ -33,6 +33,8 @@ public class SharedOrderHolders {
     private SynchronizedDoublyLinkedList<Order> pausedOrders;
     private SynchronizedDoublyLinkedList<Order> hibernatingOrders;
     private SynchronizedDoublyLinkedList<Order> hibernatedOrders;
+    private SynchronizedDoublyLinkedList<Order> stoppingOrders;
+    private SynchronizedDoublyLinkedList<Order> stoppedOrders;
     private SynchronizedDoublyLinkedList<Order> resumingOrders;
 
     public SharedOrderHolders() {
@@ -113,6 +115,16 @@ public class SharedOrderHolders {
             moveRemoteProviderOrdersToRemoteProviderOrdersList(this.hibernatedOrders);
             addOrdersToMap(this.hibernatedOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.HIBERNATED, this.activeOrdersMap.size()));
+            
+            this.stoppingOrders = databaseManager.readActiveOrders(OrderState.STOPPING);
+            moveRemoteProviderOrdersToRemoteProviderOrdersList(this.stoppingOrders);
+            addOrdersToMap(this.stoppingOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.STOPPING, this.activeOrdersMap.size()));
+
+            this.stoppedOrders = databaseManager.readActiveOrders(OrderState.STOPPED);
+            moveRemoteProviderOrdersToRemoteProviderOrdersList(this.stoppedOrders);
+            addOrdersToMap(this.stoppedOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, OrderState.STOPPED, this.activeOrdersMap.size()));
 
             addOrdersToMap(this.remoteProviderOrders, this.activeOrdersMap);
             LOGGER.info(String.format(Messages.Log.RECOVERING_LIST_OF_ORDERS_S_D, "REMOTE", this.activeOrdersMap.size()));
@@ -172,6 +184,10 @@ public class SharedOrderHolders {
 
     public SynchronizedDoublyLinkedList<Order> getHibernatingOrdersList() { return this.hibernatingOrders; }
 
+    public SynchronizedDoublyLinkedList<Order> getStoppingOrdersList() { 
+        return this.stoppingOrders;
+    }
+    
     public SynchronizedDoublyLinkedList<Order> getResumingOrdersList() { return this.resumingOrders; }
 
     public SynchronizedDoublyLinkedList<Order> getFailedAfterSuccessfulRequestOrdersList() {
@@ -206,6 +222,10 @@ public class SharedOrderHolders {
 
     public SynchronizedDoublyLinkedList<Order> getHibernatedOrdersList() { return this.hibernatedOrders; }
 
+    public SynchronizedDoublyLinkedList<Order> getStoppedOrdersList() { 
+        return this.stoppedOrders; 
+    }
+    
     public SynchronizedDoublyLinkedList<Order> getOrdersList(OrderState orderState) {
         SynchronizedDoublyLinkedList<Order> list = null;
         switch (orderState) {
@@ -250,6 +270,12 @@ public class SharedOrderHolders {
                 break;
             case HIBERNATED:
                 list = SharedOrderHolders.getInstance().getHibernatedOrdersList();
+                break;
+            case STOPPING:
+                list = SharedOrderHolders.getInstance().getStoppingOrdersList();
+                break;
+            case STOPPED:
+                list = SharedOrderHolders.getInstance().getStoppedOrdersList();
                 break;
             case RESUMING:
                 list = SharedOrderHolders.getInstance().getResumingOrdersList();

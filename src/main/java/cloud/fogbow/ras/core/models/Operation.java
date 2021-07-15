@@ -11,9 +11,9 @@ public enum Operation {
     PAUSE("pause"),
     HIBERNATE("hibernate"),
     RESUME("resume"), 
-    PAUSE_ALL("pauseAll"), 
-    RESUME_ALL("resumeAll");
-
+    PAUSE_ALL("pauseAll"),
+    RESUME_ALL("resumeAll"),
+    STOP("stop");
 
     private String value;
 

@@ -18,6 +18,7 @@ public class ProcessorsThreadController {
     private final RemoteOrdersStateSynchronizationProcessor remoteOrdersStateSynchronizationProcessor;
     private final PausingProcessor pausingProcessor;
     private final HibernatingProcessor hibernatingProcessor;
+    private final StoppingProcessor stoppingProcessor;
     private final ResumingProcessor resumingProcessor;
     
     private final static String OPEN_PROCESSOR_THREAD_NAME = "open-proc";
@@ -29,6 +30,7 @@ public class ProcessorsThreadController {
     private final static String REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME = "remote-sync-proc";
     private final static String PAUSING_PROCESSOR_THREAD_NAME = "pausing-proc";
     private final static String HIBERNATING_PROCESSOR_THREAD_NAME = "hibernating-proc";
+    private final static String STOPPING_PROCESSOR_THREAD_NAME = "stopping-proc";
     private final static String RESUMING_PROCESSOR_THREAD_NAME = "resuming-proc";
 
     private Boolean threadsAreRunning;
@@ -88,6 +90,12 @@ public class ProcessorsThreadController {
 
         this.hibernatingProcessor = new HibernatingProcessor(localProviderId, hibernatingOrdersProcSleepTimeStr);
 
+        String stoppingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationPropertyKeys.STOPPING_ORDERS_SLEEP_TIME_KEY,
+                        ConfigurationPropertyDefaults.STOPPING_ORDERS_SLEEP_TIME);
+
+        this.stoppingProcessor = new StoppingProcessor(localProviderId, stoppingOrdersProcSleepTimeStr);
+        
         String resumingOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationPropertyKeys.RESUMING_ORDERS_SLEEP_TIME_KEY,
                         ConfigurationPropertyDefaults.RESUMING_ORDERS_SLEEP_TIME);
@@ -115,6 +123,7 @@ public class ProcessorsThreadController {
             Thread remoteOrdersStateSynchronizationProcessorThread = new Thread(remoteOrdersStateSynchronizationProcessor, REMOTE_ORDER_STATE_SYNCHRONIZATION_PROCESSOR_THREAD_NAME);
             Thread pausingProcessorThread = new Thread(pausingProcessor, PAUSING_PROCESSOR_THREAD_NAME);
             Thread hibernatingProcessorThread = new Thread(hibernatingProcessor, HIBERNATING_PROCESSOR_THREAD_NAME);
+            Thread stoppingProcessorThread = new Thread(stoppingProcessor, STOPPING_PROCESSOR_THREAD_NAME);
             Thread resumingProcessorThread = new Thread(resumingProcessor, RESUMING_PROCESSOR_THREAD_NAME);
 
             openProcessorThread.start();
@@ -126,6 +135,7 @@ public class ProcessorsThreadController {
             remoteOrdersStateSynchronizationProcessorThread.start();
             pausingProcessorThread.start();
             hibernatingProcessorThread.start();
+            stoppingProcessorThread.start();
             resumingProcessorThread.start();
             
             /*
@@ -153,6 +163,7 @@ public class ProcessorsThreadController {
         while (!this.remoteOrdersStateSynchronizationProcessor.isActive());
         while (!this.pausingProcessor.isActive());
         while (!this.hibernatingProcessor.isActive());
+        while (!this.stoppingProcessor.isActive());
         while (!this.resumingProcessor.isActive());
     }
 
@@ -169,6 +180,7 @@ public class ProcessorsThreadController {
             this.remoteOrdersStateSynchronizationProcessor.stop();
             this.pausingProcessor.stop();
             this.hibernatingProcessor.stop();
+            this.stoppingProcessor.stop();
             this.resumingProcessor.stop();
             
             this.threadsAreRunning = false;
@@ -218,6 +230,10 @@ public class ProcessorsThreadController {
         Long hibernatingProcSleepTimeStr = getSleepTimeFromProperties(ConfigurationPropertyKeys.HIBERNATING_ORDERS_SLEEP_TIME_KEY,
                                                                              ConfigurationPropertyDefaults.HIBERNATING_ORDERS_SLEEP_TIME);
         this.hibernatingProcessor.setSleepTime(hibernatingProcSleepTimeStr);
+        
+        Long stoppingProcSleepTimeStr = getSleepTimeFromProperties(ConfigurationPropertyKeys.STOPPING_ORDERS_SLEEP_TIME_KEY,
+                ConfigurationPropertyDefaults.STOPPING_ORDERS_SLEEP_TIME);
+        this.stoppingProcessor.setSleepTime(stoppingProcSleepTimeStr);
       
         Long resumingProcSleepTimeStr = getSleepTimeFromProperties(ConfigurationPropertyKeys.RESUMING_ORDERS_SLEEP_TIME_KEY,
                                                                              ConfigurationPropertyDefaults.RESUMING_ORDERS_SLEEP_TIME);

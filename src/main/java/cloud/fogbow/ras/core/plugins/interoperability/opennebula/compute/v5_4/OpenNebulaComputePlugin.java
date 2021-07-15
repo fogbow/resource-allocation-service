@@ -142,6 +142,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	public void hibernateInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
 		// ToDo: implement
 	}
+	
+    @Override
+    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        // TODO implement
+        throw new NotImplementedOperationException();
+    }
 
 	@Override
 	public void resumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
@@ -157,6 +163,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<CloudUser> {
 	public boolean isHibernated(String cloudState) throws FogbowException {
 		return false;
 	}
+	
+    @Override
+    public boolean isStopped(String cloudState) throws FogbowException {
+        // TODO implement
+        return false;
+    }
 
 	@VisibleForTesting
     String doRequestInstance(Client client, CreateComputeRequest request)

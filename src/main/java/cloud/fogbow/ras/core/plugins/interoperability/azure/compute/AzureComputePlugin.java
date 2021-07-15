@@ -4,8 +4,10 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.NotImplementedOperationException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -234,6 +236,12 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     }
 
     @Override
+    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        // TODO implement
+        throw new NotImplementedOperationException();
+    }
+    
+    @Override
     public void resumeInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
         // ToDo: implement
     }
@@ -245,6 +253,12 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
 
     @Override
     public boolean isHibernated(String cloudState) throws FogbowException {
+        return false;
+    }
+    
+    @Override
+    public boolean isStopped(String cloudState) throws FogbowException {
+        // TODO implement
         return false;
     }
 

@@ -39,7 +39,9 @@ public class BaseUnitTests {
                     OrderState.PAUSING,
                     OrderState.RESUMING,
                     OrderState.HIBERNATING,
-                    OrderState.HIBERNATED
+                    OrderState.HIBERNATED,
+                    OrderState.STOPPING,
+                    OrderState.STOPPED
             );
 
     @Before

@@ -257,6 +257,41 @@ public class RemoteFacadeTest extends BaseUnitTests {
 		Assert.assertEquals(expectedOrderState, order.getOrderState());
 	}
 
+	// test case: When calling the stopOrder method, it must authorize the operation and
+	// call the stopOrder method of the OrderController.
+	@Test
+	public void testRemoteStopOrder() throws FogbowException {
+	    // set up
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.PROVIDER_ID_KEY);
+        SystemUser systemUser = createFederationUser();
+
+        String cloudName = DEFAULT_CLOUD_NAME;
+        String provider = localMemberId;
+        Order order = spyComputeOrder(systemUser, cloudName, provider);
+        this.orderController.activateOrder(order);
+
+        RasOperation operation = new RasOperation(
+                Operation.STOP,
+                ResourceType.COMPUTE,
+                DEFAULT_CLOUD_NAME,
+                order
+        );
+
+        Mockito.doNothing().when(this.orderController).stopOrder(order);
+        
+        AuthorizationPlugin<RasOperation> authorization = mockAuthorizationPlugin(systemUser, operation);
+
+        // checking that the order has a state and is not null
+        Assert.assertNotNull(order.getOrderState());
+
+        // exercise
+        this.facade.stopOrder(localMemberId, order.getId(), systemUser, order.getType());
+
+        // verify
+        Mockito.verify(authorization, Mockito.times(1)).isAuthorized(Mockito.eq(systemUser), Mockito.eq(operation));
+        Mockito.verify(this.orderController).stopOrder(order);
+	}
+	
 	// test case: When calling the getUserQuota method with valid parameters, it
 	// must return the User Quota from that.
 	@Test

@@ -85,6 +85,10 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         int remoteHibernatedOrderSize = 27;
         int localPausedOrderSize = 28;
         int remotePausedOrderSize = 29;
+        int localStoppingOrderSize = 30;
+        int remoteStoppingOrderSize = 31;
+        int localStoppedOrderSize = 32;
+        int remoteStoppedOrderSize = 33;
 
         int activeOrdersSizeExpected = localOpenOrderSize + remoteOpenOrderSize
                 + remotePendingOrderSize
@@ -100,7 +104,9 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
                 + localResumingOrderSize + remoteResumingOrderSize
                 + localHibernatingOrderSize + remoteHibernatingOrderSize
                 + localHibernatedOrderSize + remoteHibernatedOrderSize
-                + localPausedOrderSize + remotePausedOrderSize;
+                + localPausedOrderSize + remotePausedOrderSize
+                + localStoppingOrderSize + remoteStoppingOrderSize
+                + localStoppedOrderSize + remoteStoppedOrderSize;
 
         int remoteOrdersSizeExpected = localPendingOrderSize + remotePendingOrderSize
                 + remoteSelectedOrderSize
@@ -115,7 +121,9 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
                 + remoteResumingOrderSize
                 + remoteHibernatingOrderSize
                 + remoteHibernatedOrderSize
-                + remotePausedOrderSize;
+                + remotePausedOrderSize
+                + remoteStoppingOrderSize
+                + remoteStoppedOrderSize;
 
         int openOrderListSizeExpected = localOpenOrderSize + remoteOpenOrderSize;
         int selectedOrderListSizeExpected = localSelectedOrderSize;
@@ -131,7 +139,8 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         int hibernatingOrderListSizeExpected = localHibernatingOrderSize;
         int hibernatedOrderListSizeExpected = localHibernatedOrderSize;
         int pausedOrderListSizeExpected = localPausedOrderSize;
-
+        int stoppingOrderListSizeExpected = localStoppingOrderSize;
+        int stoppedOrderListSizeExpected = localStoppedOrderSize;
 
         SynchronizedDoublyLinkedList<Order> openList = createOrderList(localOpenOrderSize, remoteOpenOrderSize);
         SynchronizedDoublyLinkedList<Order> selectedList = createOrderList(localSelectedOrderSize, remoteSelectedOrderSize);
@@ -158,11 +167,15 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
                 localHibernatedOrderSize, remoteHibernatedOrderSize);
         SynchronizedDoublyLinkedList<Order> pausedRequestList = createOrderList(
                 localPausedOrderSize, remotePausedOrderSize);
+        SynchronizedDoublyLinkedList<Order> stoppingRequestList = createOrderList(
+                localStoppingOrderSize, remoteStoppingOrderSize);
+        SynchronizedDoublyLinkedList<Order> stoppedRequestList = createOrderList(
+                localStoppedOrderSize, remoteStoppedOrderSize);
 
         this.testUtils.mockReadOrdersFromDataBase(openList, selectedList, fulfilledList, failedAfterSuccessRequestList,
                 checkingDeletionList, pendingList, spawningList, failedOnRequestList, unableToCheckRequestList,
                 assignedForDeletionRequestList, pausingRequestList, resumingRequestList, hibernatingRequestList,
-                hibernatedRequestList, pausedRequestList);
+                hibernatedRequestList, pausedRequestList, stoppingRequestList, stoppedRequestList);
 
         // exercise
         SharedOrderHolders sharedOrderHolders = new SharedOrderHolders();
@@ -186,6 +199,8 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         checkList(hibernatingOrderListSizeExpected, sharedOrderHolders.getHibernatingOrdersList());
         checkList(hibernatedOrderListSizeExpected, sharedOrderHolders.getHibernatedOrdersList());
         checkList(pausedOrderListSizeExpected, sharedOrderHolders.getPausedOrdersList());
+        checkList(stoppingOrderListSizeExpected, sharedOrderHolders.getStoppingOrdersList());
+        checkList(stoppedOrderListSizeExpected, sharedOrderHolders.getStoppedOrdersList());
     }
 
     private void checkList(int sizeExpected, SynchronizedDoublyLinkedList<Order> list) {

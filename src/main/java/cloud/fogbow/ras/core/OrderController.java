@@ -169,6 +169,32 @@ public class OrderController {
             }
         }
     }
+    
+    public void stopOrder(Order order) throws FogbowException {
+        synchronized (order) {
+            OrderState orderState = order.getOrderState();
+            
+            if (orderState.equals(OrderState.STOPPED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_ALREADY_STOPPED);
+
+            } else if(orderState.equals(OrderState.STOPPING)) {
+                throw new UnacceptableOperationException(Messages.Exception.STOP_OPERATION_ONGOING);
+
+            } else if (!orderState.equals(OrderState.FULFILLED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
+
+            } else {
+                try {
+                    CloudConnector cloudConnector = getCloudConnector(order);
+                    cloudConnector.stopComputeInstance(order);
+                    OrderStateTransitioner.transition(order, OrderState.STOPPING);
+                } catch (Exception e) {
+                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
+                    throw e;
+                }
+            }
+        }
+    }
 
     public void resumeOrder(Order order) throws FogbowException {
         synchronized (order) {
@@ -178,8 +204,9 @@ public class OrderController {
                 throw new UnacceptableOperationException(Messages.Exception.RESUME_OPERATION_ONGOING);
             }
 
-            if (!orderState.equals(OrderState.PAUSED) && !orderState.equals(OrderState.HIBERNATED)) {
-                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED);
+            if (!orderState.equals(OrderState.PAUSED) && !orderState.equals(OrderState.HIBERNATED)
+                    && !orderState.equals(OrderState.STOPPED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED_OR_STOPPED);
             }
 
             try {

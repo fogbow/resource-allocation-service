@@ -22,8 +22,8 @@ import cloud.fogbow.ras.core.plugins.interoperability.aws.sdk.v2.compute.model.A
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.AwsV2User;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -150,12 +150,24 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     }
 
     @Override
+    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        // TODO implement
+        throw new NotImplementedOperationException();
+    }
+    
+    @Override
     public boolean isPaused(String cloudState) throws FogbowException {
         return false;
     }
 
     @Override
     public boolean isHibernated(String cloudState) throws FogbowException {
+        return false;
+    }
+    
+    @Override
+    public boolean isStopped(String cloudState) throws FogbowException {
+        // TODO implement
         return false;
     }
 

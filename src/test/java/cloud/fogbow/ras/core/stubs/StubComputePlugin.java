@@ -43,6 +43,11 @@ public class StubComputePlugin implements ComputePlugin<CloudUser> {
     }
 
     @Override
+    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        
+    }
+    
+    @Override
     public void resumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
 
     }
@@ -57,6 +62,11 @@ public class StubComputePlugin implements ComputePlugin<CloudUser> {
         return false;
     }
 
+    @Override
+    public boolean isStopped(String cloudState) throws FogbowException {
+        return false;
+    }
+    
     @Override
     public boolean isReady(String cloudState) {
         return true;

@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.openstack.compute.v2;
 import cloud.fogbow.common.constants.OpenStackConstants;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.AwsV2User;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.openstack.OpenStackHttpClient;
 import cloud.fogbow.common.models.OpenStackV3User;
@@ -60,6 +61,12 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     @Override
     public boolean isHibernated(String cloudState) throws FogbowException {
         return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.HIBERNATED);
+    }
+    
+    @Override
+    public boolean isStopped(String cloudState) throws FogbowException {
+        // TODO implement
+        return false;
     }
 
     @Override
@@ -144,6 +151,12 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
         String body = request.toJson();
 
         this.doPostRequest(endpoint, body, cloudUser);
+    }
+    
+    @Override
+    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        // TODO implement
+        throw new NotImplementedOperationException();
     }
 
     @Override

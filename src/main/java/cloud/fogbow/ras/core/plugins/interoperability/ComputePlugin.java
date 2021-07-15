@@ -33,9 +33,13 @@ public interface ComputePlugin<S extends CloudUser> extends OrderPlugin<ComputeI
 
     public void hibernateInstance(ComputeOrder order, S cloudUser) throws FogbowException;
 
+    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException;
+    
     public void resumeInstance(ComputeOrder order, S cloudUser) throws FogbowException;
 
     public boolean isPaused(String cloudState) throws FogbowException;
 
     public boolean isHibernated(String cloudState) throws FogbowException;
+
+    public boolean isStopped(String cloudState) throws FogbowException;
 }

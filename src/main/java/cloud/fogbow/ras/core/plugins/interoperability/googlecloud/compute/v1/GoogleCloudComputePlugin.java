@@ -4,6 +4,8 @@ import cloud.fogbow.common.constants.GoogleCloudConstants;
 import cloud.fogbow.common.exceptions.FatalErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
+import cloud.fogbow.common.exceptions.NotImplementedOperationException;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.GoogleCloudUser;
 import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
@@ -125,6 +127,12 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     }
 
     @Override
+    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        // TODO implement
+        throw new NotImplementedOperationException();
+    }
+    
+    @Override
     public void resumeInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
         // ToDo: implement
     }
@@ -136,6 +144,12 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
 
     @Override
     public boolean isHibernated(String cloudState) throws FogbowException {
+        return false;
+    }
+    
+    @Override
+    public boolean isStopped(String cloudState) throws FogbowException {
+        // TODO implement
         return false;
     }
 

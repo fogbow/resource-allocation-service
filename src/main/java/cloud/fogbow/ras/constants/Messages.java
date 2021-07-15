@@ -66,6 +66,7 @@ public class Messages {
         public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
         public static final String SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND_S = "There is no security group with name: %s.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER_S_S = "Signalling provider %s is not the provider %s.";
+        public static final String STOP_OPERATION_ONGOING = "The virtual machine is already being stopped.";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";
         public static final String UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK = "Unable to complete request.";
@@ -94,9 +95,10 @@ public class Messages {
         public static final String VIRTUAL_MACHINE_ALREADY_HIBERNATED = "The Virtual Machine has already been hibernated.";
         public static final String VIRTUAL_MACHINE_ALREADY_PAUSED = "The Virtual Machine has already been paused.";
         public static final String VIRTUAL_MACHINE_IS_NOT_RUNNING = "The Virtual Machine is not running.";
+        public static final String VIRTUAL_MACHINE_ALREADY_STOPPED = "The Virtual Machine has already been stopped.";
         public static final String WRONG_POLICY_TYPE = "Wrong policy type. Type should be '%s' but is '%s'.";
         public static final String WRONG_URI_SYNTAX_S = "Wrong syntax for endpoint %s.";
-        public static final String VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED = "The virtual machine is not paused or hibernated.";
+        public static final String VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED_OR_STOPPED = "The virtual machine is not paused or hibernated or stopped.";
     }
 
     public static class Log {
@@ -191,6 +193,7 @@ public class Messages {
         public static final String INSTANCE_S_ALREADY_HIBERNATED = "Instance %s has already been hibernated.";
         public static final String INSTANCE_S_ALREADY_PAUSED = "Instance %s has already been paused.";
         public static final String INSTANCE_S_ALREADY_RUNNING = "Instance %s is already running.";
+        public static final String INSTANCE_S_ALREADY_STOPPED = "Instance %s has already been stopped.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE_S = "Invalid list security rule type: %s.";
         public static final String INVALID_NUMBER_FORMAT = "Invalid number format.";
@@ -215,6 +218,7 @@ public class Messages {
         public static final String RECEIVING_REMOTE_REQUEST_S = "Received remote request for request: %s.";
         public static final String RECEIVING_RESOURCE_S_REQUEST_S = "Get %s request for provider %s received.";
         public static final String RECEIVING_RESUME_REQUEST_S = "Resume request for user %s, provider %s, received.";
+        public static final String RECEIVING_STOP_REQUEST_S = "Stop request for %s received.";
         public static final String RECOVERING_LIST_OF_ORDERS_S_D = "Recovering requests in %s list: %d requests recovered so far.";
         public static final String REMOVING_ORDER_IN_SELECT_STATE_S = "Order %s might have left garbage in cloud.";
         public static final String RESUMING_INSTANCE_S = "Resuming instance %s.";

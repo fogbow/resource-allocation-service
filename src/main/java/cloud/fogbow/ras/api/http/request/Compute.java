@@ -203,6 +203,23 @@ public class Compute {
             throw e;
         }
     }
+    
+    @ApiOperation(value = ApiDocumentation.Compute.STOP_OPERATION)
+    @RequestMapping(value = "/{computeId}/stop", method = RequestMethod.POST)
+    public void stopCompute(
+            @ApiParam(value = ApiDocumentation.Compute.ID)
+            @PathVariable String computeId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) 
+                    throws FogbowException {
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_STOP_REQUEST_S, computeId));
+            ApplicationFacade.getInstance().stopCompute(computeId, systemUserToken, ResourceType.COMPUTE);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
 
     @ApiOperation(value = ApiDocumentation.Compute.RESUME_OPERATION)
     @RequestMapping(value = "/{computeId}/resume", method = RequestMethod.POST)

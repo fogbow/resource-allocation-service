@@ -40,6 +40,8 @@ public class XmppExceptionToErrorConditionTranslator {
             return PacketError.Condition.conflict;
         } else if (e.getClass() == InternalServerErrorException.class) {
             return PacketError.Condition.internal_server_error;
+        } else if (e.getClass() == NotImplementedOperationException.class) {
+            return PacketError.Condition.feature_not_implemented;
         }
         return PacketError.Condition.undefined_condition;
     }

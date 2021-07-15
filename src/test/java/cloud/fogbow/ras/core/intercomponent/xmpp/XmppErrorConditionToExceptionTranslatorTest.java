@@ -179,6 +179,30 @@ public class XmppErrorConditionToExceptionTranslatorTest {
             Assert.fail();
         }
     }
+    
+    //test case: checks if "handleError" is properly forwarding "NotImplementedOperationException" from
+    //"throwException" when the packet error condition is equals to "feature_not_implemented". In addition, it checks
+    //if its message error is correct
+    @Test
+    public void testHandleErrorThrowsNotImplementedOperationException() {
+        //set up
+        IQ iq = new IQ();
+        PacketError packetError = new PacketError(PacketError.Condition.feature_not_implemented, null, this.messageError);
+        iq.setError(packetError);
+
+        try {
+            //exercise
+            XmppErrorConditionToExceptionTranslator.handleError(iq, this.providerId);
+            //verify: if some exception occurred
+            Assert.fail();
+        } catch (NotImplementedOperationException e) {
+            //verify: if the message is correct
+            Assert.assertEquals(this.messageError, e.getMessage());
+        } catch (Throwable e) {
+            //verify: if some exception different from the expected exception occurred
+            Assert.fail();
+        }
+    }
 
     //test case: checks if "handleError" is properly forwarding "InternalServerErrorException" from
     //"throwException" when the packet error condition is equals to "internal_server_error". In addition, it checks

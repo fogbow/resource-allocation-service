@@ -332,6 +332,48 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     	Mockito.verify(orderController).pauseOrder(order2);
     }
     
+    // test case: When calling the stopCompute method, it must call the 
+    // stopOrder method of the OrderController to stop the correct compute.
+    @Test
+    public void testStopCompute() throws FogbowException {
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        String orderId = "orderId";
+        
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
+        
+        Order order = Mockito.mock(ComputeOrder.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.COMPUTE);
+        
+        Mockito.doReturn(order).when(orderController).getOrder(orderId);
+        Mockito.doNothing().when(orderController).stopOrder(order);
+        
+        this.facade.stopCompute(orderId, userToken, ResourceType.COMPUTE);
+        
+        Mockito.verify(orderController).stopOrder(order);
+    }
+    
+    // test case: When calling the stopCompute method passing an order which
+    // is not a ComputeOrder, it must throw an InvalidParameterException.
+    @Test(expected = InvalidParameterException.class)
+    public void testStopComputeFailsIfNotComputeOrder() throws FogbowException {
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        String orderId = "orderId";
+        
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
+        
+        Order order = Mockito.mock(Order.class);
+        Mockito.when(order.getType()).thenReturn(ResourceType.VOLUME);
+        
+        Mockito.doReturn(order).when(orderController).getOrder(orderId);
+        Mockito.doNothing().when(orderController).stopOrder(order);
+        
+        this.facade.stopCompute(orderId, userToken, ResourceType.COMPUTE);
+        
+        Mockito.verify(orderController).stopOrder(order);
+    }
+    
     // test case: When calling the resumeUserComputes method, it must call
     // the resumeOrder method of the OrderController to resume the 
     // correct computes.

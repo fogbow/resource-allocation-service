@@ -42,6 +42,8 @@ public class ComputeInstance extends OrderInstance {
     private boolean isPaused;
     @ApiModelProperty(position = 18)
     private boolean isHibernated;
+    @ApiModelProperty(position = 19)
+    private boolean isStopped;
 
     public ComputeInstance(String id, String cloudState, String name, List<String> ipAddresses, String faultMessage) {
         super(id, cloudState, faultMessage);
@@ -49,6 +51,7 @@ public class ComputeInstance extends OrderInstance {
         this.ipAddresses = ipAddresses;
         this.isPaused = false;
         this.isHibernated = false;
+        this.isStopped = false;
     }
 
     @Deprecated
@@ -62,6 +65,7 @@ public class ComputeInstance extends OrderInstance {
         this.ipAddresses = ipAddresses;
         this.isPaused = false;
         this.isHibernated = false;
+        this.isStopped = false;
     }
 
     public ComputeInstance(String id, String cloudState, String name, int vCPU, int ram, int disk,
@@ -74,6 +78,7 @@ public class ComputeInstance extends OrderInstance {
         this.ipAddresses = ipAddresses;
         this.isPaused = false;
         this.isHibernated = false;
+        this.isStopped = false;
     }
 
     public ComputeInstance(String id, String cloudState, String name, int vCPU, int ram, int disk,
@@ -89,12 +94,14 @@ public class ComputeInstance extends OrderInstance {
         this.userData = userData;
         this.isPaused = false;
         this.isHibernated = false;
+        this.isStopped = false;
     }
 
     public ComputeInstance(String id) {
         super(id);
         this.isPaused = false;
         this.isHibernated = false;
+        this.isStopped = false;
     }
 
     public int getDisk() {
@@ -164,6 +171,7 @@ public class ComputeInstance extends OrderInstance {
     public void setPaused() {
         this.isPaused = true;
         this.isHibernated = false;
+        this.isStopped = false;
     }
 
     public boolean isPaused() {
@@ -173,10 +181,21 @@ public class ComputeInstance extends OrderInstance {
     public void setHibernated() {
         this.isHibernated = true;
         this.isPaused = false;
+        this.isStopped = false;
     }
 
     public boolean isHibernated() {
         return isHibernated;
+    }
+    
+    public void setStopped() {
+        this.isStopped = true;
+        this.isPaused = false;
+        this.isHibernated = false;
+    }
+
+    public boolean isStopped() {
+        return isStopped;
     }
 
     @Override

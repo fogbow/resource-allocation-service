@@ -21,6 +21,7 @@ import cloud.fogbow.ras.core.TestUtils;
 import cloud.fogbow.ras.core.datastore.DatabaseManager;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.ResourceType;
+import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.AttachmentPlugin;
@@ -1116,6 +1117,35 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
                     Mockito.eq(Operation.DELETE), Mockito.eq(ResourceType.SECURITY_RULE), Mockito.any(SystemUser.class),
                     Mockito.anyString());
         }
+    }
+    
+    // test case: When invoking the stopComputeInstance method, it must call the 
+    // doStopInstance method and confirm in auditRequest the STOP operation of the 
+    // COMPUTE resource type.
+    @Test
+    public void testStopComputeInstance() throws FogbowException {
+        // set up
+        ComputeOrder order = this.testUtils.createLocalComputeOrder();
+        order.setInstanceId(TestUtils.FAKE_INSTANCE_ID);
+        order.setOrderState(OrderState.FULFILLED);
+
+        CloudUser cloudUser = Mockito.mock(CloudUser.class);
+        Mockito.when(this.mapperPlugin.map(Mockito.any(SystemUser.class))).thenReturn(cloudUser);
+
+        OrderInstance instance = new ComputeInstance(TestUtils.FAKE_INSTANCE_ID);
+        Mockito.doReturn(instance).when(this.localCloudConnector).doGetInstance(Mockito.eq(order),
+                Mockito.eq(cloudUser));
+
+        // exercise
+        this.localCloudConnector.stopComputeInstance(order);
+
+        // verify
+        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).doStopInstance(Mockito.eq(order),
+                Mockito.eq(cloudUser));
+        Mockito.verify(this.localCloudConnector, Mockito.times(TestUtils.RUN_ONCE)).auditRequest(
+                Mockito.eq(Operation.STOP), Mockito.eq(ResourceType.COMPUTE), Mockito.any(SystemUser.class),
+                Mockito.anyString());
+        Mockito.verify(this.computePlugin).stopInstance(order, cloudUser);
     }
     
     // test case: When invoking the createEmptyInstance method with an order

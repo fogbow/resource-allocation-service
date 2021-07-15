@@ -35,6 +35,8 @@ public class XmppErrorConditionToExceptionTranslator {
                 throw new ConfigurationErrorException(message);
             case internal_server_error:
                 throw new InternalServerErrorException(message);
+            case feature_not_implemented:
+                throw new NotImplementedOperationException(message);
             case undefined_condition:
             	throw new FogbowException(message);
             default:

@@ -286,6 +286,52 @@ public class OrderControllerTest extends BaseUnitTests {
                 .assertEqualsInOrder(Level.WARN, warnMessageException);
     }
 
+    // test case: When calling the stopOrder method, it must call the CloudConnector to 
+    // stop the order and change the order state to STOPPING.
+    @Test
+    public void testStopOrder() throws FogbowException {
+        // set up
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+
+        String orderId = setupOrder(OrderState.FULFILLED);
+        ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
+        
+        // exercise
+        this.ordersController.stopOrder(computeOrder);
+        
+        // verify
+        Assert.assertEquals(OrderState.STOPPING, computeOrder.getOrderState());
+        Mockito.verify(this.localCloudConnector).stopComputeInstance(computeOrder);
+    }
+    
+    // test case: When calling the stopOrder passing as argument an Order in the state
+    // STOPPING, it must throw an UnacceptableOperationException.
+    @Test(expected = UnacceptableOperationException.class)
+    public void testStopOrderStopOperationOngoing() throws FogbowException {
+        // set up
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+
+        String orderId = setupOrder(OrderState.STOPPING);
+        ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
+        
+        // exercise
+        this.ordersController.stopOrder(computeOrder);
+    }
+    
+    // test case: When calling the stopOrder passing as argument an Order in the state
+    // STOPPED, it must throw an UnacceptableOperationException.
+    @Test(expected = UnacceptableOperationException.class)
+    public void testStopOrderStoppedOrder() throws FogbowException {
+        // set up
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+
+        String orderId = setupOrder(OrderState.STOPPED);
+        ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
+        
+        // exercise
+        this.ordersController.stopOrder(computeOrder);
+    }
+    
     // test case: Creates an order with dependencies and check if the order id
     // will be inserted into dependencies.
     @Test
