@@ -213,6 +213,7 @@ public class Messages {
         public static final String RECEIVING_GET_CLOUDS_REQUEST = "Get request for cloud names received.";
         public static final String RECEIVING_GET_IMAGE_REQUEST_S = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST_S = "Get request for %s %s received.";
+        public static final String RECEIVING_HIBERNATE_USER_REQUEST_S = "Hibernate request for user %s, provider %s, received.";
         public static final String RECEIVING_PAUSE_REQUEST_S = "Pause request for user %s, provider %s, received.";
         public static final String RECEIVING_RELOAD_CONFIGURATION_REQUEST = "Received reload configuration request.";
         public static final String RECEIVING_REMOTE_REQUEST_S = "Received remote request for request: %s.";

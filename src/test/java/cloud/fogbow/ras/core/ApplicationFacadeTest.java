@@ -332,6 +332,49 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     	Mockito.verify(orderController).pauseOrder(order2);
     }
     
+    // test case: When calling the hibernateUserComputes method, it must call
+    // the hibernateOrder method of the OrderController to hibernate the 
+    // correct computes.
+    @Test
+    public void testHibernateUserComputes() throws FogbowException {
+        // set up
+        String userToken = SYSTEM_USER_TOKEN_VALUE;
+        String orderId1 = "orderId1";
+        String orderId2 = "orderId2";
+        
+        SystemUser systemUser = this.testUtils.createSystemUser();
+        Mockito.doReturn(systemUser).when(this.facade).authenticate(Mockito.eq(userToken));
+        
+        InstanceStatus instance1 = Mockito.mock(InstanceStatus.class);
+        InstanceStatus instance2 = Mockito.mock(InstanceStatus.class);
+        
+        Mockito.when(instance1.getInstanceId()).thenReturn(orderId1);
+        Mockito.when(instance2.getInstanceId()).thenReturn(orderId2);
+        
+        List<InstanceStatus> instanceStatusList = new ArrayList<InstanceStatus>();
+        instanceStatusList.add(instance1);
+        instanceStatusList.add(instance2);
+        
+        Order order1 = Mockito.mock(Order.class);
+        Order order2 = Mockito.mock(Order.class);
+        
+        Mockito.doReturn(instanceStatusList).when(orderController).
+        getUserInstancesStatus(TestUtils.FAKE_USER_ID, TestUtils.LOCAL_MEMBER_ID, ResourceType.COMPUTE);
+        
+        Mockito.doReturn(order1).when(orderController).getOrder(orderId1);
+        Mockito.doReturn(order2).when(orderController).getOrder(orderId2);
+        
+        Mockito.doNothing().when(orderController).hibernateOrder(order1);
+        Mockito.doNothing().when(orderController).hibernateOrder(order2);
+        
+        // exercise
+        this.facade.hibernateUserComputes(TestUtils.FAKE_USER_ID, TestUtils.LOCAL_MEMBER_ID, userToken);
+        
+        // verify
+        Mockito.verify(orderController).hibernateOrder(order1);
+        Mockito.verify(orderController).hibernateOrder(order2);
+    }
+    
     // test case: When calling the stopCompute method, it must call the 
     // stopOrder method of the OrderController to stop the correct compute.
     @Test

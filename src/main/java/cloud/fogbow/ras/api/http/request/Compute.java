@@ -204,6 +204,26 @@ public class Compute {
         }
     }
     
+    @ApiOperation(value = ApiDocumentation.Compute.HIBERNATE_OPERATION)
+    @RequestMapping(value = "/hibernate/{userId}/{providerId:.+}", method = RequestMethod.POST)
+    public void hibernateUserComputes(
+            @ApiParam(value = ApiDocumentation.Compute.USER_ID)
+            @PathVariable String userId,
+            @ApiParam(value = ApiDocumentation.Compute.USER_PROVIDER_ID)
+            @PathVariable String providerId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_HIBERNATE_USER_REQUEST_S, userId, providerId));
+            ApplicationFacade.getInstance().hibernateUserComputes(userId, providerId, systemUserToken);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
+    
     @ApiOperation(value = ApiDocumentation.Compute.STOP_OPERATION)
     @RequestMapping(value = "/{computeId}/stop", method = RequestMethod.POST)
     public void stopCompute(

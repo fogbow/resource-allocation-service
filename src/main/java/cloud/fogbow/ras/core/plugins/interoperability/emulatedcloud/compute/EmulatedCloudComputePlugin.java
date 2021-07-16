@@ -123,7 +123,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public void hibernateInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
-        // ToDo: implement
+        setCloudState(order, EmulatedCloudStateMapper.HIBERNATED_STATUS);
     }
 
     @Override
@@ -156,7 +156,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public boolean isHibernated(String cloudState) throws FogbowException {
-        return false;
+        return EmulatedCloudStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.HIBERNATED);
     }
 
     @Override

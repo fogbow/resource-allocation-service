@@ -462,6 +462,26 @@ public class ApplicationFacade {
 			finishOperation();
 		}	
 	}
+	
+    public void hibernateUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
+        startOperation();
+        try {
+            SystemUser systemUser = authenticate(userToken);
+            RasOperation rasOperation = new RasOperation(Operation.HIBERNATE_ALL, ResourceType.COMPUTE, this.providerId, 
+                    this.providerId);
+            
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+            List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(
+                    userId, userProviderId, ResourceType.COMPUTE);
+            
+            for (InstanceStatus status : statuses) {
+                String orderId = status.getInstanceId();
+                this.orderController.hibernateOrder(this.orderController.getOrder(orderId));
+            }   
+        } finally {
+            finishOperation();
+        }
+    }
 
     public void stopUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
         startOperation();
