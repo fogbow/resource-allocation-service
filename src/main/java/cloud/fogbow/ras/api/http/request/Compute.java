@@ -33,6 +33,8 @@ public class Compute {
     public static final String COMPUTE_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + COMPUTE_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "compute";
     public static final String PAUSE_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/pause";
+    public static final String HIBERNATE_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/hibernate";
+    public static final String STOP_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/stop";
     public static final String RESUME_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/resume";
     
     private final Logger LOGGER = Logger.getLogger(Compute.class);
