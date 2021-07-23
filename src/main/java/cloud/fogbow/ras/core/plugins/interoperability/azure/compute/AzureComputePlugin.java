@@ -236,7 +236,7 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     }
 
     @Override
-    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+    public void stopInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
         // TODO implement
         throw new NotImplementedOperationException();
     }

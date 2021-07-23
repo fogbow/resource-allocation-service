@@ -19,7 +19,6 @@ import cloud.fogbow.ras.api.http.response.quotas.allocation.ComputeAllocation;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.plugins.interoperability.ComputePlugin;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.*;
-import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.CreateImageRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackPluginUtils;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.util.OpenStackStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
@@ -65,8 +64,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     
     @Override
     public boolean isStopped(String cloudState) throws FogbowException {
-        // TODO implement
-        return false;
+        return OpenStackStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.STOPPED);
     }
 
     @Override
@@ -154,9 +152,18 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     }
     
     @Override
-    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
-        // TODO implement
-        throw new NotImplementedOperationException();
+    public void stopInstance(ComputeOrder computeOrder, OpenStackV3User cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.STOPPING_INSTANCE_S, instanceId));
+        String projectId = OpenStackPluginUtils.getProjectIdFrom(cloudUser);
+        String endpoint = getComputeEndpoint(projectId, OpenStackConstants.SERVERS_ENDPOINT
+                + OpenStackConstants.ENDPOINT_SEPARATOR + computeOrder.getInstanceId()
+                + OpenStackConstants.ENDPOINT_SEPARATOR + OpenStackConstants.ACTION);
+        
+        ShelveComputeRequest request = getShelveComputeRequest();
+        String body = request.toJson();
+        
+        this.doPostRequest(endpoint, body, cloudUser);
     }
 
     @Override
@@ -175,6 +182,10 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
 
         } else if(computeOrder.getOrderState().equals(OrderState.HIBERNATED)) {
             ResumeComputeRequest request = getResumeComputeRequest();
+            String body = request.toJson();
+            this.doPostRequest(endpoint, body, cloudUser);
+        } else if (computeOrder.getOrderState().equals(OrderState.STOPPED)) {
+            UnshelveComputeRequest request = getUnshelveComputeRequest();
             String body = request.toJson();
             this.doPostRequest(endpoint, body, cloudUser);
         }
@@ -376,6 +387,18 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3User> {
     ResumeComputeRequest getResumeComputeRequest() {
         ResumeComputeRequest resumeComputeRequest = new ResumeComputeRequest.Builder().build();
         return resumeComputeRequest;
+    }
+    
+    @VisibleForTesting
+    ShelveComputeRequest getShelveComputeRequest() {
+        ShelveComputeRequest shelveComputeRequest = new ShelveComputeRequest.Builder().build();
+        return shelveComputeRequest;
+    }
+
+    @VisibleForTesting
+    UnshelveComputeRequest getUnshelveComputeRequest() {
+        UnshelveComputeRequest unshelveComputeRequest = new UnshelveComputeRequest.Builder().build();
+        return unshelveComputeRequest;
     }
 
     @VisibleForTesting

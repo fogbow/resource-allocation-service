@@ -19,6 +19,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.m
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.GetAllFlavorsResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.GetFlavorExtraSpecsResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.GetFlavorResponse;
+import cloud.fogbow.ras.core.plugins.interoperability.openstack.sdk.v2.compute.models.ShelveComputeRequest;
 import cloud.fogbow.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Assert;
@@ -602,6 +603,29 @@ public class OpenStackComputePluginTest extends BaseUnitTests {
         this.computePlugin.getInstance(computeOrder, cloudUser);
 
         Assert.fail();
+    }
+
+    // test case: when invoking the method stopInstance, it must set up a shelve request
+    // properly and call the client to perform the request.
+    @Test
+    public void testStopInstanceSuccessfully() throws FogbowException {
+        ComputeOrder computeOrder = testUtils.createLocalComputeOrder();
+        
+        PowerMockito.mockStatic(OpenStackPluginUtils.class);
+        BDDMockito.given(OpenStackPluginUtils.getProjectIdFrom(
+                Mockito.eq(cloudUser))).willReturn(FAKE_PROJECT_ID);
+        
+        Mockito.doReturn(ANY_URL).when(this.computePlugin).getComputeEndpoint(
+                Mockito.anyString(), Mockito.anyString());
+        
+        ShelveComputeRequest shelveRequest = Mockito.mock(ShelveComputeRequest.class);
+        Mockito.when(shelveRequest.toJson()).thenReturn(ANY_STRING);
+        
+        Mockito.doReturn(shelveRequest).when(this.computePlugin).getShelveComputeRequest();
+        
+        this.computePlugin.stopInstance(computeOrder, cloudUser);
+        
+        Mockito.verify(this.clientMock).doPostRequest(ANY_URL, ANY_STRING, cloudUser);
     }
 
     // test case: Test if the networkdIds contain the defaultNetworkId

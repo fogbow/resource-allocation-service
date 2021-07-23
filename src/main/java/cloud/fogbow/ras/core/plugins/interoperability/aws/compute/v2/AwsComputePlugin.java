@@ -150,7 +150,7 @@ public class AwsComputePlugin implements ComputePlugin<AwsV2User> {
     }
 
     @Override
-    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+    public void stopInstance(ComputeOrder order, AwsV2User cloudUser) throws FogbowException {
         // TODO implement
         throw new NotImplementedOperationException();
     }

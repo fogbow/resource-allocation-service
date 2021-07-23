@@ -127,7 +127,7 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     }
 
     @Override
-    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+    public void stopInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
         // TODO implement
         throw new NotImplementedOperationException();
     }

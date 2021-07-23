@@ -244,6 +244,7 @@ public class Messages {
         public static final String SETTING_UP_PACKET_SENDER = "Setting up XMPP packet sender.";
         public static final String SLEEP_THREAD_INTERRUPTED = "Thread is not able to sleep.";
         public static final String STARTING_THREADS = "Starting processor threads.";
+        public static final String STOPPING_INSTANCE_S = "Stopping instance %s.";
         public static final String STOPPING_THREADS = "Stopping processor threads.";
         public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
         public static final String SUCCESS = "Successfully executed operation.";

@@ -43,6 +43,30 @@ public class OpenStackStateMapperTest {
         // verify
         Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
+    
+    @Test
+    public void testComputeStatusToStoppingShelved() {
+        // set up
+        ResourceType resourceType = ResourceType.COMPUTE;
+        
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.SHELVED_STATUS);
+        
+        // verify
+        Assert.assertEquals(InstanceState.STOPPED, instanceState);
+    }
+    
+    @Test
+    public void testComputeStatusToStoppingShelvedOffLoaded() {
+        // set up
+        ResourceType resourceType = ResourceType.COMPUTE;
+        
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(resourceType, OpenStackStateMapper.SHELVED_OFFLOADED_STATUS);
+        
+        // verify
+        Assert.assertEquals(InstanceState.STOPPED, instanceState);
+    }
 
     @Test
     public void testComputeInvalidStatusToInconsistent() {
