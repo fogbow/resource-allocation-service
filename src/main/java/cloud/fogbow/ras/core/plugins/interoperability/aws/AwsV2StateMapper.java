@@ -36,8 +36,10 @@ public class AwsV2StateMapper {
 	public static final String INVALID_STATE = "invalid";
 	public static final String PENDING_STATE = "pending";
 	public static final String RUNNING_STATE = "running";
+	public static final String REBOOTING_STATE = "rebooting";
 	public static final String SHUTTING_DOWN_STATE = "deleting";
 	public static final String STOPPING_STATE = "stopping";
+	public static final String STOPPED_STATE = "stopped";
 	public static final String TERMINATED_STATE = "terminated";
 	public static final String TRANSIENT_STATE = "transient";
 	public static final String UNKNOWN_TO_SDK_VERSION_STATE = "unknown_to_sdk_version";
@@ -68,7 +70,10 @@ public class AwsV2StateMapper {
 				return InstanceState.READY;
 			case SHUTTING_DOWN_STATE:
 			case STOPPING_STATE:
+			case REBOOTING_STATE:
 				return InstanceState.BUSY;
+			case STOPPED_STATE:
+			    return InstanceState.STOPPED;
 			default:
 				LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, COMPUTE_PLUGIN));
 				return InstanceState.INCONSISTENT;
