@@ -62,6 +62,15 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
         this.client = new GoogleCloudHttpClient();
         this.zone = this.properties.getProperty(GoogleCloudConstants.ZONE_KEY_CONFIG);
     }
+    
+    public GoogleCloudComputePlugin(String confFilePath, LaunchCommandGenerator launchCommandGenerator, 
+            GoogleCloudHttpClient googleCloudClient) 
+            throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.launchCommandGenerator = launchCommandGenerator;
+        this.client = googleCloudClient;
+        this.zone = this.properties.getProperty(GoogleCloudConstants.ZONE_KEY_CONFIG);
+    }
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, GoogleCloudUser cloudUser) throws FogbowException {
@@ -114,43 +123,59 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
 
     @Override
     public void takeSnapshot(ComputeOrder computeOrder, String name, GoogleCloudUser cloudUser) throws FogbowException {
+        // TODO implement
+        throw new NotImplementedOperationException();
     }
 
     @Override
     public void pauseInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
-        // ToDo: implement
+        throw new NotImplementedOperationException();
     }
 
     @Override
     public void hibernateInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
-        // ToDo: implement
-    }
-
-    @Override
-    public void stopInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
-        // TODO implement
         throw new NotImplementedOperationException();
     }
-    
+
     @Override
-    public void resumeInstance(ComputeOrder order, GoogleCloudUser cloudUser) throws FogbowException {
-        // ToDo: implement
+    public void stopInstance(ComputeOrder computeOrder, GoogleCloudUser cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.STOPPING_INSTANCE_S, instanceId));
+
+        String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
+
+        String stopEndpoint = getStopEndpoint(projectId, instanceId);
+        String bodyContent = "";
+        
+        this.client.doPostRequest(stopEndpoint, bodyContent, cloudUser);
     }
 
     @Override
-    public boolean isPaused(String cloudState) throws FogbowException {
+    public void resumeInstance(ComputeOrder computeOrder, GoogleCloudUser cloudUser) throws FogbowException {
+        String instanceId = computeOrder.getInstanceId();
+        LOGGER.info(String.format(Messages.Log.RESUMING_INSTANCE_S, instanceId));
+
+        String projectId = GoogleCloudPluginUtils.getProjectIdFrom(cloudUser);
+
+        String resumeEndpoint = getResumeEndpoint(projectId, instanceId);
+        String bodyContent = "";
+        
+        this.client.doPostRequest(resumeEndpoint, bodyContent, cloudUser);
+    }
+
+    @Override
+    public boolean isPaused(String instanceState) throws FogbowException {
         return false;
     }
 
     @Override
-    public boolean isHibernated(String cloudState) throws FogbowException {
+    public boolean isHibernated(String instanceState) throws FogbowException {
         return false;
     }
     
     @Override
-    public boolean isStopped(String cloudState) throws FogbowException {
-        // TODO implement
-        return false;
+    public boolean isStopped(String instanceState) throws FogbowException {
+        return GoogleCloudStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.STOPPED);
     }
 
     @Override
@@ -433,7 +458,25 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     String getFirewallsEndpoint(String projectId) {
         return getBaseUrl() + GoogleCloudPluginUtils.getProjectEndpoint(projectId) + GoogleCloudConstants.GLOBAL_FIREWALL_ENDPOINT;
     }
+    
+    @VisibleForTesting
+    String getStopEndpoint(String projectId, String instanceId) {
+        String computeEndpoint = getComputeEndpoint(projectId);
+        String endpoint = getPathWithId(computeEndpoint, instanceId);
+        endpoint += GoogleCloudConstants.ENDPOINT_SEPARATOR + GoogleCloudConstants.Compute.STOP_ENDPOINT;
+        
+        return endpoint;
+    }
 
+    @VisibleForTesting
+    String getResumeEndpoint(String projectId, String instanceId) {
+        String computeEndpoint = getComputeEndpoint(projectId);
+        String endpoint = getPathWithId(computeEndpoint, instanceId);
+        endpoint += GoogleCloudConstants.ENDPOINT_SEPARATOR + GoogleCloudConstants.Compute.START_ENDPOINT;
+        
+        return endpoint;
+    }
+    
     @VisibleForTesting
     HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder) {
         int vCPU = getSmallestvCPU(computeOrder.getvCPU());
