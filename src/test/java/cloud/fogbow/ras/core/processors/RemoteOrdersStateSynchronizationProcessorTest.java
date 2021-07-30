@@ -39,7 +39,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
     private RemoteOrdersStateSynchronizationProcessor processor;
 
     private LoggerAssert loggerTestChecking = new LoggerAssert(RemoteOrdersStateSynchronizationProcessor.class);
-    private LoggerAssert loggerTestCheckingStoppableProcessor = new LoggerAssert(StoppableProcessor.class);
+    private LoggerAssert loggerTestCheckingStoppableOrderListProcessor = new LoggerAssert(StoppableOrderListProcessor.class);
     @Rule
     private ExpectedException expectedException = ExpectedException.none();
     @Rule
@@ -184,7 +184,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
         this.processor.doRun();
         
         // verify
-        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
+        this.loggerTestCheckingStoppableOrderListProcessor.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
     }
 
     // test case: When calling the doRun method and throws an InternalServerErrorException
@@ -203,7 +203,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
         this.processor.doRun();
 
         // verify
-        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
+        this.loggerTestCheckingStoppableOrderListProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
     }
 
     // test case: When calling the doRun method and there is no order in the processAssignedForDeletionOrder,
@@ -222,7 +222,7 @@ public class RemoteOrdersStateSynchronizationProcessorTest extends BaseUnitTests
         // verify
         Mockito.verify(this.processor, Mockito.times(TestUtils.NEVER_RUN))
                 .processRemoteProviderOrder(Mockito.any(Order.class));
-        this.loggerTestCheckingStoppableProcessor.verifyIfEmpty();
+        this.loggerTestCheckingStoppableOrderListProcessor.verifyIfEmpty();
     }
     
     // test case: this method tests if, after starting a thread using a

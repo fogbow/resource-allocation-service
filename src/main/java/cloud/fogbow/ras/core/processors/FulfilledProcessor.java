@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
@@ -13,23 +12,15 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-public class FulfilledProcessor extends StoppableProcessor implements Runnable {
+public class FulfilledProcessor extends StoppableOrderListProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
 
     private String localProviderId;
-    private ChainedList<Order> fulfilledOrdersList;
 
     public FulfilledProcessor(String localProviderId, String sleepTimeStr) {
+        super(Long.valueOf(sleepTimeStr), 
+                SharedOrderHolders.getInstance().getFulfilledOrdersList());
         this.localProviderId = localProviderId;
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
-        this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.isActive = false;
-        this.mustStop = false;
-    }
-    
-    public void setSleepTime(Long sleepTime) {
-        this.sleepTime = sleepTime;
     }
 
     /**
@@ -85,17 +76,7 @@ public class FulfilledProcessor extends StoppableProcessor implements Runnable {
     }
 
     @Override
-    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+    protected void doProcessing(Order order) throws FogbowException {
         processFulfilledOrder(order);
-    }
-
-    @Override
-    protected Order getNext() {
-        return this.fulfilledOrdersList.getNext();
-    }
-
-    @Override
-    protected void reset() {
-        this.fulfilledOrdersList.resetPointer();
     }
 }

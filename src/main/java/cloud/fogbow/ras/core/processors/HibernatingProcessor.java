@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
@@ -15,23 +14,15 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class HibernatingProcessor extends StoppableProcessor implements Runnable {
-    private static final Logger LOGGER = Logger.getLogger(AssignedForDeletionProcessor.class);
+public class HibernatingProcessor extends StoppableOrderListProcessor implements Runnable {
+    private static final Logger LOGGER = Logger.getLogger(HibernatingProcessor.class);
 
     private String localProviderId;
-    private ChainedList<Order> hibernatingOrdersList;
 
     public HibernatingProcessor(String localProviderId, String sleepTimeStr) {
+        super(Long.valueOf(sleepTimeStr), 
+                SharedOrderHolders.getInstance().getHibernatingOrdersList());
         this.localProviderId = localProviderId;
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.hibernatingOrdersList = sharedOrderHolders.getHibernatingOrdersList();
-        this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.isActive = false;
-        this.mustStop = false;
-    }
-
-    public void setSleepTime(Long sleepTime) {
-        this.sleepTime = sleepTime;
     }
 
     /**
@@ -85,17 +76,7 @@ public class HibernatingProcessor extends StoppableProcessor implements Runnable
     }
 
     @Override
-    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+    protected void doProcessing(Order order) throws FogbowException {
         processHibernatingOrder(order);
-    }
-
-    @Override
-    protected Order getNext() {
-        return this.hibernatingOrdersList.getNext();
-    }
-
-    @Override
-    protected void reset() {
-        this.hibernatingOrdersList.resetPointer();
     }
 }

@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.SharedOrderHolders;
 import cloud.fogbow.ras.core.cloudconnector.CloudConnectorFactory;
@@ -12,23 +11,15 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class RemoteOrdersStateSynchronizationProcessor extends StoppableProcessor implements Runnable {
+public class RemoteOrdersStateSynchronizationProcessor extends StoppableOrderListProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(RemoteOrdersStateSynchronizationProcessor.class);
 
-    private ChainedList<Order> remoteProviderOrders;
     private String localProviderId;
 
     public RemoteOrdersStateSynchronizationProcessor(String localProviderId, String sleepTimeStr) {
-        SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
-        this.remoteProviderOrders = sharedOrdersHolder.getRemoteProviderOrdersList();
-        this.sleepTime = Long.valueOf(sleepTimeStr);
+        super(Long.valueOf(sleepTimeStr), 
+                SharedOrderHolders.getInstance().getRemoteProviderOrdersList());
         this.localProviderId = localProviderId;
-        this.isActive = false;
-        this.mustStop = false;
-    }
-
-    public void setSleepTime(Long sleepTime) {
-        this.sleepTime = sleepTime;
     }
 
     /**
@@ -65,17 +56,7 @@ public class RemoteOrdersStateSynchronizationProcessor extends StoppableProcesso
     }
 
     @Override
-    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+    protected void doProcessing(Order order) throws FogbowException {
         processRemoteProviderOrder(order);
-    }
-
-    @Override
-    protected Order getNext() {
-        return this.remoteProviderOrders.getNext();
-    }
-
-    @Override
-    protected void reset() {
-        this.remoteProviderOrders.resetPointer();
     }
 }

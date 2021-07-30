@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -12,23 +11,15 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-public class OpenProcessor extends StoppableProcessor implements Runnable {
+public class OpenProcessor extends StoppableOrderListProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(OpenProcessor.class);
 
     private String localProviderId;
-    private ChainedList<Order> openOrdersList;
 
     public OpenProcessor(String localProviderId, String sleepTimeStr) {
+        super(Long.valueOf(sleepTimeStr), 
+                SharedOrderHolders.getInstance().getOpenOrdersList());
         this.localProviderId = localProviderId;
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.isActive = false;
-        this.mustStop = false;
-    }
-
-    public void setSleepTime(Long sleepTime) {
-        this.sleepTime = sleepTime;
     }
 
     // ToDo: These processors (open, fulfilled, spawning, etc.) may need some refactoring
@@ -86,17 +77,7 @@ public class OpenProcessor extends StoppableProcessor implements Runnable {
     }
 
     @Override
-    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+    protected void doProcessing(Order order) throws FogbowException {
         processOpenOrder(order);
-    }
-
-    @Override
-    protected Order getNext() {
-        return this.openOrdersList.getNext();
-    }
-
-    @Override
-    protected void reset() {
-        this.openOrdersList.resetPointer();
     }
 }

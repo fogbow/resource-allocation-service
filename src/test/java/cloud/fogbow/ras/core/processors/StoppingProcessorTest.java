@@ -43,7 +43,7 @@ public class StoppingProcessorTest extends BaseUnitTests {
     private OrderController orderController;
     private Thread thread;
     
-    private LoggerAssert loggerTestCheckingStoppableProcessor = new LoggerAssert(StoppableProcessor.class);
+    private LoggerAssert loggerTestCheckingStoppableOrderListProcessor = new LoggerAssert(StoppableOrderListProcessor.class);
 
     @Rule
     public Timeout globalTimeout = new Timeout(100, TimeUnit.SECONDS);
@@ -168,7 +168,7 @@ public class StoppingProcessorTest extends BaseUnitTests {
         this.processor.doRun();
 
         // verify
-        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
+        this.loggerTestCheckingStoppableOrderListProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
     }
     
     // test case: When calling the doRun method and there is no order in the stoppingOrderList,
@@ -187,20 +187,7 @@ public class StoppingProcessorTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.processor, Mockito.times(TestUtils.NEVER_RUN))
                 .processStopOrder(Mockito.any(Order.class));
-        this.loggerTestCheckingStoppableProcessor.verifyIfEmpty();
-    }
-
-    // test case: When calling the doRun method and, when the thread is sleeping, 
-    // it throws an InterruptedException, it must verify if it rethrows the same exception.
-    @Test(expected = InterruptedException.class)
-    public void testStopFailWhenThrowsInterruptedException() throws InterruptedException, InternalServerErrorException {
-        // set up
-        PowerMockito.spy(Thread.class);
-        PowerMockito.doThrow(new InterruptedException()).when(Thread.class);
-        Thread.sleep(Mockito.anyLong());
-
-        // exercise
-        this.processor.doRun();
+        this.loggerTestCheckingStoppableOrderListProcessor.verifyIfEmpty();
     }
     
     // test case: this method tests if, after starting a thread using a

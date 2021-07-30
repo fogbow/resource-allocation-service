@@ -104,8 +104,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Thread.sleep(TestUtils.DEFAULT_SLEEP_TIME);
 
         // verify
-        Assert.assertNotNull(this.fulfilledOrderList.getNext());
         Assert.assertNull(this.failedOrderList.getNext());
+        Assert.assertNotNull(this.fulfilledOrderList.getNext());
     }
 
     // test case: When running thread in the FulfilledProcessor and the InstanceState is Failed,

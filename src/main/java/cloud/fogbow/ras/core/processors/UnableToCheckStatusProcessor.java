@@ -1,7 +1,6 @@
 package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
@@ -12,26 +11,18 @@ import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 import org.apache.log4j.Logger;
 
-public class UnableToCheckStatusProcessor extends StoppableProcessor implements Runnable {
+public class UnableToCheckStatusProcessor extends StoppableOrderListProcessor implements Runnable {
 
 	private static final Logger LOGGER = Logger.getLogger(UnableToCheckStatusProcessor.class);
 
-	private ChainedList<Order> unableToCheckStatusOrdersList;
 	private String localProviderId;
 	
 	public UnableToCheckStatusProcessor(String localProviderId, String sleepTimeStr) {
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.unableToCheckStatusOrdersList = sharedOrderHolders.getUnableToCheckStatusOrdersList();
-        this.sleepTime = Long.valueOf(sleepTimeStr);
+	    super(Long.valueOf(sleepTimeStr), 
+	            SharedOrderHolders.getInstance().getUnableToCheckStatusOrdersList());
         this.localProviderId = localProviderId;
-        this.isActive = false;
-        this.mustStop = false;
     }
 
-    public void setSleepTime(Long sleepTime) {
-        this.sleepTime = sleepTime;
-    }
-	
 	/**
 	 * Gets an instance for an order whose instance status could not be checked. If that instance is to be reachable
 	 * again the order state is set to the current status of the instance.
@@ -82,17 +73,7 @@ public class UnableToCheckStatusProcessor extends StoppableProcessor implements 
 	}
 
     @Override
-    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+    protected void doProcessing(Order order) throws FogbowException {
         processUnableToCheckStatusOrder(order);
-    }
-
-    @Override
-    protected Order getNext() {
-        return this.unableToCheckStatusOrdersList.getNext();
-    }
-
-    @Override
-    protected void reset() {
-        this.unableToCheckStatusOrdersList.resetPointer();
     }
 }

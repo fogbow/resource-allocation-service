@@ -6,7 +6,6 @@ import com.google.common.annotations.VisibleForTesting;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
@@ -17,23 +16,14 @@ import cloud.fogbow.ras.core.models.ResourceType;
 import cloud.fogbow.ras.core.models.orders.Order;
 import cloud.fogbow.ras.core.models.orders.OrderState;
 
-public class StoppingProcessor extends StoppableProcessor implements Runnable {
+public class StoppingProcessor extends StoppableOrderListProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(StoppingProcessor.class);
 
     private String localProviderId;
-    private ChainedList<Order> stoppingOrdersList;
 
     public StoppingProcessor(String localProviderId, String sleepTimeStr) {
+        super(Long.valueOf(sleepTimeStr), SharedOrderHolders.getInstance().getStoppingOrdersList());
         this.localProviderId = localProviderId;
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.stoppingOrdersList = sharedOrderHolders.getStoppingOrdersList();
-        this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.isActive = false;
-        this.mustStop = false;
-    }
-
-    public void setSleepTime(Long sleepTime) {
-        this.sleepTime = sleepTime;
     }
 
     /**
@@ -85,17 +75,7 @@ public class StoppingProcessor extends StoppableProcessor implements Runnable {
     }
 
     @Override
-    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+    protected void doProcessing(Order order) throws FogbowException {
         processStopOrder(order);
-    }
-
-    @Override
-    protected Order getNext() {
-        return this.stoppingOrdersList.getNext();
-    }
-
-    @Override
-    protected void reset() {
-        this.stoppingOrdersList.resetPointer();
     }
 }

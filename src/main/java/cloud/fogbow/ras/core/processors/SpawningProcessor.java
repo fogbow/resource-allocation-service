@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.UnavailableProviderException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.api.http.response.OrderInstance;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
@@ -17,27 +16,19 @@ import org.apache.log4j.Logger;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SpawningProcessor extends StoppableProcessor implements Runnable {
+public class SpawningProcessor extends StoppableOrderListProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
     private static final int INITIAL_FAILED_REQUESTS_COUNT = 0;
     @VisibleForTesting static final int FAILED_REQUESTS_LIMIT = 20;
 
-    private ChainedList<Order> spawningOrderList;
     private Map<Order, Integer> failedRequestsMap;
     private String localProviderId;
 
     public SpawningProcessor(String providerId, String sleepTimeStr) {
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
+        super(Long.valueOf(sleepTimeStr), 
+                SharedOrderHolders.getInstance().getSpawningOrdersList());
         this.failedRequestsMap = new HashMap<>();
-        this.sleepTime = Long.valueOf(sleepTimeStr);
         this.localProviderId = providerId;
-        this.isActive = false;
-        this.mustStop = false;
-    }
-
-    public void setSleepTime(Long sleepTime) {
-        this.sleepTime = sleepTime;
     }
     
     protected void processSpawningOrder(Order order) throws FogbowException {
@@ -109,17 +100,7 @@ public class SpawningProcessor extends StoppableProcessor implements Runnable {
     }
 
     @Override
-    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+    protected void doProcessing(Order order) throws FogbowException {
         processSpawningOrder(order);
-    }
-
-    @Override
-    protected Order getNext() {
-        return this.spawningOrderList.getNext();
-    }
-
-    @Override
-    protected void reset() {
-        this.spawningOrderList.resetPointer();
     }
 }
