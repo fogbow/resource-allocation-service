@@ -19,6 +19,7 @@ import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
@@ -456,6 +457,7 @@ public class ApplicationFacade {
 			
 	        for (InstanceStatus status : statuses) {
 	        	String orderId = status.getInstanceId();
+	        	// FIXME catch UnacceptableOperationException, in the case the order can not be paused
 	        	this.orderController.pauseOrder(this.orderController.getOrder(orderId));
 	        }	
 		} finally {
@@ -476,6 +478,7 @@ public class ApplicationFacade {
             
             for (InstanceStatus status : statuses) {
                 String orderId = status.getInstanceId();
+                // FIXME catch UnacceptableOperationException, in the case the order can not be hibernated
                 this.orderController.hibernateOrder(this.orderController.getOrder(orderId));
             }   
         } finally {
@@ -496,6 +499,7 @@ public class ApplicationFacade {
             
             for (InstanceStatus status : statuses) {
                 String orderId = status.getInstanceId();
+                // FIXME catch UnacceptableOperationException, in the case the order can not be stopped
                 this.orderController.stopOrder(this.orderController.getOrder(orderId));
             }   
         } finally {
@@ -516,6 +520,7 @@ public class ApplicationFacade {
 			
 	        for (InstanceStatus status : statuses) {
 	        	String orderId = status.getInstanceId();
+	        	// FIXME catch UnacceptableOperationException, in the case the order can not be resumed
 	        	this.orderController.resumeOrder(this.orderController.getOrder(orderId));
 	        }	
 		} finally {
