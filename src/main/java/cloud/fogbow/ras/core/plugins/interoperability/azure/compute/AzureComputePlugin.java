@@ -222,28 +222,41 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
 
     @Override
     public void takeSnapshot(ComputeOrder computeOrder, String name, AzureUser cloudUser) throws FogbowException {
-        // ToDo: implement
+        throw new NotImplementedOperationException();
     }
 
     @Override
     public void pauseInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
-        // ToDo: implement
+        throw new NotImplementedOperationException();
     }
 
     @Override
     public void hibernateInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
-        // ToDo: implement
+    	throw new NotImplementedOperationException();
     }
 
+    // TODO test
     @Override
-    public void stopInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
-        // TODO implement
-        throw new NotImplementedOperationException();
+    public void stopInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
+        // TODO add logging
+        String instanceId = computeOrder.getInstanceId();
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+        
+        this.azureVirtualMachineOperation.doStopInstance(azureUser, resourceName);
+        // TODO check if we need this async part
+        // stopInstance(instanceId);
     }
     
+    // TODO test
     @Override
-    public void resumeInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
-        // ToDo: implement
+    public void resumeInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
+    	// TODO add logging
+    	String instanceId = computeOrder.getInstanceId();
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+        
+        this.azureVirtualMachineOperation.doResumeInstance(azureUser, resourceName);
+        // TODO check if we need this async part
+        // resumeInstance(instanceId);
     }
 
     @Override

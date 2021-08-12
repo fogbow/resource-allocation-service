@@ -43,6 +43,7 @@ public class AzureStateMapper {
                     return InstanceState.INCONSISTENT;
             }
             case COMPUTE:
+                // TODO update to consider deallocated states
                 // cloud state values: [creating, succeeded, failed]
                 switch (state) {
                     case CREATING_STATE:

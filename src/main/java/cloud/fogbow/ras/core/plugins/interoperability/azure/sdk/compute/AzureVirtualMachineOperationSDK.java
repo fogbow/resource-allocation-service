@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.compute;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
@@ -169,6 +170,7 @@ public class AzureVirtualMachineOperationSDK {
                 .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
         
         String virtualMachineSizeName = virtualMachine.size().toString();
+        // TODO update this code to also check powerState
         String cloudState = virtualMachine.provisioningState();
         String id = virtualMachine.inner().id();
         Map tags = virtualMachine.tags();
@@ -331,4 +333,53 @@ public class AzureVirtualMachineOperationSDK {
         this.scheduler = scheduler;
     }
 
+    // TODO test
+	public void doStopInstance(AzureUser azureUser, String resourceName) throws UnauthenticatedUserException {
+		Azure azure = AzureClientCacheManager.getAzure(azureUser);
+		
+		String subscriptionId = azureUser.getSubscriptionId();
+		String resourceId = buildResourceId(azure, subscriptionId, resourceName);
+
+        Completable stopVirtualMachine = AzureVirtualMachineSDK
+                .buildStopVirtualMachineCompletable(azure, resourceId);
+        
+        stopVirtualMachine = setStopVirtualMachineBehaviour(stopVirtualMachine);
+
+        Completable.concat(stopVirtualMachine)
+                .subscribeOn(this.scheduler)
+                .subscribe();
+	}
+	
+	// TODO test
+	public void doResumeInstance(AzureUser azureUser, String resourceName) throws UnauthenticatedUserException {
+		Azure azure = AzureClientCacheManager.getAzure(azureUser);
+		
+		String subscriptionId = azureUser.getSubscriptionId();
+		String resourceId = buildResourceId(azure, subscriptionId, resourceName);
+
+        Completable resumeVirtualMachine = AzureVirtualMachineSDK
+                .buildResumeVirtualMachineCompletable(azure, resourceId);
+        
+        resumeVirtualMachine = setResumeVirtualMachineBehaviour(resumeVirtualMachine);
+
+        Completable.concat(resumeVirtualMachine)
+                .subscribeOn(this.scheduler)
+                .subscribe();
+	}
+
+	private Completable setStopVirtualMachineBehaviour(Completable stopVirtualMachineCompletable) {
+		return stopVirtualMachineCompletable.doOnError((error -> {
+			LOGGER.error(Messages.Log.ERROR_STOP_VM_ASYNC_BEHAVIOUR, error);
+		})).doOnCompleted(() -> {
+			LOGGER.info(Messages.Log.END_STOP_VM_ASYNC_BEHAVIOUR);
+		});
+	}
+	
+	private Completable setResumeVirtualMachineBehaviour(Completable resumeVirtualMachineCompletable) {
+		return resumeVirtualMachineCompletable.doOnError((error -> {
+			LOGGER.error(Messages.Log.ERROR_RESUME_VM_ASYNC_BEHAVIOUR, error);
+		})).doOnCompleted(() -> {
+			LOGGER.info(Messages.Log.END_RESUME_VM_ASYNC_BEHAVIOUR);
+		});
+	}
 }

@@ -133,6 +133,8 @@ public class Messages {
         public static final String END_DETACH_DISK_ASYNC_BEHAVIOUR = "End asynchronous detach disk.";
         public static final String END_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR = "End asynchronous disassociate public IP address.";
         public static final String END_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "End asynchronous disassociate resources.";
+        public static final String END_RESUME_VM_ASYNC_BEHAVIOUR = "End asynchronous resume virtual machine.";
+        public static final String END_STOP_VM_ASYNC_BEHAVIOUR = "End asynchronous stop virtual machine.";
         public static final String END_UPDATE_NIC_ASYNC_BEHAVIOUR = "End asynchronous update network interface.";
         public static final String ERROR_ASYNC_INSTANCE_CREATION_S = "Error at async instance (%s) creation.";
         public static final String ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR = "Error while attaching disk asynchronously.";
@@ -151,6 +153,8 @@ public class Messages {
         public static final String ERROR_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while detaching public IP address asynchronously.";
         public static final String ERROR_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "Error while disassociating resources asynchronously.";
         public static final String ERROR_ON_REQUEST_ASYNC_PLUGIN = "Error on request at async plugin.";
+        public static final String ERROR_RESUME_VM_ASYNC_BEHAVIOUR = "Error while resuming virtual machine asynchronously.";
+        public static final String ERROR_STOP_VM_ASYNC_BEHAVIOUR = "Error while stopping virtual machine asynchronously.";
         public static final String ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR = "Error while updating network interface asynchronously.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME_S_WITH_RESPONSE_S = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME_GENERAL_S = "Error while attaching volume with response: %s.";
