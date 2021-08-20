@@ -27,6 +27,9 @@ public class AzureStateMapper {
     public static final String SUCCEEDED_STATE = "Succeeded";
     public static final String UNATTACHED_STATE = "Unattached";
     public static final String FAILED_STATE = "Failed";
+    public static final String DEALLOCATING_STATE = "Deallocating";
+    public static final String DEALLOCATED_STATE = "Deallocated";
+    public static final String STARTING_STATE = "Starting";
 
     public static InstanceState map(ResourceType type, String state) {
         switch (type) {
@@ -43,8 +46,7 @@ public class AzureStateMapper {
                     return InstanceState.INCONSISTENT;
             }
             case COMPUTE:
-                // TODO update to consider deallocated states
-                // cloud state values: [creating, succeeded, failed]
+                // cloud state values: [creating, succeeded, failed, deallocating, deallocated, starting]
                 switch (state) {
                     case CREATING_STATE:
                         return InstanceState.CREATING;
@@ -52,6 +54,12 @@ public class AzureStateMapper {
                         return InstanceState.READY;
                     case FAILED_STATE:
                         return InstanceState.FAILED;
+                    case DEALLOCATING_STATE:
+                        return InstanceState.STOPPING;
+                    case DEALLOCATED_STATE:
+                        return InstanceState.STOPPED;
+                    case STARTING_STATE:
+                        return InstanceState.RESUMING;
                     default:
                         LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, state, COMPUTE_PLUGIN));
                         return InstanceState.INCONSISTENT;

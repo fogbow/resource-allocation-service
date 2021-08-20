@@ -68,6 +68,21 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     public boolean hasFailed(String instanceState) {
         return AzureStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.FAILED);
     }
+    
+    @Override
+    public boolean isPaused(String cloudState) {
+        return false;
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) {
+        return false;
+    }
+    
+    @Override
+    public boolean isStopped(String instanceState) {
+        return AzureStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.STOPPED);
+    }
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
@@ -235,44 +250,22 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     	throw new NotImplementedOperationException();
     }
 
-    // TODO test
     @Override
     public void stopInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
-        // TODO add logging
+        LOGGER.info(String.format(Messages.Log.STOPPING_INSTANCE_S, computeOrder.getInstanceId()));
         String instanceId = computeOrder.getInstanceId();
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         
         this.azureVirtualMachineOperation.doStopInstance(azureUser, resourceName);
-        // TODO check if we need this async part
-        // stopInstance(instanceId);
     }
     
-    // TODO test
     @Override
     public void resumeInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
-    	// TODO add logging
+        LOGGER.info(String.format(Messages.Log.RESUMING_INSTANCE_S, computeOrder.getInstanceId()));
     	String instanceId = computeOrder.getInstanceId();
         String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
         
         this.azureVirtualMachineOperation.doResumeInstance(azureUser, resourceName);
-        // TODO check if we need this async part
-        // resumeInstance(instanceId);
-    }
-
-    @Override
-    public boolean isPaused(String cloudState) throws FogbowException {
-        return false;
-    }
-
-    @Override
-    public boolean isHibernated(String cloudState) throws FogbowException {
-        return false;
-    }
-    
-    @Override
-    public boolean isStopped(String cloudState) throws FogbowException {
-        // TODO implement
-        return false;
     }
 
     @VisibleForTesting

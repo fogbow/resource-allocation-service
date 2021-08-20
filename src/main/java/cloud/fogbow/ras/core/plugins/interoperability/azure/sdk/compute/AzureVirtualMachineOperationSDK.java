@@ -16,6 +16,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.volume.AzureVolu
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.compute.PowerState;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.network.Network;
@@ -170,8 +171,8 @@ public class AzureVirtualMachineOperationSDK {
                 .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
         
         String virtualMachineSizeName = virtualMachine.size().toString();
-        // TODO update this code to also check powerState
-        String cloudState = virtualMachine.provisioningState();
+        String cloudState = getCloudState(virtualMachine);
+
         String id = virtualMachine.inner().id();
         Map tags = virtualMachine.tags();
 
@@ -201,6 +202,26 @@ public class AzureVirtualMachineOperationSDK {
                 .build();
     }
 
+    private String getCloudState(VirtualMachine virtualMachine) {
+        String cloudState = virtualMachine.provisioningState();
+        
+        // The virtual machine provisioning state does not represent
+        // well virtual machine state changes such as stopping and deallocating.
+        // Therefore, when a virtual machine is being deallocated or started,
+        // we must use the power state as the cloud state instead.
+        PowerState powerState = virtualMachine.powerState();
+        
+        if (powerState.equals(PowerState.DEALLOCATING)) {
+            cloudState = AzureStateMapper.DEALLOCATING_STATE;
+        } else if (powerState.equals(PowerState.DEALLOCATED)) {
+            cloudState = AzureStateMapper.DEALLOCATED_STATE;
+        } else if (powerState.equals(PowerState.STARTING)) {
+            cloudState = AzureStateMapper.STARTING_STATE;
+        }
+        
+        return cloudState;
+    }
+    
     @VisibleForTesting
     VirtualMachineSize findVirtualMachineSize(String virtualMachineSizeWanted, String regionName, Azure azure)
             throws FogbowException {
@@ -333,7 +354,6 @@ public class AzureVirtualMachineOperationSDK {
         this.scheduler = scheduler;
     }
 
-    // TODO test
 	public void doStopInstance(AzureUser azureUser, String resourceName) throws UnauthenticatedUserException {
 		Azure azure = AzureClientCacheManager.getAzure(azureUser);
 		
@@ -350,7 +370,6 @@ public class AzureVirtualMachineOperationSDK {
                 .subscribe();
 	}
 	
-	// TODO test
 	public void doResumeInstance(AzureUser azureUser, String resourceName) throws UnauthenticatedUserException {
 		Azure azure = AzureClientCacheManager.getAzure(azureUser);
 		
