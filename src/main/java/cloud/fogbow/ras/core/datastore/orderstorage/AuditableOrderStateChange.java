@@ -51,4 +51,20 @@ public class AuditableOrderStateChange {
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public OrderState getNewState() {
+        return newState;
+    }
+
+    public void setNewState(OrderState newState) {
+        this.newState = newState;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }
