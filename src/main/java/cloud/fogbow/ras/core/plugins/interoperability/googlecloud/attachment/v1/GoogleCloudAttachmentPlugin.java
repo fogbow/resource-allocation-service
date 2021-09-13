@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 import java.util.List;
 import java.util.Properties;
 
+// TODO test
 public class GoogleCloudAttachmentPlugin implements AttachmentPlugin<GoogleCloudUser> {
     private static final Logger LOGGER = Logger.getLogger(GoogleCloudAttachmentPlugin.class);
 

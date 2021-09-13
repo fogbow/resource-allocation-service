@@ -21,6 +21,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.image.m
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.sdk.v1.image.models.CreateImagesResponse;
 import cloud.fogbow.ras.core.plugins.interoperability.googlecloud.util.GoogleCloudPluginUtils;
 
+// TODO test
 public class GoogleCloudImagePlugin implements ImagePlugin<GoogleCloudUser> {
 
 	@VisibleForTesting

@@ -321,8 +321,6 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
     @VisibleForTesting
     List<CreateComputeRequest.Network> getNetworkIds(String projectId, ComputeOrder computeOrder, GoogleCloudUser cloudUser) throws FogbowException {
         List<CreateComputeRequest.Network> networks = new ArrayList<CreateComputeRequest.Network>();
-        // Add default network
-        addToNetworksByName(networks, GoogleCloudConstants.Network.DEFAULT_NETWORK_NAME);
         for (String networkId : computeOrder.getNetworkIds()) {
             String endpoint = getNetworkEndpoint(projectId, networkId);
             String networkName = doGetNetworkInstanceName(endpoint, cloudUser);
@@ -353,9 +351,8 @@ public class GoogleCloudComputePlugin implements ComputePlugin<GoogleCloudUser> 
 
     @VisibleForTesting
     CreateComputeRequest.Disk getDisk(String projectId, String imageId, int diskSizeGb) {
-        String imageSourceId = getImageId(imageId, projectId);
         CreateComputeRequest.InicialeParams initializeParams =
-                new CreateComputeRequest.InicialeParams(imageSourceId, diskSizeGb);
+                new CreateComputeRequest.InicialeParams(imageId, diskSizeGb);
         return new CreateComputeRequest.Disk(GoogleCloudConstants.Compute.Disk.BOOT_DEFAULT_VALUE,
                 GoogleCloudConstants.Compute.Disk.AUTO_DELETE_DEFAULT_VALUE,
                 initializeParams);
