@@ -13,12 +13,15 @@ public class ApiDocumentation {
         public static final String RELOAD_OPERATION = "Reloads configuration parameters.";
         public static final String SET_POLICY_OPERATION = "Overrides current authorization policy using given policy string.";
         public static final String UPDATE_POLICY_OPERATION = "Updates current authorization policy using given policy string.";
+        public static final String PURGE_USER_OPERATION = "Removes all resources allocated by the user.";
         public static final String SET_POLICY_REQUEST_BODY = 
                 "The body of the request must contain the new authorization policy, " +
                 "in string format.";
         public static final String UPDATE_POLICY_REQUEST_BODY = 
                 "The body of the request must contain the policy values to update, " +
                 "in string format.";
+        public static final String USER_ID = "The ID of the specific user.";
+        public static final String USER_PROVIDER_ID = "The ID of the specific identity provider.";
     }
     
     public static class Attachment {

@@ -55,7 +55,7 @@ public class Admin {
     
     @ApiOperation(value = ApiDocumentation.Admin.UPDATE_POLICY_OPERATION)
     @RequestMapping(value = "/policy", method = RequestMethod.PUT)
-    public ResponseEntity<Boolean> udpatePolicy(
+    public ResponseEntity<Boolean> updatePolicy(
     		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken,
             @ApiParam(value = ApiDocumentation.Admin.UPDATE_POLICY_REQUEST_BODY)
     		@RequestBody Policy policy) throws FogbowException {
@@ -63,10 +63,12 @@ public class Admin {
     	return new ResponseEntity<>(HttpStatus.OK);
     }
     
-    // TODO documentation
-    @RequestMapping(value = "/purge/{userId}/{provider}", method = RequestMethod.DELETE)
+    @ApiOperation(value = ApiDocumentation.Admin.PURGE_USER_OPERATION)
+    @RequestMapping(value = "/purge/{userId}/{provider:.+}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> purgeUser(
+            @ApiParam(value = ApiDocumentation.Admin.USER_ID)
             @PathVariable String userId, 
+            @ApiParam(value = ApiDocumentation.Admin.USER_PROVIDER_ID)
             @PathVariable String provider,
             @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) 
                     throws FogbowException {

@@ -159,8 +159,7 @@ public class Compute {
             throws FogbowException {
 
         try {
-        	// TODO refactor this message
-            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, computeId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_PAUSE_REQUEST_S, computeId));
             ApplicationFacade.getInstance().pauseCompute(computeId, systemUserToken, ResourceType.COMPUTE);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
@@ -180,7 +179,7 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Log.RECEIVING_PAUSE_REQUEST_S, userId, providerId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_PAUSE_USER_REQUEST_S, userId, providerId));
             ApplicationFacade.getInstance().pauseUserComputes(userId, providerId, systemUserToken);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
@@ -272,8 +271,7 @@ public class Compute {
             throws FogbowException {
 
         try {
-        	// TODO refactor this message
-            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, computeId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_RESUME_REQUEST_S, computeId));
             ApplicationFacade.getInstance().resumeCompute(computeId, systemUserToken, ResourceType.COMPUTE);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
@@ -293,7 +291,7 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Log.RECEIVING_RESUME_REQUEST_S, userId, providerId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_RESUME_USER_REQUEST_S, userId, providerId));
             ApplicationFacade.getInstance().resumeUserComputes(userId, providerId, systemUserToken);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);

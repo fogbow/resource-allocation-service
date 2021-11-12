@@ -225,11 +225,13 @@ public class Messages {
         public static final String RECEIVING_GET_IMAGE_REQUEST_S = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST_S = "Get request for %s %s received.";
         public static final String RECEIVING_HIBERNATE_USER_REQUEST_S = "Hibernate request for user %s, provider %s, received.";
-        public static final String RECEIVING_PAUSE_REQUEST_S = "Pause request for user %s, provider %s, received.";
+        public static final String RECEIVING_PAUSE_REQUEST_S = "Pause request for compute %s received.";
+        public static final String RECEIVING_PAUSE_USER_REQUEST_S = "Pause request for user %s, provider %s, received.";
         public static final String RECEIVING_RELOAD_CONFIGURATION_REQUEST = "Received reload configuration request.";
         public static final String RECEIVING_REMOTE_REQUEST_S = "Received remote request for request: %s.";
         public static final String RECEIVING_RESOURCE_S_REQUEST_S = "Get %s request for provider %s received.";
-        public static final String RECEIVING_RESUME_REQUEST_S = "Resume request for user %s, provider %s, received.";
+        public static final String RECEIVING_RESUME_REQUEST_S = "Resume request for compute %s received.";
+        public static final String RECEIVING_RESUME_USER_REQUEST_S = "Resume request for user %s, provider %s, received.";
         public static final String RECEIVING_STOP_REQUEST_S = "Stop request for %s received.";
         public static final String RECEIVING_STOP_USER_REQUEST_S = "Stop request for user %s, provider %s, received.";
         public static final String RECOVERING_LIST_OF_ORDERS_S_D = "Recovering requests in %s list: %d requests recovered so far.";
