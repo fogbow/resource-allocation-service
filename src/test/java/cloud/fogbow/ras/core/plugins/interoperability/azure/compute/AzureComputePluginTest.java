@@ -107,6 +107,28 @@ public class AzureComputePluginTest {
         Assert.assertFalse(this.azureComputePlugin.hasFailed(instanceState));
     }
     
+    // test case: When calling the isStopped method and the instance state is deallocated,
+    // it must verify if it returns true value
+    @Test
+    public void testIsStoppedSuccessfullyWhenIsStopped() {
+        // set up
+        String instanceState = AzureStateMapper.DEALLOCATED_STATE;
+
+        // exercise and verify
+        Assert.assertTrue(this.azureComputePlugin.isStopped(instanceState));        
+    }
+    
+    // test case: When calling the isStopped method and the instance state is not deallocated,
+    // it must verify if it returns false value
+    @Test
+    public void testIsStoppedSuccessfullyWhenIsNotStopped() {
+        // set up
+        String instanceState = AzureStateMapper.CREATING_STATE;
+
+        // exercise and verify
+        Assert.assertFalse(this.azureComputePlugin.isStopped(instanceState));        
+    }
+    
     // test case: When calling the getVirtualNetworkResourceName method with a
     // non-empty list of network identifiers, it must check that the list
     // contains just one element and return it.
@@ -438,6 +460,46 @@ public class AzureComputePluginTest {
                 .doDeleteInstance(Mockito.eq(this.azureUser), Mockito.eq(resourceName));
         Mockito.verify(this.azureComputePlugin, Mockito.times(TestUtils.RUN_ONCE))
                 .endInstanceCreation(Mockito.eq(instanceId));
+    }
+    
+    // test case: When calling the stopInstance method, it must verify if it
+    // calls the method with right parameters.
+    @Test
+    public void testStopInstanceSuccessfully() throws FogbowException {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getInstanceId()).thenReturn(resourceName);
+        
+        Mockito.doNothing().when(this.azureVirtualMachineOperation)
+                .doStopInstance(Mockito.eq(this.azureUser), Mockito.eq(resourceName));
+        
+        // exercise
+        this.azureComputePlugin.stopInstance(computeOrder, azureUser);
+        
+        // verify
+        Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE))
+                .doStopInstance(Mockito.eq(this.azureUser), Mockito.eq(resourceName));
+    }
+    
+    // test case: When calling the resumeInstance method, it must verify if it
+    // calls the method with right parameters.
+    @Test
+    public void testResumeInstanceSuccessfully() throws FogbowException {
+        // set up
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.when(computeOrder.getInstanceId()).thenReturn(resourceName);
+        
+        Mockito.doNothing().when(this.azureVirtualMachineOperation)
+                .doResumeInstance(Mockito.eq(this.azureUser), Mockito.eq(resourceName));
+        
+        // exercise
+        this.azureComputePlugin.resumeInstance(computeOrder, azureUser);
+        
+        // verify
+        Mockito.verify(this.azureVirtualMachineOperation, Mockito.times(TestUtils.RUN_ONCE))
+                .doResumeInstance(Mockito.eq(this.azureUser), Mockito.eq(resourceName));
     }
 
     // test case: When calling the doRequestInstance method,

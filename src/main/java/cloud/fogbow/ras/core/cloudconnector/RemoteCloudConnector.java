@@ -235,6 +235,21 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
+    public void stopComputeInstance(Order order) throws FogbowException {
+        try {
+            RemoteStopOrderRequest remoteStopOrderRequest = new RemoteStopOrderRequest(order);
+            remoteStopOrderRequest.send();
+        } catch (FogbowException e) {
+            LOGGER.error(e.toString(), e);
+            throw e;
+        } catch (Exception e) {
+            String exceptionMessage = e.getMessage();
+            LOGGER.error(exceptionMessage, e);
+            throw new FogbowException(exceptionMessage);
+        }
+    }
+
+    @Override
     public void resumeComputeInstance(Order order) throws FogbowException {
         try {
             RemoteResumeOrderRequest remoteResumeOrderRequest = new RemoteResumeOrderRequest(order);

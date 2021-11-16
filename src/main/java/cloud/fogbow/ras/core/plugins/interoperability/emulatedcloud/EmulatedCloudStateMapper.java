@@ -24,6 +24,8 @@ public class EmulatedCloudStateMapper {
     // vm states
     public static final String PAUSED_STATUS = "paused";
     public static final String REBOOT_STATUS = "reboot";
+    public static final String HIBERNATED_STATUS = "hibernated";
+    public static final String STOPPED_STATUS = "stopped";
     public static final String SHUTOFF_STATUS = "shutoff";
 
     // storage states
@@ -45,6 +47,10 @@ public class EmulatedCloudStateMapper {
                     case REBOOT_STATUS:
                     case SHUTOFF_STATUS:
                         return InstanceState.BUSY;
+                    case HIBERNATED_STATUS:
+                        return InstanceState.HIBERNATED;
+                    case STOPPED_STATUS:
+                        return InstanceState.STOPPED;
                     default:
                         LOGGER.error(String.format(Messages.Log.UNDEFINED_INSTANCE_STATE_MAPPING_S_S, emulatedCloudState, COMPUTE_PLUGIN));
                         return InstanceState.INCONSISTENT;

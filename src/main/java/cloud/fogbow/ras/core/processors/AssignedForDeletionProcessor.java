@@ -2,7 +2,6 @@ package cloud.fogbow.ras.core.processors;
 
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
 import cloud.fogbow.ras.core.SharedOrderHolders;
@@ -13,23 +12,15 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class AssignedForDeletionProcessor extends StoppableProcessor implements Runnable {
+public class AssignedForDeletionProcessor extends StoppableOrderListProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(AssignedForDeletionProcessor.class);
 
     private String localProviderId;
-    private ChainedList<Order> assignedForDeletionOrdersList;
 
     public AssignedForDeletionProcessor(String localProviderId, String sleepTimeStr) {
+        super(Long.valueOf(sleepTimeStr), 
+                SharedOrderHolders.getInstance().getAssignedForDeletionOrdersList());
         this.localProviderId = localProviderId;
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.assignedForDeletionOrdersList = sharedOrderHolders.getAssignedForDeletionOrdersList();
-        this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.isActive = false;
-        this.mustStop = false;
-    }
-
-    public void setSleepTime(Long sleepTime) {
-        this.sleepTime = sleepTime;
     }
 
     /**
@@ -78,17 +69,7 @@ public class AssignedForDeletionProcessor extends StoppableProcessor implements 
     }
 
     @Override
-    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+    protected void doProcessing(Order order) throws FogbowException {
         processAssignedForDeletionOrder(order);
-    }
-
-    @Override
-    protected Order getNext() {
-        return this.assignedForDeletionOrdersList.getNext();
-    }
-
-    @Override
-    protected void reset() {
-        this.assignedForDeletionOrdersList.resetPointer();     
     }
 }

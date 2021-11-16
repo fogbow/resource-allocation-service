@@ -121,6 +121,14 @@ public interface CloudConnector {
     void hibernateComputeInstance(Order order) throws FogbowException;
 
     /**
+     * Stops the virtual machine instance associated to the order. VM state is lost.
+     * 
+     * @param order the order to be stopped.
+     * @throws FogbowException
+     */
+    void stopComputeInstance(Order order) throws FogbowException;
+    
+    /**
      * Resume the virtual machine instance associated to the order.
      *
      * @param order the order to be resumed

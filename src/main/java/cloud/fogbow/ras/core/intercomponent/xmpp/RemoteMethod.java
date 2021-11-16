@@ -16,6 +16,7 @@ public enum RemoteMethod {
     REMOTE_TAKE_SNAPSHOT("remoteTakeSnapshot"),
     REMOTE_PAUSE_ORDER("remotePauseOrder"),
     REMOTE_HIBERNATE_ORDER("remoteHibernateOrder"),
+    REMOTE_STOP_ORDER("remoteStopOrder"),
     REMOTE_RESUME_ORDER("remoteResumeOrder");
 
     private final String method;

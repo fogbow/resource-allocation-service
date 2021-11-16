@@ -38,7 +38,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
     private OrderController orderController;
 
     private LoggerAssert loggerTestChecking = new LoggerAssert(AssignedForDeletionProcessor.class);
-    private LoggerAssert loggerTestCheckingStoppableProcessor = new LoggerAssert(StoppableProcessor.class);
+    private LoggerAssert loggerTestCheckingstoppableOrderListProcessor = new LoggerAssert(StoppableOrderListProcessor.class);
     
     private Thread thread;
     
@@ -208,7 +208,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.processor.doRun();
 
         // verify
-        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
+        this.loggerTestCheckingstoppableOrderListProcessor.assertEqualsInOrder(Level.ERROR, Messages.Exception.UNEXPECTED_ERROR);
     }
 
     // test case: When calling the doRun method and throws an InternalServerErrorException
@@ -227,7 +227,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         this.processor.doRun();
 
         // verify
-        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
+        this.loggerTestCheckingstoppableOrderListProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
     }
 
     // test case: When calling the doRun method and there is no order in the processAssignedForDeletionOrder,
@@ -248,7 +248,7 @@ public class AssignedForDeletionProcessorTest extends BaseUnitTests {
         Mockito.verify(this.processor, Mockito.times(TestUtils.NEVER_RUN))
                 .processAssignedForDeletionOrder(Mockito.any(Order.class));
         this.loggerTestChecking.verifyIfEmpty();
-        this.loggerTestCheckingStoppableProcessor.verifyIfEmpty();
+        this.loggerTestCheckingstoppableOrderListProcessor.verifyIfEmpty();
     }
     
     // test case: this method tests if, after starting a thread using an 

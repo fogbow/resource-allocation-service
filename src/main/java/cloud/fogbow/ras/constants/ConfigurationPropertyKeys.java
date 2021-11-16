@@ -19,6 +19,7 @@ public class ConfigurationPropertyKeys {
     public static final String REMOTE_ORDER_STATE_SYNCHRONIZATION_SLEEP_TIME_KEY = "remote_order_state_synchronization_sleep_period";
     public static final String PAUSING_ORDERS_SLEEP_TIME_KEY = "pausing_order_sleep_period";
     public static final String HIBERNATING_ORDERS_SLEEP_TIME_KEY = "hibernating_order_sleep_period";
+    public static final String STOPPING_ORDERS_SLEEP_TIME_KEY = "stopping_orders_sleep_period";
     public static final String RESUMING_ORDERS_SLEEP_TIME_KEY = "resuming_order_sleep_period";
     public static final String CLOUD_NAMES_KEY = "cloud_names";
     public static final String BUILD_NUMBER_KEY = "build_number";
@@ -48,6 +49,10 @@ public class ConfigurationPropertyKeys {
     public static final String AUTHORIZATION_ROLES_KEY = "roles";
     public static final String DEFAULT_AUTH_PLUGIN_KEY = "default_auth_plugin_class";
     public static final String DEFAULT_ROLE_KEY = "default_role";
+    public static final String FS_AUTHORIZED_ENDPOINT = "fs_authorized_endpoint";
+    public static final String FS_PORT_KEY = "fs_port";
+    public static final String FS_PUBLIC_KEY_ENDPOINT_KEY = "fs_public_key_endpoint";
+    public static final String FS_URL_KEY = "fs_url";
     public static final String MS_PORT_KEY = "ms_port";
     public static final String MS_URL_KEY = "ms_url";
     public static final String POLICY_CLASS_KEY = "policy_class";

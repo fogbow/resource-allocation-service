@@ -237,6 +237,7 @@ public class TestUtils {
                         new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
                         new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
                         new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(),
+                        new SynchronizedDoublyLinkedList<>(), new SynchronizedDoublyLinkedList<>(), 
                         new SynchronizedDoublyLinkedList<>());
     }
 
@@ -257,7 +258,9 @@ public class TestUtils {
                                            SynchronizedDoublyLinkedList<Order> resumingRequestList,
                                            SynchronizedDoublyLinkedList<Order> hibernatingRequestList,
                                            SynchronizedDoublyLinkedList<Order> hibernatedRequestList,
-                                           SynchronizedDoublyLinkedList<Order> pausedRequestList)
+                                           SynchronizedDoublyLinkedList<Order> pausedRequestList,
+                                           SynchronizedDoublyLinkedList<Order> stoppingRequestList,
+                                           SynchronizedDoublyLinkedList<Order> stoppedRequestList)
             throws InternalServerErrorException {
 
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
@@ -275,6 +278,8 @@ public class TestUtils {
         Mockito.when(databaseManager.readActiveOrders(OrderState.RESUMING)).thenReturn(resumingRequestList);
         Mockito.when(databaseManager.readActiveOrders(OrderState.HIBERNATING)).thenReturn(hibernatingRequestList);
         Mockito.when(databaseManager.readActiveOrders(OrderState.HIBERNATED)).thenReturn(hibernatedRequestList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.STOPPING)).thenReturn(stoppingRequestList);
+        Mockito.when(databaseManager.readActiveOrders(OrderState.STOPPED)).thenReturn(stoppedRequestList);
         Mockito.when(databaseManager.readActiveOrders(OrderState.PAUSED)).thenReturn(pausedRequestList);
 
         Mockito.doNothing().when(databaseManager).add(Matchers.any(Order.class));

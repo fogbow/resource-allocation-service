@@ -3,7 +3,7 @@ package cloud.fogbow.ras.core.models.permission;
 import java.util.HashSet;
 import java.util.Set;
 
-import cloud.fogbow.common.models.Permission;
+import cloud.fogbow.common.models.policy.Permission;
 import cloud.fogbow.ras.constants.SystemConstants;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
@@ -52,13 +52,26 @@ public class AllowOnlyPermission implements Permission<RasOperation> {
     }
     
     @Override
-    public Set<Operation> getOperationsTypes() {
-        return allowedOperationTypes;
+    public Set<String> getOperationsTypes() {
+        HashSet<String> operationsStrings = new HashSet<String>(); 
+        
+        for (Operation operation : allowedOperationTypes) {
+            operationsStrings.add(operation.getValue());
+        }
+        
+        return operationsStrings;
     }
 
+    // TODO test
     @Override
-    public void setOperationTypes(Set operations) {
-        this.allowedOperationTypes = (Set<Operation>) operations;
+    public void setOperationTypes(Set<String> operations) {
+        Set<Operation> rasOperations = new HashSet<Operation>();
+        
+        for (String operationName : operations) {
+            rasOperations.add(Operation.fromString(operationName));
+        }
+        
+        this.allowedOperationTypes = rasOperations;
     }
 
     @Override

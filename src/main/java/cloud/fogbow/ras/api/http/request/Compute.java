@@ -32,7 +32,11 @@ public class Compute {
     public static final String ALLOCATION_SUFFIX_ENDPOINT = "allocation";
     public static final String COMPUTE_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + COMPUTE_SUFFIX_ENDPOINT;
     public static final String ORDER_CONTROLLER_TYPE = "compute";
-
+    public static final String PAUSE_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/pause";
+    public static final String HIBERNATE_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/hibernate";
+    public static final String STOP_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/stop";
+    public static final String RESUME_COMPUTE_ENDPOINT = COMPUTE_ENDPOINT + "/resume";
+    
     private final Logger LOGGER = Logger.getLogger(Compute.class);
 
     @RequestMapping(value = "/{computeId}/snapshot", method = RequestMethod.POST)
@@ -155,8 +159,28 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, computeId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_PAUSE_REQUEST_S, computeId));
             ApplicationFacade.getInstance().pauseCompute(computeId, systemUserToken, ResourceType.COMPUTE);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
+
+    @ApiOperation(value = ApiDocumentation.Compute.PAUSE_USER_OPERATION)
+    @RequestMapping(value = "/pause/{userId}/{providerId:.+}", method = RequestMethod.POST)
+    public void pauseUserComputes(
+            @ApiParam(value = ApiDocumentation.Compute.USER_ID)
+            @PathVariable String userId,
+            @ApiParam(value = ApiDocumentation.Compute.USER_PROVIDER_ID)
+            @PathVariable String providerId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_PAUSE_USER_REQUEST_S, userId, providerId));
+            ApplicationFacade.getInstance().pauseUserComputes(userId, providerId, systemUserToken);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;
@@ -180,6 +204,62 @@ public class Compute {
             throw e;
         }
     }
+    
+    @ApiOperation(value = ApiDocumentation.Compute.HIBERNATE_OPERATION)
+    @RequestMapping(value = "/hibernate/{userId}/{providerId:.+}", method = RequestMethod.POST)
+    public void hibernateUserComputes(
+            @ApiParam(value = ApiDocumentation.Compute.USER_ID)
+            @PathVariable String userId,
+            @ApiParam(value = ApiDocumentation.Compute.USER_PROVIDER_ID)
+            @PathVariable String providerId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_HIBERNATE_USER_REQUEST_S, userId, providerId));
+            ApplicationFacade.getInstance().hibernateUserComputes(userId, providerId, systemUserToken);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
+    
+    @ApiOperation(value = ApiDocumentation.Compute.STOP_OPERATION)
+    @RequestMapping(value = "/{computeId}/stop", method = RequestMethod.POST)
+    public void stopCompute(
+            @ApiParam(value = ApiDocumentation.Compute.ID)
+            @PathVariable String computeId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) 
+                    throws FogbowException {
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_STOP_REQUEST_S, computeId));
+            ApplicationFacade.getInstance().stopCompute(computeId, systemUserToken, ResourceType.COMPUTE);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
+    
+    @ApiOperation(value = ApiDocumentation.Compute.STOP_USER_OPERATION)
+    @RequestMapping(value = "/stop/{userId}/{providerId:.+}", method = RequestMethod.POST)
+    public void stopUserComputes(
+            @ApiParam(value = ApiDocumentation.Compute.USER_ID)
+            @PathVariable String userId,
+            @ApiParam(value = ApiDocumentation.Compute.USER_PROVIDER_ID)
+            @PathVariable String providerId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) 
+                    throws FogbowException {
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_STOP_USER_REQUEST_S, userId, providerId));
+            ApplicationFacade.getInstance().stopUserComputes(userId, providerId, systemUserToken);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
 
     @ApiOperation(value = ApiDocumentation.Compute.RESUME_OPERATION)
     @RequestMapping(value = "/{computeId}/resume", method = RequestMethod.POST)
@@ -191,8 +271,28 @@ public class Compute {
             throws FogbowException {
 
         try {
-            LOGGER.info(String.format(Messages.Log.RECEIVING_GET_REQUEST_S, ORDER_CONTROLLER_TYPE, computeId));
+            LOGGER.info(String.format(Messages.Log.RECEIVING_RESUME_REQUEST_S, computeId));
             ApplicationFacade.getInstance().resumeCompute(computeId, systemUserToken, ResourceType.COMPUTE);
+        } catch (Exception e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
+            throw e;
+        }
+    }
+
+    @ApiOperation(value = ApiDocumentation.Compute.RESUME_USER_OPERATION)
+    @RequestMapping(value = "/resume/{userId}/{providerId:.+}", method = RequestMethod.POST)
+    public void resumeUserComputes(
+            @ApiParam(value = ApiDocumentation.Compute.USER_ID)
+            @PathVariable String userId,
+            @ApiParam(value = ApiDocumentation.Compute.USER_PROVIDER_ID)
+            @PathVariable String providerId,
+            @ApiParam(value = cloud.fogbow.common.constants.ApiDocumentation.Token.SYSTEM_USER_TOKEN)
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken)
+            throws FogbowException {
+
+        try {
+            LOGGER.info(String.format(Messages.Log.RECEIVING_RESUME_USER_REQUEST_S, userId, providerId));
+            ApplicationFacade.getInstance().resumeUserComputes(userId, providerId, systemUserToken);
         } catch (Exception e) {
             LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e.getMessage()), e);
             throw e;

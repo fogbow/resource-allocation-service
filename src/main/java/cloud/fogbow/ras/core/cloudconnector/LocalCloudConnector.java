@@ -45,6 +45,7 @@ public class LocalCloudConnector implements CloudConnector {
     private static final String GET_QUOTA_OPERATION = "getQuota";
     private static final String HIBERNATE_INSTANCE_OPERATION = "hibernateInstance";
     private static final String PAUSE_INSTANCE_OPERATION = "pauseInstance";
+    private static final String STOP_INSTANCE_OPERATION = "stopInstance";
     private static final String RESUME_INSTANCE_OPERATION = "resumeInstance";
     private static final String REQUEST_INSTANCE_OPERATION = "requestInstance";
     private static final String REQUEST_SECURITY_RULES_OPERATION = "requestSecurityRules";
@@ -329,6 +330,25 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
+    public void stopComputeInstance(Order order) throws FogbowException {
+        LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, STOP_INSTANCE_OPERATION, order));
+        CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
+        LOGGER.debug(String.format(Messages.Log.MAPPED_USER_S, cloudUser));
+
+        String response = null;
+        try {
+            doStopInstance(order, cloudUser);
+            LOGGER.debug(Messages.Log.SUCCESS);
+        } catch (Throwable e) {
+            LOGGER.debug(String.format(Messages.Exception.GENERIC_EXCEPTION_S, e + e.getMessage()));
+            response = e.getClass().getName();
+            throw e;
+        } finally {
+            auditRequest(Operation.STOP, order.getType(), order.getSystemUser(), response);
+        }
+    }
+
+    @Override
     public void resumeComputeInstance(Order order) throws FogbowException {
         LOGGER.debug(String.format(Messages.Log.MAPPING_USER_OP_S, RESUME_INSTANCE_OPERATION, order));
         CloudUser cloudUser = this.mapperPlugin.map(order.getSystemUser());
@@ -401,6 +421,19 @@ public class LocalCloudConnector implements CloudConnector {
             throw e;
         }
     }
+    
+    protected void doStopInstance(Order order, CloudUser cloudUser) throws FogbowException {
+        try {
+            if (order.getInstanceId() != null) {
+                this.computePlugin.stopInstance((ComputeOrder) order, cloudUser);
+            } else {
+                return;
+            }
+        } catch (InstanceNotFoundException e) {
+            LOGGER.warn(String.format(Messages.Log.INSTANCE_S_ALREADY_STOPPED, order.getId()));
+            throw e;
+        }
+    }
 
     protected void doResumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
         try {
@@ -454,9 +487,11 @@ public class LocalCloudConnector implements CloudConnector {
             case COMPUTE:
                 boolean isPaused = this.computePlugin.isPaused(instance.getCloudState());
                 boolean isHibernated = this.computePlugin.isHibernated(instance.getCloudState());
+                boolean isStopped = this.computePlugin.isStopped(instance.getCloudState());
                 ComputeInstance computeInstance = (ComputeInstance) instance;
                 if (isPaused) computeInstance.setPaused();
                 if (isHibernated) computeInstance.setHibernated();
+                if (isStopped) computeInstance.setStopped();
                 return computeInstance;
             default:
                 return instance;

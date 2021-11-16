@@ -2,7 +2,9 @@ package cloud.fogbow.ras.core.plugins.authorization;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.WrongPolicyTypeException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.policy.RolePolicy;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
@@ -10,8 +12,6 @@ import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.PolicyInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.RasOperation;
-import cloud.fogbow.ras.core.models.RolePolicy;
-import cloud.fogbow.ras.core.models.policy.WrongPolicyTypeException;
 
 public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOperation> {
 
@@ -21,7 +21,7 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
      */
     public static final String USER_NAME_PROVIDER_PAIR_CONFIGURATION_FORMAT = "%s.%s";
     private PolicyInstantiator policyInstantiator;
-    private RolePolicy rolePolicy;
+    private RolePolicy<RasOperation> rolePolicy;
     
     public RoleAwareAuthorizationPlugin() throws ConfigurationErrorException {
         this(new PolicyInstantiator());
@@ -66,7 +66,7 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
 	@Override
 	public void setPolicy(String policyString) throws ConfigurationErrorException {
 		try {
-		    RolePolicy policy = policyInstantiator.getRolePolicyInstance(policyString);
+		    RolePolicy<RasOperation> policy = policyInstantiator.getRolePolicyInstance(policyString);
 			policy.validate();
 
 			this.rolePolicy = policy;
@@ -79,8 +79,8 @@ public class RoleAwareAuthorizationPlugin implements AuthorizationPlugin<RasOper
     @Override
     public void updatePolicy(String policyString) throws ConfigurationErrorException {
         try {
-            RolePolicy policy = policyInstantiator.getRolePolicyInstance(policyString);
-            RolePolicy base = this.rolePolicy.copy();
+            RolePolicy<RasOperation> policy = policyInstantiator.getRolePolicyInstance(policyString);
+            RolePolicy<RasOperation> base = this.rolePolicy.copy();
 
             base.update(policy);
             base.validate();

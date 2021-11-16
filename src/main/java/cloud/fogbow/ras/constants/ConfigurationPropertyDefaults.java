@@ -23,6 +23,8 @@ public class ConfigurationPropertyDefaults {
     // reference value is 10 seconds
     public static final String HIBERNATING_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(10));
     // reference value is 10 seconds
+    public static final String STOPPING_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(10));
+    // reference value is 10 seconds
     public static final String RESUMING_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(10));
     public static final String BUILD_NUMBER = "[testing mode]";
 

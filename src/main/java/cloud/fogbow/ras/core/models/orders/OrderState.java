@@ -1,5 +1,8 @@
 package cloud.fogbow.ras.core.models.orders;
 
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.ras.constants.Messages;
+
 public enum OrderState {
     OPEN("OPEN"),
     SELECTED("SELECTED"),
@@ -16,11 +19,27 @@ public enum OrderState {
     HIBERNATED("HIBERNATED"),
     PAUSING("PAUSING"),
     HIBERNATING("HIBERNATING"),
-    RESUMING("RESUMING");
+    RESUMING("RESUMING"),
+    STOPPED("STOPPED"),
+    STOPPING("STOPPING");
 
     private final String repr;
 
     OrderState(String repr) {
         this.repr = repr;
     }
+    
+	public static OrderState fromValue(String value) throws InvalidParameterException {
+		for (OrderState state: OrderState.values()) {
+			if (state.repr.equals(value)) {
+				return state;
+			}
+		}
+		
+		throw new InvalidParameterException(String.format(Messages.Exception.UNKNOWN_ORDER_STATE, value));
+	}
+	
+	public String getValue() {
+	    return repr;
+	}
 }

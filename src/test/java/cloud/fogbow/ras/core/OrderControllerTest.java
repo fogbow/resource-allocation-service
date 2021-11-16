@@ -286,6 +286,52 @@ public class OrderControllerTest extends BaseUnitTests {
                 .assertEqualsInOrder(Level.WARN, warnMessageException);
     }
 
+    // test case: When calling the stopOrder method, it must call the CloudConnector to 
+    // stop the order and change the order state to STOPPING.
+    @Test
+    public void testStopOrder() throws FogbowException {
+        // set up
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+
+        String orderId = setupOrder(OrderState.FULFILLED);
+        ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
+        
+        // exercise
+        this.ordersController.stopOrder(computeOrder);
+        
+        // verify
+        Assert.assertEquals(OrderState.STOPPING, computeOrder.getOrderState());
+        Mockito.verify(this.localCloudConnector).stopComputeInstance(computeOrder);
+    }
+    
+    // test case: When calling the stopOrder passing as argument an Order in the state
+    // STOPPING, it must throw an UnacceptableOperationException.
+    @Test(expected = UnacceptableOperationException.class)
+    public void testStopOrderStopOperationOngoing() throws FogbowException {
+        // set up
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+
+        String orderId = setupOrder(OrderState.STOPPING);
+        ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
+        
+        // exercise
+        this.ordersController.stopOrder(computeOrder);
+    }
+    
+    // test case: When calling the stopOrder passing as argument an Order in the state
+    // STOPPED, it must throw an UnacceptableOperationException.
+    @Test(expected = UnacceptableOperationException.class)
+    public void testStopOrderStoppedOrder() throws FogbowException {
+        // set up
+        Order order = this.testUtils.createLocalOrder(this.testUtils.getLocalMemberId());
+
+        String orderId = setupOrder(OrderState.STOPPED);
+        ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
+        
+        // exercise
+        this.ordersController.stopOrder(computeOrder);
+    }
+    
     // test case: Creates an order with dependencies and check if the order id
     // will be inserted into dependencies.
     @Test
@@ -430,6 +476,59 @@ public class OrderControllerTest extends BaseUnitTests {
         }
     }
 
+    // test case: When invoking the dependenciesAreClosed method passing an Order
+    // with dependencies which are not closed, it must return false.
+    @Test
+    public void testDependenciesAreNotClosed() throws FogbowException {
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        this.ordersController.activateOrder(computeOrder);
+        computeOrder.setOrderState(OrderState.FULFILLED);
+        
+        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+        this.ordersController.activateOrder(volumeOrder);
+        volumeOrder.setOrderState(OrderState.FULFILLED);
+        
+        AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
+        this.ordersController.activateOrder(attachmentOrder);
+        attachmentOrder.setOrderState(OrderState.FULFILLED);
+        
+        Assert.assertFalse(this.ordersController.dependenciesAreClosed(computeOrder));
+        Assert.assertFalse(this.ordersController.dependenciesAreClosed(volumeOrder));
+    }
+    
+    // test case: When invoking the dependenciesAreClosed method passing an Order
+    // with closed dependencies, it must return true.
+    @Test
+    public void testDependenciesAreClosed() throws FogbowException {
+        ComputeOrder computeOrder = this.testUtils.createLocalComputeOrder();
+        this.ordersController.activateOrder(computeOrder);
+        computeOrder.setOrderState(OrderState.FULFILLED);
+        
+        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+        this.ordersController.activateOrder(volumeOrder);
+        volumeOrder.setOrderState(OrderState.FULFILLED);
+        
+        AttachmentOrder attachmentOrder = this.testUtils.createLocalAttachmentOrder(computeOrder, volumeOrder);
+        this.ordersController.activateOrder(attachmentOrder);
+        attachmentOrder.setOrderState(OrderState.FULFILLED);
+        
+        this.ordersController.closeOrder(attachmentOrder);
+        
+        Assert.assertTrue(this.ordersController.dependenciesAreClosed(computeOrder));
+        Assert.assertTrue(this.ordersController.dependenciesAreClosed(volumeOrder));
+    }
+    
+    // test case: When invoking the dependenciesAreClosed method passing an Order
+    // with no dependencies, it must return true.
+    @Test
+    public void testDependenciesAreClosedNoDependency() throws FogbowException {
+        VolumeOrder volumeOrder = this.testUtils.createLocalVolumeOrder();
+        this.ordersController.activateOrder(volumeOrder);
+        volumeOrder.setOrderState(OrderState.FULFILLED);
+        
+        Assert.assertTrue(this.ordersController.dependenciesAreClosed(volumeOrder));
+    }
+    
     // test case: Checks if given an order provided locally in the getResourceInstance method returns its instance.
     @Test
     public void testGetResourceInstanceSuccessfullyWhenIsProviderLocally() throws Exception {

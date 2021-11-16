@@ -49,6 +49,48 @@ public class AzureStateMapperTest {
         // verify
         Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
+    
+    // test case: When calling the map method with a compute resource type and
+    // deallocating state, it must verify that it returns the stopping instance state.
+    @Test
+    public void testMapWithComputeResourceTypeWhenStateIsDeallocating() {
+        // set up
+        ResourceType resourceType = ResourceType.COMPUTE;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.DEALLOCATING_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.STOPPING, instanceState);        
+    }
+    
+    // test case: When calling the map method with a compute resource type and
+    // deallocated state, it must verify that it returns the stopped instance state.
+    @Test
+    public void testMapWithComputeResourceTypeWhenStateIsDeallocated() {
+        // set up
+        ResourceType resourceType = ResourceType.COMPUTE;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.DEALLOCATED_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.STOPPED, instanceState);        
+    }
+    
+    // test case: When calling the map method with a compute resource type and
+    // starting state, it must verify that it returns the resuming instance state.
+    @Test
+    public void testMapWithComputeResourceTypeWhenStateIsStarting() {
+        // set up
+        ResourceType resourceType = ResourceType.COMPUTE;
+
+        // exercise
+        InstanceState instanceState = AzureStateMapper.map(resourceType, AzureStateMapper.STARTING_STATE);
+
+        // verify
+        Assert.assertEquals(InstanceState.RESUMING, instanceState);        
+    }
 
     // test case: When calling the map method with compute type and undefined state,
     // it must verify if It returns the instance inconsistent state.

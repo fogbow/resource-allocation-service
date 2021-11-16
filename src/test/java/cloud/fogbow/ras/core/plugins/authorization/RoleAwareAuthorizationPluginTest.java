@@ -14,7 +14,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
+import cloud.fogbow.common.exceptions.WrongPolicyTypeException;
 import cloud.fogbow.common.models.SystemUser;
+import cloud.fogbow.common.models.policy.XMLRolePolicy;
 import cloud.fogbow.common.util.HomeDir;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PolicyInstantiator;
@@ -22,8 +24,6 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
 import cloud.fogbow.ras.core.models.ResourceType;
-import cloud.fogbow.ras.core.models.policy.WrongPolicyTypeException;
-import cloud.fogbow.ras.core.models.policy.XMLRolePolicy;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PropertiesHolder.class)
@@ -72,9 +72,9 @@ public class RoleAwareAuthorizationPluginTest {
     private RasOperation operationReload;
     
     private PolicyInstantiator policyInstantiator;
-    private XMLRolePolicy rolePolicy;
-    private XMLRolePolicy newRolePolicy;
-    private XMLRolePolicy updatedRolePolicy;
+    private XMLRolePolicy<RasOperation> rolePolicy;
+    private XMLRolePolicy<RasOperation> newRolePolicy;
+    private XMLRolePolicy<RasOperation> updatedRolePolicy;
     
     @Before
     public void setUp() throws ConfigurationErrorException, WrongPolicyTypeException {

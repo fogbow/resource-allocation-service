@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 import cloud.fogbow.common.exceptions.*;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.CloudStackUser;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.BinaryUnit;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.common.util.connectivity.cloud.cloudstack.CloudStackHttpClient;
@@ -155,6 +156,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
     }
 
     @Override
+    public void stopInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
+        // TODO implement
+        throw new NotImplementedOperationException();
+    }
+    
+    @Override
     public void resumeInstance(ComputeOrder order, CloudStackUser cloudUser) throws FogbowException {
         // ToDo: implement
     }
@@ -166,6 +173,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackUser> {
 
     @Override
     public boolean isHibernated(String cloudState) throws FogbowException {
+        return false;
+    }
+    
+    @Override
+    public boolean isStopped(String cloudState) throws FogbowException {
+        // TODO implement
         return false;
     }
 

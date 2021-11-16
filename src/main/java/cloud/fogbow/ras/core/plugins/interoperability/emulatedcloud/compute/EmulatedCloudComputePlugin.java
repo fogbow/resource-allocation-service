@@ -83,7 +83,7 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
         String publicKey = compute.getPublicKey();
         List<NetworkSummary> networks = compute.getNetworks();
 
-        ComputeInstance computeInstance = new ComputeInstance(id, EmulatedCloudStateMapper.ACTIVE_STATUS, name,
+        ComputeInstance computeInstance = new ComputeInstance(id, compute.getCloudState(), name,
                 vCPU, memory, disk, new ArrayList<>(), imageId, publicKey, new ArrayList());
 
         computeInstance.setNetworks(networks);
@@ -123,14 +123,32 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public void hibernateInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
-        // ToDo: implement
+        setCloudState(order, EmulatedCloudStateMapper.HIBERNATED_STATUS);
+    }
+
+    @Override
+    public void stopInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
+        setCloudState(order, EmulatedCloudStateMapper.STOPPED_STATUS);
     }
 
     @Override
     public void resumeInstance(ComputeOrder order, CloudUser cloudUser) throws FogbowException {
-        // ToDo: implement
+        setCloudState(order, EmulatedCloudStateMapper.ACTIVE_STATUS);
     }
+    
+    private void setCloudState(ComputeOrder order, String cloudState) throws InstanceNotFoundException {
+        String instanceId = order.getInstanceId();
+        EmulatedCloudComputeManager computeManager = EmulatedCloudComputeManager.getInstance();
+        Optional<EmulatedCompute> optionalEmulatedCompute = computeManager.find(instanceId);
 
+        if (optionalEmulatedCompute.isPresent()) {
+            EmulatedCompute compute = optionalEmulatedCompute.get();
+            compute.setCloudState(cloudState);
+        } else {
+            throw new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND);
+        }
+    }
+    
     @Override
     public boolean isPaused(String cloudState) throws FogbowException {
         return false;
@@ -138,9 +156,14 @@ public class EmulatedCloudComputePlugin implements ComputePlugin<CloudUser> {
 
     @Override
     public boolean isHibernated(String cloudState) throws FogbowException {
-        return false;
+        return EmulatedCloudStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.HIBERNATED);
     }
 
+    @Override
+    public boolean isStopped(String cloudState) throws FogbowException {
+        return EmulatedCloudStateMapper.map(ResourceType.COMPUTE, cloudState).equals(InstanceState.STOPPED);
+    }
+    
     private EmulatedCompute createCompute(ComputeOrder computeOrder) {
         int disk = computeOrder.getDisk();
         int vCPU = computeOrder.getvCPU();

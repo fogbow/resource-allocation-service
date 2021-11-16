@@ -39,6 +39,10 @@ public class EmulatedCompute extends EmulatedResource {
     public String getCloudState() {
         return cloudState;
     }
+    
+    public void setCloudState(String cloudState) {
+        this.cloudState = cloudState;
+    }
 
     public String getName() {
         return name;

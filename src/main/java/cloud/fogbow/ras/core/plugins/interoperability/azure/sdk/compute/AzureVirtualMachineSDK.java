@@ -84,6 +84,14 @@ public class AzureVirtualMachineSDK {
     static Completable buildDeleteVirtualMachineCompletable(Azure azure, String virtualMachineId) {
         return azure.virtualMachines().deleteByIdAsync(virtualMachineId);
     }
+    
+    static Completable buildStopVirtualMachineCompletable(Azure azure, String virtualMachineId) {
+    	return azure.virtualMachines().getById(virtualMachineId).deallocateAsync();
+	}
+
+	static Completable buildResumeVirtualMachineCompletable(Azure azure, String virtualMachineId) {
+		return azure.virtualMachines().getById(virtualMachineId).startAsync();
+	}
 
     @VisibleForTesting
     static boolean isWindowsImage(String imageOffer, String imageSku) {

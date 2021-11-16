@@ -127,6 +127,10 @@ public class InstanceStatus {
                 return InstanceState.HIBERNATED;
             case RESUMING:
                 return InstanceState.RESUMING;
+            case STOPPING:
+                return InstanceState.STOPPING;
+            case STOPPED:
+                return InstanceState.STOPPED;
             default:
                 throw new InternalServerErrorException(Messages.Exception.UNEXPECTED_ERROR);
         }

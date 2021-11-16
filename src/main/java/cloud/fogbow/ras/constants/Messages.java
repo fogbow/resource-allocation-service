@@ -4,12 +4,11 @@ public class Messages {
 
     public static class Exception {
         public static final String ACTIVE_SOURCE_COMPUTE = "The source compute needs to be paused or hibernated before taking the snapshot.";
-        public static final String ADMIN_ROLE_DOES_NOT_EXIST = "Admin role '%s' does not exist.";
+        public static final String ADMIN_ROLE_NOT_SPECIFIED = "Admin role is not specified in the configuration file.";
         public static final String CLOUD_NAMES_DO_NOT_MATCH = "The embedded resource has not been instantiated in the same cloud.";
         public static final String DEFAULT_CREDENTIALS_NOT_FOUND = "Default credentials not found.";
         public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found.";
         public static final String DEFAULT_ROLE_NAME_IS_INVALID = "Default role name is invalid.";
-        public static final String DEFAULT_USER_ROLE_DOES_NOT_EXIST = "Default user role '%s' does not exist.";
         public static final String DELETE_OPERATION_ALREADY_ONGOING = "Delete operation is already on-going.";
         public static final String DEPENDENCY_DETECTED_S_S = "Cannot delete order '%s'. There are other orders associated with it: ids '%s'. You should remove those dependencies first.";
         public static final String EMPTY_PROPERTY_MAP = "Empty property getCloudUser.";
@@ -17,10 +16,13 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_RESOURCE_S = Log.ERROR_WHILE_CREATING_RESOURCE_S;
         public static final String ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD = Log.ERROR_WHILE_GETTING_RESOURCE_S_FROM_CLOUD;
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = Log.ERROR_WHILE_GETTING_VOLUME_INSTANCE;
+        public static final String ERROR_WHILE_HIBERNATING_INSTANCE_S = Log.ERROR_WHILE_HIBERNATING_INSTANCE_S;
         public static final String ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS = Log.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS;
         public static final String ERROR_WHILE_REMOVING_RESOURCE_S_S = Log.ERROR_WHILE_REMOVING_RESOURCE_S_S;
         public static final String ERROR_WHILE_REMOVING_VM_S_S = "Error while removing virtual machine: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_VOLUME_IMAGE_S_S = Log.ERROR_WHILE_REMOVING_VOLUME_IMAGE_S_S;
+        public static final String ERROR_WHILE_RESUMING_INSTANCE_S = Log.ERROR_WHILE_RESUMING_INSTANCE_S;
+        public static final String ERROR_WHILE_STOPPING_INSTANCE_S = Log.ERROR_WHILE_STOPPING_INSTANCE_S;
         public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found.";
         public static final String FAILED_TO_GET_QUOTA = "Failed to get quota.";
         public static final String GENERIC_EXCEPTION_S = Log.GENERIC_EXCEPTION_S;
@@ -49,9 +51,10 @@ public class Messages {
         public static final String NO_MATCHING_FLAVOR = "No matching flavor.";
         public static final String NO_PROJECT_ID = "No projectId in local token.";
         public static final String NO_SECURITY_GROUP_FOUND_S = "There is no security group with the id %s";
-        public static final String NO_ADMIN_USER = "Policy does not specify any user as admin.";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
         public static final String PAUSE_OPERATION_ONGOING = "The virtual Machine is already being paused.";
+        public static final String POLICY_CLASS_NOT_SPECIFIED = "Policy class is not specified in the configuration file.";
+        public static final String POLICY_FILE_NAME_NOT_SPECIFIED = "Policy file name is not specified in the configuration file.";
         public static final String PORT_NOT_FOUND_S = "No port found connecting virtual machine %s to default network %s.";
         public static final String PROVIDERS_DONT_MATCH = "The attachment provider does not match with the compute and/or volume providers.";
         public static final String PROVIDER_IS_NOT_AUTHORIZED = "Provider is not authorized.";
@@ -63,10 +66,10 @@ public class Messages {
         public static final String RESOURCE_TYPE_NOT_COMPATIBLE_S = "Resource type not compatible with %s request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resource type not yet implemented.";
         public static final String RESUME_OPERATION_ONGOING = "The virtual Machine is already being resumed.";
-        public static final String ROLE_PERMISSION_DOES_NOT_EXIST = "Permission '%s', referenced by Role '%s', does not exist.";
         public static final String RULE_NOT_AVAILABLE = "Rule not available for deletion.";
         public static final String SECURITY_GROUP_EQUALLY_NAMED_S_NOT_FOUND_S = "There is no security group with name: %s.";
         public static final String SIGNALING_PROVIDER_DIFFERENT_OF_PROVIDER_S_S = "Signalling provider %s is not the provider %s.";
+        public static final String STOP_OPERATION_ONGOING = "The virtual machine is already being stopped.";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";
         public static final String UNABLE_TO_COMPLETE_REQUEST_CLOUDSTACK = "Unable to complete request.";
@@ -88,16 +91,18 @@ public class Messages {
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNEXPECTED_OPERATION_S = "Unexpected operation: %s.";
+        public static final String UNKNOWN_ORDER_STATE = "Unknown order state: %s.";
         public static final String UNSUPPORTED_REQUEST_TYPE_S = "Request type %s not supported.";
         public static final String USER_DOES_NOT_HAVE_ENOUGH_PERMISSION = "User does not have permission to perform operation";
         public static final String USER_DOES_NOT_HAVE_REQUIRED_ROLE = "User does not have a role required by operation.";
-        public static final String USER_ROLE_DOES_NOT_EXIST = "Role '%s', referenced by User '%s', does not exist.";
+        public static final String USER_IS_NOT_FINANCIALLY_AUTHORIZED = "User is not financially authorized.";
         public static final String VIRTUAL_MACHINE_ALREADY_HIBERNATED = "The Virtual Machine has already been hibernated.";
         public static final String VIRTUAL_MACHINE_ALREADY_PAUSED = "The Virtual Machine has already been paused.";
         public static final String VIRTUAL_MACHINE_IS_NOT_RUNNING = "The Virtual Machine is not running.";
+        public static final String VIRTUAL_MACHINE_ALREADY_STOPPED = "The Virtual Machine has already been stopped.";
         public static final String WRONG_POLICY_TYPE = "Wrong policy type. Type should be '%s' but is '%s'.";
         public static final String WRONG_URI_SYNTAX_S = "Wrong syntax for endpoint %s.";
-        public static final String VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED = "The virtual machine is not paused or hibernated.";
+        public static final String VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED_OR_STOPPED = "The virtual machine is not paused or hibernated or stopped.";
     }
 
     public static class Log {
@@ -128,6 +133,8 @@ public class Messages {
         public static final String END_DETACH_DISK_ASYNC_BEHAVIOUR = "End asynchronous detach disk.";
         public static final String END_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR = "End asynchronous disassociate public IP address.";
         public static final String END_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "End asynchronous disassociate resources.";
+        public static final String END_RESUME_VM_ASYNC_BEHAVIOUR = "End asynchronous resume virtual machine.";
+        public static final String END_STOP_VM_ASYNC_BEHAVIOUR = "End asynchronous stop virtual machine.";
         public static final String END_UPDATE_NIC_ASYNC_BEHAVIOUR = "End asynchronous update network interface.";
         public static final String ERROR_ASYNC_INSTANCE_CREATION_S = "Error at async instance (%s) creation.";
         public static final String ERROR_ATTACH_DISK_ASYNC_BEHAVIOUR = "Error while attaching disk asynchronously.";
@@ -146,6 +153,8 @@ public class Messages {
         public static final String ERROR_DETACH_PUBLIC_IP_ASYNC_BEHAVIOUR = "Error while detaching public IP address asynchronously.";
         public static final String ERROR_DETACH_RESOURCES_ASYNC_BEHAVIOUR = "Error while disassociating resources asynchronously.";
         public static final String ERROR_ON_REQUEST_ASYNC_PLUGIN = "Error on request at async plugin.";
+        public static final String ERROR_RESUME_VM_ASYNC_BEHAVIOUR = "Error while resuming virtual machine asynchronously.";
+        public static final String ERROR_STOP_VM_ASYNC_BEHAVIOUR = "Error while stopping virtual machine asynchronously.";
         public static final String ERROR_UPDATE_NIC_ASYNC_BEHAVIOUR = "Error while updating network interface asynchronously.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME_S_WITH_RESPONSE_S = "Error while attaching volume image disk: %s, with response: %s.";
         public static final String ERROR_WHILE_ATTACHING_VOLUME_GENERAL_S = "Error while attaching volume with response: %s.";
@@ -165,12 +174,15 @@ public class Messages {
         public static final String ERROR_WHILE_GETTING_USER_S_S = "Error while getting info about user %s: %s.";
         public static final String ERROR_WHILE_GETTING_USERS_S = "Error while getting info about users: %s.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
+        public static final String ERROR_WHILE_HIBERNATING_INSTANCE_S = "Error while hibernating instance %s.";
         public static final String ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE_S = "Error while instantiating an instance from template: %s.";
         public static final String ERROR_WHILE_LOADING_IMAGE_S = "Error while loading the following image: %s";
         public static final String ERROR_WHILE_PROCESSING_ASYNCHRONOUS_REQUEST_INSTANCE_STEP = "Error while It was trying to pass to the next step in the asynchronous request instance.";
         public static final String ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS = "Error while processing volume requirements";
         public static final String ERROR_WHILE_REMOVING_RESOURCE_S_S = "An error occurred while removing %s: %s.";
         public static final String ERROR_WHILE_REMOVING_VOLUME_IMAGE_S_S = "Error while removing volume image: %s, with response: %s.";
+        public static final String ERROR_WHILE_RESUMING_INSTANCE_S = "Error while resuming instance %s.";
+        public static final String ERROR_WHILE_STOPPING_INSTANCE_S = "Error while stopping instance %s.";
         public static final String ERROR_WHILE_UPDATING_NETWORK_S = "Error while updating a network from template: %s.";
         public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS_S = "Error while updating a security groups from template: %s.";
         public static final String FIRST_STEP_CREATE_PUBLIC_IP_ASYNC_BEHAVIOUR = "First step: Public IP Address created and associated with the virtual machine.";
@@ -192,6 +204,7 @@ public class Messages {
         public static final String INSTANCE_S_ALREADY_HIBERNATED = "Instance %s has already been hibernated.";
         public static final String INSTANCE_S_ALREADY_PAUSED = "Instance %s has already been paused.";
         public static final String INSTANCE_S_ALREADY_RUNNING = "Instance %s is already running.";
+        public static final String INSTANCE_S_ALREADY_STOPPED = "Instance %s has already been stopped.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE_S = "Invalid list security rule type: %s.";
         public static final String INVALID_NUMBER_FORMAT = "Invalid number format.";
@@ -211,9 +224,16 @@ public class Messages {
         public static final String RECEIVING_GET_CLOUDS_REQUEST = "Get request for cloud names received.";
         public static final String RECEIVING_GET_IMAGE_REQUEST_S = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST_S = "Get request for %s %s received.";
+        public static final String RECEIVING_HIBERNATE_USER_REQUEST_S = "Hibernate request for user %s, provider %s, received.";
+        public static final String RECEIVING_PAUSE_REQUEST_S = "Pause request for compute %s received.";
+        public static final String RECEIVING_PAUSE_USER_REQUEST_S = "Pause request for user %s, provider %s, received.";
         public static final String RECEIVING_RELOAD_CONFIGURATION_REQUEST = "Received reload configuration request.";
         public static final String RECEIVING_REMOTE_REQUEST_S = "Received remote request for request: %s.";
         public static final String RECEIVING_RESOURCE_S_REQUEST_S = "Get %s request for provider %s received.";
+        public static final String RECEIVING_RESUME_REQUEST_S = "Resume request for compute %s received.";
+        public static final String RECEIVING_RESUME_USER_REQUEST_S = "Resume request for user %s, provider %s, received.";
+        public static final String RECEIVING_STOP_REQUEST_S = "Stop request for %s received.";
+        public static final String RECEIVING_STOP_USER_REQUEST_S = "Stop request for user %s, provider %s, received.";
         public static final String RECOVERING_LIST_OF_ORDERS_S_D = "Recovering requests in %s list: %d requests recovered so far.";
         public static final String REMOVING_ORDER_IN_SELECT_STATE_S = "Order %s might have left garbage in cloud.";
         public static final String RESUMING_INSTANCE_S = "Resuming instance %s.";
@@ -237,6 +257,7 @@ public class Messages {
         public static final String SETTING_UP_PACKET_SENDER = "Setting up XMPP packet sender.";
         public static final String SLEEP_THREAD_INTERRUPTED = "Thread is not able to sleep.";
         public static final String STARTING_THREADS = "Starting processor threads.";
+        public static final String STOPPING_INSTANCE_S = "Stopping instance %s.";
         public static final String STOPPING_THREADS = "Stopping processor threads.";
         public static final String START_ASYNC_INSTANCE_CREATION_S = "Start instance (%s) creation.";
         public static final String SUCCESS = "Successfully executed operation.";

@@ -6,17 +6,21 @@ import java.util.HashSet;
 import java.util.Set;
 
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
-import cloud.fogbow.common.models.Permission;
-import cloud.fogbow.common.models.Role;
+import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.WrongPolicyTypeException;
+import cloud.fogbow.common.models.policy.BaseRolePolicy;
+import cloud.fogbow.common.models.policy.PermissionInstantiator;
+import cloud.fogbow.common.models.policy.Permission;
+import cloud.fogbow.common.models.policy.Role;
+import cloud.fogbow.common.models.policy.RolePolicy;
 import cloud.fogbow.ras.constants.ConfigurationPropertyDefaults;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.constants.SystemConstants;
-import cloud.fogbow.ras.core.PermissionInstantiator;
 import cloud.fogbow.ras.core.PropertiesHolder;
+import cloud.fogbow.ras.core.RasClassFactory;
 import cloud.fogbow.ras.core.models.Operation;
 import cloud.fogbow.ras.core.models.RasOperation;
-import cloud.fogbow.ras.core.models.RolePolicy;
 import cloud.fogbow.ras.core.models.permission.AllowAllExceptPermission;
 import cloud.fogbow.ras.core.models.permission.AllowOnlyPermission;
 
@@ -83,8 +87,8 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
     }
     
     // TODO documentation
-    public PropertiesRolePolicy(File policyFile) throws ConfigurationErrorException {
-        setUpAvailableRoles(new PermissionInstantiator());
+    public PropertiesRolePolicy(File policyFile) throws ConfigurationErrorException, InvalidParameterException {
+        setUpAvailableRoles(new PermissionInstantiator(new RasClassFactory()));
         setUpUsersRoles();
         setUpDefaultRole();
     }
@@ -110,7 +114,7 @@ public class PropertiesRolePolicy extends BaseRolePolicy implements RolePolicy {
 		setUpDefaultRole(defaultRoleSection);
 	}
 	
-    private void setUpAvailableRoles(PermissionInstantiator permissionInstantiator) {
+    private void setUpAvailableRoles(PermissionInstantiator permissionInstantiator) throws InvalidParameterException {
         this.availableRoles = new HashMap<String, Role<RasOperation>>();
         this.permissions = new HashMap<String, Permission<RasOperation>>();
         String rolesNamesString = PropertiesHolder.getInstance().getProperty(

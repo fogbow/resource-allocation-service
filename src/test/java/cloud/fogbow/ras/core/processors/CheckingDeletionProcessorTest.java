@@ -40,7 +40,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
     private Thread thread;
     
     private LoggerAssert loggerTestChecking = new LoggerAssert(CheckingDeletionProcessor.class);
-    private LoggerAssert loggerTestCheckingStoppableProcessor = new LoggerAssert(StoppableProcessor.class);
+    private LoggerAssert loggerTestCheckingStoppableOrderListProcessor = new LoggerAssert(StoppableOrderListProcessor.class);
 
     @Rule
     public Timeout globalTimeout = new Timeout(100, TimeUnit.SECONDS);
@@ -206,7 +206,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         this.processor.doRun();
 
         // verify
-        this.loggerTestCheckingStoppableProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
+        this.loggerTestCheckingStoppableOrderListProcessor.assertEqualsInOrder(Level.ERROR, errorMessage);
     }
 
     // test case: When calling the checkDeletion method and there is no order in the checkingDeletionList,
@@ -226,20 +226,7 @@ public class CheckingDeletionProcessorTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.processor, Mockito.times(TestUtils.NEVER_RUN))
                 .processCheckingDeletionOrder(Mockito.any(Order.class));
-        this.loggerTestCheckingStoppableProcessor.verifyIfEmpty();
-    }
-
-    // test case: When calling the checkDeletion method and throws an InterruptedException
-    // it must verify if It rethrows the same exception.
-    @Test(expected = InterruptedException.class)
-    public void testCheckDeletionFailWhenThrowsInterruptedException() throws InterruptedException {
-        // set up
-        PowerMockito.spy(Thread.class);
-        PowerMockito.doThrow(new InterruptedException()).when(Thread.class);
-        Thread.sleep(Mockito.anyLong());
-
-        // exercise
-        this.processor.doRun();
+        this.loggerTestCheckingStoppableOrderListProcessor.verifyIfEmpty();
     }
     
     // test case: this method tests if, after starting a thread using a

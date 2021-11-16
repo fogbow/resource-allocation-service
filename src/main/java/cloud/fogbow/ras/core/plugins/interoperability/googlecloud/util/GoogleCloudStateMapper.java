@@ -15,24 +15,24 @@ public class GoogleCloudStateMapper {
     private static final String VOLUME_PLUGIN = GoogleCloudVolumePlugin.class.getSimpleName();
 
     // Instance states
-    private static final String PROVISIONING_STATE = "provisioning";
-    private static final String STAGING_STATE = "staging";
-    private static final String RUNNING_STATE = "running";
-    private static final String STOPPING_STATE = "stopping";
-    private static final String REPAIRING_STATE = "repairing";
-    private static final String TERMINATED_STATE = "terminated";
-    private static final String SUSPENDING_STATE = "suspending";
-    private static final String SUSPENDED_STATE = "suspended";
+    public static final String PROVISIONING_STATE = "provisioning";
+    public static final String STAGING_STATE = "staging";
+    public static final String RUNNING_STATE = "running";
+    public static final String STOPPING_STATE = "stopping";
+    public static final String REPAIRING_STATE = "repairing";
+    public static final String TERMINATED_STATE = "terminated";
+    public static final String SUSPENDING_STATE = "suspending";
+    public static final String SUSPENDED_STATE = "suspended";
 
     // Disk states
-    private static final String CREATING_STATE = "creating";
-    private static final String FAILED_STATE = "failed";
-    private static final String READY_STATE = "ready";
-    private static final String DELETING_STATE = "deleting";
-    private static final String RESTORING_STATE = "restoring";
+    public static final String CREATING_STATE = "creating";
+    public static final String FAILED_STATE = "failed";
+    public static final String READY_STATE = "ready";
+    public static final String DELETING_STATE = "deleting";
+    public static final String RESTORING_STATE = "restoring";
 
     //Network states
-    private static final String SIMULATED_ERROR_STATE = "error";
+    public static final String SIMULATED_ERROR_STATE = "error";
 
     public static InstanceState map(ResourceType type, String state) {
         state = state.toLowerCase();
@@ -72,6 +72,7 @@ public class GoogleCloudStateMapper {
                     case RUNNING_STATE:
                         return InstanceState.READY;
                     case TERMINATED_STATE:
+                        return InstanceState.STOPPED;
                     case SUSPENDED_STATE:
                     case STOPPING_STATE:
                     case SUSPENDING_STATE:

@@ -21,10 +21,12 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AsyncInstanceCr
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureGeneralUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceGroupOperationUtil;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureResourceIdBuilder;
+import cloud.fogbow.ras.core.plugins.interoperability.azure.util.AzureStateMapper;
 import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.volume.AzureVolumeSDK;
 import com.microsoft.azure.Page;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.compute.PowerState;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.compute.VirtualMachineSizeTypes;
@@ -99,7 +101,7 @@ public class AzureVirtualMachineOperationSDKTest {
         BiConsumer<VirtualMachine, List<String>> mockPublicIp = (virtualMachine, ipAddressesExpected) -> {
             Mockito.when(virtualMachine.getPrimaryPublicIPAddress()).thenReturn(null);
         };
-        performTestDoGetInstanceSuccessfully(mockPublicIp);
+        performTestDoGetInstanceSuccessfully(mockPublicIp, "cloudState", PowerState.RUNNING, "cloudState");
     }
 
     // test case: When calling the doGetInstance method with methods mocked with public ip,
@@ -115,12 +117,45 @@ public class AzureVirtualMachineOperationSDKTest {
             ipAddressesExpected.add(publicIp);
         };
 
-        performTestDoGetInstanceSuccessfully(mockPublicIp);
+        performTestDoGetInstanceSuccessfully(mockPublicIp, "cloudState", PowerState.RUNNING, "cloudState");
+    }
+    
+    // test case: When calling the doGetInstance method with methods mocked and the virtual machine is deallocating,
+    // it must verify if it returns an AzureGetVirtualMachineRef with Deallocating as cloud state.
+    @Test
+    public void testDoGetInstanceSuccessfullyInstanceIsDeallocating() throws Exception {
+        BiConsumer<VirtualMachine, List<String>> mockPublicIp = (virtualMachine, ipAddressesExpected) -> {
+            Mockito.when(virtualMachine.getPrimaryPublicIPAddress()).thenReturn(null);
+        };
+        performTestDoGetInstanceSuccessfully(mockPublicIp, "cloudState", PowerState.DEALLOCATING, 
+                AzureStateMapper.DEALLOCATING_STATE);
+    }
+    
+    // test case: When calling the doGetInstance method with methods mocked and the virtual machine is deallocated,
+    // it must verify if it returns an AzureGetVirtualMachineRef with Deallocated as cloud state.
+    @Test
+    public void testDoGetInstanceSuccessfullyInstanceIsDeallocated() throws Exception {
+        BiConsumer<VirtualMachine, List<String>> mockPublicIp = (virtualMachine, ipAddressesExpected) -> {
+            Mockito.when(virtualMachine.getPrimaryPublicIPAddress()).thenReturn(null);
+        };
+        performTestDoGetInstanceSuccessfully(mockPublicIp, "cloudState", PowerState.DEALLOCATED, 
+                AzureStateMapper.DEALLOCATED_STATE);
+    }
+    
+    // test case: When calling the doGetInstance method with methods mocked and the virtual machine is starting,
+    // it must verify if it returns an AzureGetVirtualMachineRef with Starting as cloud state.
+    @Test
+    public void testDoGetInstanceSuccessfullyInstanceIsStarting() throws Exception {
+        BiConsumer<VirtualMachine, List<String>> mockPublicIp = (virtualMachine, ipAddressesExpected) -> {
+            Mockito.when(virtualMachine.getPrimaryPublicIPAddress()).thenReturn(null);
+        };
+        performTestDoGetInstanceSuccessfully(mockPublicIp, "cloudState", PowerState.STARTING, 
+                AzureStateMapper.STARTING_STATE);
     }
 
     public void performTestDoGetInstanceSuccessfully(
-            BiConsumer<VirtualMachine, List<String>> mockPublicIp)
-            throws Exception {
+            BiConsumer<VirtualMachine, List<String>> mockPublicIp, String provisioningState, PowerState powerState, 
+            String cloudState) throws Exception {
 
         // set up
         Azure azure = PowerMockito.mock(Azure.class);
@@ -148,8 +183,8 @@ public class AzureVirtualMachineOperationSDKTest {
         VirtualMachineSizeTypes virtualMachineSizeTypes = VirtualMachineSizeTypes.BASIC_A0;
         Mockito.when(virtualMachine.size()).thenReturn(virtualMachineSizeTypes);
 
-        String cloudState = "cloudState";
-        Mockito.when(virtualMachine.provisioningState()).thenReturn(cloudState);
+        Mockito.when(virtualMachine.provisioningState()).thenReturn(provisioningState);
+        Mockito.when(virtualMachine.powerState()).thenReturn(powerState);
 
         VirtualMachineInner virtualMachineInner = Mockito.mock(VirtualMachineInner.class);
         Mockito.when(virtualMachineInner.id()).thenReturn(resourceId);
@@ -961,6 +996,146 @@ public class AzureVirtualMachineOperationSDKTest {
                 .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_DELETE_VM_ASYNC_BEHAVIOUR);
     }
 
+    // test case: When calling the method doStopInstance and the completable executes without any error, 
+    // it must verify that it returns the right logs.
+    @Test
+    public void testDoStopInstanceSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String expectedMessage = "completableSuccess";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceId = AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+        
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
+
+        Mockito.doReturn(resourceId).when(this.operation).buildResourceId(Mockito.eq(azure),
+                Mockito.eq(subscriptionId), Mockito.eq(resourceName));
+        
+        Completable stopCompletable = createSimpleCompletableSuccess(expectedMessage);
+        PowerMockito.when(AzureVirtualMachineSDK.buildStopVirtualMachineCompletable(Mockito.eq(azure), Mockito.eq(resourceId)))
+        .thenReturn(stopCompletable);
+        
+        // exercise
+        this.operation.doStopInstance(azureUser, resourceName);
+
+        // verify
+        this.loggerAssert
+        .assertEqualsInOrder(Level.DEBUG, expectedMessage)
+        .assertEqualsInOrder(Level.INFO, Messages.Log.END_STOP_VM_ASYNC_BEHAVIOUR);
+    }
+    
+    // test case: When calling the method doStopInstance and the completable executes with error, 
+    // it must verify that it returns the right logs.
+    @Test
+    public void testDoStopInstanceFailed() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String expectedMessage = "completableFail";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceId = AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+        
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
+
+        Mockito.doReturn(resourceId).when(this.operation).buildResourceId(Mockito.eq(azure),
+                Mockito.eq(subscriptionId), Mockito.eq(resourceName));
+        
+        Completable stopCompletable = createSimpleCompletableFail(expectedMessage);
+        PowerMockito.when(AzureVirtualMachineSDK.buildStopVirtualMachineCompletable(Mockito.eq(azure), Mockito.eq(resourceId)))
+        .thenReturn(stopCompletable);
+        
+        // exercise
+        this.operation.doStopInstance(azureUser, resourceName);
+
+        // verify
+        this.loggerAssert
+        .assertEqualsInOrder(Level.DEBUG, expectedMessage)
+        .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_STOP_VM_ASYNC_BEHAVIOUR);
+    }
+    
+    // test case: When calling the method doResumeInstance and the completable executes without any error, 
+    // it must verify that it returns the right logs.
+    @Test
+    public void testDoResumeInstanceSuccessfully() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String expectedMessage = "completableSuccess";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceId = AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+        
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
+
+        Mockito.doReturn(resourceId).when(this.operation).buildResourceId(Mockito.eq(azure),
+                Mockito.eq(subscriptionId), Mockito.eq(resourceName));
+        
+        Completable resumeCompletable = createSimpleCompletableSuccess(expectedMessage);
+        PowerMockito.when(AzureVirtualMachineSDK.buildResumeVirtualMachineCompletable(Mockito.eq(azure), Mockito.eq(resourceId)))
+        .thenReturn(resumeCompletable);
+        
+        // exercise
+        this.operation.doResumeInstance(azureUser, resourceName);
+
+        // verify
+        this.loggerAssert
+        .assertEqualsInOrder(Level.DEBUG, expectedMessage)
+        .assertEqualsInOrder(Level.INFO, Messages.Log.END_RESUME_VM_ASYNC_BEHAVIOUR);
+    }
+    
+    // test case: When calling the method doResumeInstance and the completable executes with error, 
+    // it must verify that it returns the right logs.
+    @Test
+    public void testDoResumeInstanceFailed() throws Exception {
+        // set up
+        Azure azure = PowerMockito.mock(Azure.class);
+        String expectedMessage = "completableFail";
+        String resourceName = AzureTestUtils.RESOURCE_NAME;
+        String subscriptionId = AzureTestUtils.DEFAULT_SUBSCRIPTION_ID;
+        String resourceId = AzureResourceIdBuilder.virtualMachineId()
+                .withSubscriptionId(subscriptionId)
+                .withResourceGroupName(this.defaultResourceGroupName)
+                .withResourceName(resourceName)
+                .build();
+        
+        PowerMockito.mockStatic(AzureClientCacheManager.class);
+        PowerMockito.doReturn(azure).when(AzureClientCacheManager.class, "getAzure",
+                Mockito.eq(this.azureUser));
+
+        Mockito.doReturn(resourceId).when(this.operation).buildResourceId(Mockito.eq(azure),
+                Mockito.eq(subscriptionId), Mockito.eq(resourceName));
+        
+        Completable resumeCompletable = createSimpleCompletableFail(expectedMessage);
+        PowerMockito.when(AzureVirtualMachineSDK.buildResumeVirtualMachineCompletable(Mockito.eq(azure), Mockito.eq(resourceId)))
+        .thenReturn(resumeCompletable);
+        
+        // exercise
+        this.operation.doResumeInstance(azureUser, resourceName);
+
+        // verify
+        this.loggerAssert
+        .assertEqualsInOrder(Level.DEBUG, expectedMessage)
+        .assertEqualsInOrder(Level.ERROR, Messages.Log.ERROR_RESUME_VM_ASYNC_BEHAVIOUR);
+    }
+    
     private PagedList<VirtualMachineSize> getVirtualMachineSizesMock() {
         return new PagedList<VirtualMachineSize>() {
             @Override

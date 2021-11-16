@@ -75,14 +75,15 @@ public class OpenStackStateMapper {
                         return InstanceState.PAUSED;
                     case SUSPENDED_STATUS:
                         return InstanceState.HIBERNATED;
+                    case SHELVED_STATUS:
+                    case SHELVED_OFFLOADED_STATUS:
+                        return InstanceState.STOPPED;
                     case DELETED_STATUS:
                     case HARD_REBOOT_STATUS:
                     case MIGRATING_STATUS:
                     case REBOOT_STATUS:
                     case RESIZE_STATUS:
                     case REVERT_RESIZE_STATUS:
-                    case SHELVED_STATUS:
-                    case SHELVED_OFFLOADED_STATUS:
                     case SHUTOFF_STATUS:
                     case SOFT_DELETED_STATUS:
                     case VERIFY_RESIZE_STATUS:

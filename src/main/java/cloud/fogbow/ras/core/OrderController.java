@@ -169,6 +169,32 @@ public class OrderController {
             }
         }
     }
+    
+    public void stopOrder(Order order) throws FogbowException {
+        synchronized (order) {
+            OrderState orderState = order.getOrderState();
+            
+            if (orderState.equals(OrderState.STOPPED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_ALREADY_STOPPED);
+
+            } else if(orderState.equals(OrderState.STOPPING)) {
+                throw new UnacceptableOperationException(Messages.Exception.STOP_OPERATION_ONGOING);
+
+            } else if (!orderState.equals(OrderState.FULFILLED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_RUNNING);
+
+            } else {
+                try {
+                    CloudConnector cloudConnector = getCloudConnector(order);
+                    cloudConnector.stopComputeInstance(order);
+                    OrderStateTransitioner.transition(order, OrderState.STOPPING);
+                } catch (Exception e) {
+                    LOGGER.error(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDER_S);
+                    throw e;
+                }
+            }
+        }
+    }
 
     public void resumeOrder(Order order) throws FogbowException {
         synchronized (order) {
@@ -178,8 +204,9 @@ public class OrderController {
                 throw new UnacceptableOperationException(Messages.Exception.RESUME_OPERATION_ONGOING);
             }
 
-            if (!orderState.equals(OrderState.PAUSED) && !orderState.equals(OrderState.HIBERNATED)) {
-                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED);
+            if (!orderState.equals(OrderState.PAUSED) && !orderState.equals(OrderState.HIBERNATED)
+                    && !orderState.equals(OrderState.STOPPED)) {
+                throw new UnacceptableOperationException(Messages.Exception.VIRTUAL_MACHINE_IS_NOT_PAUSED_OR_HIBERNATED_OR_STOPPED);
             }
 
             try {
@@ -244,6 +271,26 @@ public class OrderController {
 
             CloudConnector cloudConnector = getCloudConnector(computeOrder);
             cloudConnector.takeSnapshot(computeOrder, name, systemUser);
+        }
+    }
+    
+    public boolean dependenciesAreClosed(Order order) throws InstanceNotFoundException {
+        if (orderDependencies.containsKey(order.getId())) {
+            List<String> dependencies = orderDependencies.get(order.getId());
+            boolean allClosed = true;
+            
+            for (String dependencyId : dependencies) {
+                try {
+                    getOrder(dependencyId);
+                    allClosed = false;
+                } catch (InstanceNotFoundException e) {
+                    
+                }
+            }           
+            
+            return allClosed;
+        } else {
+            return true;
         }
     }
 
@@ -338,10 +385,19 @@ public class OrderController {
     ;
 
     public List<InstanceStatus> getInstancesStatus(SystemUser systemUser, ResourceType resourceType) throws InternalServerErrorException {
-        List<InstanceStatus> instanceStatusList = new ArrayList<>();
         List<Order> allOrders = getAllOrders(systemUser, resourceType);
+        return getStatusFromOrders(allOrders, resourceType);
+    }
+    
+    public List<InstanceStatus> getUserInstancesStatus(String userId, String providerId, ResourceType resourceType) throws InternalServerErrorException {
+        List<Order> allOrders = getOrdersByUserId(userId, providerId, resourceType);
+        return getStatusFromOrders(allOrders, resourceType);
+    }
+    
+    private List<InstanceStatus> getStatusFromOrders(List<Order> orders, ResourceType resourceType) throws InternalServerErrorException {
+        List<InstanceStatus> instanceStatusList = new ArrayList<>();
 
-        for (Order order : allOrders) {
+        for (Order order : orders) {
             synchronized (order) {
                 String name = null;
 
@@ -398,7 +454,7 @@ public class OrderController {
         return new ComputeAllocation(instances, vCPU, ram, disk);
     }
 
-    private List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
+    public List<Order> getAllOrders(SystemUser systemUser, ResourceType resourceType) {
         Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
 
         Collection<Order> orders = activeOrdersMap.values();
@@ -407,6 +463,21 @@ public class OrderController {
         List<Order> requestedOrders = orders.stream()
                 .filter(order -> order.getType().equals(resourceType))
                 .filter(order -> order.getSystemUser().equals(systemUser)).collect(Collectors.toList());
+
+        return requestedOrders;
+    }
+    
+    private List<Order> getOrdersByUserId(String userId, String providerId, ResourceType resourceType) {
+        Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
+
+        Collection<Order> orders = activeOrdersMap.values();
+
+        // Filter all orders of resourceType from the user systemUser.
+        List<Order> requestedOrders = orders.stream()
+                .filter(order -> order.getType().equals(resourceType))
+                .filter(order -> order.getSystemUser().getId().equals(userId))
+                .filter(order -> order.getSystemUser().getIdentityProviderId().equals(providerId))
+                .collect(Collectors.toList());
 
         return requestedOrders;
     }

@@ -131,6 +131,16 @@ public class RemoteFacade {
         this.orderController.hibernateOrder(order);
     }
 
+    public void stopOrder(String requester, String orderId, SystemUser systemUser, 
+            ResourceType resourceType) throws FogbowException {
+        Order order = this.orderController.getOrder(orderId);
+        // The user has already been authenticated by the requesting provider.
+        checkOrderConsistency(requester, order);
+        RasOperation rasOperation = new RasOperation(Operation.STOP, resourceType, order.getCloudName(), order);
+        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+        this.orderController.stopOrder(order);
+    }
+    
     public void takeSnapshot(String requester, String orderId, String name, SystemUser systemUser) throws FogbowException {
         ComputeOrder computeOrder = (ComputeOrder) this.orderController.getOrder(orderId);
         checkOrderConsistency(requester, computeOrder);

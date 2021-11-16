@@ -3,7 +3,6 @@ package cloud.fogbow.ras.core.processors;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
-import cloud.fogbow.common.models.linkedlists.ChainedList;
 import cloud.fogbow.ras.constants.Messages;
 import cloud.fogbow.ras.core.OrderController;
 import cloud.fogbow.ras.core.OrderStateTransitioner;
@@ -16,25 +15,16 @@ import cloud.fogbow.ras.core.models.orders.OrderState;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.log4j.Logger;
 
-public class CheckingDeletionProcessor extends StoppableProcessor implements Runnable {
+public class CheckingDeletionProcessor extends StoppableOrderListProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(CheckingDeletionProcessor.class);
 
-    private ChainedList<Order> checkingDeletionOrders;
     private OrderController orderController;
     private String localProviderId;
 
     public CheckingDeletionProcessor(OrderController orderController, String localProviderId, String sleepTimeStr) {
-        SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
-        this.checkingDeletionOrders = sharedOrdersHolder.getCheckingDeletionOrdersList();
-        this.sleepTime = Long.valueOf(sleepTimeStr);
+        super(Long.valueOf(sleepTimeStr), SharedOrderHolders.getInstance().getCheckingDeletionOrdersList());
         this.orderController = orderController;
         this.localProviderId = localProviderId;
-        this.isActive = false;
-        this.mustStop = false;
-    }
-
-    public void setSleepTime(Long sleepTime) {
-        this.sleepTime = sleepTime;
     }
     
     /**
@@ -89,17 +79,7 @@ public class CheckingDeletionProcessor extends StoppableProcessor implements Run
     }
 
     @Override
-    protected void doProcessing(Order order) throws InterruptedException, FogbowException {
+    protected void doProcessing(Order order) throws FogbowException {
         processCheckingDeletionOrder(order);
-    }
-
-    @Override
-    protected Order getNext() {
-        return this.checkingDeletionOrders.getNext();
-    }
-
-    @Override
-    protected void reset() {
-        this.checkingDeletionOrders.resetPointer();
     }
 }

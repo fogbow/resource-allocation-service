@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,7 @@ import io.swagger.annotations.ApiParam;
 public class Admin {
     public static final String ADMIN_SUFFIX_ENDPOINT = "admin";
     public static final String ADMIN_ENDPOINT = SystemConstants.SERVICE_BASE_ENDPOINT + ADMIN_SUFFIX_ENDPOINT;
+    public static final String PURGE_USER_ENDPOINT = ADMIN_ENDPOINT + "/purge";
     
     private final Logger LOGGER = Logger.getLogger(Admin.class);
     
@@ -53,11 +55,24 @@ public class Admin {
     
     @ApiOperation(value = ApiDocumentation.Admin.UPDATE_POLICY_OPERATION)
     @RequestMapping(value = "/policy", method = RequestMethod.PUT)
-    public ResponseEntity<Boolean> udpatePolicy(
+    public ResponseEntity<Boolean> updatePolicy(
     		@RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken,
             @ApiParam(value = ApiDocumentation.Admin.UPDATE_POLICY_REQUEST_BODY)
     		@RequestBody Policy policy) throws FogbowException {
     	ApplicationFacade.getInstance().updatePolicy(systemUserToken, policy.getPolicy());
     	return new ResponseEntity<>(HttpStatus.OK);
+    }
+    
+    @ApiOperation(value = ApiDocumentation.Admin.PURGE_USER_OPERATION)
+    @RequestMapping(value = "/purge/{userId}/{provider:.+}", method = RequestMethod.DELETE)
+    public ResponseEntity<Boolean> purgeUser(
+            @ApiParam(value = ApiDocumentation.Admin.USER_ID)
+            @PathVariable String userId, 
+            @ApiParam(value = ApiDocumentation.Admin.USER_PROVIDER_ID)
+            @PathVariable String provider,
+            @RequestHeader(required = false, value = CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY) String systemUserToken) 
+                    throws FogbowException {
+        ApplicationFacade.getInstance().purgeUser(systemUserToken, userId, provider);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

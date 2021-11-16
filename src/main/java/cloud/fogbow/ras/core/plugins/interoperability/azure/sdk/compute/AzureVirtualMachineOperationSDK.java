@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.compute;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.UnacceptableOperationException;
+import cloud.fogbow.common.exceptions.UnauthenticatedUserException;
 import cloud.fogbow.common.models.AzureUser;
 import cloud.fogbow.common.util.connectivity.cloud.azure.AzureClientCacheManager;
 import cloud.fogbow.ras.constants.Messages;
@@ -15,6 +16,7 @@ import cloud.fogbow.ras.core.plugins.interoperability.azure.sdk.volume.AzureVolu
 import com.google.common.annotations.VisibleForTesting;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.compute.PowerState;
 import com.microsoft.azure.management.compute.VirtualMachine;
 import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.management.network.Network;
@@ -169,7 +171,8 @@ public class AzureVirtualMachineOperationSDK {
                 .orElseThrow(() -> new InstanceNotFoundException(Messages.Exception.INSTANCE_NOT_FOUND));
         
         String virtualMachineSizeName = virtualMachine.size().toString();
-        String cloudState = virtualMachine.provisioningState();
+        String cloudState = getCloudState(virtualMachine);
+
         String id = virtualMachine.inner().id();
         Map tags = virtualMachine.tags();
 
@@ -199,6 +202,26 @@ public class AzureVirtualMachineOperationSDK {
                 .build();
     }
 
+    private String getCloudState(VirtualMachine virtualMachine) {
+        String cloudState = virtualMachine.provisioningState();
+        
+        // The virtual machine provisioning state does not represent
+        // well virtual machine state changes such as stopping and deallocating.
+        // Therefore, when a virtual machine is being deallocated or started,
+        // we must use the power state as the cloud state instead.
+        PowerState powerState = virtualMachine.powerState();
+        
+        if (powerState.equals(PowerState.DEALLOCATING)) {
+            cloudState = AzureStateMapper.DEALLOCATING_STATE;
+        } else if (powerState.equals(PowerState.DEALLOCATED)) {
+            cloudState = AzureStateMapper.DEALLOCATED_STATE;
+        } else if (powerState.equals(PowerState.STARTING)) {
+            cloudState = AzureStateMapper.STARTING_STATE;
+        }
+        
+        return cloudState;
+    }
+    
     @VisibleForTesting
     VirtualMachineSize findVirtualMachineSize(String virtualMachineSizeWanted, String regionName, Azure azure)
             throws FogbowException {
@@ -331,4 +354,51 @@ public class AzureVirtualMachineOperationSDK {
         this.scheduler = scheduler;
     }
 
+	public void doStopInstance(AzureUser azureUser, String resourceName) throws UnauthenticatedUserException {
+		Azure azure = AzureClientCacheManager.getAzure(azureUser);
+		
+		String subscriptionId = azureUser.getSubscriptionId();
+		String resourceId = buildResourceId(azure, subscriptionId, resourceName);
+
+        Completable stopVirtualMachine = AzureVirtualMachineSDK
+                .buildStopVirtualMachineCompletable(azure, resourceId);
+        
+        stopVirtualMachine = setStopVirtualMachineBehaviour(stopVirtualMachine);
+
+        Completable.concat(stopVirtualMachine)
+                .subscribeOn(this.scheduler)
+                .subscribe();
+	}
+	
+	public void doResumeInstance(AzureUser azureUser, String resourceName) throws UnauthenticatedUserException {
+		Azure azure = AzureClientCacheManager.getAzure(azureUser);
+		
+		String subscriptionId = azureUser.getSubscriptionId();
+		String resourceId = buildResourceId(azure, subscriptionId, resourceName);
+
+        Completable resumeVirtualMachine = AzureVirtualMachineSDK
+                .buildResumeVirtualMachineCompletable(azure, resourceId);
+        
+        resumeVirtualMachine = setResumeVirtualMachineBehaviour(resumeVirtualMachine);
+
+        Completable.concat(resumeVirtualMachine)
+                .subscribeOn(this.scheduler)
+                .subscribe();
+	}
+
+	private Completable setStopVirtualMachineBehaviour(Completable stopVirtualMachineCompletable) {
+		return stopVirtualMachineCompletable.doOnError((error -> {
+			LOGGER.error(Messages.Log.ERROR_STOP_VM_ASYNC_BEHAVIOUR, error);
+		})).doOnCompleted(() -> {
+			LOGGER.info(Messages.Log.END_STOP_VM_ASYNC_BEHAVIOUR);
+		});
+	}
+	
+	private Completable setResumeVirtualMachineBehaviour(Completable resumeVirtualMachineCompletable) {
+		return resumeVirtualMachineCompletable.doOnError((error -> {
+			LOGGER.error(Messages.Log.ERROR_RESUME_VM_ASYNC_BEHAVIOUR, error);
+		})).doOnCompleted(() -> {
+			LOGGER.info(Messages.Log.END_RESUME_VM_ASYNC_BEHAVIOUR);
+		});
+	}
 }

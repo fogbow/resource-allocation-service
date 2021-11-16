@@ -14,6 +14,8 @@ public enum InstanceState {
     PAUSED("paused"),
     HIBERNATING("hibernating"),
     HIBERNATED("hibernated"),
+    STOPPING("stopping"),
+    STOPPED("stopped"),
     RESUMING("resuming"),
     INCONSISTENT("inconsistent");
 

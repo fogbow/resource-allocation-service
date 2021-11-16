@@ -3,6 +3,7 @@ package cloud.fogbow.ras.core;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -18,6 +19,8 @@ import cloud.fogbow.common.constants.FogbowConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InstanceNotFoundException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.UnacceptableOperationException;
+import cloud.fogbow.common.exceptions.UnauthorizedRequestException;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.plugins.authorization.AuthorizationPlugin;
 import cloud.fogbow.common.util.CryptoUtil;
@@ -52,6 +55,7 @@ import cloud.fogbow.ras.core.models.orders.AttachmentOrder;
 import cloud.fogbow.ras.core.models.orders.ComputeOrder;
 import cloud.fogbow.ras.core.models.orders.NetworkOrder;
 import cloud.fogbow.ras.core.models.orders.Order;
+import cloud.fogbow.ras.core.models.orders.OrderState;
 import cloud.fogbow.ras.core.models.orders.PublicIpOrder;
 import cloud.fogbow.ras.core.models.orders.VolumeOrder;
 
@@ -69,6 +73,9 @@ public class ApplicationFacade {
     private String providerId;
     private RSAPublicKey asPublicKey;
     private String buildNumber;
+    private static final List<ResourceType> RESOURCE_TYPE_DELETION_ORDER_ON_PURGE_USER = 
+            Arrays.asList(ResourceType.PUBLIC_IP, ResourceType.ATTACHMENT, 
+            ResourceType.VOLUME, ResourceType.COMPUTE, ResourceType.NETWORK);
 
     private ApplicationFacade() {
         this.onGoingRequests = 0;
@@ -401,6 +408,27 @@ public class ApplicationFacade {
         this.orderController.hibernateOrder(computeOrder);
     }
 
+    public void stopCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
+        startOperation();
+        try {
+            SystemUser systemUser = authenticate(userToken);
+            Order order = this.orderController.getOrder(orderId);
+
+            if (!order.getType().equals(ResourceType.COMPUTE)) {
+                throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+            }
+
+            ComputeOrder computeOrder = (ComputeOrder) order;
+
+            RasOperation rasOperation = new RasOperation(Operation.STOP, resourceType, computeOrder.getCloudName(),
+                    computeOrder);
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+            this.orderController.stopOrder(computeOrder);
+        } finally {
+            finishOperation();
+        }
+    }
+    
     public void resumeCompute(String orderId, String userToken, ResourceType resourceType) throws FogbowException {
         SystemUser systemUser = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
@@ -416,6 +444,90 @@ public class ApplicationFacade {
         this.orderController.resumeOrder(computeOrder);
     }
 
+	public void pauseUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
+		startOperation();
+		try {
+			SystemUser systemUser = authenticate(userToken);
+	        RasOperation rasOperation = new RasOperation(Operation.PAUSE_ALL, ResourceType.COMPUTE, this.providerId, 
+	                this.providerId);
+	        
+	        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+	        List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(
+	                userId, userProviderId, ResourceType.COMPUTE);
+			
+	        for (InstanceStatus status : statuses) {
+	        	String orderId = status.getInstanceId();
+	        	// FIXME catch UnacceptableOperationException, in the case the order can not be paused
+	        	this.orderController.pauseOrder(this.orderController.getOrder(orderId));
+	        }	
+		} finally {
+			finishOperation();
+		}	
+	}
+	
+    public void hibernateUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
+        startOperation();
+        try {
+            SystemUser systemUser = authenticate(userToken);
+            RasOperation rasOperation = new RasOperation(Operation.HIBERNATE_ALL, ResourceType.COMPUTE, this.providerId, 
+                    this.providerId);
+            
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+            List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(
+                    userId, userProviderId, ResourceType.COMPUTE);
+            
+            for (InstanceStatus status : statuses) {
+                String orderId = status.getInstanceId();
+                // FIXME catch UnacceptableOperationException, in the case the order can not be hibernated
+                this.orderController.hibernateOrder(this.orderController.getOrder(orderId));
+            }   
+        } finally {
+            finishOperation();
+        }
+    }
+
+    public void stopUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
+        startOperation();
+        try {
+            SystemUser systemUser = authenticate(userToken);
+            RasOperation rasOperation = new RasOperation(Operation.STOP_ALL, ResourceType.COMPUTE, this.providerId, 
+                    this.providerId);
+            
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+            List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(
+                    userId, userProviderId, ResourceType.COMPUTE);
+            
+            for (InstanceStatus status : statuses) {
+                String orderId = status.getInstanceId();
+                // FIXME catch UnacceptableOperationException, in the case the order can not be stopped
+                this.orderController.stopOrder(this.orderController.getOrder(orderId));
+            }   
+        } finally {
+            finishOperation();
+        }   
+    }
+	
+	public void resumeUserComputes(String userId, String userProviderId, String userToken) throws FogbowException {
+		startOperation();
+		try {
+			SystemUser systemUser = authenticate(userToken);
+	        RasOperation rasOperation = new RasOperation(Operation.RESUME_ALL, ResourceType.COMPUTE, this.providerId, 
+	                this.providerId);
+	        
+	        this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+	        List<InstanceStatus> statuses = this.orderController.getUserInstancesStatus(
+	                userId, userProviderId, ResourceType.COMPUTE);
+			
+	        for (InstanceStatus status : statuses) {
+	        	String orderId = status.getInstanceId();
+	        	// FIXME catch UnacceptableOperationException, in the case the order can not be resumed
+	        	this.orderController.resumeOrder(this.orderController.getOrder(orderId));
+	        }	
+		} finally {
+			finishOperation();
+		}
+	}
+    
     public void takeSnapshot(String orderId, String name, String userToken, ResourceType resourceType) throws FogbowException{
         SystemUser systemUser = authenticate(userToken);
         Order order = this.orderController.getOrder(orderId);
@@ -431,6 +543,76 @@ public class ApplicationFacade {
         this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
         this.orderController.takeSnapshot(computeOrder, name, systemUser);
 
+    }
+
+    public void purgeUser(String userToken, String userId, String provider) throws FogbowException {
+        startOperation();
+        try {
+            SystemUser systemUser = authenticate(userToken);
+            RasOperation rasOperation = new RasOperation(Operation.DELETE, ResourceType.USER,
+                    this.providerId, this.providerId);
+            
+            this.authorizationPlugin.isAuthorized(systemUser, rasOperation);
+
+            doPurgeUser(systemUser);
+        } finally {
+            finishOperation();
+        }
+    }
+    
+    private void doPurgeUser(SystemUser user) 
+            throws FogbowException {
+        List<Order> userOrders = new ArrayList<>();
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.PUBLIC_IP));
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.ATTACHMENT));
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.VOLUME));
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.COMPUTE));
+        userOrders.addAll(this.orderController.getAllOrders(user, ResourceType.NETWORK));
+
+        boolean removedAll;
+        
+        do {
+            removedAll = true;
+            
+            for (Order order : userOrders) {
+                if (!safeRemove(order)) {
+                    removedAll = false;
+                }
+            }
+            
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+        } while (!removedAll);
+    }
+
+    private boolean safeRemove(Order order) throws FogbowException {
+        OrderState state = order.getOrderState();
+        
+        if (orderIsClosed(state)) {
+            return true;
+        }
+        
+        if (deletingOrder(state)) {
+            return false;
+        }
+        
+        if (this.orderController.dependenciesAreClosed(order)) {
+            this.orderController.deleteOrder(order);
+            return false;
+        } else {
+            return false;
+        }
+    }
+    
+    private boolean deletingOrder(OrderState orderState) {
+        return orderState.equals(OrderState.CHECKING_DELETION) || 
+                orderState.equals(OrderState.ASSIGNED_FOR_DELETION);
+    }
+
+    private boolean orderIsClosed(OrderState orderState) {
+        return orderState.equals(OrderState.CLOSED);
     }
 
     // These methods are protected to be used in testing
@@ -523,7 +705,7 @@ public class ApplicationFacade {
             finishOperation();
         }
     }
-
+    
     protected RSAPublicKey getAsPublicKey() throws FogbowException {
         if (this.asPublicKey == null) {
             this.asPublicKey = RasPublicKeysHolder.getInstance().getAsPublicKey();

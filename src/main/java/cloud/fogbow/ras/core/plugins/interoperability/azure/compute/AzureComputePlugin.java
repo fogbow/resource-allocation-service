@@ -4,8 +4,10 @@ import cloud.fogbow.common.constants.AzureConstants;
 import cloud.fogbow.common.exceptions.FogbowException;
 import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.exceptions.InvalidParameterException;
+import cloud.fogbow.common.exceptions.NotImplementedOperationException;
 import cloud.fogbow.common.models.AwsV2User;
 import cloud.fogbow.common.models.AzureUser;
+import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.util.PropertiesUtil;
 import cloud.fogbow.ras.api.http.response.ComputeInstance;
 import cloud.fogbow.ras.api.http.response.InstanceState;
@@ -65,6 +67,21 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
     @Override
     public boolean hasFailed(String instanceState) {
         return AzureStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.FAILED);
+    }
+    
+    @Override
+    public boolean isPaused(String cloudState) {
+        return false;
+    }
+
+    @Override
+    public boolean isHibernated(String cloudState) {
+        return false;
+    }
+    
+    @Override
+    public boolean isStopped(String instanceState) {
+        return AzureStateMapper.map(ResourceType.COMPUTE, instanceState).equals(InstanceState.STOPPED);
     }
 
     @Override
@@ -220,32 +237,35 @@ public class AzureComputePlugin implements ComputePlugin<AzureUser>, AzureAsync<
 
     @Override
     public void takeSnapshot(ComputeOrder computeOrder, String name, AzureUser cloudUser) throws FogbowException {
-        // ToDo: implement
+        throw new NotImplementedOperationException();
     }
 
     @Override
     public void pauseInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
-        // ToDo: implement
+        throw new NotImplementedOperationException();
     }
 
     @Override
     public void hibernateInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
-        // ToDo: implement
+    	throw new NotImplementedOperationException();
     }
 
     @Override
-    public void resumeInstance(ComputeOrder order, AzureUser cloudUser) throws FogbowException {
-        // ToDo: implement
+    public void stopInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Log.STOPPING_INSTANCE_S, computeOrder.getInstanceId()));
+        String instanceId = computeOrder.getInstanceId();
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+        
+        this.azureVirtualMachineOperation.doStopInstance(azureUser, resourceName);
     }
-
+    
     @Override
-    public boolean isPaused(String cloudState) throws FogbowException {
-        return false;
-    }
-
-    @Override
-    public boolean isHibernated(String cloudState) throws FogbowException {
-        return false;
+    public void resumeInstance(ComputeOrder computeOrder, AzureUser azureUser) throws FogbowException {
+        LOGGER.info(String.format(Messages.Log.RESUMING_INSTANCE_S, computeOrder.getInstanceId()));
+    	String instanceId = computeOrder.getInstanceId();
+        String resourceName = AzureGeneralUtil.defineResourceName(instanceId);
+        
+        this.azureVirtualMachineOperation.doResumeInstance(azureUser, resourceName);
     }
 
     @VisibleForTesting
