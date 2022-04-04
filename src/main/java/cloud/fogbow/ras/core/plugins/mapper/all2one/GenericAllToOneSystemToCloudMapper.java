@@ -21,6 +21,13 @@ public abstract class GenericAllToOneSystemToCloudMapper<T extends CloudUser, S 
     private String idpUrl;
     private Map<String, String> credentials;
 
+    // Here we use HashMap instead of Map because RasClassFactory cannot
+    // handle properly polymorphism in constructors.
+    public GenericAllToOneSystemToCloudMapper(String idpUrl, HashMap<String, String> credentials) {
+        this.idpUrl = idpUrl;
+        this.credentials = credentials;
+    }
+    
     public GenericAllToOneSystemToCloudMapper(String mapperConfFilePath) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(mapperConfFilePath);
         this.idpUrl = properties.getProperty(ConfigurationPropertyKeys.CLOUD_IDENTITY_PROVIDER_URL_KEY);

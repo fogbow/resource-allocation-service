@@ -2,6 +2,7 @@ package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import cloud.fogbow.common.constants.GoogleCloudConstants;
@@ -15,6 +16,13 @@ public class GoogleCloudAllToOneMapper extends GenericAllToOneSystemToCloudMappe
 
 	private GoogleCloudIdentityProviderPlugin identityProviderPlugin;
 
+	// Here we use HashMap instead of Map because RasClassFactory cannot
+    // handle properly polymorphism in constructors.
+	public GoogleCloudAllToOneMapper(String idpUrl, HashMap<String, String> credentials) {
+	    super(idpUrl, credentials);
+	    this.identityProviderPlugin = new GoogleCloudIdentityProviderPlugin();
+	}
+	
 	public GoogleCloudAllToOneMapper(String mapperConfFilePath) throws FatalErrorException {
 		super(mapperConfFilePath);
 		this.identityProviderPlugin = new GoogleCloudIdentityProviderPlugin();

@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import cloud.fogbow.as.core.models.AzureSystemUser;
@@ -12,6 +13,13 @@ import com.google.common.annotations.VisibleForTesting;
 public class AzureAllToOneMapper extends GenericAllToOneSystemToCloudMapper<AzureUser, AzureSystemUser> {
 
     private AzureIdentityProviderPlugin plugin;
+    
+    // Here we use HashMap instead of Map because RasClassFactory cannot
+    // handle properly polymorphism in constructors.
+    public AzureAllToOneMapper(String idpUrl, HashMap<String, String> credentials) {
+        super(idpUrl, credentials);
+        this.plugin = new AzureIdentityProviderPlugin();
+    }
     
     public AzureAllToOneMapper(String mapperConfFilePath) throws FatalErrorException {
         super(mapperConfFilePath);

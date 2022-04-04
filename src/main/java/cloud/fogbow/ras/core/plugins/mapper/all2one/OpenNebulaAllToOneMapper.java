@@ -1,5 +1,6 @@
 package cloud.fogbow.ras.core.plugins.mapper.all2one;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -14,6 +15,13 @@ public class OpenNebulaAllToOneMapper extends GenericAllToOneSystemToCloudMapper
 
     private OpenNebulaIdentityProviderPlugin identityProviderPlugin;
 
+    // Here we use HashMap instead of Map because RasClassFactory cannot
+    // handle properly polymorphism in constructors.
+    public OpenNebulaAllToOneMapper(String idpUrl, HashMap<String, String> credentials) {
+        super(idpUrl, credentials);
+        this.identityProviderPlugin = new OpenNebulaIdentityProviderPlugin(idpUrl);
+    }
+    
     public OpenNebulaAllToOneMapper(String mapperConfFilePath) {
         super(mapperConfFilePath);
         Properties properties = PropertiesUtil.readProperties(mapperConfFilePath);
