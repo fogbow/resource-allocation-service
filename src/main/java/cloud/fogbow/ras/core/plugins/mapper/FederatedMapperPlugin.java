@@ -1,69 +1,84 @@
 package cloud.fogbow.ras.core.plugins.mapper;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-
-import cloud.fogbow.as.core.util.TokenProtector;
 import cloud.fogbow.common.constants.FogbowConstants;
-import cloud.fogbow.common.constants.HttpMethod;
 import cloud.fogbow.common.exceptions.ConfigurationErrorException;
 import cloud.fogbow.common.exceptions.FogbowException;
+import cloud.fogbow.common.exceptions.InternalServerErrorException;
 import cloud.fogbow.common.models.CloudUser;
 import cloud.fogbow.common.models.SystemUser;
 import cloud.fogbow.common.util.CryptoUtil;
 import cloud.fogbow.common.util.PropertiesUtil;
-import cloud.fogbow.common.util.PublicKeysHolder;
 import cloud.fogbow.common.util.ServiceAsymmetricKeysHolder;
-import cloud.fogbow.common.util.connectivity.HttpRequestClient;
-import cloud.fogbow.common.util.connectivity.HttpResponse;
-import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.RasClassFactory;
 
-// TODO test
 public class FederatedMapperPlugin implements SystemToCloudMapperPlugin<CloudUser, SystemUser> {
-    private String cloudName;
-    private String mapperUrl;
-    private String mapperPort;
-    private String mapperMapSuffix;
-    private String mapperPublicKeySuffix;
+    private static final String ADMIN_USERNAME_KEY = "admin_username";
+    private static final String ADMIN_PASSWORD_KEY = "admin_password";
+    private static final String INTERNAL_MAPPER_PLUGIN_CLASS_NAME = "internal_mapper";
+    private static final String MAPPER_URL_KEY = "mapper_url";
+    private static final String MAPPER_PORT_KEY = "mapper_port";
+    private static final String MAPPER_PUBLIC_KEY_SUFFIX_KEY = "mapper_public_key_suffix";
+    private static final String MAPPER_MAP_SUFFIX_KEY = "mapper_map_suffix";
+    private static final String CLOUD_NAME_KEY = "cloud_name";
+    
     private String internalMapperPluginClassName;
     private String idpUrl;
     private String adminUsername;
     private String adminPassword;
     private RasClassFactory classFactory;
     private AuthenticationServiceClient asClient;
+    private MapperClient mapperClient;
+    private String publicKeyString;
     
+    public FederatedMapperPlugin(String internalMapperPluginClassName, String idpUrl, String publicKeyString, 
+            String adminUsername, String adminPassword, RasClassFactory classFactory, 
+            AuthenticationServiceClient asClient, MapperClient mapperClient) {
+        this.internalMapperPluginClassName = internalMapperPluginClassName;
+        this.idpUrl = idpUrl;
+        this.adminUsername = adminUsername;
+        this.adminPassword = adminPassword;
+        this.classFactory = classFactory;
+        this.asClient = asClient;
+        this.mapperClient = mapperClient;
+        this.publicKeyString = publicKeyString;
+    }
+
     public FederatedMapperPlugin(String mapperConfFilePath) throws ConfigurationErrorException {
-        this.classFactory = new RasClassFactory();
+        try {
+            this.publicKeyString = CryptoUtil.toBase64(ServiceAsymmetricKeysHolder.getInstance().getPublicKey());
+        } catch (InternalServerErrorException e) {
+            throw new ConfigurationErrorException(e.getMessage());
+        } catch (GeneralSecurityException e) {
+            throw new ConfigurationErrorException(e.getMessage());
+        }
         
-        // FIXME constants
         Properties properties = PropertiesUtil.readProperties(mapperConfFilePath);
         this.idpUrl = properties.getProperty(ConfigurationPropertyKeys.CLOUD_IDENTITY_PROVIDER_URL_KEY);
-        this.adminUsername = properties.getProperty("admin_username");
-        this.adminPassword = properties.getProperty("admin_password");
-        this.internalMapperPluginClassName = properties.getProperty("internal_mapper");
-        this.mapperUrl = properties.getProperty("mapper_url");
-        this.mapperPort = properties.getProperty("mapper_port");
-        this.mapperPublicKeySuffix = properties.getProperty("mapper_public_key_suffix");
-        this.mapperMapSuffix = properties.getProperty("mapper_map_suffix");
-        this.cloudName = properties.getProperty("cloud_name");
+        this.adminUsername = properties.getProperty(ADMIN_USERNAME_KEY);
+        this.adminPassword = properties.getProperty(ADMIN_PASSWORD_KEY);
+        this.internalMapperPluginClassName = properties.getProperty(INTERNAL_MAPPER_PLUGIN_CLASS_NAME);
+        
+        String mapperUrl = properties.getProperty(MAPPER_URL_KEY);
+        String mapperPort = properties.getProperty(MAPPER_PORT_KEY);
+        String mapperPublicKeySuffix = properties.getProperty(MAPPER_PUBLIC_KEY_SUFFIX_KEY);
+        String mapperMapSuffix = properties.getProperty(MAPPER_MAP_SUFFIX_KEY);
+        String cloudName = properties.getProperty(CLOUD_NAME_KEY);
+        this.mapperClient = new MapperClient(mapperUrl, mapperPort, mapperPublicKeySuffix, 
+                mapperMapSuffix, cloudName);
         
         String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_URL_KEY);
         String asPort = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_PORT_KEY);
         this.asClient = new AuthenticationServiceClient(asAddress, asPort);
+        
+        this.classFactory = new RasClassFactory();
     }
     
     @Override
@@ -80,47 +95,11 @@ public class FederatedMapperPlugin implements SystemToCloudMapperPlugin<CloudUse
     }
 
     private HashMap<String, String> getCredentials(String federation) throws FogbowException {
-        try {
-            String token = this.asClient.getToken(CryptoUtil.toBase64(ServiceAsymmetricKeysHolder.getInstance().getPublicKey()), 
-                    this.adminUsername, this.adminPassword);
-            RSAPublicKey mapperPublicKey = PublicKeysHolder.getPublicKey(this.mapperUrl, this.mapperPort, this.mapperPublicKeySuffix);
-            
-            String rewrapToken = TokenProtector.rewrap(ServiceAsymmetricKeysHolder.getInstance().getPrivateKey(), 
-                    mapperPublicKey, token, FogbowConstants.TOKEN_STRING_SEPARATOR);
-            
-            Map<String, String> headers = new HashMap<String, String>();
-            headers.put(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, rewrapToken);
-            Map<String, String> body = new HashMap<String, String>();
-            String endpoint = getMapperEndpoint(federation);
-            
-            HttpResponse response = HttpRequestClient.doGenericRequest(HttpMethod.GET, endpoint, headers, body);
-            // TODO check errors
-            String responseContent = response.getContent();
-            Gson gson = new Gson();
-            
-            LinkedTreeMap<String, LinkedTreeMap<String, String>> baseCredentialsMap = 
-                    (LinkedTreeMap<String, LinkedTreeMap<String, String>>) gson.fromJson(responseContent, LinkedTreeMap.class);
-            // FIXME constant
-            return new HashMap<String, String>(baseCredentialsMap.get("credentials"));
-        } catch (GeneralSecurityException e) {
-            // TODO Handle this exception
-            e.printStackTrace();
-            return null;
-        } catch (URISyntaxException e) {
-            // TODO Handle this exception
-            e.printStackTrace();
-            return null;
-        }
+        String token = this.asClient.getToken(this.publicKeyString, this.adminUsername, this.adminPassword);
+        return this.mapperClient.getCredentials(token, federation);
     }
-    
-    private String getMapperEndpoint(String federation) throws URISyntaxException {
-        URI uri = new URI(this.mapperUrl);
-        uri = UriComponentsBuilder.fromUri(uri).port(this.mapperPort).path("/").path(this.mapperMapSuffix).path("/").
-                path(federation).path("/").path(this.cloudName).build(true).toUri();
-        return uri.toString();
-    }
-    
-    public SystemToCloudMapperPlugin<CloudUser, SystemUser> getPlugin(HashMap<String, String> credentials) {
+
+    private SystemToCloudMapperPlugin<CloudUser, SystemUser> getPlugin(HashMap<String, String> credentials) {
         return (SystemToCloudMapperPlugin<CloudUser, SystemUser>) 
                 this.classFactory.createPluginInstance(internalMapperPluginClassName, this.idpUrl, credentials);
     }
