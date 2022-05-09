@@ -30,7 +30,8 @@ public class RasPublicKeysHolder {
         if (this.asPublicKey == null) {
             String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_URL_KEY);
             String asPort = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_PORT_KEY);
-            this.asPublicKey = PublicKeysHolder.getPublicKey(asAddress, asPort, cloud.fogbow.as.api.http.request.PublicKey.PUBLIC_KEY_ENDPOINT);
+            String publicKeyEndpoint = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_PUBLIC_KEY_ENDPOINT_KEY);
+            this.asPublicKey = PublicKeysHolder.getPublicKey(asAddress, asPort, publicKeyEndpoint);
         }
         return this.asPublicKey;
     }

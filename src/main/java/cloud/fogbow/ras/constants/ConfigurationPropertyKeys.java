@@ -40,6 +40,8 @@ public class ConfigurationPropertyKeys {
     // AS configuration
     public static final String AS_PORT_KEY = "as_port";
     public static final String AS_URL_KEY = "as_url";
+    public static final String AS_PUBLIC_KEY_ENDPOINT_KEY = "as_public_key_endpoint";
+    public static final String AS_TOKENS_ENDPOINT_KEY = "as_tokens_endpoint";
 
     // SSH configuration
     public static final String SSH_COMMON_USER_KEY = "ssh_common_user";

@@ -76,7 +76,8 @@ public class FederatedMapperPlugin implements SystemToCloudMapperPlugin<CloudUse
         
         String asAddress = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_URL_KEY);
         String asPort = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_PORT_KEY);
-        this.asClient = new AuthenticationServiceClient(asAddress, asPort);
+        String asTokensEndpoint = PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_TOKENS_ENDPOINT_KEY);
+        this.asClient = new AuthenticationServiceClient(asAddress, asPort, asTokensEndpoint);
         
         this.classFactory = new RasClassFactory();
     }

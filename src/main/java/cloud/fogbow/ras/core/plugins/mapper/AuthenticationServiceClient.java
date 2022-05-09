@@ -23,7 +23,6 @@ import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
 
-// TODO move this class to common
 public class AuthenticationServiceClient {
     /**
      * Key used in the header of the get token request to
@@ -37,17 +36,28 @@ public class AuthenticationServiceClient {
     @VisibleForTesting
     static final String TOKEN_RESPONSE_KEY = "token";
     /**
-     * Key used in the body of the get token request to represent
-     * the user public key.
+     * Key used in the body of the get token request to represent 
+     * the federation ID.
      */
     @VisibleForTesting
-    static final String PUBLIC_KEY_REQUEST_KEY = "publicKey";
+    static final String FEDERATION_ID = "federationId";
+    /**
+     * Key used in the body of the get token request to represent
+     * the member ID.
+     */
+    @VisibleForTesting
+    static final String MEMBER_ID = "memberId";
     /**
      * Key used in the body of the get token request to represent
      * the credentials map.
      */
     @VisibleForTesting
     static final String CREDENTIALS_REQUEST_KEY = "credentials";
+    /**
+     * Key used in the credentials map to represent the user public key.
+     */
+    @VisibleForTesting
+    static final String PUBLIC_KEY_REQUEST_KEY = "userPublicKey";
     /**
      * Key used in the credentials map to represent the password.
      */
@@ -62,15 +72,17 @@ public class AuthenticationServiceClient {
     private String asTokenEndpoint;
 
     // TODO add parameters validation
+    // TODO fix variable names
     public AuthenticationServiceClient() throws ConfigurationErrorException {
         this(PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_URL_KEY), 
-             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_PORT_KEY));
+             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_PORT_KEY),
+             PropertiesHolder.getInstance().getProperty(ConfigurationPropertyKeys.AS_TOKENS_ENDPOINT_KEY));
     }
     
     public AuthenticationServiceClient(String authorizationServiceAddress, 
-            String authorizationServicePort) throws ConfigurationErrorException {
+            String authorizationServicePort, String authorizationServiceTokensEndpoint) throws ConfigurationErrorException {
         try {
-            this.asTokenEndpoint = getAuthenticationEndpoint(cloud.fogbow.as.api.http.request.Token.TOKEN_ENDPOINT, 
+            this.asTokenEndpoint = getAuthenticationEndpoint(authorizationServiceTokensEndpoint, 
                     authorizationServiceAddress, authorizationServicePort);
         } catch (URISyntaxException e) {
             throw new ConfigurationErrorException(e.getMessage());
@@ -126,10 +138,12 @@ public class AuthenticationServiceClient {
         Map<String, String> credentials = new HashMap<String, String>();
         credentials.put(USERNAME_REQUEST_KEY, userName);
         credentials.put(PASSWORD_REQUEST_KEY, password);
+        credentials.put(PUBLIC_KEY_REQUEST_KEY, publicKey);
         
         Map<String, Object> body = new HashMap<String, Object>();
         body.put(CREDENTIALS_REQUEST_KEY, credentials);
-        body.put(PUBLIC_KEY_REQUEST_KEY, publicKey);
+        body.put(MEMBER_ID, userName);
+        body.put(FEDERATION_ID, null);
 
         return body;
     }
