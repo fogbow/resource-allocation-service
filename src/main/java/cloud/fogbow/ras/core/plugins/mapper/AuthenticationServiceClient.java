@@ -23,6 +23,7 @@ import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.constants.ConfigurationPropertyKeys;
 import cloud.fogbow.ras.core.PropertiesHolder;
 
+// TODO change this class name to FederatedAuthenticationServiceClient
 public class AuthenticationServiceClient {
     /**
      * Key used in the header of the get token request to
@@ -43,10 +44,10 @@ public class AuthenticationServiceClient {
     static final String FEDERATION_ID = "federationId";
     /**
      * Key used in the body of the get token request to represent
-     * the member ID.
+     * the operator ID.
      */
     @VisibleForTesting
-    static final String MEMBER_ID = "memberId";
+    static final String OPERATOR_ID = "operatorId";
     /**
      * Key used in the body of the get token request to represent
      * the credentials map.
@@ -142,7 +143,7 @@ public class AuthenticationServiceClient {
         
         Map<String, Object> body = new HashMap<String, Object>();
         body.put(CREDENTIALS_REQUEST_KEY, credentials);
-        body.put(MEMBER_ID, userName);
+        body.put(OPERATOR_ID, userName);
         body.put(FEDERATION_ID, null);
 
         return body;
