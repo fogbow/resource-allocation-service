@@ -20,6 +20,7 @@ import cloud.fogbow.ras.core.PropertiesHolder;
 import cloud.fogbow.ras.core.RasClassFactory;
 
 public class FederatedMapperPlugin implements SystemToCloudMapperPlugin<CloudUser, SystemUser> {
+    public static final String SERVICE_ID_METADATA_KEY = "serviceId";
     private static final String ADMIN_USERNAME_KEY = "admin_username";
     private static final String ADMIN_PASSWORD_KEY = "admin_password";
     private static final String INTERNAL_MAPPER_PLUGIN_CLASS_NAME = "internal_mapper";
@@ -84,20 +85,19 @@ public class FederatedMapperPlugin implements SystemToCloudMapperPlugin<CloudUse
     
     @Override
     public CloudUser map(SystemUser systemUser) throws FogbowException {
-        String federation = getFederationFromSystemUser(systemUser);
-        HashMap<String, String> credentials = getCredentials(federation);
+        HashMap<String, String> credentials = getCredentials(systemUser);
         SystemToCloudMapperPlugin<CloudUser, SystemUser> internalPlugin = getPlugin(credentials);
         return internalPlugin.map(systemUser);
     }
 
-    private String getFederationFromSystemUser(SystemUser systemUser) {
-        return StringUtils.splitByWholeSeparator(systemUser.getId(), 
-                FogbowConstants.FEDERATION_ID_SEPARATOR)[1];
-    }
-
-    private HashMap<String, String> getCredentials(String federation) throws FogbowException {
+    private HashMap<String, String> getCredentials(SystemUser systemUser) throws FogbowException {
+        String[] userIdFields = StringUtils.splitByWholeSeparator(systemUser.getId(), 
+                FogbowConstants.FEDERATION_ID_SEPARATOR);
+        String userId = userIdFields[0];
+        String federation = userIdFields[1];
+        String serviceId = systemUser.getMetadata().get(SERVICE_ID_METADATA_KEY);
         String token = this.asClient.getToken(this.publicKeyString, this.adminUsername, this.adminPassword);
-        return this.mapperClient.getCredentials(token, federation);
+        return this.mapperClient.getCredentials(token, federation, serviceId, userId);
     }
 
     private SystemToCloudMapperPlugin<CloudUser, SystemUser> getPlugin(HashMap<String, String> credentials) {

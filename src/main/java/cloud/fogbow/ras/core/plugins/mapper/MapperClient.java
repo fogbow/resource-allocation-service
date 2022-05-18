@@ -43,14 +43,15 @@ public class MapperClient {
         this.jsonToMapConverter = new Gson();
     }
     
-    public HashMap<String, String> getCredentials(String token, String federation) throws FogbowException {
+    public HashMap<String, String> getCredentials(String token, String federation, 
+            String serviceId, String userId) throws FogbowException {
         try {
             RSAPublicKey mapperPublicKey = PublicKeysHolder.getPublicKey(
                     this.mapperUrl, this.mapperPort, this.mapperPublicKeySuffix);
             String rewrapToken = TokenProtector.rewrap(ServiceAsymmetricKeysHolder.getInstance().getPrivateKey(), 
                     mapperPublicKey, token, FogbowConstants.TOKEN_STRING_SEPARATOR);
             
-            String endpoint = getMapperEndpoint(federation);
+            String endpoint = getMapperEndpoint(federation, serviceId, userId);
             Map<String, String> headers = new HashMap<String, String>();
             headers.put(CommonKeys.SYSTEM_USER_TOKEN_HEADER_KEY, rewrapToken);
             Map<String, String> body = new HashMap<String, String>();
@@ -70,10 +71,10 @@ public class MapperClient {
         }
     }
     
-    private String getMapperEndpoint(String federation) throws URISyntaxException {
+    private String getMapperEndpoint(String federation, String serviceId, String userId) throws URISyntaxException {
         URI uri = new URI(this.mapperUrl);
         uri = UriComponentsBuilder.fromUri(uri).port(this.mapperPort).path("/").path(this.mapperMapSuffix).path("/").
-                path(federation).path("/").path(this.cloudName).build(true).toUri();
+                path(federation).path("/").path(serviceId).path("/").path(userId).path("/").path(this.cloudName).build(true).toUri();
         return uri.toString();
     }
     

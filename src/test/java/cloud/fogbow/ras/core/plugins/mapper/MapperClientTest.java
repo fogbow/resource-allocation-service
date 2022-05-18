@@ -40,8 +40,11 @@ public class MapperClientTest {
     private static final String MAPPER_MAP_SUFFIX = "map";
     private static final String CLOUD_NAME = "cloudName";
     private static final String FEDERATION = "federation";
+    private static final String SERVICE_ID = "serviceId";
+    private static final String USER_ID = "userId";
     private static final String BASE_ENDPOINT = MAPPER_URL + ":" + MAPPER_PORT + "/" + MAPPER_MAP_SUFFIX;
-    private static final String REQUEST_ENDPOINT = BASE_ENDPOINT + "/" + FEDERATION + "/" + CLOUD_NAME;
+    private static final String REQUEST_ENDPOINT = BASE_ENDPOINT + "/" + FEDERATION + "/" + SERVICE_ID + "/" + 
+    USER_ID + "/" + CLOUD_NAME;
     private static final String TOKEN = "token";
     private static final String REWRAP_TOKEN = "rewrapToken";
     private static final String CREDENTIAL_KEY_1 = "key1";
@@ -100,7 +103,7 @@ public class MapperClientTest {
     public void testGetCredentials() throws FogbowException {
         mapperClient = new MapperClient(MAPPER_URL, MAPPER_PORT, MAPPER_PUBLIC_KEY_SUFFIX, MAPPER_MAP_SUFFIX, CLOUD_NAME);
         
-        HashMap<String, String> returnedCredentials = mapperClient.getCredentials(TOKEN, FEDERATION);
+        HashMap<String, String> returnedCredentials = mapperClient.getCredentials(TOKEN, FEDERATION, SERVICE_ID, USER_ID);
         
         assertEquals(2, returnedCredentials.size());
         assertEquals(CREDENTIAL_VALUE_1, returnedCredentials.get(CREDENTIAL_KEY_1));
@@ -119,6 +122,6 @@ public class MapperClientTest {
         
         mapperClient = new MapperClient(MAPPER_URL, MAPPER_PORT, MAPPER_PUBLIC_KEY_SUFFIX, MAPPER_MAP_SUFFIX, CLOUD_NAME);
         
-        mapperClient.getCredentials(TOKEN, FEDERATION);
+        mapperClient.getCredentials(TOKEN, FEDERATION, SERVICE_ID, USER_ID);
     }
 }
