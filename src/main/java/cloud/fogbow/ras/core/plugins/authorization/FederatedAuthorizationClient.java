@@ -11,6 +11,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
@@ -28,21 +29,24 @@ import cloud.fogbow.ras.api.http.CommonKeys;
 import cloud.fogbow.ras.core.models.RasOperation;
 
 public class FederatedAuthorizationClient {
-    private static final String AUTHORIZATION_REQUEST_CONTENT_TYPE = "application/json";
-    private static final String OPERATION_STRING_KEY = "operation";
-    private static final String AUTHORIZED_RESPONSE_KEY = "authorized";
+    @VisibleForTesting
+    static final String AUTHORIZATION_REQUEST_CONTENT_TYPE = "application/json";
+    @VisibleForTesting
+    static final String OPERATION_STRING_KEY = "operation";
+    @VisibleForTesting
+    static final String AUTHORIZED_RESPONSE_KEY = "authorized";
     
     private String authorizationUrl;
     private String authorizationPort;
     private String authorizationPublicKeySuffix;
     private String authorizationAuthorizeSuffix;
     
-    public FederatedAuthorizationClient(String mapperUrl, String mapperPort, String mapperPublicKeySuffix,
-            String mapperMapSuffix) {
-        this.authorizationUrl = mapperUrl;
-        this.authorizationPort = mapperPort;
-        this.authorizationPublicKeySuffix = mapperPublicKeySuffix;
-        this.authorizationAuthorizeSuffix = mapperMapSuffix;
+    public FederatedAuthorizationClient(String authorizationUrl, String authorizationPort, String authorizationPublicKeySuffix,
+            String authorizationAuthorizeSuffix) {
+        this.authorizationUrl = authorizationUrl;
+        this.authorizationPort = authorizationPort;
+        this.authorizationPublicKeySuffix = authorizationPublicKeySuffix;
+        this.authorizationAuthorizeSuffix = authorizationAuthorizeSuffix;
     }
 
     public boolean isAuthorized(String token, String federation, String serviceId, String userId, RasOperation operation) throws UnauthorizedRequestException {

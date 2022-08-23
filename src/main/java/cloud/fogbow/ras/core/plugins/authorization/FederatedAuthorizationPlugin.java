@@ -33,6 +33,16 @@ public class FederatedAuthorizationPlugin implements AuthorizationPlugin<RasOper
     private String adminPassword;
     private FederatedAuthorizationClient authorizationClient;
     
+    public FederatedAuthorizationPlugin(AuthenticationServiceClient asClient, 
+            FederatedAuthorizationClient authorizationClient, String publicKeyString,
+            String adminUsername, String adminPassword) {
+        this.asClient = asClient;
+        this.authorizationClient = authorizationClient;
+        this.publicKeyString = publicKeyString;
+        this.adminUsername = adminUsername;
+        this.adminPassword = adminPassword;
+    }
+    
     public FederatedAuthorizationPlugin() throws ConfigurationErrorException {
         try {
             this.publicKeyString = CryptoUtil.toBase64(ServiceAsymmetricKeysHolder.getInstance().getPublicKey());
