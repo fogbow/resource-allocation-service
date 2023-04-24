@@ -154,6 +154,10 @@ public abstract class Order<T extends Order> implements Serializable {
         this.provider = provider;
     }
 
+    public String getUserId() {
+        return this.userId;
+    }
+    
     public String getCloudName() {
         return this.cloudName;
     }
